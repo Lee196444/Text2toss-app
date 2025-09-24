@@ -860,23 +860,58 @@ async def cleanup_temporary_images():
 
 @api_router.post("/admin/bookings/{booking_id}/notify-customer")
 async def notify_customer_completion(booking_id: str):
-    """Send completion notification with photo to customer"""
+    """Send completion notification with photo to customer via SMS"""
     
     booking = await db.bookings.find_one({"id": booking_id})
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
     
-    if not booking.get("completion_photo_path"):
-        raise HTTPException(status_code=400, detail="No completion photo available")
+    phone = booking.get('phone', '').replace('(', '').replace(')', '').replace(' ', '').replace('-', '')
+    if phone and not phone.startswith('+'):
+        phone = '+1' + phone
     
-    # For now, just return success - you can integrate with email service later
-    # TODO: Integrate with email service (SendGrid, etc.) to send photo to customer
+    if not phone:
+        raise HTTPException(status_code=400, detail="No phone number available")
+    
+    # Send SMS with or without photo
+    if booking.get("completion_photo_path"):
+        # Send with photo
+        backend_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://clutterclear-1.preview.emergentagent.com')
+        photo_url = f"{backend_url}/api/admin/completion-photo/{booking_id}"
+        
+        message = f"📸 Text2toss Complete: Your junk removal is finished at {booking['address']}. "
+        if booking.get("completion_note"):
+            message += f"Note: {booking['completion_note']} "
+        message += "See the cleaned area in the photo!"
+        
+        sms_result = await send_sms(phone, message, photo_url)
+    else:
+        # Send without photo
+        message = f"✅ Text2toss Complete: Your junk removal is finished at {booking['address']}. Thank you for your business!"
+        sms_result = await send_sms(phone, message)
     
     return {
-        "message": "Customer notification sent successfully",
+        "message": "Customer SMS notification sent successfully",
         "customer_phone": booking.get("phone"),
         "completion_note": booking.get("completion_note", ""),
-        "photo_available": True
+        "photo_available": bool(booking.get("completion_photo_path")),
+        "sms_status": sms_result
+    }
+
+@api_router.post("/admin/test-sms")
+async def test_sms_setup():
+    """Test SMS configuration"""
+    client = get_twilio_client()
+    if not client:
+        return {
+            "configured": False,
+            "message": "Twilio credentials not configured. Add TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN to .env file."
+        }
+    
+    return {
+        "configured": True,
+        "message": "Twilio SMS is configured and ready",
+        "account_sid": os.environ.get('TWILIO_ACCOUNT_SID')[:8] + "..." if os.environ.get('TWILIO_ACCOUNT_SID') else None
     }
 
 @api_router.post("/admin/login")
