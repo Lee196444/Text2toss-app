@@ -306,11 +306,19 @@ const LandingPage = () => {
               {quote && (
                 <Card className="bg-emerald-50 border-emerald-200" data-testid="quote-result">
                   <CardContent className="pt-6">
-                    <div className="text-center">
-                      <h3 className="text-2xl font-bold text-emerald-800 mb-2">
-                        Total: ${quote.total_price}
-                      </h3>
-                      <p className="text-emerald-600 mb-4">Quote ID: {quote.id}</p>
+                    <div className="text-center space-y-4">
+                      <div>
+                        <h3 className="text-2xl font-bold text-emerald-800 mb-2">
+                          Total: ${quote.total_price}
+                        </h3>
+                        <p className="text-emerald-600 text-sm mb-2">Quote ID: {quote.id}</p>
+                        {quote.ai_explanation && (
+                          <div className="bg-white/50 rounded-lg p-3 mb-4">
+                            <p className="text-xs text-gray-600 mb-1">🤖 AI Pricing Analysis</p>
+                            <p className="text-sm text-gray-700">{quote.ai_explanation}</p>
+                          </div>
+                        )}
+                      </div>
                       <Button 
                         onClick={() => setShowBooking(true)}
                         className="bg-emerald-600 hover:bg-emerald-700"
