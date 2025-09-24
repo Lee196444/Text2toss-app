@@ -81,6 +81,15 @@ const AdminDashboard = () => {
     });
   };
 
+  const cleanupTempImages = async () => {
+    try {
+      const response = await axios.post(`${API}/admin/cleanup-temp-images`);
+      toast.success(response.data.message);
+    } catch (error) {
+      toast.error("Failed to cleanup temporary images");
+    }
+  };
+
   const calculateOptimalRoute = async () => {
     if (!isLoaded || !window.google || dailyBookings.length < 2) {
       toast.error("Need at least 2 bookings to calculate route");
