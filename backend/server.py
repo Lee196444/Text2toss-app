@@ -595,6 +595,18 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
     booking_mongo = prepare_for_mongo(booking.dict())
     await db.bookings.insert_one(booking_mongo)
     
+    # Send confirmation SMS
+    phone = booking.phone.replace('(', '').replace(')', '').replace(' ', '').replace('-', '')
+    if phone and not phone.startswith('+'):
+        phone = '+1' + phone  # Assume US number if no country code
+    
+    if phone:
+        pickup_date_str = booking.pickup_date.strftime('%B %d, %Y')
+        confirmation_message = f"✅ Text2toss Confirmed: Junk removal scheduled for {pickup_date_str} between {booking.pickup_time} at {booking.address}. We'll text you updates!"
+        
+        sms_result = await send_sms(phone, confirmation_message)
+        logging.info(f"Booking confirmation SMS sent: {sms_result}")
+    
     return booking
 
 @api_router.get("/bookings", response_model=List[Booking])
