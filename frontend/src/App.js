@@ -95,11 +95,11 @@ const LandingPage = () => {
                 <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-200">
                   🚛 Professional Junk Removal Service
                 </Badge>
-                <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
+                <h1 className="text-5xl lg:text-6xl font-bold text-white leading-tight">
                   Describe It,<br />
-                  <span className="bg-gradient-to-r from-emerald-500 to-teal-600 bg-clip-text text-transparent">We Remove It</span>
+                  <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">We Remove It</span>
                 </h1>
-                <p className="text-xl text-gray-600 leading-relaxed">
+                <p className="text-xl text-gray-200 leading-relaxed">
                   Simply tell us what junk you need removed. Get an instant quote, schedule pickup, 
                   and we'll handle the rest. Fast, reliable, and eco-friendly junk removal service.
                 </p>
