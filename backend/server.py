@@ -120,9 +120,9 @@ class BookingCreate(BaseModel):
     phone: str
     special_instructions: Optional[str] = None
 
-# AI-powered pricing logic
+# AI-powered pricing logic for ground level and curbside pickup only
 async def calculate_ai_price(items: List[JunkItem], description: str) -> tuple[float, str]:
-    """Use AI to analyze junk description and provide intelligent pricing"""
+    """Use AI to analyze junk description and provide intelligent pricing for ground level/curbside pickup only"""
     
     # Prepare item descriptions for AI
     items_text = []
@@ -134,7 +134,13 @@ async def calculate_ai_price(items: List[JunkItem], description: str) -> tuple[f
     items_summary = "\n".join(items_text)
     
     # Create AI prompt for pricing analysis
-    ai_prompt = f"""You are a professional junk removal pricing expert. Analyze the following junk removal request and provide an accurate price estimate.
+    ai_prompt = f"""You are a professional junk removal pricing expert for a GROUND LEVEL and CURBSIDE PICKUP ONLY service. Analyze the following junk removal request and provide an accurate price estimate.
+
+IMPORTANT SERVICE LIMITATIONS:
+- We ONLY provide ground level pickup (no stairs, no upper floors)
+- Items must be accessible at ground level or placed curbside
+- No basement, attic, or upper floor removals
+- No carrying items up or down stairs
 
 JUNK ITEMS TO REMOVE:
 {items_summary}
@@ -143,25 +149,26 @@ ADDITIONAL DETAILS:
 {description}
 
 Please consider these factors in your pricing:
-- Item size and weight
-- Removal difficulty (stairs, tight spaces, disassembly needed)
+- Item size and weight (for ground level handling)
 - Material type (furniture, appliances, electronics, etc.)
-- Labor requirements
-- Disposal costs
+- Basic disassembly if needed (simple removal)
+- Disposal and recycling costs
 - Transportation needs
 
-PRICING GUIDELINES:
-- Small items (boxes, bags, small furniture): $15-30 each
-- Medium items (chairs, small appliances, mattresses): $40-80 each  
-- Large items (sofas, refrigerators, washers): $80-150 each
-- Extra charges for:
-  - Multiple flights of stairs: +$20-40 per item
-  - Disassembly required: +$15-25 per item
-  - Heavy/awkward items: +$25-50 per item
-  - Hazardous materials: +$30-60 per item
+SIMPLIFIED PRICING GUIDELINES (Ground Level Only):
+- Small items (boxes, bags, small furniture): $20-35 each
+- Medium items (chairs, small appliances, mattresses): $45-75 each  
+- Large items (sofas, refrigerators, washers): $85-140 each
+- Minor additional charges for:
+  - Basic disassembly (removing doors, etc.): +$10-20 per item
+  - Oversized/awkward items: +$15-30 per item
+  - Multiple heavy items requiring extra labor: +$20-40 total
 
-Base service fee: $25-50
-Additional labor: $40-60 per hour if needed
+Base service fee: $30-45 (includes ground level pickup and loading)
+
+Since this is ground level/curbside service only, there are NO charges for stairs, upper floors, or difficult access.
+
+If the description mentions stairs, upper floors, basements, or difficult access, note in explanation that customer needs to move items to ground level/curbside first.
 
 Respond ONLY with a JSON object in this exact format:
 {{
@@ -171,7 +178,7 @@ Respond ONLY with a JSON object in this exact format:
     "service_fee": 30.00,
     "additional_charges": 0.00
   }},
-  "explanation": "Brief explanation of the pricing factors considered"
+  "explanation": "Brief explanation of the pricing factors considered for ground level pickup"
 }}"""
 
     try:
