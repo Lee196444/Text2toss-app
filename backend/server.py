@@ -771,8 +771,26 @@ async def upload_completion_photo(
         if result.matched_count == 0:
             raise HTTPException(status_code=404, detail="Booking not found")
         
+        # Send SMS with completion photo
+        phone = booking.get('phone', '').replace('(', '').replace(')', '').replace(' ', '').replace('-', '')
+        if phone and not phone.startswith('+'):
+            phone = '+1' + phone  # Assume US number if no country code
+        
+        if phone:
+            # Create public URL for the image (you'll need to adjust this for your domain)
+            backend_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://clutterclear-1.preview.emergentagent.com')
+            photo_url = f"{backend_url}/api/admin/completion-photo/{booking_id}"
+            
+            completion_message = f"📸 Text2toss Complete: Your junk has been removed from {booking['address']}. "
+            if completion_note:
+                completion_message += f"Note: {completion_note} "
+            completion_message += "See attached photo of the cleaned area!"
+            
+            sms_result = await send_sms(phone, completion_message, photo_url)
+            logging.info(f"Completion SMS sent for booking {booking_id}: {sms_result}")
+        
         return {
-            "message": "Completion photo uploaded successfully",
+            "message": "Completion photo uploaded and customer notified with photo",
             "photo_path": str(photo_path),
             "completion_note": completion_note
         }
