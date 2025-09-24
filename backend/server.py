@@ -110,6 +110,9 @@ class PriceQuoteCreate(BaseModel):
 class ImageQuoteCreate(BaseModel):
     description: str
 
+class AdminLogin(BaseModel):
+    password: str
+
 class Booking(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str
