@@ -297,6 +297,9 @@ const AdminDashboard = () => {
               <CardTitle className="flex items-center justify-between">
                 Daily Schedule
                 <div className="flex space-x-2">
+                  <Button onClick={testSmsSetup} size="sm" variant="outline" className="text-xs">
+                    📱 Test SMS
+                  </Button>
                   <Button onClick={cleanupTempImages} size="sm" variant="outline" className="text-xs">
                     🗑️ Cleanup
                   </Button>
