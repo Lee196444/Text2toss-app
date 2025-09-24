@@ -681,12 +681,17 @@ async def get_weekly_schedule(start_date: str = None):
 
 @api_router.patch("/admin/bookings/{booking_id}")
 async def update_booking_status(booking_id: str, status_update: dict):
-    """Update booking status"""
+    """Update booking status and send SMS notification"""
     allowed_statuses = ["scheduled", "in_progress", "completed", "cancelled"]
     new_status = status_update.get("status")
     
     if new_status not in allowed_statuses:
         raise HTTPException(status_code=400, detail="Invalid status")
+    
+    # Get booking details first
+    booking = await db.bookings.find_one({"id": booking_id})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
     
     update_data = {"status": new_status}
     
@@ -699,10 +704,23 @@ async def update_booking_status(booking_id: str, status_update: dict):
         {"$set": update_data}
     )
     
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Booking not found")
+    # Send SMS notification based on status
+    sms_messages = {
+        "in_progress": f"🚛 Text2toss Update: Your junk removal team has started working at {booking['address']}. We'll notify you when complete!",
+        "completed": f"✅ Text2toss Complete: Your junk removal is finished at {booking['address']}. Thank you for choosing our service!",
+        "cancelled": f"❌ Text2toss Notice: Your junk removal appointment for {booking['address']} has been cancelled. Contact us for rescheduling."
+    }
     
-    return {"message": "Booking status updated successfully"}
+    if new_status in sms_messages:
+        phone = booking.get('phone', '').replace('(', '').replace(')', '').replace(' ', '').replace('-', '')
+        if phone and not phone.startswith('+'):
+            phone = '+1' + phone  # Assume US number if no country code
+        
+        if phone:
+            sms_result = await send_sms(phone, sms_messages[new_status])
+            logging.info(f"SMS sent for booking {booking_id}: {sms_result}")
+    
+    return {"message": "Booking status updated and customer notified"}
 
 @api_router.post("/admin/bookings/{booking_id}/completion")
 async def upload_completion_photo(
