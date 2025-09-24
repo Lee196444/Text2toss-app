@@ -225,9 +225,14 @@ const AdminDashboard = () => {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 Daily Schedule
-                <Button onClick={calculateOptimalRoute} size="sm" className="bg-emerald-600 hover:bg-emerald-700">
-                  Optimize Route
-                </Button>
+                <div className="flex space-x-2">
+                  <Button onClick={cleanupTempImages} size="sm" variant="outline" className="text-xs">
+                    🗑️ Cleanup
+                  </Button>
+                  <Button onClick={calculateOptimalRoute} size="sm" className="bg-emerald-600 hover:bg-emerald-700">
+                    Optimize Route
+                  </Button>
+                </div>
               </CardTitle>
               <CardDescription>
                 Pickups for {new Date(selectedDate).toLocaleDateString()}
