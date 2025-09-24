@@ -143,8 +143,9 @@ const LandingPage = () => {
                   <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">We Remove It</span>
                 </h1>
                 <p className="text-xl text-gray-200 leading-relaxed">
-                  Simply tell us what junk you need removed. Get an instant quote, schedule pickup, 
-                  and we'll handle the rest. Fast, reliable, and eco-friendly junk removal service.
+                  Simply tell us what junk you need removed or upload a photo for AI analysis. 
+                  Get an instant quote, schedule pickup, and we'll handle the rest. 
+                  Fast, reliable, and eco-friendly junk removal service.
                 </p>
                 <div className="bg-emerald-900/30 border border-emerald-400/30 rounded-lg p-4 mt-4">
                   <p className="text-emerald-200 text-sm font-medium">
