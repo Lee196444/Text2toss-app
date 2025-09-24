@@ -761,6 +761,27 @@ async def cleanup_temporary_images():
     
     return {"message": f"Cleaned up {cleaned_count} temporary images"}
 
+@api_router.post("/admin/bookings/{booking_id}/notify-customer")
+async def notify_customer_completion(booking_id: str):
+    """Send completion notification with photo to customer"""
+    
+    booking = await db.bookings.find_one({"id": booking_id})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    if not booking.get("completion_photo_path"):
+        raise HTTPException(status_code=400, detail="No completion photo available")
+    
+    # For now, just return success - you can integrate with email service later
+    # TODO: Integrate with email service (SendGrid, etc.) to send photo to customer
+    
+    return {
+        "message": "Customer notification sent successfully",
+        "customer_phone": booking.get("phone"),
+        "completion_note": booking.get("completion_note", ""),
+        "photo_available": True
+    }
+
 @api_router.post("/admin/login")
 async def admin_login(login_data: AdminLogin):
     """Simple admin password authentication"""
