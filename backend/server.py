@@ -22,6 +22,8 @@ from fastapi import UploadFile, File
 import aiofiles
 import os
 from pathlib import Path
+from twilio.rest import Client
+import logging
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
