@@ -217,8 +217,8 @@ const LandingPage = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 leading-relaxed">
-                  Choose a convenient time for pickup. Our professional team will arrive 
-                  on time and handle everything safely.
+                  Choose a convenient time for pickup. Our team will arrive on time 
+                  and safely collect items from your ground level location.
                 </p>
               </CardContent>
             </Card>
