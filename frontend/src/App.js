@@ -135,7 +135,7 @@ const LandingPage = () => {
                   <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
                     <span className="text-white text-xs">✓</span>
                   </div>
-                  <span className="text-gray-600">Eco-Friendly</span>
+                  <span className="text-gray-200">Eco-Friendly</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
