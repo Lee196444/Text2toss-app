@@ -127,6 +127,11 @@ const LandingPage = () => {
                   size="lg"
                   className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 text-lg px-8 py-6"
                   data-testid="learn-more-btn"
+                  onClick={() => {
+                    document.getElementById('how-it-works').scrollIntoView({ 
+                      behavior: 'smooth' 
+                    });
+                  }}
                 >
                   Learn More
                 </Button>
