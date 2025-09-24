@@ -180,7 +180,7 @@ const AdminDashboard = () => {
           <Card>
             <CardContent className="p-6">
               <div className="text-2xl font-bold text-emerald-600">{dailyBookings.length}</div>
-              <p className="text-sm text-gray-600">Today's Pickups</p>
+              <p className="text-sm text-gray-700">Today's Pickups</p>
             </CardContent>
           </Card>
           <Card>
