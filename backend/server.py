@@ -256,6 +256,70 @@ async def get_bookings(token: str = None):
     bookings = await db.bookings.find({"user_id": user_id}).to_list(1000)
     return [Booking(**parse_from_mongo(booking)) for booking in bookings]
 
+@api_router.get("/admin/daily-schedule", response_model=List[Booking])
+async def get_daily_schedule(date: str = None):
+    """Get all bookings for a specific date (YYYY-MM-DD format) or today if no date specified"""
+    if date is None:
+        target_date = datetime.now(timezone.utc).date()
+    else:
+        target_date = datetime.fromisoformat(date).date()
+    
+    # Find bookings for the target date
+    bookings = await db.bookings.find({
+        "pickup_date": {
+            "$gte": datetime.combine(target_date, datetime.min.time()),
+            "$lt": datetime.combine(target_date, datetime.min.time()) + timedelta(days=1)
+        }
+    }).sort("pickup_time", 1).to_list(1000)
+    
+    result = []
+    for booking in bookings:
+        booking_data = parse_from_mongo(booking)
+        # Add quote details to booking
+        quote = await db.quotes.find_one({"id": booking_data["quote_id"]})
+        if quote:
+            booking_data["quote_details"] = parse_from_mongo(quote)
+        result.append(Booking(**{k: v for k, v in booking_data.items() if k != "quote_details"}))
+        result[-1].quote_details = booking_data.get("quote_details")
+    
+    return result
+
+@api_router.get("/admin/weekly-schedule")
+async def get_weekly_schedule(start_date: str = None):
+    """Get bookings for a week starting from start_date or current week"""
+    if start_date is None:
+        start = datetime.now(timezone.utc).date()
+        # Get Monday of current week
+        start = start - timedelta(days=start.weekday())
+    else:
+        start = datetime.fromisoformat(start_date).date()
+    
+    end = start + timedelta(days=7)
+    
+    bookings = await db.bookings.find({
+        "pickup_date": {
+            "$gte": datetime.combine(start, datetime.min.time()),
+            "$lt": datetime.combine(end, datetime.min.time())
+        }
+    }).sort([("pickup_date", 1), ("pickup_time", 1)]).to_list(1000)
+    
+    # Group by date
+    schedule = {}
+    for booking in bookings:
+        booking_data = parse_from_mongo(booking)
+        date_key = booking_data["pickup_date"].strftime("%Y-%m-%d")
+        if date_key not in schedule:
+            schedule[date_key] = []
+        
+        # Add quote details
+        quote = await db.quotes.find_one({"id": booking_data["quote_id"]})
+        if quote:
+            booking_data["quote_details"] = parse_from_mongo(quote)
+            
+        schedule[date_key].append(booking_data)
+    
+    return schedule
+
 # Include the router in the main app
 app.include_router(api_router)
 
