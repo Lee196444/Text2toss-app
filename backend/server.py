@@ -498,6 +498,29 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
     # Parse pickup datetime
     pickup_datetime = datetime.fromisoformat(booking_data.pickup_date)
     
+    # Handle image preservation if quote had an image
+    permanent_image_path = None
+    if quote_doc.get("temp_image_path"):
+        try:
+            # Create permanent storage directory
+            permanent_dir = Path("/app/backend/static/booking_images")
+            permanent_dir.mkdir(parents=True, exist_ok=True)
+            
+            temp_path = Path(quote_doc["temp_image_path"])
+            if temp_path.exists():
+                # Move image to permanent storage
+                permanent_filename = f"booking_{booking_data.quote_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}{temp_path.suffix}"
+                permanent_path = permanent_dir / permanent_filename
+                
+                # Copy file to permanent location
+                import shutil
+                shutil.move(str(temp_path), str(permanent_path))
+                permanent_image_path = str(permanent_path)
+                
+        except Exception as e:
+            print(f"Error preserving image: {str(e)}")
+            # Don't fail booking if image handling fails
+    
     booking = Booking(
         user_id=user_id,
         quote_id=booking_data.quote_id,
@@ -505,7 +528,8 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
         pickup_time=booking_data.pickup_time,
         address=booking_data.address,
         phone=booking_data.phone,
-        special_instructions=booking_data.special_instructions
+        special_instructions=booking_data.special_instructions,
+        image_path=permanent_image_path
     )
     
     booking_mongo = prepare_for_mongo(booking.dict())
