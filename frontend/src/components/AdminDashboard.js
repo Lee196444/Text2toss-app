@@ -231,7 +231,7 @@ const AdminDashboard = () => {
                 <div className="text-center py-4 text-gray-500">No pickups scheduled for this date</div>
               ) : (
                 (optimizedRoute || dailyBookings).map((booking, index) => (
-                  <div key={booking.id} className="border rounded-lg p-4 space-y-2">
+                  <div key={booking.id} className="border rounded-lg p-4 space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <Badge variant={optimizedRoute ? "default" : "secondary"}>
@@ -246,11 +246,32 @@ const AdminDashboard = () => {
                         >
                           {booking.status}
                         </Badge>
+                        {booking.image_path && (
+                          <Badge variant="outline" className="text-blue-600">
+                            📸 Has Photo
+                          </Badge>
+                        )}
                       </div>
                       <span className="font-semibold text-emerald-600">
                         {formatPrice(booking.quote_details?.total_price)}
                       </span>
                     </div>
+                    
+                    {/* Customer Image Section */}
+                    {booking.image_path && (
+                      <div className="bg-blue-50 rounded-lg p-3">
+                        <p className="text-sm font-medium text-blue-800 mb-2">📸 Customer Photo:</p>
+                        <img 
+                          src={`${API}/admin/booking-image/${booking.id}`}
+                          alt="Items to pickup"
+                          className="w-full max-w-xs h-32 object-cover rounded border"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    )}
+                    
                     <div className="text-sm">
                       <p className="font-medium">{booking.address}</p>
                       <p className="text-gray-600">Phone: {booking.phone}</p>
