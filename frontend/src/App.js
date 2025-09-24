@@ -73,6 +73,7 @@ const LandingPage = () => {
               <a href="#how-it-works" className="text-gray-600 hover:text-emerald-600 font-medium transition-colors">How It Works</a>
               <a href="#pricing" className="text-gray-600 hover:text-emerald-600 font-medium transition-colors">Pricing</a>
               <a href="#contact" className="text-gray-600 hover:text-emerald-600 font-medium transition-colors">Contact</a>
+              <Link to="/admin" className="text-gray-600 hover:text-emerald-600 font-medium transition-colors">Admin</Link>
             </div>
             <Button 
               onClick={() => setShowQuote(true)}
