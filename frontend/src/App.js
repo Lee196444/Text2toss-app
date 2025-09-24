@@ -165,8 +165,8 @@ const LandingPage = () => {
       <section id="how-it-works" className="py-20 bg-black/60 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">How It Works</h2>
-            <p className="text-xl text-gray-600">Three simple steps to junk-free living</p>
+            <h2 className="text-4xl font-bold text-white mb-4">How It Works</h2>
+            <p className="text-xl text-gray-200">Three simple steps to junk-free living</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
