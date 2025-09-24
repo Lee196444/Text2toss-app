@@ -10,7 +10,11 @@ body {
   font-family: 'Inter', sans-serif;
   line-height: 1.6;
   color: #1f2937;
-  background-color: #ffffff;
+  background-image: url('https://customer-assets.emergentagent.com/job_clutterclear-1/artifacts/gwjr8dks_file_000000009f1c622f8fa39a4fa28b3561.png');
+  background-size: cover;
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .App {
