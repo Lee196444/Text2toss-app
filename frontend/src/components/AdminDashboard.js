@@ -206,9 +206,22 @@ const AdminDashboard = () => {
   const notifyCustomer = async (bookingId) => {
     try {
       const response = await axios.post(`${API}/admin/bookings/${bookingId}/notify-customer`);
-      toast.success("Customer notified with completion photo!");
+      toast.success("SMS sent to customer with completion photo!");
     } catch (error) {
-      toast.error("Failed to notify customer");
+      toast.error("Failed to send SMS to customer");
+    }
+  };
+
+  const testSmsSetup = async () => {
+    try {
+      const response = await axios.post(`${API}/admin/test-sms`);
+      if (response.data.configured) {
+        toast.success("SMS is configured and ready!");
+      } else {
+        toast.error("SMS not configured - check Twilio credentials");
+      }
+    } catch (error) {
+      toast.error("Failed to test SMS setup");
     }
   };
 
