@@ -358,7 +358,37 @@ const AdminDashboard = () => {
                         <p className="text-gray-600">Note: {booking.special_instructions}</p>
                       )}
                     </div>
-                    <div className="flex space-x-2">
+                    {/* Completion Photo Section */}
+                    {booking.completion_photo_path && (
+                      <div className="bg-green-50 rounded-lg p-3">
+                        <p className="text-sm font-medium text-green-800 mb-2">📸 Completion Photo:</p>
+                        <div className="flex items-start gap-3">
+                          <img 
+                            src={`${API}/admin/completion-photo/${booking.id}`}
+                            alt="Completed job"
+                            className="w-24 h-24 object-cover rounded border"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                            }}
+                          />
+                          <div className="flex-1">
+                            {booking.completion_note && (
+                              <p className="text-sm text-green-700">Note: {booking.completion_note}</p>
+                            )}
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => notifyCustomer(booking.id)}
+                              className="mt-2 text-xs"
+                            >
+                              📧 Notify Customer
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="flex space-x-2 flex-wrap gap-1">
                       <Button 
                         size="sm" 
                         variant="outline"
@@ -367,13 +397,36 @@ const AdminDashboard = () => {
                       >
                         Start
                       </Button>
-                      <Button 
-                        size="sm" 
-                        onClick={() => updateBookingStatus(booking.id, 'completed')}
-                        disabled={booking.status !== 'in_progress'}
-                      >
-                        Complete
-                      </Button>
+                      
+                      {booking.status === 'in_progress' && (
+                        <>
+                          <Button 
+                            size="sm" 
+                            onClick={() => updateBookingStatus(booking.id, 'completed')}
+                            className="bg-gray-600 hover:bg-gray-700"
+                          >
+                            Complete (No Photo)
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            onClick={() => handleCompleteWithPhoto(booking)}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            📸 Complete + Photo
+                          </Button>
+                        </>
+                      )}
+                      
+                      {booking.status === 'completed' && !booking.completion_photo_path && (
+                        <Button 
+                          size="sm" 
+                          onClick={() => handleCompleteWithPhoto(booking)}
+                          variant="outline"
+                          className="border-green-500 text-green-700 hover:bg-green-50"
+                        >
+                          📸 Add Completion Photo
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))
