@@ -119,8 +119,95 @@ class BookingCreate(BaseModel):
     phone: str
     special_instructions: Optional[str] = None
 
-# Pricing logic
-def calculate_junk_price(items: List[JunkItem]) -> float:
+# AI-powered pricing logic
+async def calculate_ai_price(items: List[JunkItem], description: str) -> tuple[float, str]:
+    """Use AI to analyze junk description and provide intelligent pricing"""
+    
+    # Prepare item descriptions for AI
+    items_text = []
+    for item in items:
+        items_text.append(f"- {item.quantity}x {item.name} ({item.size} size)")
+        if item.description:
+            items_text.append(f"  Description: {item.description}")
+    
+    items_summary = "\n".join(items_text)
+    
+    # Create AI prompt for pricing analysis
+    ai_prompt = f"""You are a professional junk removal pricing expert. Analyze the following junk removal request and provide an accurate price estimate.
+
+JUNK ITEMS TO REMOVE:
+{items_summary}
+
+ADDITIONAL DETAILS:
+{description}
+
+Please consider these factors in your pricing:
+- Item size and weight
+- Removal difficulty (stairs, tight spaces, disassembly needed)
+- Material type (furniture, appliances, electronics, etc.)
+- Labor requirements
+- Disposal costs
+- Transportation needs
+
+PRICING GUIDELINES:
+- Small items (boxes, bags, small furniture): $15-30 each
+- Medium items (chairs, small appliances, mattresses): $40-80 each  
+- Large items (sofas, refrigerators, washers): $80-150 each
+- Extra charges for:
+  - Multiple flights of stairs: +$20-40 per item
+  - Disassembly required: +$15-25 per item
+  - Heavy/awkward items: +$25-50 per item
+  - Hazardous materials: +$30-60 per item
+
+Base service fee: $25-50
+Additional labor: $40-60 per hour if needed
+
+Respond ONLY with a JSON object in this exact format:
+{{
+  "total_price": 150.00,
+  "breakdown": {{
+    "items_cost": 120.00,
+    "service_fee": 30.00,
+    "additional_charges": 0.00
+  }},
+  "explanation": "Brief explanation of the pricing factors considered"
+}}"""
+
+    try:
+        # Initialize AI chat
+        chat = LlmChat(
+            api_key=os.environ.get('EMERGENT_LLM_KEY'),
+            session_id=f"pricing_{datetime.now().timestamp()}",
+            system_message="You are a professional junk removal pricing expert. Always respond with valid JSON only."
+        ).with_model("openai", "gpt-4o-mini")
+        
+        # Send message to AI
+        user_message = UserMessage(text=ai_prompt)
+        response = await chat.send_message(user_message)
+        
+        # Parse AI response
+        response_text = response.strip()
+        
+        # Extract JSON from response (in case there's extra text)
+        json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
+        if json_match:
+            response_text = json_match.group(0)
+        
+        pricing_data = json.loads(response_text)
+        
+        total_price = float(pricing_data.get("total_price", 0))
+        explanation = pricing_data.get("explanation", "AI-generated pricing estimate")
+        
+        return total_price, explanation
+        
+    except Exception as e:
+        print(f"AI pricing error: {str(e)}")
+        # Fallback to basic pricing if AI fails
+        fallback_price = calculate_basic_price(items)
+        return fallback_price, "Basic pricing applied (AI temporarily unavailable)"
+
+# Fallback basic pricing function
+def calculate_basic_price(items: List[JunkItem]) -> float:
     base_prices = {
         "small": 25,
         "medium": 50, 
