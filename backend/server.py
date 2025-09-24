@@ -286,13 +286,15 @@ async def login(login_data: UserLogin):
 
 @api_router.post("/quotes", response_model=PriceQuote)
 async def create_quote(quote_data: PriceQuoteCreate):
-    total_price = calculate_junk_price(quote_data.items)
+    # Use AI to calculate intelligent pricing
+    total_price, ai_explanation = await calculate_ai_price(quote_data.items, quote_data.description)
     
     quote = PriceQuote(
         user_id="anonymous",  # Allow anonymous quotes
         items=quote_data.items,
         total_price=total_price,
-        description=quote_data.description
+        description=quote_data.description,
+        ai_explanation=ai_explanation
     )
     
     quote_mongo = prepare_for_mongo(quote.dict())
