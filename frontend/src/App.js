@@ -103,6 +103,14 @@ const LandingPage = () => {
                   Simply tell us what junk you need removed. Get an instant quote, schedule pickup, 
                   and we'll handle the rest. Fast, reliable, and eco-friendly junk removal service.
                 </p>
+                <div className="bg-emerald-900/30 border border-emerald-400/30 rounded-lg p-4 mt-4">
+                  <p className="text-emerald-200 text-sm font-medium">
+                    📍 Ground Level & Curbside Pickup Only
+                  </p>
+                  <p className="text-emerald-300 text-sm mt-1">
+                    We pickup items from ground level locations and curbside. Items must be accessible without stairs.
+                  </p>
+                </div>
               </div>
               
               <div className="flex flex-col sm:flex-row gap-4">
