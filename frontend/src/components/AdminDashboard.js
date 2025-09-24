@@ -150,12 +150,65 @@ const AdminDashboard = () => {
 
   const updateBookingStatus = async (bookingId, newStatus) => {
     try {
-      // You'll need to implement this endpoint in the backend
       await axios.patch(`${API}/admin/bookings/${bookingId}`, { status: newStatus });
       fetchDailySchedule(); // Refresh data
       toast.success("Booking status updated");
     } catch (error) {
       toast.error("Failed to update booking status");
+    }
+  };
+
+  const handleCompleteWithPhoto = (booking) => {
+    setSelectedBooking(booking);
+    setShowCompletionModal(true);
+    setCompletionNote("");
+    setCompletionPhoto(null);
+  };
+
+  const handleCompletionPhotoUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setCompletionPhoto(file);
+    }
+  };
+
+  const submitCompletion = async () => {
+    if (!completionPhoto) {
+      toast.error("Please select a completion photo");
+      return;
+    }
+
+    setUploadingPhoto(true);
+    try {
+      // First mark as completed
+      await updateBookingStatus(selectedBooking.id, 'completed');
+
+      // Upload completion photo
+      const formData = new FormData();
+      formData.append('file', completionPhoto);
+      formData.append('completion_note', completionNote);
+
+      await axios.post(`${API}/admin/bookings/${selectedBooking.id}/completion`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      toast.success("Job completed with photo!");
+      setShowCompletionModal(false);
+      fetchDailySchedule();
+    } catch (error) {
+      toast.error("Failed to upload completion photo");
+    }
+    setUploadingPhoto(false);
+  };
+
+  const notifyCustomer = async (bookingId) => {
+    try {
+      const response = await axios.post(`${API}/admin/bookings/${bookingId}/notify-customer`);
+      toast.success("Customer notified with completion photo!");
+    } catch (error) {
+      toast.error("Failed to notify customer");
     }
   };
 
