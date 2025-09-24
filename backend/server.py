@@ -265,14 +265,12 @@ async def get_daily_schedule(date: str = None):
     else:
         target_date = datetime.fromisoformat(date).date()
     
-    # Find bookings for the target date - using string matching since we store as datetime
-    start_datetime = datetime.combine(target_date, datetime.min.time())
-    end_datetime = start_datetime + timedelta(days=1)
+    # Find bookings for the target date - match date part of pickup_date
+    target_date_str = target_date.strftime("%Y-%m-%d")
     
     bookings = await db.bookings.find({
         "pickup_date": {
-            "$gte": start_datetime.isoformat(),
-            "$lt": end_datetime.isoformat()
+            "$regex": f"^{target_date_str}"
         }
     }).sort("pickup_time", 1).to_list(1000)
     
