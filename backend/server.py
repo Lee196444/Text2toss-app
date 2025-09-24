@@ -675,6 +675,37 @@ async def cleanup_temporary_images():
     
     return {"message": f"Cleaned up {cleaned_count} temporary images"}
 
+@api_router.post("/admin/login")
+async def admin_login(login_data: AdminLogin):
+    """Simple admin password authentication"""
+    admin_password = os.environ.get('ADMIN_PASSWORD', 'admin123')
+    
+    if login_data.password == admin_password:
+        # Create a simple admin session token
+        admin_token = jwt.encode(
+            {"admin": True, "exp": datetime.now(timezone.utc) + timedelta(hours=8)}, 
+            SECRET_KEY, 
+            algorithm=ALGORITHM
+        )
+        return {"success": True, "token": admin_token, "message": "Login successful"}
+    else:
+        raise HTTPException(status_code=401, detail="Invalid admin password")
+
+@api_router.get("/admin/verify")
+async def verify_admin_token(token: str = None):
+    """Verify admin token"""
+    if not token:
+        raise HTTPException(status_code=401, detail="No token provided")
+    
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        if payload.get("admin"):
+            return {"valid": True}
+        else:
+            raise HTTPException(status_code=401, detail="Invalid admin token")
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Invalid admin token")
+
 # Include the router in the main app
 app.include_router(api_router)
 
