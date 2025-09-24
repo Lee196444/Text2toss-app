@@ -187,8 +187,8 @@ const LandingPage = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 leading-relaxed">
-                  Simply tell us what items you need removed. Old furniture, appliances, 
-                  construction debris - anything you want gone.
+                  Tell us what items you need removed from ground level locations. 
+                  Furniture, appliances, electronics - anything at curbside or ground level access.
                 </p>
               </CardContent>
             </Card>
