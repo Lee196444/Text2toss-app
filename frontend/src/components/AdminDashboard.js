@@ -21,6 +21,11 @@ const AdminDashboard = () => {
   const [mapCenter, setMapCenter] = useState({ lat: 40.7128, lng: -74.0060 }); // NYC default
   const [directions, setDirections] = useState(null);
   const [optimizedRoute, setOptimizedRoute] = useState(null);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [completionPhoto, setCompletionPhoto] = useState(null);
+  const [completionNote, setCompletionNote] = useState("");
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
