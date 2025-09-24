@@ -662,6 +662,19 @@ async def get_booking_image(booking_id: str):
     
     return FileResponse(image_path)
 
+@api_router.get("/admin/completion-photo/{booking_id}")
+async def get_completion_photo(booking_id: str):
+    """Get completion photo for a specific booking"""
+    booking = await db.bookings.find_one({"id": booking_id})
+    if not booking or not booking.get("completion_photo_path"):
+        raise HTTPException(status_code=404, detail="Completion photo not found")
+    
+    photo_path = Path(booking["completion_photo_path"])
+    if not photo_path.exists():
+        raise HTTPException(status_code=404, detail="Photo file not found")
+    
+    return FileResponse(photo_path)
+
 @api_router.post("/admin/cleanup-temp-images")
 async def cleanup_temporary_images():
     """Clean up temporary images older than 24 hours that weren't booked"""
