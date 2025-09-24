@@ -321,6 +321,25 @@ async def get_weekly_schedule(start_date: str = None):
     
     return schedule
 
+@api_router.patch("/admin/bookings/{booking_id}")
+async def update_booking_status(booking_id: str, status_update: dict):
+    """Update booking status"""
+    allowed_statuses = ["scheduled", "in_progress", "completed", "cancelled"]
+    new_status = status_update.get("status")
+    
+    if new_status not in allowed_statuses:
+        raise HTTPException(status_code=400, detail="Invalid status")
+    
+    result = await db.bookings.update_one(
+        {"id": booking_id},
+        {"$set": {"status": new_status}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    return {"message": "Booking status updated successfully"}
+
 # Include the router in the main app
 app.include_router(api_router)
 
