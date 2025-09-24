@@ -339,6 +339,11 @@ const AdminDashboard = () => {
                             📸 Has Photo
                           </Badge>
                         )}
+                        {booking.status !== 'scheduled' && (
+                          <Badge variant="outline" className="text-green-600">
+                            📱 SMS Sent
+                          </Badge>
+                        )}
                       </div>
                       <span className="font-semibold text-emerald-600">
                         {formatPrice(booking.quote_details?.total_price)}
