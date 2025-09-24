@@ -70,10 +70,10 @@ const LandingPage = () => {
               <span className="text-2xl font-bold text-white">Text2toss</span>
             </div>
             <div className="hidden md:flex space-x-8">
-              <a href="#how-it-works" className="text-gray-600 hover:text-emerald-600 font-medium transition-colors">How It Works</a>
-              <a href="#pricing" className="text-gray-600 hover:text-emerald-600 font-medium transition-colors">Pricing</a>
-              <a href="#contact" className="text-gray-600 hover:text-emerald-600 font-medium transition-colors">Contact</a>
-              <Link to="/admin" className="text-gray-600 hover:text-emerald-600 font-medium transition-colors">Admin</Link>
+              <a href="#how-it-works" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors">How It Works</a>
+              <a href="#pricing" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors">Pricing</a>
+              <a href="#contact" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors">Contact</a>
+              <Link to="/admin" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors">Admin</Link>
             </div>
             <Button 
               onClick={() => setShowQuote(true)}
