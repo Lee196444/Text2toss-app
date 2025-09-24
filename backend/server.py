@@ -106,6 +106,7 @@ class Booking(BaseModel):
     special_instructions: Optional[str] = None
     status: str = "scheduled"  # scheduled, in_progress, completed, cancelled
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    quote_details: Optional[PriceQuote] = None
 
 class BookingCreate(BaseModel):
     quote_id: str
