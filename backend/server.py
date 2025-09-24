@@ -639,15 +639,82 @@ async def update_booking_status(booking_id: str, status_update: dict):
     if new_status not in allowed_statuses:
         raise HTTPException(status_code=400, detail="Invalid status")
     
+    update_data = {"status": new_status}
+    
+    # If marking as completed, add completion timestamp
+    if new_status == "completed":
+        update_data["completed_at"] = datetime.now(timezone.utc).isoformat()
+    
     result = await db.bookings.update_one(
         {"id": booking_id},
-        {"$set": {"status": new_status}}
+        {"$set": update_data}
     )
     
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Booking not found")
     
     return {"message": "Booking status updated successfully"}
+
+@api_router.post("/admin/bookings/{booking_id}/completion")
+async def upload_completion_photo(
+    booking_id: str,
+    file: UploadFile = File(...),
+    completion_note: str = ""
+):
+    """Upload completion photo and note for a booking"""
+    
+    # Verify booking exists and is completed
+    booking = await db.bookings.find_one({"id": booking_id})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    if booking.get("status") != "completed":
+        raise HTTPException(status_code=400, detail="Can only add completion photos to completed bookings")
+    
+    # Validate file type
+    if not file.content_type.startswith('image/'):
+        raise HTTPException(status_code=400, detail="Only image files are allowed")
+    
+    # Create completion photos directory
+    completion_dir = Path("/app/backend/static/completion_photos")
+    completion_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Save completion photo
+    file_extension = Path(file.filename).suffix or '.jpg'
+    photo_filename = f"completion_{booking_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}{file_extension}"
+    photo_path = completion_dir / photo_filename
+    
+    try:
+        # Save uploaded file
+        async with aiofiles.open(photo_path, 'wb') as f:
+            content = await file.read()
+            await f.write(content)
+        
+        # Update booking with completion photo and note
+        update_data = {
+            "completion_photo_path": str(photo_path),
+            "completion_note": completion_note
+        }
+        
+        result = await db.bookings.update_one(
+            {"id": booking_id},
+            {"$set": update_data}
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Booking not found")
+        
+        return {
+            "message": "Completion photo uploaded successfully",
+            "photo_path": str(photo_path),
+            "completion_note": completion_note
+        }
+        
+    except Exception as e:
+        # Clean up file on error
+        if photo_path.exists():
+            photo_path.unlink()
+        raise e
 
 @api_router.get("/admin/booking-image/{booking_id}")
 async def get_booking_image(booking_id: str):
