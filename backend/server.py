@@ -257,7 +257,7 @@ async def get_bookings(token: str = None):
     bookings = await db.bookings.find({"user_id": user_id}).to_list(1000)
     return [Booking(**parse_from_mongo(booking)) for booking in bookings]
 
-@api_router.get("/admin/daily-schedule", response_model=List[Booking])
+@api_router.get("/admin/daily-schedule")
 async def get_daily_schedule(date: str = None):
     """Get all bookings for a specific date (YYYY-MM-DD format) or today if no date specified"""
     if date is None:
@@ -265,11 +265,14 @@ async def get_daily_schedule(date: str = None):
     else:
         target_date = datetime.fromisoformat(date).date()
     
-    # Find bookings for the target date
+    # Find bookings for the target date - using string matching since we store as datetime
+    start_datetime = datetime.combine(target_date, datetime.min.time())
+    end_datetime = start_datetime + timedelta(days=1)
+    
     bookings = await db.bookings.find({
         "pickup_date": {
-            "$gte": datetime.combine(target_date, datetime.min.time()),
-            "$lt": datetime.combine(target_date, datetime.min.time()) + timedelta(days=1)
+            "$gte": start_datetime.isoformat(),
+            "$lt": end_datetime.isoformat()
         }
     }).sort("pickup_time", 1).to_list(1000)
     
