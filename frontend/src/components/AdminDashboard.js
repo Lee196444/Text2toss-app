@@ -188,7 +188,7 @@ const AdminDashboard = () => {
               <div className="text-2xl font-bold text-teal-600">
                 {formatPrice(dailyBookings.reduce((sum, booking) => sum + (booking.quote_details?.total_price || 0), 0))}
               </div>
-              <p className="text-sm text-gray-600">Daily Revenue</p>
+              <p className="text-sm text-gray-700">Daily Revenue</p>
             </CardContent>
           </Card>
           <Card>
