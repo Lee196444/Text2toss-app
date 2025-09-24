@@ -55,7 +55,7 @@ const LandingPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50/20 to-teal-50/30">
       <Toaster />
       
       {/* Navigation */}
