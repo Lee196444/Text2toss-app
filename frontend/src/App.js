@@ -588,7 +588,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LandingPage />} />
-          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin" element={<ProtectedAdmin />} />
         </Routes>
       </BrowserRouter>
     </div>
