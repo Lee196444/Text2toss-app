@@ -640,6 +640,38 @@ async def update_booking_status(booking_id: str, status_update: dict):
     
     return {"message": "Booking status updated successfully"}
 
+@api_router.get("/admin/booking-image/{booking_id}")
+async def get_booking_image(booking_id: str):
+    """Get image for a specific booking"""
+    booking = await db.bookings.find_one({"id": booking_id})
+    if not booking or not booking.get("image_path"):
+        raise HTTPException(status_code=404, detail="Booking image not found")
+    
+    image_path = Path(booking["image_path"])
+    if not image_path.exists():
+        raise HTTPException(status_code=404, detail="Image file not found")
+    
+    return FileResponse(image_path)
+
+@api_router.post("/admin/cleanup-temp-images")
+async def cleanup_temporary_images():
+    """Clean up temporary images older than 24 hours that weren't booked"""
+    import time
+    
+    temp_dir = Path("/tmp/temp_uploads")
+    if not temp_dir.exists():
+        return {"message": "No temporary directory found"}
+    
+    cleaned_count = 0
+    cutoff_time = time.time() - (24 * 60 * 60)  # 24 hours ago
+    
+    for file_path in temp_dir.glob("temp_*"):
+        if file_path.stat().st_mtime < cutoff_time:
+            file_path.unlink()
+            cleaned_count += 1
+    
+    return {"message": f"Cleaned up {cleaned_count} temporary images"}
+
 # Include the router in the main app
 app.include_router(api_router)
 
