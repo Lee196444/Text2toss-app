@@ -287,6 +287,64 @@ const LandingPage = () => {
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Image Upload Section */}
+              <div className="space-y-4 p-4 bg-blue-50 rounded-lg">
+                <h3 className="font-semibold flex items-center gap-2">
+                  📸 Upload Image for AI Analysis
+                  <Badge variant="secondary" className="text-xs">New!</Badge>
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Select Image</Label>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      data-testid="image-upload-input"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Image Description (Optional)</Label>
+                    <Input
+                      placeholder="e.g., Items in my garage"
+                      value={imageDescription}
+                      onChange={(e) => setImageDescription(e.target.value)}
+                      data-testid="image-description-input"
+                    />
+                  </div>
+                </div>
+                
+                {uploadedImage && (
+                  <div className="space-y-2">
+                    <Label>Uploaded Image</Label>
+                    <div className="flex items-start gap-4">
+                      <img 
+                        src={uploadedImage} 
+                        alt="Uploaded junk items" 
+                        className="w-32 h-32 object-cover rounded-lg border"
+                      />
+                      <div className="flex-1">
+                        <Button 
+                          onClick={analyzeImage}
+                          disabled={imageAnalyzing}
+                          className="bg-blue-600 hover:bg-blue-700"
+                          data-testid="analyze-image-btn"
+                        >
+                          {imageAnalyzing ? "🤖 Analyzing..." : "🔍 Analyze with AI"}
+                        </Button>
+                        <p className="text-sm text-gray-600 mt-2">
+                          AI will identify items and provide pricing automatically
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="text-center text-gray-500 text-sm">
+                ── OR ──
+              </div>
+
               {/* Add Item Form */}
               <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
                 <h3 className="font-semibold">Add Items</h3>
