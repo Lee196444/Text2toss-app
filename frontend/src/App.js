@@ -233,6 +233,10 @@ const LandingPage = () => {
             <CardHeader>
               <CardTitle className="text-2xl">Get Your Free Quote</CardTitle>
               <CardDescription>Tell us what you need removed</CardDescription>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">
+                <p className="text-blue-800 text-sm font-medium">ℹ️ Service Area</p>
+                <p className="text-blue-700 text-sm">Ground level & curbside pickup only. No stairs or upper floors.</p>
+              </div>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Add Item Form */}
