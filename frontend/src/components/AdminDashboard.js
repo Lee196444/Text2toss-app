@@ -508,6 +508,68 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Completion Photo Modal */}
+      {showCompletionModal && selectedBooking && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle>Complete Job with Photo</CardTitle>
+              <CardDescription>
+                Upload a photo of completed work for: {selectedBooking.address}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Completion Photo *</Label>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleCompletionPhotoUpload}
+                  required
+                />
+              </div>
+              
+              {completionPhoto && (
+                <div className="space-y-2">
+                  <Label>Photo Preview</Label>
+                  <img 
+                    src={URL.createObjectURL(completionPhoto)} 
+                    alt="Completion preview" 
+                    className="w-full h-32 object-cover rounded border"
+                  />
+                </div>
+              )}
+              
+              <div className="space-y-2">
+                <Label>Completion Note (Optional)</Label>
+                <textarea
+                  className="w-full p-2 border rounded-md"
+                  rows="3"
+                  placeholder="Add any notes about the completed work..."
+                  value={completionNote}
+                  onChange={(e) => setCompletionNote(e.target.value)}
+                />
+              </div>
+            </CardContent>
+            <div className="flex justify-between p-6 pt-0">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowCompletionModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={submitCompletion}
+                disabled={!completionPhoto || uploadingPhoto}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {uploadingPhoto ? "Uploading..." : "Complete Job"}
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };
