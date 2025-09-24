@@ -40,9 +40,48 @@ const LandingPage = () => {
     setItems(items.filter((_, i) => i !== index));
   };
 
+  const handleImageUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => setUploadedImage(e.target.result);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const analyzeImage = async () => {
+    if (!imageFile) {
+      toast.error("Please upload an image first");
+      return;
+    }
+
+    setImageAnalyzing(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', imageFile);
+      formData.append('description', imageDescription);
+
+      const response = await axios.post(`${API}/quotes/image`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
+      setQuote(response.data);
+      // Also populate the items list from AI analysis
+      setItems(response.data.items);
+      toast.success("Image analyzed successfully!");
+    } catch (error) {
+      toast.error("Failed to analyze image");
+      console.error(error);
+    }
+    setImageAnalyzing(false);
+  };
+
   const getQuote = async () => {
     if (items.length === 0) {
-      toast.error("Please add at least one item");
+      toast.error("Please add at least one item or upload an image");
       return;
     }
 
