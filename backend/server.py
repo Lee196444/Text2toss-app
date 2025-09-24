@@ -103,6 +103,9 @@ class PriceQuote(BaseModel):
 class PriceQuoteCreate(BaseModel):
     items: List[JunkItem]
     description: str
+    
+class ImageQuoteCreate(BaseModel):
+    description: str
 
 class Booking(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
