@@ -451,13 +451,14 @@ async def create_quote_from_image(
         # Analyze image with AI
         items, total_price, ai_explanation = await analyze_image_for_quote(str(file_path), description)
         
-        # Create quote
+        # Create quote with temporary image path
         quote = PriceQuote(
             user_id="anonymous",
             items=items,
             total_price=total_price,
             description=f"Image analysis: {description}" if description else "Image-based quote",
-            ai_explanation=ai_explanation
+            ai_explanation=ai_explanation,
+            temp_image_path=str(file_path)  # Store temp path, will be moved when booked
         )
         
         quote_mongo = prepare_for_mongo(quote.dict())
