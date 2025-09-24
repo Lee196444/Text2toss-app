@@ -25,6 +25,10 @@ const LandingPage = () => {
   const [currentItem, setCurrentItem] = useState({ name: "", quantity: 1, size: "medium", description: "" });
   const [quote, setQuote] = useState(null);
   const [showBooking, setShowBooking] = useState(false);
+  const [uploadedImage, setUploadedImage] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [imageDescription, setImageDescription] = useState("");
+  const [imageAnalyzing, setImageAnalyzing] = useState(false);
   
   const addItem = () => {
     if (!currentItem.name) return;
