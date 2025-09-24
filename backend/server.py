@@ -8,7 +8,7 @@ from pathlib import Path
 from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional
 import uuid
-from datetime import datetime, timezone, date, time
+from datetime import datetime, timezone, date, time, timedelta
 import hashlib
 import jwt
 from passlib.context import CryptContext
