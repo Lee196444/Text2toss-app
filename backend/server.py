@@ -276,13 +276,23 @@ async def get_daily_schedule(date: str = None):
     
     result = []
     for booking in bookings:
+        # Remove MongoDB _id field to avoid serialization issues
+        if "_id" in booking:
+            del booking["_id"]
         booking_data = parse_from_mongo(booking)
+        
         # Add quote details to booking
         quote = await db.quotes.find_one({"id": booking_data["quote_id"]})
         if quote:
+            if "_id" in quote:
+                del quote["_id"]
             booking_data["quote_details"] = parse_from_mongo(quote)
-        result.append(Booking(**{k: v for k, v in booking_data.items() if k != "quote_details"}))
-        result[-1].quote_details = booking_data.get("quote_details")
+            
+        # Create Booking object without quote_details field for validation
+        clean_booking_data = {k: v for k, v in booking_data.items() if k != "quote_details"}
+        booking_obj = Booking(**clean_booking_data)
+        
+        result.append(booking_data)  # Return raw data instead of Pydantic object
     
     return result
 
