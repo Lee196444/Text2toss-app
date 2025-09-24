@@ -420,6 +420,54 @@ async def create_quote(quote_data: PriceQuoteCreate):
     
     return quote
 
+@api_router.post("/quotes/image", response_model=PriceQuote)
+async def create_quote_from_image(
+    file: UploadFile = File(...),
+    description: str = ""
+):
+    """Create quote by analyzing uploaded image with AI vision"""
+    
+    # Validate file type
+    if not file.content_type.startswith('image/'):
+        raise HTTPException(status_code=400, detail="Only image files are allowed")
+    
+    # Create uploads directory if it doesn't exist
+    uploads_dir = Path("/tmp/uploads")
+    uploads_dir.mkdir(exist_ok=True)
+    
+    # Save uploaded file temporarily
+    file_extension = Path(file.filename).suffix or '.jpg'
+    temp_filename = f"upload_{uuid.uuid4()}{file_extension}"
+    file_path = uploads_dir / temp_filename
+    
+    try:
+        # Save uploaded file
+        async with aiofiles.open(file_path, 'wb') as f:
+            content = await file.read()
+            await f.write(content)
+        
+        # Analyze image with AI
+        items, total_price, ai_explanation = await analyze_image_for_quote(str(file_path), description)
+        
+        # Create quote
+        quote = PriceQuote(
+            user_id="anonymous",
+            items=items,
+            total_price=total_price,
+            description=f"Image analysis: {description}" if description else "Image-based quote",
+            ai_explanation=ai_explanation
+        )
+        
+        quote_mongo = prepare_for_mongo(quote.dict())
+        await db.quotes.insert_one(quote_mongo)
+        
+        return quote
+        
+    finally:
+        # Clean up temporary file
+        if file_path.exists():
+            file_path.unlink()
+
 @api_router.get("/quotes/{quote_id}", response_model=PriceQuote)
 async def get_quote(quote_id: str):
     quote_doc = await db.quotes.find_one({"id": quote_id})
