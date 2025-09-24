@@ -178,7 +178,7 @@ const LandingPage = () => {
                 <CardTitle className="text-2xl">Describe Your Junk</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-gray-700 leading-relaxed">
                   Simply tell us what items you need removed. Old furniture, appliances, 
                   construction debris - anything you want gone.
                 </p>
@@ -193,7 +193,7 @@ const LandingPage = () => {
                 <CardTitle className="text-2xl">Get Instant Quote</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-gray-700 leading-relaxed">
                   Receive an upfront, transparent price estimate based on your items. 
                   No hidden fees or surprises.
                 </p>
@@ -208,7 +208,7 @@ const LandingPage = () => {
                 <CardTitle className="text-2xl">Schedule Pickup</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-gray-700 leading-relaxed">
                   Choose a convenient time for pickup. Our professional team will arrive 
                   on time and handle everything safely.
                 </p>
