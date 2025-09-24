@@ -381,7 +381,7 @@ const AdminDashboard = () => {
                               onClick={() => notifyCustomer(booking.id)}
                               className="mt-2 text-xs"
                             >
-                              📧 Notify Customer
+                              📱 Send SMS + Photo
                             </Button>
                           </div>
                         </div>
