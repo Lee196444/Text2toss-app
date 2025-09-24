@@ -466,10 +466,11 @@ async def create_quote_from_image(
         
         return quote
         
-    finally:
-        # Clean up temporary file
+    except Exception as e:
+        # Clean up temporary file on error
         if file_path.exists():
             file_path.unlink()
+        raise e
 
 @api_router.get("/quotes/{quote_id}", response_model=PriceQuote)
 async def get_quote(quote_id: str):
