@@ -46,6 +46,53 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SECRET_KEY = "your-secret-key-change-in-production"
 ALGORITHM = "HS256"
 
+# Twilio SMS setup
+def get_twilio_client():
+    """Get Twilio client with fallback for missing credentials"""
+    account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
+    auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
+    
+    if not account_sid or not auth_token or account_sid == 'your_twilio_account_sid':
+        return None
+    
+    return Client(account_sid, auth_token)
+
+async def send_sms(to_phone: str, message: str, image_url: str = None):
+    """Send SMS with optional image attachment"""
+    client = get_twilio_client()
+    
+    if not client:
+        logging.warning("Twilio not configured - SMS simulation mode")
+        print(f"SMS SIMULATION - To: {to_phone}, Message: {message}")
+        if image_url:
+            print(f"SMS SIMULATION - Image: {image_url}")
+        return {"status": "simulated", "message": "SMS simulated (Twilio not configured)"}
+    
+    try:
+        twilio_phone = os.environ.get('TWILIO_PHONE_NUMBER', '+1234567890')
+        
+        message_params = {
+            'body': message,
+            'from_': twilio_phone,
+            'to': to_phone
+        }
+        
+        # Add image if provided
+        if image_url:
+            message_params['media_url'] = [image_url]
+        
+        message_obj = client.messages.create(**message_params)
+        
+        return {
+            "status": "sent",
+            "message_sid": message_obj.sid,
+            "message": "SMS sent successfully"
+        }
+        
+    except Exception as e:
+        logging.error(f"SMS send error: {str(e)}")
+        return {"status": "error", "message": f"SMS failed: {str(e)}"}
+
 # Helper functions for MongoDB datetime handling
 def prepare_for_mongo(data):
     if isinstance(data.get('date'), date):
