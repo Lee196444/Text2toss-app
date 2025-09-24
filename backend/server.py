@@ -92,6 +92,7 @@ class PriceQuote(BaseModel):
     items: List[JunkItem]
     total_price: float
     description: str
+    ai_explanation: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class PriceQuoteCreate(BaseModel):
