@@ -454,7 +454,7 @@ const LandingPage = () => {
                 Cancel
               </Button>
               <Button onClick={getQuote} disabled={items.length === 0} data-testid="get-quote-submit-btn">
-                Get Quote
+                Get Quote from Items
               </Button>
             </CardFooter>
           </Card>
