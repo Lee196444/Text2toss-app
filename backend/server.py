@@ -126,6 +126,9 @@ class Booking(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     quote_details: Optional[PriceQuote] = None
     image_path: Optional[str] = None  # Path to customer's uploaded image
+    completion_photo_path: Optional[str] = None  # Path to completion photo
+    completion_note: Optional[str] = None  # Admin note for completion
+    completed_at: Optional[datetime] = None  # When job was completed
 
 class BookingCreate(BaseModel):
     quote_id: str
