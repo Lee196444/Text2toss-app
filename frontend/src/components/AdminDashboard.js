@@ -204,7 +204,7 @@ const AdminDashboard = () => {
               <div className="text-2xl font-bold text-purple-600">
                 {dailyBookings.filter(b => b.status === 'completed').length}
               </div>
-              <p className="text-sm text-gray-600">Completed</p>
+              <p className="text-sm text-gray-700">Completed</p>
             </CardContent>
           </Card>
         </div>
