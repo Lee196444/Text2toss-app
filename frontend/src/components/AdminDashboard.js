@@ -196,7 +196,7 @@ const AdminDashboard = () => {
               <div className="text-2xl font-bold text-blue-600">
                 {Object.keys(weeklySchedule).length}
               </div>
-              <p className="text-sm text-gray-600">Active Days</p>
+              <p className="text-sm text-gray-700">Active Days</p>
             </CardContent>
           </Card>
           <Card>
