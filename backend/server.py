@@ -239,6 +239,109 @@ def calculate_basic_price(items: List[JunkItem]) -> float:
     service_fee = total * 0.15
     return round(total + service_fee, 2)
 
+# AI Vision Analysis for Image-based Quotes
+async def analyze_image_for_quote(image_path: str, description: str) -> tuple[List[JunkItem], float, str]:
+    """Use AI vision to analyze uploaded image and identify junk items for pricing"""
+    
+    ai_prompt = f"""You are a professional junk removal expert analyzing an image to provide accurate quotes. Analyze this image and identify all removable items.
+
+ADDITIONAL CONTEXT FROM USER:
+{description}
+
+IMPORTANT SERVICE LIMITATIONS:
+- We ONLY provide ground level pickup (no stairs, no upper floors)
+- Items must be accessible at ground level or placed curbside
+
+Please analyze the image and provide:
+1. Identify all junk/furniture items visible
+2. Estimate quantity and size of each item
+3. Consider condition and removal difficulty
+4. Calculate pricing for ground level pickup only
+
+PRICING GUIDELINES (Ground Level Only):
+- Small items (boxes, bags, small furniture): $20-35 each
+- Medium items (chairs, small appliances, mattresses): $45-75 each  
+- Large items (sofas, refrigerators, washers): $85-140 each
+- Minor additional charges for:
+  - Basic disassembly: +$10-20 per item
+  - Oversized/awkward items: +$15-30 per item
+
+Base service fee: $30-45
+
+Respond ONLY with a JSON object in this exact format:
+{{
+  "items": [
+    {{
+      "name": "item name",
+      "quantity": 1,
+      "size": "small/medium/large",
+      "description": "brief description from image"
+    }}
+  ],
+  "total_price": 150.00,
+  "breakdown": {{
+    "items_cost": 120.00,
+    "service_fee": 30.00,
+    "additional_charges": 0.00
+  }},
+  "explanation": "Detailed explanation of what was identified in the image and pricing factors"
+}}"""
+
+    try:
+        # Create image file content
+        image_file = FileContentWithMimeType(
+            file_path=image_path,
+            mime_type="image/jpeg"
+        )
+        
+        # Initialize AI chat with vision capabilities
+        chat = LlmChat(
+            api_key=os.environ.get('EMERGENT_LLM_KEY'),
+            session_id=f"vision_analysis_{datetime.now().timestamp()}",
+            system_message="You are a professional junk removal expert with visual analysis capabilities. Always respond with valid JSON only."
+        ).with_model("openai", "gpt-4o")  # Use vision-capable model
+        
+        # Send message with image
+        user_message = UserMessage(
+            text=ai_prompt,
+            file_contents=[image_file]
+        )
+        
+        response = await chat.send_message(user_message)
+        
+        # Parse AI response
+        response_text = response.strip()
+        
+        # Extract JSON from response
+        json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
+        if json_match:
+            response_text = json_match.group(0)
+        
+        analysis_data = json.loads(response_text)
+        
+        # Extract items
+        items = []
+        for item_data in analysis_data.get("items", []):
+            items.append(JunkItem(
+                name=item_data.get("name", "Unknown item"),
+                quantity=item_data.get("quantity", 1),
+                size=item_data.get("size", "medium"),
+                description=item_data.get("description", "")
+            ))
+        
+        total_price = float(analysis_data.get("total_price", 0))
+        explanation = analysis_data.get("explanation", "AI vision analysis of uploaded image")
+        
+        return items, total_price, explanation
+        
+    except Exception as e:
+        print(f"AI vision analysis error: {str(e)}")
+        # Fallback - create default item if image analysis fails
+        fallback_items = [JunkItem(name="Unidentified items from image", quantity=1, size="medium")]
+        fallback_price = 75.0
+        fallback_explanation = "Image analysis temporarily unavailable. Basic estimate provided - please describe items for accurate pricing."
+        return fallback_items, fallback_price, fallback_explanation
+
 # Authentication helpers
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
