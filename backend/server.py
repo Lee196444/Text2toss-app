@@ -98,6 +98,7 @@ class PriceQuote(BaseModel):
     total_price: float
     description: str
     ai_explanation: Optional[str] = None
+    temp_image_path: Optional[str] = None  # Temporary image path (deleted if not booked)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class PriceQuoteCreate(BaseModel):
