@@ -185,19 +185,19 @@ const LandingPage = () => {
                   <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
                     <span className="text-white text-xs">✓</span>
                   </div>
-                  <span className="text-gray-200">Same Day Service</span>
+                  <span className="text-gray-200">No Callbacks Required</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
                     <span className="text-white text-xs">✓</span>
                   </div>
-                  <span className="text-gray-200">Eco-Friendly</span>
+                  <span className="text-gray-200">Instant Photo Quotes</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
                     <span className="text-white text-xs">✓</span>
                   </div>
-                  <span className="text-gray-200">Licensed & Insured</span>
+                  <span className="text-gray-200">Same Day Pickup</span>
                 </div>
               </div>
             </div>
