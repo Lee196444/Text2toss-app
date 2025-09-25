@@ -169,6 +169,8 @@ class PriceQuote(BaseModel):
     user_id: str
     items: List[JunkItem]
     total_price: float
+    scale_level: Optional[int] = None  # New: 1-10 scale level
+    breakdown: Optional[dict] = None   # New: cost breakdown
     description: str
     ai_explanation: Optional[str] = None
     temp_image_path: Optional[str] = None  # Temporary image path (deleted if not booked)
