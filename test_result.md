@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-## user_problem_statement: "what is the clean up button for? becaus it dosent work or the optmize route button"
+## user_problem_statement: "Test the NEW PRICING SYSTEM that was just implemented with 1-10 scale volume-based pricing"
 
 ## backend:
   - task: "Cleanup temp images endpoint"
