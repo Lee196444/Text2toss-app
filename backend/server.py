@@ -737,6 +737,57 @@ async def get_weekly_schedule(start_date: str = None):
     
     return schedule
 
+@api_router.get("/availability/{date}")
+async def check_availability(date: str):
+    """Check available time slots for a specific date"""
+    
+    # Check if date is allowed (Monday-Thursday only)
+    try:
+        check_date = datetime.fromisoformat(date).date()
+        day_of_week = check_date.weekday()  # 0=Monday, 6=Sunday
+        
+        if day_of_week > 3:  # Thursday is 3, so > 3 means Friday/Weekend
+            return {
+                "date": date,
+                "available": False,
+                "reason": "Pickup not available on Fridays or weekends",
+                "blocked_day": True,
+                "available_slots": [],
+                "booked_slots": []
+            }
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format")
+    
+    # Get existing bookings for this date
+    bookings = await db.bookings.find({
+        "pickup_date": {
+            "$regex": f"^{date}"
+        },
+        "status": {"$in": ["scheduled", "in_progress"]}  # Don't count cancelled/completed
+    }).to_list(1000)
+    
+    booked_slots = [booking.get("pickup_time") for booking in bookings if booking.get("pickup_time")]
+    
+    all_slots = [
+        "08:00-10:00",
+        "10:00-12:00", 
+        "12:00-14:00",
+        "14:00-16:00",
+        "16:00-18:00"
+    ]
+    
+    available_slots = [slot for slot in all_slots if slot not in booked_slots]
+    
+    return {
+        "date": date,
+        "available": len(available_slots) > 0,
+        "blocked_day": False,
+        "available_slots": available_slots,
+        "booked_slots": booked_slots,
+        "total_slots": len(all_slots),
+        "available_count": len(available_slots)
+    }
+
 @api_router.patch("/admin/bookings/{booking_id}")
 async def update_booking_status(booking_id: str, status_update: dict):
     """Update booking status and send SMS notification"""
