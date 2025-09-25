@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-## user_problem_statement: "Test the NEW PRICING SYSTEM that was just implemented with 1-10 scale volume-based pricing"
+## user_problem_statement: "Test the NEW PAYMENT SYSTEM that was just implemented with Stripe integration"
 
 ## backend:
   - task: "Cleanup temp images endpoint"
@@ -161,6 +161,54 @@
         - working: true
           agent: "testing"
           comment: "VERIFIED: Fallback pricing function calculate_basic_price() correctly implements new 1-10 scale system. Scale 1 items return $40 (middle of $35-45 range), Scale 10 items return $400 (middle of $350-450 range). Volume estimation logic works correctly with small/medium/large size factors."
+
+  - task: "NEW PAYMENT SYSTEM - Create Stripe checkout session"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Implemented POST /api/payments/create-checkout-session endpoint using emergentintegrations Stripe library. Creates checkout session for booking with amount from quote, stores transaction in payment_transactions collection. Requires valid booking_id and origin_url."
+
+  - task: "NEW PAYMENT SYSTEM - Payment status check"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Implemented GET /api/payments/status/{session_id} endpoint. Retrieves payment status from Stripe and updates local transaction records. Updates booking payment_status when payment is successful."
+
+  - task: "NEW PAYMENT SYSTEM - Stripe webhook handling"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Implemented POST /api/webhook/stripe endpoint for handling Stripe webhook events. Updates payment transaction status based on checkout.session.completed events. Uses emergentintegrations webhook handling."
+
+  - task: "NEW PAYMENT SYSTEM - Database integration"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Added PaymentTransaction and PaymentRequest models. Payment transactions stored in payment_transactions collection. Bookings updated with payment_status field when payments are successful."
 
 ## frontend:
   - task: "Cleanup button functionality"
