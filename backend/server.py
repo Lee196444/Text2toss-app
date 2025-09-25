@@ -338,7 +338,7 @@ Respond ONLY with a JSON object in this exact format:
         print(f"AI pricing error: {str(e)}")
         # Fallback to basic pricing if AI fails
         fallback_price = calculate_basic_price(items)
-        return fallback_price, "Basic pricing applied (AI temporarily unavailable)"
+        return fallback_price, "Basic pricing applied (AI temporarily unavailable)", None, None
 
 # Fallback basic pricing function using new 1-10 scale
 def calculate_basic_price(items: List[JunkItem]) -> float:
