@@ -577,10 +577,13 @@ const BookingModal = ({ quote, onClose, onSuccess }) => {
             <Input
               type="date"
               value={bookingData.pickup_date}
-              onChange={(e) => setBookingData({...bookingData, pickup_date: e.target.value})}
+              onChange={(e) => handleDateChange(e.target.value)}
               min={new Date().toISOString().split('T')[0]}
               data-testid="pickup-date-input"
             />
+            <p className="text-xs text-gray-600">
+              ⚠️ Pickup available Monday-Thursday only (No Fridays, Weekends)
+            </p>
           </div>
           <div className="space-y-2">
             <Label>Pickup Time</Label>
