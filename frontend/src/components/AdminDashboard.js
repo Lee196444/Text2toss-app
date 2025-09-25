@@ -402,25 +402,25 @@ const AdminDashboard = () => {
           })()}
         </div>
 
+        {/* Quick Actions */}
+        <div className="flex justify-center space-x-4 mb-6">
+          <Button onClick={testSmsSetup} size="sm" variant="outline" className="text-xs">
+            📱 Test SMS
+          </Button>
+          <Button onClick={cleanupTempImages} size="sm" variant="outline" className="text-xs">
+            🗑️ Cleanup
+          </Button>
+          <Button onClick={calculateOptimalRoute} size="sm" className="bg-emerald-600 hover:bg-emerald-700">
+            🗺️ Optimize Route
+          </Button>
+        </div>
+
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Daily Schedule */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                Daily Schedule
-                <div className="flex space-x-2">
-                  <Button onClick={testSmsSetup} size="sm" variant="outline" className="text-xs">
-                    📱 Test SMS
-                  </Button>
-                  <Button onClick={cleanupTempImages} size="sm" variant="outline" className="text-xs">
-                    🗑️ Cleanup
-                  </Button>
-                  <Button onClick={calculateOptimalRoute} size="sm" className="bg-emerald-600 hover:bg-emerald-700">
-                    Optimize Route
-                  </Button>
-                </div>
-              </CardTitle>
+              <CardTitle>Daily Schedule</CardTitle>
               <CardDescription>
                 Pickups for {new Date(selectedDate).toLocaleDateString()}
               </CardDescription>
