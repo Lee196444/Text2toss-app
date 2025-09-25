@@ -265,7 +265,7 @@ const LandingPage = () => {
       <section id="how-it-works" className="py-20 bg-black/60 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-4">How TEXT-2-TOSS Works</h2>
+            <h2 className="text-4xl font-bold text-white mb-4">How Text2toss Works</h2>
             <p className="text-xl text-gray-200">Three simple steps - no waiting, no callbacks</p>
           </div>
 
