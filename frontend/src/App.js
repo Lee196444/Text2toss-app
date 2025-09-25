@@ -144,7 +144,7 @@ const LandingPage = () => {
                 <p className="text-xl text-gray-200 leading-relaxed">
                   Upload photo of junk and quick description, get a quote in seconds! 
                   No more waiting on callbacks and no more hassles. 
-                  Fast, reliable, and eco-friendly junk removal service.
+                  <strong>Junk removal made seamless.</strong>
                 </p>
                 <div className="bg-emerald-900/30 border border-emerald-400/30 rounded-lg p-4 mt-4">
                   <p className="text-emerald-200 text-sm font-medium">
