@@ -496,6 +496,8 @@ const BookingModal = ({ quote, onClose, onSuccess }) => {
     phone: "",
     special_instructions: ""
   });
+  const [bookedTimeSlots, setBookedTimeSlots] = useState([]);
+  const [checkingAvailability, setCheckingAvailability] = useState(false);
 
   const handleBooking = async () => {
     if (!bookingData.pickup_date || !bookingData.pickup_time || !bookingData.address || !bookingData.phone) {
