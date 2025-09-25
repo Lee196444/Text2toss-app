@@ -254,7 +254,7 @@ class PaymentSystemTester:
                                             invalid_payment_request, expected_status=404)
         
         error_handling_works = True
-        if not success:  # 404 is expected, so not success means it worked correctly
+        if success:  # 404 is expected, so success means it worked correctly
             print(f"   ✅ Proper error handling for invalid booking ID (404)")
         else:
             print(f"   ❌ Invalid booking ID should return 404")
@@ -264,7 +264,7 @@ class PaymentSystemTester:
         success, response = self.make_request("GET", "payments/status/invalid_session_id_12345", 
                                             expected_status=404)
         
-        if not success:  # 404 is expected, so not success means it worked correctly
+        if success:  # 404 is expected, so success means it worked correctly
             print(f"   ✅ Proper error handling for invalid session ID (404)")
         else:
             print(f"   ❌ Invalid session ID should return 404")
