@@ -1302,7 +1302,14 @@ async def get_payment_status(session_id: str, request: Request):
     stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
     
     # Get status from Stripe
-    checkout_status = await stripe_checkout.get_checkout_status(session_id)
+    try:
+        checkout_status = await stripe_checkout.get_checkout_status(session_id)
+    except Exception as e:
+        # Handle invalid session ID or other Stripe errors
+        if "No such checkout.session" in str(e):
+            raise HTTPException(status_code=404, detail="Payment session not found")
+        else:
+            raise HTTPException(status_code=500, detail=f"Payment status check failed: {str(e)}")
     
     # Find the transaction in our database
     transaction = await db.payment_transactions.find_one({"session_id": session_id})
