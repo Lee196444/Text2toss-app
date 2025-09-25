@@ -98,8 +98,21 @@ const AdminDashboard = () => {
   };
 
   const calculateOptimalRoute = async () => {
-    if (!isLoaded || !window.google || dailyBookings.length < 2) {
+    if (dailyBookings.length < 2) {
       toast.error("Need at least 2 bookings to calculate route");
+      return;
+    }
+
+    if (!GOOGLE_MAPS_API_KEY || !isLoaded || !window.google) {
+      // Simple fallback: sort by time
+      const timeOrdered = [...dailyBookings].sort((a, b) => {
+        const timeA = a.pickup_time.split('-')[0].replace(':', '');
+        const timeB = b.pickup_time.split('-')[0].replace(':', '');
+        return timeA.localeCompare(timeB);
+      });
+      
+      setOptimizedRoute(timeOrdered);
+      toast.success("Route optimized by pickup time (Google Maps not available)");
       return;
     }
 
@@ -142,11 +155,21 @@ const AdminDashboard = () => {
       ];
 
       setOptimizedRoute(optimizedBookings);
-      toast.success("Optimal route calculated!");
+      toast.success("Optimal route calculated with Google Maps!");
 
     } catch (error) {
       toast.error("Failed to calculate route");
       console.error(error);
+      
+      // Fallback to time-based sorting
+      const timeOrdered = [...dailyBookings].sort((a, b) => {
+        const timeA = a.pickup_time.split('-')[0].replace(':', '');
+        const timeB = b.pickup_time.split('-')[0].replace(':', '');
+        return timeA.localeCompare(timeB);
+      });
+      
+      setOptimizedRoute(timeOrdered);
+      toast.success("Route optimized by pickup time (fallback)");
     }
   };
 
