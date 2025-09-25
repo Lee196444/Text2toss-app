@@ -469,7 +469,29 @@ const AdminDashboard = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {isLoaded ? (
+              {!GOOGLE_MAPS_API_KEY ? (
+                <div className="flex flex-col items-center justify-center h-96 bg-gray-100 rounded-lg p-6">
+                  <div className="text-gray-600 text-center">
+                    <h3 className="text-lg font-semibold mb-2">📍 Map View</h3>
+                    <p className="mb-4">Google Maps API key not configured</p>
+                    <div className="space-y-2">
+                      {dailyBookings.map((booking, index) => (
+                        <div key={booking.id} className="bg-white p-3 rounded border text-left">
+                          <div className="font-medium">Stop {index + 1}: {formatTime(booking.pickup_time)}</div>
+                          <div className="text-sm text-gray-600">{booking.address}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : loadError ? (
+                <div className="flex items-center justify-center h-96 bg-red-50 rounded-lg">
+                  <div className="text-red-600 text-center">
+                    <h3 className="text-lg font-semibold mb-2">❌ Map Load Error</h3>
+                    <p>Failed to load Google Maps</p>
+                  </div>
+                </div>
+              ) : isLoaded ? (
                 <GoogleMap
                   mapContainerStyle={{ width: '100%', height: '400px' }}
                   center={mapCenter}
