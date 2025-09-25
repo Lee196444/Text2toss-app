@@ -686,14 +686,26 @@ async def get_weekly_schedule(start_date: str = None):
     # Group by date
     schedule = {}
     for booking in bookings:
+        # Remove MongoDB _id field
+        if "_id" in booking:
+            del booking["_id"]
         booking_data = parse_from_mongo(booking)
-        date_key = booking_data["pickup_date"].strftime("%Y-%m-%d")
+        
+        # Extract date key from pickup_date string
+        pickup_date_str = booking_data.get("pickup_date", "")
+        if pickup_date_str:
+            date_key = pickup_date_str.split("T")[0]  # Get YYYY-MM-DD part
+        else:
+            continue
+            
         if date_key not in schedule:
             schedule[date_key] = []
         
         # Add quote details
         quote = await db.quotes.find_one({"id": booking_data["quote_id"]})
         if quote:
+            if "_id" in quote:
+                del quote["_id"]
             booking_data["quote_details"] = parse_from_mongo(quote)
             
         schedule[date_key].append(booking_data)
