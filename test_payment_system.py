@@ -86,8 +86,8 @@ class PaymentSystemTester:
         
         booking_data = {
             "quote_id": self.test_quote_id,
-            "pickup_date": f"{next_monday}T14:00:00",
-            "pickup_time": "14:00-16:00",
+            "pickup_date": f"{next_monday}T16:00:00",
+            "pickup_time": "16:00-18:00",
             "address": "789 Payment Test Street, Test City, TC 12345",
             "phone": "+1555123456",
             "special_instructions": "Test booking for payment system validation"
