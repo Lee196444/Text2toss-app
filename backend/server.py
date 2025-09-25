@@ -1227,6 +1227,153 @@ async def verify_admin_token(token: str = None):
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Invalid admin token")
 
+# Payment endpoints
+@api_router.post("/payments/create-checkout-session")
+async def create_checkout_session(payment_request: PaymentRequest, request: Request):
+    """Create a Stripe checkout session for a booking"""
+    
+    # Get the booking to determine the amount
+    booking = await db.bookings.find_one({"id": payment_request.booking_id})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    # Get the quote details for pricing
+    quote = await db.quotes.find_one({"id": booking["quote_id"]})
+    if not quote:
+        raise HTTPException(status_code=404, detail="Quote not found")
+    
+    # Amount from the quote (server-side validation)
+    amount = float(quote["total_price"])
+    
+    # Initialize Stripe with webhook URL
+    host_url = str(request.base_url)
+    webhook_url = f"{host_url}api/webhook/stripe"
+    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
+    
+    # Create success and cancel URLs
+    success_url = f"{payment_request.origin_url}/payment-success?session_id={{CHECKOUT_SESSION_ID}}"
+    cancel_url = f"{payment_request.origin_url}/payment-cancelled"
+    
+    # Create checkout session request
+    checkout_request = CheckoutSessionRequest(
+        amount=amount,
+        currency="usd",
+        success_url=success_url,
+        cancel_url=cancel_url,
+        metadata={
+            "booking_id": payment_request.booking_id,
+            "quote_id": booking["quote_id"],
+            "phone": booking["phone"],
+            "address": booking["address"]
+        }
+    )
+    
+    # Create the session
+    session = await stripe_checkout.create_checkout_session(checkout_request)
+    
+    # Store payment transaction
+    transaction = PaymentTransaction(
+        session_id=session.session_id,
+        booking_id=payment_request.booking_id,
+        amount=amount,
+        currency="usd",
+        payment_status="pending",
+        status="initiated",
+        metadata=checkout_request.metadata
+    )
+    
+    # Save to database
+    transaction_mongo = prepare_for_mongo(transaction.dict())
+    await db.payment_transactions.insert_one(transaction_mongo)
+    
+    return {
+        "url": session.url,
+        "session_id": session.session_id,
+        "amount": amount
+    }
+
+@api_router.get("/payments/status/{session_id}")
+async def get_payment_status(session_id: str, request: Request):
+    """Get the status of a payment session"""
+    
+    # Initialize Stripe
+    host_url = str(request.base_url)
+    webhook_url = f"{host_url}api/webhook/stripe"
+    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
+    
+    # Get status from Stripe
+    checkout_status = await stripe_checkout.get_checkout_status(session_id)
+    
+    # Find the transaction in our database
+    transaction = await db.payment_transactions.find_one({"session_id": session_id})
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    
+    # Update transaction status if payment is successful and not already processed
+    if checkout_status.payment_status == "paid" and transaction["payment_status"] != "paid":
+        await db.payment_transactions.update_one(
+            {"session_id": session_id},
+            {
+                "$set": {
+                    "payment_status": "paid",
+                    "status": "completed",
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }
+            }
+        )
+        
+        # Update booking status to confirm payment
+        await db.bookings.update_one(
+            {"id": transaction["booking_id"]},
+            {"$set": {"payment_status": "paid"}}
+        )
+    
+    return {
+        "session_id": session_id,
+        "status": checkout_status.status,
+        "payment_status": checkout_status.payment_status,
+        "amount_total": checkout_status.amount_total,
+        "currency": checkout_status.currency,
+        "booking_id": transaction.get("booking_id"),
+        "metadata": checkout_status.metadata
+    }
+
+@api_router.post("/webhook/stripe")
+async def stripe_webhook(request: Request):
+    """Handle Stripe webhook events"""
+    
+    # Initialize Stripe
+    host_url = str(request.base_url)
+    webhook_url = f"{host_url}api/webhook/stripe"
+    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
+    
+    # Get the request body and signature
+    body = await request.body()
+    signature = request.headers.get("Stripe-Signature")
+    
+    try:
+        # Handle the webhook
+        webhook_response = await stripe_checkout.handle_webhook(body, signature)
+        
+        # Update transaction status based on webhook
+        if webhook_response.event_type == "checkout.session.completed":
+            await db.payment_transactions.update_one(
+                {"session_id": webhook_response.session_id},
+                {
+                    "$set": {
+                        "payment_status": webhook_response.payment_status,
+                        "status": "completed" if webhook_response.payment_status == "paid" else "failed",
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }
+                }
+            )
+        
+        return {"status": "success"}
+    
+    except Exception as e:
+        logger.error(f"Stripe webhook error: {str(e)}")
+        raise HTTPException(status_code=400, detail="Webhook error")
+
 # Include the router in the main app
 app.include_router(api_router)
 
