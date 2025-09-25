@@ -745,12 +745,25 @@ const BookingModal = ({ quote, onClose, onSuccess }) => {
             />
           </div>
         </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button variant="outline" onClick={onClose} data-testid="cancel-booking-btn">
+        <CardFooter className="flex flex-col space-y-3">
+          <div className="grid grid-cols-2 gap-3 w-full">
+            <Button onClick={handleBooking} data-testid="confirm-booking-btn" className="bg-emerald-600 hover:bg-emerald-700">
+              💳 Pay with Card
+            </Button>
+            <Button 
+              onClick={() => {
+                // For Venmo, we still create the booking but show QR code instead of redirecting to Stripe
+                alert("Venmo payment: After booking confirmation, you'll see a QR code to complete payment via Venmo app.");
+                handleBooking();
+              }}
+              variant="outline" 
+              className="border-blue-500 text-blue-600 hover:bg-blue-50"
+            >
+              📱 Pay with Venmo
+            </Button>
+          </div>
+          <Button variant="outline" onClick={onClose} data-testid="cancel-booking-btn" className="w-full">
             Cancel
-          </Button>
-          <Button onClick={handleBooking} data-testid="confirm-booking-btn">
-            Proceed to Payment
           </Button>
         </CardFooter>
       </Card>
