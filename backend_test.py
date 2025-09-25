@@ -831,6 +831,7 @@ class TEXT2TOSSAPITester:
         self.test_quote_system()
         self.test_new_pricing_system()  # NEW: Test the new 1-10 scale pricing system
         self.test_booking_system()
+        self.test_payment_system()  # NEW: Test the Stripe payment integration
         self.test_admin_authentication()
         self.test_admin_schedule_endpoints()
         self.test_admin_dashboard_buttons()  # NEW: Test recently fixed functionality
