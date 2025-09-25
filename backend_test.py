@@ -7,7 +7,7 @@ import tempfile
 from pathlib import Path
 
 class TEXT2TOSSAPITester:
-    def __init__(self, base_url="https://clutterclear-1.preview.emergentagent.com"):
+    def __init__(self, base_url="https://text2toss.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.admin_token = None

@@ -910,7 +910,7 @@ async def upload_completion_photo(
         
         if phone:
             # Create public URL for the image accessible by SMS
-            backend_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://clutterclear-1.preview.emergentagent.com')
+            backend_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://text2toss.preview.emergentagent.com')
             photo_url = f"{backend_url}/api/public/completion-photo/{booking_id}"
             
             completion_message = f"📸 Text2toss Complete: Your junk has been removed from {booking['address']}. "
@@ -1015,7 +1015,7 @@ async def notify_customer_completion(booking_id: str):
     # Send SMS with or without photo
     if booking.get("completion_photo_path"):
         # Send with photo
-        backend_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://clutterclear-1.preview.emergentagent.com')
+        backend_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://text2toss.preview.emergentagent.com')
         photo_url = f"{backend_url}/api/public/completion-photo/{booking_id}"
         
         message = f"📸 Text2toss Complete: Your junk removal is finished at {booking['address']}. "
@@ -1066,7 +1066,7 @@ async def test_sms_with_photo(booking_id: str):
     
     # Generate test message
     test_phone = "+1234567890"  # Test phone number
-    backend_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://clutterclear-1.preview.emergentagent.com')
+    backend_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://text2toss.preview.emergentagent.com')
     photo_url = f"{backend_url}/api/public/completion-photo/{booking_id}"
     
     message = f"🧪 TEST SMS: Completion photo for booking {booking_id} at {booking.get('address', 'Unknown address')}"
