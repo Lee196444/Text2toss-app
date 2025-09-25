@@ -222,8 +222,7 @@
 
 ## test_plan:
   current_focus:
-    - "NEW PRICING SYSTEM - Fix JSON response format parsing"
-    - "NEW PRICING SYSTEM - Extract scale_level and breakdown fields"
+    - "NEW PRICING SYSTEM - Image quote AI vision provider fix"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -239,3 +238,5 @@
       message: "COMPREHENSIVE FRONTEND TESTING COMPLETED: All critical buttons are working perfectly! ✅ Cleanup button shows GREEN toast 'Cleaned up 0 temporary images' ✅ Optimize Route button shows GREEN toast 'Route sorted by pickup time (Add Google Maps API key for optimal routing)' ✅ SMS Test button shows RED toast 'SMS not configured - check Twilio credentials' ✅ All admin dashboard functionality working: login, logout, job bins, date picker, responsive design ✅ Custom toast notification system working correctly in top-right corner with proper colors and auto-dismiss. User's original issue is RESOLVED - buttons now provide clear visual feedback."
     - agent: "testing"
       message: "NEW PRICING SYSTEM TESTING COMPLETED: ✅ Pricing ranges work correctly (Scale 1: $35-45, Scale 10: $350-450) ✅ AI uses new volume-based language ('Scale X load, cubic feet') ✅ Fallback pricing implements new scale system ✅ Text and image quotes generate appropriate prices ❌ CRITICAL: Backend discards scale_level and breakdown fields from AI response - only returns total_price and explanation. This breaks the new JSON format requirement. Backend parsing needs immediate fix in calculate_ai_price() and analyze_image_for_quote() functions."
+    - agent: "testing"
+      message: "FIXED NEW PRICING SYSTEM TESTING COMPLETED: ✅ Text-based quotes now return complete JSON format with scale_level and breakdown fields ✅ Scale 1: $45 with level=1 and proper breakdown structure ✅ Scale 10: $425 with level=10 and proper breakdown structure ✅ Scale 5: $150 with level=5 and proper breakdown structure ✅ AI explanations include volume-based pricing language ✅ All pricing ranges correct for each scale level ❌ Image quotes still missing scale_level/breakdown fields due to AI vision fallback. The critical parsing issue for text quotes has been successfully resolved."
