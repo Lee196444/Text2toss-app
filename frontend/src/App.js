@@ -231,12 +231,12 @@ const LandingPage = () => {
                 <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full mx-auto flex items-center justify-center mb-4">
                   <span className="text-white text-2xl font-bold">1</span>
                 </div>
-                <CardTitle className="text-2xl">Describe Your Junk</CardTitle>
+                <CardTitle className="text-2xl">Upload Photo & Description</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 leading-relaxed">
-                  Tell us what items you need removed from ground level locations. 
-                  Furniture, appliances, electronics - anything at curbside or ground level access.
+                  Take a photo of your junk and add a quick description. 
+                  Our AI instantly identifies items and calculates pricing - no callbacks needed!
                 </p>
               </CardContent>
             </Card>
