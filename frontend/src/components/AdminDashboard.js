@@ -11,7 +11,7 @@ import { toast } from "sonner";
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyD8AgR-H4NBk5twXq5sMJWI6YpW3Yw4o_E"; // You'll need to replace this with your actual key
+const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || ""; // Set this in .env file
 
 const AdminDashboard = () => {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
