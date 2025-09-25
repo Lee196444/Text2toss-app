@@ -99,17 +99,11 @@ const AdminDashboard = () => {
   };
 
   const cleanupTempImages = async () => {
-    console.log("cleanupTempImages function called!");
     try {
       const response = await axios.post(`${API}/admin/cleanup-temp-images`);
-      console.log("Cleanup response:", response.data);
       toast.success(response.data.message);
-      // Temporary: Also show alert for debugging
-      alert(`✅ Cleanup Success: ${response.data.message}`);
     } catch (error) {
-      console.log("Cleanup error:", error);
       toast.error("Failed to cleanup temporary images");
-      alert(`❌ Cleanup Failed: Failed to cleanup temporary images`);
     }
   };
 
