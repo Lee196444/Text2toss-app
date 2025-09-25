@@ -323,7 +323,7 @@ const LandingPage = () => {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <CardHeader>
-              <CardTitle className="text-2xl">TEXT-2-TOSS Instant Quote</CardTitle>
+              <CardTitle className="text-2xl">Text2toss Instant Quote</CardTitle>
               <CardDescription>Upload photo or add items - get quote in seconds!</CardDescription>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">
                 <p className="text-blue-800 text-sm font-medium">ℹ️ Service Area</p>
