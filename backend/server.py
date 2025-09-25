@@ -691,10 +691,13 @@ async def get_weekly_schedule(start_date: str = None):
             del booking["_id"]
         booking_data = parse_from_mongo(booking)
         
-        # Extract date key from pickup_date string
-        pickup_date_str = booking_data.get("pickup_date", "")
-        if pickup_date_str:
-            date_key = pickup_date_str.split("T")[0]  # Get YYYY-MM-DD part
+        # Extract date key from pickup_date
+        pickup_date = booking_data.get("pickup_date")
+        if pickup_date:
+            if isinstance(pickup_date, str):
+                date_key = pickup_date.split("T")[0]  # Get YYYY-MM-DD part
+            else:
+                date_key = pickup_date.strftime("%Y-%m-%d")
         else:
             continue
             
