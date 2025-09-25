@@ -731,7 +731,7 @@ const BookingModal = ({ quote, onClose, onSuccess }) => {
             Cancel
           </Button>
           <Button onClick={handleBooking} data-testid="confirm-booking-btn">
-            Confirm Booking
+            Proceed to Payment
           </Button>
         </CardFooter>
       </Card>
