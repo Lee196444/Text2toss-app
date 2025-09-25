@@ -828,13 +828,39 @@ const PaymentSuccess = () => {
               <p className="text-gray-600">
                 Your junk removal pickup has been confirmed. We'll send you an SMS confirmation shortly.
               </p>
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
                 <h3 className="font-semibold text-green-800 mb-2">What's Next?</h3>
                 <ul className="text-sm text-green-700 space-y-1">
                   <li>• You'll receive an SMS confirmation</li>
                   <li>• Our team will arrive at your scheduled time</li>
                   <li>• We'll send a completion photo after pickup</li>
                 </ul>
+              </div>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 className="font-semibold text-blue-800 mb-2">💡 Alternative Payment Option</h3>
+                <div className="text-center">
+                  <p className="text-sm text-blue-700 mb-3">You can also pay via Venmo:</p>
+                  <div className="bg-white p-4 rounded-lg border">
+                    <div className="w-32 h-32 mx-auto bg-gray-100 border rounded-lg flex items-center justify-center mb-2">
+                      <div className="text-center">
+                        <div className="text-xs font-mono bg-white p-2 border rounded">
+                          {/* Placeholder QR code pattern */}
+                          <div className="grid grid-cols-8 gap-px">
+                            {Array.from({length: 64}, (_, i) => (
+                              <div key={i} className={`w-1 h-1 ${Math.random() > 0.5 ? 'bg-black' : 'bg-white'}`}></div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-600">@Text2toss-AZ</p>
+                    <p className="text-xs text-blue-600 font-semibold">${quote?.total_price}</p>
+                  </div>
+                  <p className="text-xs text-gray-600 mt-2">
+                    Scan with Venmo app or send to @Text2toss-AZ
+                  </p>
+                </div>
               </div>
             </div>
           )}
