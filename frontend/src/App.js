@@ -112,19 +112,29 @@ const LandingPage = () => {
               </div>
               <span className="text-2xl font-bold text-white">TEXT-2-TOSS</span>
             </div>
-            <div className="hidden md:flex space-x-8">
+            <div className="hidden md:flex items-center space-x-8">
               <a href="#how-it-works" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors">How It Works</a>
               <a href="#pricing" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors">Pricing</a>
               <a href="#contact" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors">Contact</a>
-              <Link to="/admin" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors">Admin</Link>
             </div>
-            <Button 
-              onClick={() => setShowQuote(true)}
-              className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white px-6"
-              data-testid="get-quote-btn"
-            >
-              📸 Upload & Quote
-            </Button>
+            <div className="flex items-center space-x-3">
+              <Link to="/admin">
+                <Button 
+                  variant="outline"
+                  className="border-emerald-400 text-emerald-400 hover:bg-emerald-400 hover:text-white"
+                  data-testid="admin-login-nav-btn"
+                >
+                  🔐 Admin Login
+                </Button>
+              </Link>
+              <Button 
+                onClick={() => setShowQuote(true)}
+                className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white px-6"
+                data-testid="get-quote-btn"
+              >
+                📸 Upload & Quote
+              </Button>
+            </div>
           </div>
         </div>
       </nav>
