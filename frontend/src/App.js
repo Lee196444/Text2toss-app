@@ -177,6 +177,14 @@ const LandingPage = () => {
                 <h1 className="text-5xl lg:text-6xl font-bold text-white leading-tight">
                   <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">Text2toss</span>
                 </h1>
+                <div className="bg-emerald-900/40 border border-emerald-400/40 rounded-lg p-4 mb-4">
+                  <p className="text-emerald-200 text-lg font-semibold text-center">
+                    📍 Servicing Flagstaff AZ and surrounding areas
+                  </p>
+                  <p className="text-emerald-300 text-sm text-center mt-1">
+                    Locally owned and operated business
+                  </p>
+                </div>
                 <p className="text-xl text-gray-200 leading-relaxed">
                   Upload photo of junk and quick description, get a quote in seconds! 
                   No more waiting on callbacks and no more hassles. 
