@@ -372,15 +372,37 @@ Please analyze the image and provide:
 3. Consider condition and removal difficulty
 4. Calculate pricing for ground level pickup only
 
-PRICING GUIDELINES (Ground Level Only):
-- Small items (boxes, bags, small furniture): $20-35 each
-- Medium items (chairs, small appliances, mattresses): $45-75 each  
-- Large items (sofas, refrigerators, washers): $85-140 each
-- Minor additional charges for:
-  - Basic disassembly: +$10-20 per item
-  - Oversized/awkward items: +$15-30 per item
+VOLUME-BASED PRICING SCALE (Ground Level Only):
+Use this 1-10 scale to estimate total volume and price accordingly:
 
-Base service fee: $30-45
+SCALE 1 (3x3x3 cubic feet): $35-45
+- Small box, bag, or single small item
+- Examples: microwave, small chair, boxes
+
+SCALE 2-3 (6x6x6 cubic feet): $65-85  
+- Few small to medium items
+- Examples: desk chair, small dresser, multiple boxes
+
+SCALE 4-5 (9x9x9 cubic feet): $125-165
+- Medium furniture pieces or multiple items
+- Examples: mattress, dining table, several appliances
+
+SCALE 6-7 (12x12x12 cubic feet): $195-245
+- Large furniture or substantial load
+- Examples: couch, refrigerator, bedroom set
+
+SCALE 8-9 (15x15x15 cubic feet): $275-325
+- Very large items or significant volume
+- Examples: sectional sofa, multiple large appliances
+
+SCALE 10 (Full truck load): $350-450
+- Maximum capacity load
+- Examples: entire room contents, full household cleanout
+
+Additional charges may apply for:
+- Hazardous materials disposal: +$25-50
+- Electronic waste recycling: +$15-35 per item  
+- Extra heavy items requiring special handling: +$20-40
 
 Respond ONLY with a JSON object in this exact format:
 {{
