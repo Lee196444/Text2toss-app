@@ -29,6 +29,9 @@ const AdminDashboard = () => {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [selectedBin, setSelectedBin] = useState(null);
   const [binBookings, setBinBookings] = useState([]);
+  const [showRouteModal, setShowRouteModal] = useState(false);
+  const [selectedRouteBooking, setSelectedRouteBooking] = useState(null);
+  const [routeDirections, setRouteDirections] = useState(null);
 
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
