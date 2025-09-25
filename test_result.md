@@ -168,13 +168,10 @@
 
 ## test_plan:
   current_focus:
-    - "Fix toast notifications visibility in admin dashboard"
-    - "Add Google Maps API key integration"
-    - "Improve Optimize Route button UX when insufficient bookings"
-  stuck_tasks:
-    - "Optimize Route button functionality"
+    - "Google Maps API key setup instructions for user"
+  stuck_tasks: []
   test_all: false
-  test_priority: "high_first"
+  test_priority: "sequential"
 
 ## agent_communication:
     - agent: "main"
