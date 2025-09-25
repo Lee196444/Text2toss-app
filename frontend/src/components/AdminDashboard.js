@@ -108,12 +108,8 @@ const AdminDashboard = () => {
   };
 
   const calculateOptimalRoute = async () => {
-    console.log("calculateOptimalRoute function called! Bookings:", dailyBookings.length);
     if (dailyBookings.length < 2) {
-      console.log("Not enough bookings for route calculation");
       toast.error("Need at least 2 bookings to calculate route");
-      // Temporary: Also show alert for debugging
-      alert("❌ Need at least 2 bookings to calculate route");
       return;
     }
 
