@@ -529,6 +529,7 @@ class TEXT2TOSSAPITester:
         # Run test suites
         self.test_basic_endpoints()
         self.test_quote_system()
+        self.test_new_pricing_system()  # NEW: Test the new 1-10 scale pricing system
         self.test_booking_system()
         self.test_admin_authentication()
         self.test_admin_schedule_endpoints()
