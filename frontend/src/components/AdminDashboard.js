@@ -232,8 +232,21 @@ const AdminDashboard = () => {
     try {
       const response = await axios.post(`${API}/admin/bookings/${bookingId}/notify-customer`);
       toast.success("SMS sent to customer with completion photo!");
+      console.log("SMS Result:", response.data);
     } catch (error) {
       toast.error("Failed to send SMS to customer");
+      console.error("SMS Error:", error);
+    }
+  };
+
+  const testSmsPhoto = async (bookingId) => {
+    try {
+      const response = await axios.post(`${API}/admin/test-sms-photo/${bookingId}`);
+      toast.success(`SMS photo test completed! Check console for details.`);
+      console.log("SMS Photo Test Result:", response.data);
+    } catch (error) {
+      toast.error("SMS photo test failed");
+      console.error("SMS Photo Test Error:", error);
     }
   };
 
