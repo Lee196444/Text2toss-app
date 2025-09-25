@@ -101,3 +101,63 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+## user_problem_statement: "what is the clean up button for? becaus it dosent work or the optmize route button"
+
+## backend:
+  - task: "Cleanup temp images endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "low"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Backend endpoint at /api/admin/cleanup-temp-images works correctly (200 OK responses in logs). Function cleans temporary images older than 24 hours."
+
+## frontend:
+  - task: "Cleanup button functionality"
+    implemented: true
+    working: false
+    file: "/app/frontend/src/components/AdminDashboard.js"
+    stuck_count: 1
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "Button clicks successfully (200 response), but users don't see toast notifications. Need to verify toast library is working properly."
+  
+  - task: "Optimize Route button functionality"
+    implemented: true
+    working: false
+    file: "/app/frontend/src/components/AdminDashboard.js"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "Button has multiple issues: 1) Missing Google Maps API key (NoApiKeys warning), 2) Requires at least 2 bookings to work (currently 0 new jobs), 3) Toast notifications may not be visible to users."
+
+## metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+
+## test_plan:
+  current_focus:
+    - "Fix toast notifications visibility in admin dashboard"
+    - "Add Google Maps API key integration"
+    - "Improve Optimize Route button UX when insufficient bookings"
+  stuck_tasks:
+    - "Optimize Route button functionality"
+  test_all: false
+  test_priority: "high_first"
+
+## agent_communication:
+    - agent: "main"
+      message: "Diagnosed button issues through browser testing. Cleanup works but no visual feedback. Optimize Route needs Google Maps API key and better UX for insufficient bookings scenario. Both buttons need improved user feedback."
