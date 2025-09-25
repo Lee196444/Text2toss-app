@@ -515,9 +515,21 @@ const BookingModal = ({ quote, onClose, onSuccess }) => {
 
     setCheckingAvailability(true);
     try {
-      const response = await axios.get(`${API}/admin/daily-schedule?date=${selectedDate}`);
-      const bookedTimes = response.data.map(booking => booking.pickup_time);
-      setBookedTimeSlots(bookedTimes);
+      const response = await axios.get(`${API}/availability/${selectedDate}`);
+      const availabilityData = response.data;
+      
+      if (availabilityData.blocked_day) {
+        toast.error(availabilityData.reason);
+        setBookedTimeSlots([]);
+        return;
+      }
+      
+      setBookedTimeSlots(availabilityData.booked_slots || []);
+      
+      if (availabilityData.available_count === 0) {
+        toast.warning("All time slots are booked for this date. Please choose another day.");
+      }
+      
     } catch (error) {
       console.error("Failed to check availability:", error);
       setBookedTimeSlots([]);
