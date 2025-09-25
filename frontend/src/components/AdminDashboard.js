@@ -321,6 +321,92 @@ const AdminDashboard = () => {
     setBinBookings([]);
   };
 
+  const startRoute = async (booking) => {
+    setSelectedRouteBooking(booking);
+    setShowRouteModal(true);
+    
+    if (!GOOGLE_MAPS_API_KEY || !isLoaded || !window.google) {
+      // Fallback: Open in default maps app
+      const address = encodeURIComponent(booking.address);
+      const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${address}&travelmode=driving`;
+      window.open(mapsUrl, '_blank');
+      toast.success("Opening route in Google Maps");
+      return;
+    }
+
+    try {
+      // Get user's current location
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const origin = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+
+          const directionsService = new window.google.maps.DirectionsService();
+          
+          const result = await new Promise((resolve, reject) => {
+            directionsService.route({
+              origin: origin,
+              destination: booking.address,
+              travelMode: window.google.maps.TravelMode.DRIVING,
+              optimizeWaypoints: false,
+              avoidTolls: false,
+              avoidHighways: false
+            }, (result, status) => {
+              if (status === 'OK') {
+                resolve(result);
+              } else {
+                reject(status);
+              }
+            });
+          });
+
+          setRouteDirections(result);
+          
+          // Also provide option to open in phone's maps app
+          const address = encodeURIComponent(booking.address);
+          const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${address}&travelmode=driving`;
+          
+          toast.success(
+            <div>
+              Route calculated! 
+              <button 
+                onClick={() => window.open(mapsUrl, '_blank')} 
+                className="ml-2 underline text-blue-600"
+              >
+                Open in Phone Maps
+              </button>
+            </div>
+          );
+
+        },
+        (error) => {
+          // Fallback if location access denied
+          const address = encodeURIComponent(booking.address);
+          const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${address}&travelmode=driving`;
+          window.open(mapsUrl, '_blank');
+          toast.success("Opening route in Google Maps");
+        }
+      );
+
+    } catch (error) {
+      console.error('Route calculation error:', error);
+      toast.error("Failed to calculate route");
+      
+      // Fallback
+      const address = encodeURIComponent(booking.address);
+      const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${address}&travelmode=driving`;
+      window.open(mapsUrl, '_blank');
+    }
+  };
+
+  const closeRouteModal = () => {
+    setShowRouteModal(false);
+    setSelectedRouteBooking(null);
+    setRouteDirections(null);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-black/40 to-emerald-900/50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
