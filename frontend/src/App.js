@@ -305,12 +305,12 @@ const LandingPage = () => {
                 <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full mx-auto flex items-center justify-center mb-4">
                   <span className="text-white text-2xl font-bold">3</span>
                 </div>
-                <CardTitle className="text-2xl">Schedule Pickup</CardTitle>
+                <CardTitle className="text-2xl">Schedule Pickup, Pay</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 leading-relaxed">
-                  Choose a convenient time for pickup. Our team will arrive on time 
-                  and safely collect items from your ground level location.
+                  Choose a convenient time for pickup and pay securely online. 
+                  We accept card payments and Venmo for your convenience.
                 </p>
               </CardContent>
             </Card>
