@@ -205,8 +205,8 @@ const LandingPage = () => {
             <div className="relative">
               <div className="relative z-10">
                 <img 
-                  src="https://images.unsplash.com/photo-1561069157-218187260215?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njl8MHwxfHNlYXJjaHw0fHxqdW5rJTIwcmVtb3ZhbHxlbnwwfHx8fDE3NTg3MjgzNjJ8MA&ixlib=rb-4.1.0&q=85"
-                  alt="Professional junk removal truck"
+                  src="https://customer-assets.emergentagent.com/job_clutterclear-1/artifacts/j1lldodm_20250618_102613.jpg"
+                  alt="TEXT-2-TOSS truck loaded with junk from actual job"
                   className="rounded-2xl shadow-2xl w-full h-auto object-cover"
                 />
               </div>
