@@ -434,14 +434,24 @@ const AdminDashboard = () => {
                             {booking.completion_note && (
                               <p className="text-sm text-green-700">Note: {booking.completion_note}</p>
                             )}
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => notifyCustomer(booking.id)}
-                              className="mt-2 text-xs"
-                            >
-                              📱 Send SMS + Photo
-                            </Button>
+                            <div className="flex gap-2 mt-2">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => notifyCustomer(booking.id)}
+                                className="text-xs"
+                              >
+                                📱 Send SMS + Photo
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => testSmsPhoto(booking.id)}
+                                className="text-xs bg-blue-50 border-blue-200 text-blue-700"
+                              >
+                                🧪 Test SMS
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </div>
