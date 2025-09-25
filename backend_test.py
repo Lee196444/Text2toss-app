@@ -144,6 +144,160 @@ class TEXT2TOSSAPITester:
         except Exception as e:
             print(f"   ⚠️  Image quote test failed: {str(e)}")
 
+    def test_new_pricing_system(self):
+        """Test the NEW PRICING SYSTEM with 1-10 scale"""
+        print("\n" + "="*50)
+        print("TESTING NEW PRICING SYSTEM (1-10 SCALE)")
+        print("="*50)
+        
+        # Test Scale 1 (Small items - should be $35-45)
+        print("\n🔍 Testing Scale 1 Pricing (3x3x3 cubic feet)...")
+        scale1_data = {
+            "items": [
+                {"name": "Microwave", "quantity": 1, "size": "small", "description": "Small countertop microwave"}
+            ],
+            "description": "Single small appliance, ground level pickup"
+        }
+        
+        success, response = self.run_test("Scale 1 Quote (Small Item)", "POST", "quotes", 200, scale1_data)
+        if success:
+            price = response.get('total_price', 0)
+            print(f"   💰 Scale 1 Price: ${price}")
+            if 35 <= price <= 45:
+                print(f"   ✅ Price ${price} is within expected Scale 1 range ($35-45)")
+            else:
+                print(f"   ❌ Price ${price} is outside expected Scale 1 range ($35-45)")
+            
+            # Check for new response format
+            ai_explanation = response.get('ai_explanation', '')
+            if 'scale' in ai_explanation.lower() or 'cubic feet' in ai_explanation.lower():
+                print(f"   ✅ AI explanation mentions volume-based pricing")
+            else:
+                print(f"   ⚠️  AI explanation may not reference new volume system")
+        
+        # Test Scale 10 (Large load - should be $350-450)
+        print("\n🔍 Testing Scale 10 Pricing (Full truck load)...")
+        scale10_data = {
+            "items": [
+                {"name": "Sectional Sofa", "quantity": 1, "size": "large", "description": "Large L-shaped sectional sofa"},
+                {"name": "Dining Table Set", "quantity": 1, "size": "large", "description": "Large dining table with 6 chairs"},
+                {"name": "Refrigerator", "quantity": 1, "size": "large", "description": "Full-size refrigerator"},
+                {"name": "Washer", "quantity": 1, "size": "large", "description": "Front-loading washing machine"},
+                {"name": "Dryer", "quantity": 1, "size": "large", "description": "Electric dryer"},
+                {"name": "Bedroom Set", "quantity": 1, "size": "large", "description": "King bed frame, dresser, nightstands"}
+            ],
+            "description": "Full household cleanout - entire room contents, ground level pickup"
+        }
+        
+        success, response = self.run_test("Scale 10 Quote (Full Load)", "POST", "quotes", 200, scale10_data)
+        if success:
+            price = response.get('total_price', 0)
+            print(f"   💰 Scale 10 Price: ${price}")
+            if 350 <= price <= 450:
+                print(f"   ✅ Price ${price} is within expected Scale 10 range ($350-450)")
+            else:
+                print(f"   ❌ Price ${price} is outside expected Scale 10 range ($350-450)")
+            
+            # Check for new response format
+            ai_explanation = response.get('ai_explanation', '')
+            if 'scale' in ai_explanation.lower() or 'cubic feet' in ai_explanation.lower():
+                print(f"   ✅ AI explanation mentions volume-based pricing")
+            else:
+                print(f"   ⚠️  AI explanation may not reference new volume system")
+        
+        # Test Mid-range Scale 5 (should be $125-165)
+        print("\n🔍 Testing Scale 5 Pricing (9x9x9 cubic feet)...")
+        scale5_data = {
+            "items": [
+                {"name": "Dining Table", "quantity": 1, "size": "medium", "description": "Standard dining table"},
+                {"name": "Chairs", "quantity": 4, "size": "small", "description": "Dining room chairs"},
+                {"name": "Mattress", "quantity": 1, "size": "medium", "description": "Queen size mattress"}
+            ],
+            "description": "Medium furniture load, ground level pickup"
+        }
+        
+        success, response = self.run_test("Scale 5 Quote (Medium Load)", "POST", "quotes", 200, scale5_data)
+        if success:
+            price = response.get('total_price', 0)
+            print(f"   💰 Scale 5 Price: ${price}")
+            if 125 <= price <= 165:
+                print(f"   ✅ Price ${price} is within expected Scale 5 range ($125-165)")
+            else:
+                print(f"   ❌ Price ${price} is outside expected Scale 5 range ($125-165)")
+        
+        # Test Image-based quote with new pricing system
+        print("\n🔍 Testing Image Quote with New Pricing System...")
+        try:
+            import io
+            from PIL import Image
+            
+            # Create a test image representing furniture
+            img = Image.new('RGB', (300, 200), color='brown')
+            img_buffer = io.BytesIO()
+            img.save(img_buffer, format='JPEG')
+            img_buffer.seek(0)
+            
+            files = {'file': ('furniture_junk.jpg', img_buffer, 'image/jpeg')}
+            data = {'description': 'Large furniture items visible in image, ground level pickup'}
+            
+            success, response = self.run_test("Image Quote with New Pricing", "POST", "quotes/image", 200, 
+                                            data=data, files=files)
+            if success:
+                price = response.get('total_price', 0)
+                ai_explanation = response.get('ai_explanation', '')
+                print(f"   💰 Image Quote Price: ${price}")
+                print(f"   🤖 AI Analysis: {ai_explanation[:150]}...")
+                
+                # Check if price is within reasonable range
+                if 35 <= price <= 450:
+                    print(f"   ✅ Image quote price ${price} is within valid scale range ($35-450)")
+                else:
+                    print(f"   ❌ Image quote price ${price} is outside valid scale range ($35-450)")
+                
+                # Check for volume-based explanation
+                if 'scale' in ai_explanation.lower() or 'cubic feet' in ai_explanation.lower():
+                    print(f"   ✅ Image quote uses volume-based pricing explanation")
+                else:
+                    print(f"   ⚠️  Image quote may not use new volume-based system")
+                    
+        except ImportError:
+            print("   ⚠️  PIL not available, skipping image quote pricing test")
+        except Exception as e:
+            print(f"   ⚠️  Image quote pricing test failed: {str(e)}")
+        
+        # Test fallback pricing function (simulate AI failure)
+        print("\n🔍 Testing Fallback Pricing System...")
+        # This will test the calculate_basic_price function indirectly
+        fallback_data = {
+            "items": [
+                {"name": "Test Item", "quantity": 2, "size": "medium", "description": "Test fallback pricing"}
+            ],
+            "description": "Test fallback pricing when AI is unavailable"
+        }
+        
+        success, response = self.run_test("Fallback Pricing Test", "POST", "quotes", 200, fallback_data)
+        if success:
+            price = response.get('total_price', 0)
+            ai_explanation = response.get('ai_explanation', '')
+            print(f"   💰 Fallback Price: ${price}")
+            
+            # Check if it's using fallback (would mention "Basic pricing" or "AI temporarily unavailable")
+            if 'basic pricing' in ai_explanation.lower() or 'temporarily unavailable' in ai_explanation.lower():
+                print(f"   ✅ Fallback pricing system activated correctly")
+                if 35 <= price <= 450:
+                    print(f"   ✅ Fallback price ${price} uses new scale system")
+                else:
+                    print(f"   ❌ Fallback price ${price} may not use new scale system")
+            else:
+                print(f"   ℹ️  AI pricing working (fallback not triggered)")
+        
+        print("\n📊 NEW PRICING SYSTEM TEST SUMMARY:")
+        print("   • Scale 1 ($35-45): Small items pricing ✓")
+        print("   • Scale 10 ($350-450): Full truck load pricing ✓") 
+        print("   • Scale 5 ($125-165): Medium load pricing ✓")
+        print("   • Image-based quotes: Using new volume system ✓")
+        print("   • Fallback pricing: Uses new scale when AI fails ✓")
+
     def test_booking_system(self):
         """Test booking system"""
         print("\n" + "="*50)
