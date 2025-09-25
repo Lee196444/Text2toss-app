@@ -813,9 +813,9 @@ async def upload_completion_photo(
             phone = '+1' + phone  # Assume US number if no country code
         
         if phone:
-            # Create public URL for the image (you'll need to adjust this for your domain)
+            # Create public URL for the image accessible by SMS
             backend_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://clutterclear-1.preview.emergentagent.com')
-            photo_url = f"{backend_url}/api/admin/completion-photo/{booking_id}"
+            photo_url = f"{backend_url}/api/public/completion-photo/{booking_id}"
             
             completion_message = f"📸 Text2toss Complete: Your junk has been removed from {booking['address']}. "
             if completion_note:
