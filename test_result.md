@@ -164,51 +164,63 @@
 
   - task: "NEW PAYMENT SYSTEM - Create Stripe checkout session"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Implemented POST /api/payments/create-checkout-session endpoint using emergentintegrations Stripe library. Creates checkout session for booking with amount from quote, stores transaction in payment_transactions collection. Requires valid booking_id and origin_url."
+        - working: true
+          agent: "testing"
+          comment: "VERIFIED: Stripe checkout session creation working perfectly. Endpoint creates valid Stripe checkout URLs (checkout.stripe.com), returns proper session_id and amount from quote ($195-230 tested). Response includes all required fields: url, session_id, amount. Integration with emergentintegrations library successful."
 
   - task: "NEW PAYMENT SYSTEM - Payment status check"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Implemented GET /api/payments/status/{session_id} endpoint. Retrieves payment status from Stripe and updates local transaction records. Updates booking payment_status when payment is successful."
+        - working: true
+          agent: "testing"
+          comment: "VERIFIED: Payment status retrieval working correctly. Endpoint returns complete status information: session_id, status (open), payment_status (unpaid), amount_total, currency (usd), booking_id, and metadata. Session ID and booking ID matching validated. Proper error handling for invalid session IDs (404 response)."
 
   - task: "NEW PAYMENT SYSTEM - Stripe webhook handling"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Implemented POST /api/webhook/stripe endpoint for handling Stripe webhook events. Updates payment transaction status based on checkout.session.completed events. Uses emergentintegrations webhook handling."
+        - working: true
+          agent: "testing"
+          comment: "VERIFIED: Stripe webhook endpoint accessible and processing requests successfully. Endpoint returns 200 OK with {status: success} response. Webhook URL properly configured in checkout sessions. Ready to handle real Stripe webhook events for payment completion notifications."
 
   - task: "NEW PAYMENT SYSTEM - Database integration"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Added PaymentTransaction and PaymentRequest models. Payment transactions stored in payment_transactions collection. Bookings updated with payment_status field when payments are successful."
+        - working: true
+          agent: "testing"
+          comment: "VERIFIED: Database integration working perfectly. PaymentTransaction records created and stored in payment_transactions collection with session_id, booking_id, amount, currency, payment_status, and metadata. Transaction data retrievable via status endpoint. Booking linkage confirmed through booking_id field."
 
 ## frontend:
   - task: "Cleanup button functionality"
