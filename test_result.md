@@ -122,7 +122,7 @@
 
   - task: "NEW PRICING SYSTEM - Text-based quotes with 1-10 scale"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
@@ -131,6 +131,9 @@
         - working: false
           agent: "testing"
           comment: "CRITICAL ISSUE FOUND: Pricing logic works correctly (Scale 1: $35-45, Scale 10: $350-450, AI uses volume-based language) BUT backend code only extracts total_price and explanation from AI response. The scale_level and breakdown fields specified in requirements are being discarded. Lines 328-329 in calculate_ai_price() need to extract and return additional fields from AI JSON response."
+        - working: true
+          agent: "testing"
+          comment: "FIXED SUCCESSFULLY: Text-based quotes now return complete JSON format with scale_level and breakdown fields. Tested Scale 1 ($45, level=1), Scale 10 ($425, level=10), Scale 5 ($150, level=5). All include proper breakdown structure with base_cost, additional_charges, and total. AI explanations mention volume-based pricing. The parsing issue has been resolved."
 
   - task: "NEW PRICING SYSTEM - Image-based quotes with 1-10 scale"
     implemented: true
@@ -143,6 +146,9 @@
         - working: false
           agent: "testing"
           comment: "CRITICAL ISSUE FOUND: Same parsing issue as text quotes. AI vision currently falls back due to 'File attachments only supported with Gemini provider' but fallback pricing uses new scale system correctly. Lines 498-499 in analyze_image_for_quote() need to extract scale_level and breakdown fields from AI response when vision is working."
+        - working: false
+          agent: "testing"
+          comment: "PARTIAL FIX: Text-based quote parsing is now working, but image quotes still missing scale_level and breakdown fields. AI vision analysis fails with 'Image analysis temporarily unavailable' and falls back to basic pricing ($75) without new JSON format fields. Image quote functionality needs AI vision provider fix or fallback enhancement to include new fields."
 
   - task: "NEW PRICING SYSTEM - Fallback pricing function"
     implemented: true
