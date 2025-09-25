@@ -404,6 +404,13 @@ Additional charges may apply for:
 - Electronic waste recycling: +$15-35 per item  
 - Extra heavy items requiring special handling: +$20-40
 
+PRICING PROCESS:
+1. Identify all items in the image
+2. Estimate combined volume using the 1-10 scale above  
+3. Select appropriate price range for that scale
+4. Adjust within range based on item condition, weight, disposal complexity
+5. Add any applicable additional charges
+
 Respond ONLY with a JSON object in this exact format:
 {{
   "items": [
@@ -415,12 +422,13 @@ Respond ONLY with a JSON object in this exact format:
     }}
   ],
   "total_price": 150.00,
+  "scale_level": 5,
   "breakdown": {{
-    "items_cost": 120.00,
-    "service_fee": 30.00,
-    "additional_charges": 0.00
+    "base_cost": 140.00,
+    "additional_charges": 10.00,
+    "total": 150.00
   }},
-  "explanation": "Detailed explanation of what was identified in the image and pricing factors"
+  "explanation": "Scale 5 load (9x9x9 cubic feet) - identified dining table and 4 chairs in image. Pricing includes ground level pickup, loading, and responsible disposal."
 }}"""
 
     try:
