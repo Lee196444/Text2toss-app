@@ -656,11 +656,16 @@ class TEXT2TOSSAPITester:
                     print("   ❌ Failed to create test quote, skipping payment tests")
                     return
             
-            # Create booking for payment testing
-            tomorrow = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
+            # Create booking for payment testing - use next Monday
+            today = datetime.now()
+            days_until_monday = (7 - today.weekday()) % 7
+            if days_until_monday == 0:  # If today is Monday, use next Monday
+                days_until_monday = 7
+            next_monday = (today + timedelta(days=days_until_monday)).strftime('%Y-%m-%d')
+            
             booking_data = {
                 "quote_id": self.test_quote_id,
-                "pickup_date": f"{tomorrow}T14:00:00",
+                "pickup_date": f"{next_monday}T14:00:00",
                 "pickup_time": "14:00-16:00",
                 "address": "456 Payment Test Ave, Test City, TC 12345",
                 "phone": "+1987654321",
