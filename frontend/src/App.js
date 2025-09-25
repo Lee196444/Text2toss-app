@@ -139,12 +139,11 @@ const LandingPage = () => {
                   🚛 Professional Junk Removal Service
                 </Badge>
                 <h1 className="text-5xl lg:text-6xl font-bold text-white leading-tight">
-                  Describe It,<br />
-                  <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">We Remove It</span>
+                  <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">TEXT-2-TOSS</span>
                 </h1>
                 <p className="text-xl text-gray-200 leading-relaxed">
-                  Simply tell us what junk you need removed or upload a photo for AI analysis. 
-                  Get an instant quote, schedule pickup, and we'll handle the rest. 
+                  Upload photo of junk and quick description, get a quote in seconds! 
+                  No more waiting on callbacks and no more hassles. 
                   Fast, reliable, and eco-friendly junk removal service.
                 </p>
                 <div className="bg-emerald-900/30 border border-emerald-400/30 rounded-lg p-4 mt-4">
