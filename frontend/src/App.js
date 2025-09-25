@@ -136,7 +136,7 @@ const LandingPage = () => {
               <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
                 <span className="text-white font-bold text-lg">T2T</span>
               </div>
-              <span className="text-2xl font-bold text-white">TEXT-2-TOSS</span>
+              <span className="text-2xl font-bold text-white">Text2toss</span>
             </div>
             <div className="hidden md:flex items-center space-x-8">
               <a href="#how-it-works" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors">How It Works</a>
