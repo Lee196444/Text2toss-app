@@ -667,12 +667,15 @@ async def get_weekly_schedule(start_date: str = None):
     
     end = start + timedelta(days=7)
     
+    # Use string matching since pickup_date is stored as string
+    start_str = start.strftime("%Y-%m-%d")
+    end_str = end.strftime("%Y-%m-%d")
+    
     bookings = await db.bookings.find({
         "pickup_date": {
-            "$gte": datetime.combine(start, datetime.min.time()),
-            "$lt": datetime.combine(end, datetime.min.time())
+            "$regex": f"^({start_str}|{(start + timedelta(days=1)).strftime('%Y-%m-%d')}|{(start + timedelta(days=2)).strftime('%Y-%m-%d')}|{(start + timedelta(days=3)).strftime('%Y-%m-%d')}|{(start + timedelta(days=4)).strftime('%Y-%m-%d')}|{(start + timedelta(days=5)).strftime('%Y-%m-%d')}|{(start + timedelta(days=6)).strftime('%Y-%m-%d')})"
         }
-    }).sort([("pickup_date", 1), ("pickup_time", 1)]).to_list(1000)
+    }).sort("pickup_time", 1).to_list(1000)
     
     # Group by date
     schedule = {}
