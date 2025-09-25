@@ -7,7 +7,11 @@ import { Input } from "./ui/input";
 import { Badge } from "./ui/badge";
 import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { toast } from "sonner";
+// Use global toast function as fallback
+const toast = {
+  success: (message) => window.showToast ? window.showToast('success', message) : console.log('SUCCESS:', message),
+  error: (message) => window.showToast ? window.showToast('error', message) : console.log('ERROR:', message)
+};
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
