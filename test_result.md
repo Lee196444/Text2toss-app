@@ -153,6 +153,9 @@
         - working: true
           agent: "main"
           comment: "FIXED: Button now works correctly. Shows helpful messages about Google Maps API key needed for optimal routing. Falls back to time-based sorting when API key missing. Toast notifications fixed."
+        - working: true
+          agent: "testing"
+          comment: "BACKEND VERIFIED: Route optimization prerequisites confirmed. Found 4 bookings available for testing route optimization. Function calculateOptimalRoute (lines 110-188) properly handles insufficient bookings with error message 'Need at least 2 bookings to calculate route'. Fallback to time-based sorting implemented when Google Maps API unavailable."
   
   - task: "Toast notifications system"
     implemented: true
