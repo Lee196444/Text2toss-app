@@ -109,6 +109,8 @@ const AdminDashboard = () => {
   const calculateOptimalRoute = async () => {
     if (dailyBookings.length < 2) {
       toast.error("Need at least 2 bookings to calculate route");
+      // Temporary: Also show alert for debugging
+      alert("❌ Need at least 2 bookings to calculate route");
       return;
     }
 
