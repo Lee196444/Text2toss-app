@@ -863,6 +863,25 @@ async def get_completion_photo(booking_id: str):
     
     return FileResponse(photo_path)
 
+# Public endpoint for SMS photo access (no authentication required)
+@api_router.get("/public/completion-photo/{booking_id}")
+async def get_public_completion_photo(booking_id: str):
+    """Get completion photo for SMS - publicly accessible"""
+    booking = await db.bookings.find_one({"id": booking_id})
+    if not booking or not booking.get("completion_photo_path"):
+        raise HTTPException(status_code=404, detail="Completion photo not found")
+    
+    photo_path = Path(booking["completion_photo_path"])
+    if not photo_path.exists():
+        raise HTTPException(status_code=404, detail="Photo file not found")
+    
+    # Add proper headers for image serving
+    return FileResponse(
+        photo_path,
+        media_type="image/jpeg",
+        headers={"Cache-Control": "public, max-age=3600"}
+    )
+
 @api_router.post("/admin/cleanup-temp-images")
 async def cleanup_temporary_images():
     """Clean up temporary images older than 24 hours that weren't booked"""
