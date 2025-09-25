@@ -163,7 +163,7 @@ const LandingPage = () => {
                   className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-lg px-8 py-6"
                   data-testid="hero-get-quote-btn"
                 >
-                  Get Instant Quote
+                  📸 Upload Photo & Get Quote
                 </Button>
                 <Button 
                   variant="outline" 
