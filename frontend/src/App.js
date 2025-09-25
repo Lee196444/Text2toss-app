@@ -739,6 +739,141 @@ const BookingModal = ({ quote, onClose, onSuccess }) => {
   );
 };
 
+// Payment Success Component
+const PaymentSuccess = () => {
+  const [paymentStatus, setPaymentStatus] = useState('checking');
+  const [sessionId, setSessionId] = useState('');
+
+  useEffect(() => {
+    // Get session ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionIdParam = urlParams.get('session_id');
+    
+    if (sessionIdParam) {
+      setSessionId(sessionIdParam);
+      pollPaymentStatus(sessionIdParam);
+    } else {
+      setPaymentStatus('error');
+    }
+  }, []);
+
+  const pollPaymentStatus = async (sessionId, attempts = 0) => {
+    const maxAttempts = 5;
+    
+    if (attempts >= maxAttempts) {
+      setPaymentStatus('timeout');
+      return;
+    }
+
+    try {
+      const response = await axios.get(`${API}/payments/status/${sessionId}`);
+      const data = response.data;
+      
+      if (data.payment_status === 'paid') {
+        setPaymentStatus('success');
+        return;
+      } else if (data.status === 'expired') {
+        setPaymentStatus('expired');
+        return;
+      }
+
+      // Continue polling if still pending
+      setTimeout(() => pollPaymentStatus(sessionId, attempts + 1), 2000);
+    } catch (error) {
+      console.error('Error checking payment status:', error);
+      setPaymentStatus('error');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-black/40 to-emerald-900/50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md text-center">
+        <CardHeader>
+          <CardTitle className="text-2xl">
+            {paymentStatus === 'checking' && '🔄 Processing Payment...'}
+            {paymentStatus === 'success' && '✅ Payment Successful!'}
+            {paymentStatus === 'error' && '❌ Payment Error'}
+            {paymentStatus === 'timeout' && '⏱️ Payment Verification Timeout'}
+            {paymentStatus === 'expired' && '⏰ Payment Session Expired'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {paymentStatus === 'checking' && (
+            <p className="text-gray-600">Please wait while we verify your payment...</p>
+          )}
+          {paymentStatus === 'success' && (
+            <div className="space-y-4">
+              <p className="text-green-600 font-semibold">
+                Your payment has been processed successfully!
+              </p>
+              <p className="text-gray-600">
+                Your junk removal pickup has been confirmed. We'll send you an SMS confirmation shortly.
+              </p>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h3 className="font-semibold text-green-800 mb-2">What's Next?</h3>
+                <ul className="text-sm text-green-700 space-y-1">
+                  <li>• You'll receive an SMS confirmation</li>
+                  <li>• Our team will arrive at your scheduled time</li>
+                  <li>• We'll send a completion photo after pickup</li>
+                </ul>
+              </div>
+            </div>
+          )}
+          {(paymentStatus === 'error' || paymentStatus === 'timeout' || paymentStatus === 'expired') && (
+            <div className="space-y-4">
+              <p className="text-red-600">
+                {paymentStatus === 'error' && 'There was an error processing your payment.'}
+                {paymentStatus === 'timeout' && 'Payment verification timed out.'}
+                {paymentStatus === 'expired' && 'Your payment session has expired.'}
+              </p>
+              <p className="text-gray-600">
+                Please try again or contact support if the issue persists.
+              </p>
+            </div>
+          )}
+        </CardContent>
+        <CardFooter>
+          <Button 
+            onClick={() => window.location.href = '/'} 
+            className="w-full"
+          >
+            Return to Home
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
+  );
+};
+
+// Payment Cancelled Component
+const PaymentCancelled = () => {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-black/40 to-emerald-900/50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md text-center">
+        <CardHeader>
+          <CardTitle className="text-2xl">❌ Payment Cancelled</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-600 mb-4">
+            Your payment was cancelled. No charges were made to your account.
+          </p>
+          <p className="text-gray-600">
+            You can try again or contact us if you need assistance.
+          </p>
+        </CardContent>
+        <CardFooter>
+          <Button 
+            onClick={() => window.location.href = '/'} 
+            className="w-full"
+          >
+            Return to Home
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
+  );
+};
+
 // Main App Component
 function App() {
   return (
@@ -747,6 +882,8 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/admin" element={<ProtectedAdmin />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/payment-cancelled" element={<PaymentCancelled />} />
         </Routes>
       </BrowserRouter>
     </div>
