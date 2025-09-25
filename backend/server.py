@@ -512,7 +512,7 @@ Respond ONLY with a JSON object in this exact format:
         fallback_items = [JunkItem(name="Unidentified items from image", quantity=1, size="medium")]
         fallback_price = 75.0
         fallback_explanation = "Image analysis temporarily unavailable. Basic estimate provided - please describe items for accurate pricing."
-        return fallback_items, fallback_price, fallback_explanation
+        return fallback_items, fallback_price, fallback_explanation, None, None
 
 # Authentication helpers
 def hash_password(password: str) -> str:
