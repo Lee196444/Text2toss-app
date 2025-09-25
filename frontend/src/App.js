@@ -246,12 +246,12 @@ const LandingPage = () => {
                 <div className="w-16 h-16 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-full mx-auto flex items-center justify-center mb-4">
                   <span className="text-white text-2xl font-bold">2</span>
                 </div>
-                <CardTitle className="text-2xl">Get Instant Quote</CardTitle>
+                <CardTitle className="text-2xl">Get Quote in Seconds</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 leading-relaxed">
-                  Receive an upfront, transparent price estimate based on your items. 
-                  No hidden fees or surprises.
+                  Receive your quote instantly - no waiting for callbacks or estimates. 
+                  Transparent pricing with no hidden fees or surprises.
                 </p>
               </CardContent>
             </Card>
