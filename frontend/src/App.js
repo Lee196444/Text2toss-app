@@ -639,6 +639,25 @@ const BookingModal = ({ quote, onClose, onSuccess }) => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Payment Options */}
+          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+            <h3 className="font-semibold text-emerald-800 mb-3">Payment Options</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-center">
+                <div className="mb-2">
+                  <span className="text-sm font-medium text-gray-700">💳 Card Payment</span>
+                </div>
+                <p className="text-xs text-gray-600">Secure online payment</p>
+              </div>
+              <div className="text-center border-l border-emerald-200 pl-4">
+                <div className="mb-2">
+                  <span className="text-sm font-medium text-gray-700">📱 Venmo</span>
+                </div>
+                <p className="text-xs text-gray-600">Scan QR after booking</p>
+              </div>
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label>Pickup Date</Label>
             <Input
