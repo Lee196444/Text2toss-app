@@ -775,6 +775,7 @@ const BookingModal = ({ quote, onClose, onSuccess }) => {
 const PaymentSuccess = () => {
   const [paymentStatus, setPaymentStatus] = useState('checking');
   const [sessionId, setSessionId] = useState('');
+  const [paymentData, setPaymentData] = useState(null);
 
   useEffect(() => {
     // Get session ID from URL
