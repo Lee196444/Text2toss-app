@@ -802,6 +802,9 @@ const PaymentSuccess = () => {
       const response = await axios.get(`${API}/payments/status/${sessionId}`);
       const data = response.data;
       
+      // Store payment data for display
+      setPaymentData(data);
+      
       if (data.payment_status === 'paid') {
         setPaymentStatus('success');
         return;
