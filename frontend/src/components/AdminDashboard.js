@@ -658,6 +658,15 @@ const AdminDashboard = () => {
 
                       {/* Action Buttons */}
                       <div className="flex space-x-2 flex-wrap gap-1 pt-2 border-t">
+                        {/* Start Route Button - Available for all jobs */}
+                        <Button 
+                          size="sm" 
+                          onClick={() => startRoute(booking)}
+                          className="bg-blue-600 hover:bg-blue-700 text-white text-xs"
+                        >
+                          🗺️ Start Route
+                        </Button>
+                        
                         {booking.status === 'scheduled' && (
                           <Button 
                             size="sm" 
