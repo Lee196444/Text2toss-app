@@ -920,7 +920,7 @@ async def notify_customer_completion(booking_id: str):
     if booking.get("completion_photo_path"):
         # Send with photo
         backend_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://clutterclear-1.preview.emergentagent.com')
-        photo_url = f"{backend_url}/api/admin/completion-photo/{booking_id}"
+        photo_url = f"{backend_url}/api/public/completion-photo/{booking_id}"
         
         message = f"📸 Text2toss Complete: Your junk removal is finished at {booking['address']}. "
         if booking.get("completion_note"):
