@@ -178,3 +178,5 @@
       message: "Diagnosed button issues through browser testing. Cleanup works but no visual feedback. Optimize Route needs Google Maps API key and better UX for insufficient bookings scenario. Both buttons need improved user feedback."
     - agent: "main"
       message: "RESOLVED: Both buttons now working correctly with visible toast notifications. Fixed broken sonner component by implementing custom toast system. Cleanup button shows success/error feedback. Optimize Route button works with proper fallback messaging when Google Maps API key missing."
+    - agent: "testing"
+      message: "BACKEND TESTING COMPLETED: Admin dashboard button functionality verified. Cleanup endpoint working correctly (POST /api/admin/cleanup-temp-images returns proper success messages). Admin authentication working (password: admin123). Found 4 bookings available for route optimization testing. Backend APIs supporting both button functionalities are operational."
