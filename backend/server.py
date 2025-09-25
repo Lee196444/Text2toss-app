@@ -336,22 +336,44 @@ Respond ONLY with a JSON object in this exact format:
         fallback_price = calculate_basic_price(items)
         return fallback_price, "Basic pricing applied (AI temporarily unavailable)"
 
-# Fallback basic pricing function
+# Fallback basic pricing function using new 1-10 scale
 def calculate_basic_price(items: List[JunkItem]) -> float:
-    base_prices = {
-        "small": 25,
-        "medium": 50, 
-        "large": 100
+    # Estimate scale based on items using new pricing system
+    total_volume_estimate = 0
+    
+    # Volume estimation factors
+    volume_factors = {
+        "small": 1,    # Scale 1 equivalent
+        "medium": 3,   # Scale 3 equivalent  
+        "large": 6     # Scale 6 equivalent
     }
     
-    total = 0
     for item in items:
-        base_price = base_prices.get(item.size, 50)
-        total += base_price * item.quantity
+        factor = volume_factors.get(item.size, 3)
+        total_volume_estimate += factor * item.quantity
     
-    # Add service fee
-    service_fee = total * 0.15
-    return round(total + service_fee, 2)
+    # Determine scale level (1-10)
+    if total_volume_estimate <= 1:
+        scale = 1
+        price_range = (35, 45)
+    elif total_volume_estimate <= 3:
+        scale = 3
+        price_range = (65, 85)
+    elif total_volume_estimate <= 6:
+        scale = 5
+        price_range = (125, 165)
+    elif total_volume_estimate <= 9:
+        scale = 7
+        price_range = (195, 245)
+    elif total_volume_estimate <= 12:
+        scale = 9
+        price_range = (275, 325)
+    else:
+        scale = 10
+        price_range = (350, 450)
+    
+    # Use middle of price range for fallback
+    return round((price_range[0] + price_range[1]) / 2, 2)
 
 # AI Vision Analysis for Image-based Quotes
 async def analyze_image_for_quote(image_path: str, description: str) -> tuple[List[JunkItem], float, str]:
