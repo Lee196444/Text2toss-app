@@ -120,6 +120,42 @@
           agent: "testing"
           comment: "VERIFIED: Backend endpoint working correctly. Returns proper success messages like 'Cleaned up X temporary images'. Successfully tested with actual temp files - cleaned 1 old file while preserving recent ones. Endpoint accessible and functional."
 
+  - task: "NEW PRICING SYSTEM - Text-based quotes with 1-10 scale"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "CRITICAL ISSUE FOUND: Pricing logic works correctly (Scale 1: $35-45, Scale 10: $350-450, AI uses volume-based language) BUT backend code only extracts total_price and explanation from AI response. The scale_level and breakdown fields specified in requirements are being discarded. Lines 328-329 in calculate_ai_price() need to extract and return additional fields from AI JSON response."
+
+  - task: "NEW PRICING SYSTEM - Image-based quotes with 1-10 scale"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "CRITICAL ISSUE FOUND: Same parsing issue as text quotes. AI vision currently falls back due to 'File attachments only supported with Gemini provider' but fallback pricing uses new scale system correctly. Lines 498-499 in analyze_image_for_quote() need to extract scale_level and breakdown fields from AI response when vision is working."
+
+  - task: "NEW PRICING SYSTEM - Fallback pricing function"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "VERIFIED: Fallback pricing function calculate_basic_price() correctly implements new 1-10 scale system. Scale 1 items return $40 (middle of $35-45 range), Scale 10 items return $400 (middle of $350-450 range). Volume estimation logic works correctly with small/medium/large size factors."
+
 ## frontend:
   - task: "Cleanup button functionality"
     implemented: true
