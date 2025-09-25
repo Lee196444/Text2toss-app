@@ -587,18 +587,48 @@ const BookingModal = ({ quote, onClose, onSuccess }) => {
           </div>
           <div className="space-y-2">
             <Label>Pickup Time</Label>
-            <Select value={bookingData.pickup_time} onValueChange={(value) => setBookingData({...bookingData, pickup_time: value})}>
+            <Select 
+              value={bookingData.pickup_time} 
+              onValueChange={(value) => setBookingData({...bookingData, pickup_time: value})}
+              disabled={!bookingData.pickup_date || checkingAvailability}
+            >
               <SelectTrigger data-testid="pickup-time-select">
-                <SelectValue placeholder="Select time" />
+                <SelectValue placeholder={
+                  checkingAvailability ? "Checking availability..." : 
+                  !bookingData.pickup_date ? "Select date first" : 
+                  "Select time"
+                } />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="08:00-10:00">8:00 AM - 10:00 AM</SelectItem>
-                <SelectItem value="10:00-12:00">10:00 AM - 12:00 PM</SelectItem>
-                <SelectItem value="12:00-14:00">12:00 PM - 2:00 PM</SelectItem>
-                <SelectItem value="14:00-16:00">2:00 PM - 4:00 PM</SelectItem>
-                <SelectItem value="16:00-18:00">4:00 PM - 6:00 PM</SelectItem>
+                {[
+                  { value: "08:00-10:00", label: "8:00 AM - 10:00 AM" },
+                  { value: "10:00-12:00", label: "10:00 AM - 12:00 PM" },
+                  { value: "12:00-14:00", label: "12:00 PM - 2:00 PM" },
+                  { value: "14:00-16:00", label: "2:00 PM - 4:00 PM" },
+                  { value: "16:00-18:00", label: "4:00 PM - 6:00 PM" }
+                ].map(timeSlot => {
+                  const isBooked = bookedTimeSlots.includes(timeSlot.value);
+                  return (
+                    <SelectItem 
+                      key={timeSlot.value}
+                      value={timeSlot.value} 
+                      disabled={isBooked}
+                      className={isBooked ? "opacity-50 cursor-not-allowed" : ""}
+                    >
+                      {timeSlot.label} {isBooked && "🚫 Booked"}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
+            {bookingData.pickup_date && (
+              <p className="text-xs text-gray-600">
+                {bookedTimeSlots.length > 0 
+                  ? `${bookedTimeSlots.length} time slot(s) already booked for this date` 
+                  : "✅ All time slots available"
+                }
+              </p>
+            )}
           </div>
           <div className="space-y-2">
             <Label>Address</Label>
