@@ -329,8 +329,10 @@ Respond ONLY with a JSON object in this exact format:
         
         total_price = float(pricing_data.get("total_price", 0))
         explanation = pricing_data.get("explanation", "AI-generated pricing estimate")
+        scale_level = pricing_data.get("scale_level")
+        breakdown = pricing_data.get("breakdown")
         
-        return total_price, explanation
+        return total_price, explanation, scale_level, breakdown
         
     except Exception as e:
         print(f"AI pricing error: {str(e)}")
