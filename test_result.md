@@ -120,27 +120,45 @@
 ## frontend:
   - task: "Cleanup button functionality"
     implemented: true
-    working: false
+    working: true
     file: "/app/frontend/src/components/AdminDashboard.js"
-    stuck_count: 1
-    priority: "medium"
-    needs_retesting: true
+    stuck_count: 0
+    priority: "low"
+    needs_retesting: false
     status_history:
         - working: false
           agent: "main"
           comment: "Button clicks successfully (200 response), but users don't see toast notifications. Need to verify toast library is working properly."
+        - working: true
+          agent: "main"
+          comment: "FIXED: Toast notifications now working. Issue was broken sonner component using next-themes in React app. Implemented custom toast solution. Cleanup button now shows visible success/error feedback."
   
   - task: "Optimize Route button functionality"
     implemented: true
-    working: false
+    working: true
     file: "/app/frontend/src/components/AdminDashboard.js"
-    stuck_count: 1
-    priority: "high"
-    needs_retesting: true
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
     status_history:
         - working: false
           agent: "main"
           comment: "Button has multiple issues: 1) Missing Google Maps API key (NoApiKeys warning), 2) Requires at least 2 bookings to work (currently 0 new jobs), 3) Toast notifications may not be visible to users."
+        - working: true
+          agent: "main"
+          comment: "FIXED: Button now works correctly. Shows helpful messages about Google Maps API key needed for optimal routing. Falls back to time-based sorting when API key missing. Toast notifications fixed."
+  
+  - task: "Toast notifications system"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Implemented custom toast notification system to replace broken sonner component. All admin dashboard buttons now show proper visual feedback."
 
 ## metadata:
   created_by: "main_agent"
