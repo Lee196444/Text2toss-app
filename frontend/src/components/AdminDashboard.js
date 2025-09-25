@@ -27,10 +27,12 @@ const AdminDashboard = () => {
   const [completionNote, setCompletionNote] = useState("");
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
-  const { isLoaded } = useJsApiLoader({
+  const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,
-    libraries: ['geometry']
+    libraries: ['geometry'],
+    onLoad: () => console.log('Google Maps loaded successfully'),
+    onError: (error) => console.error('Google Maps load error:', error)
   });
 
   useEffect(() => {
