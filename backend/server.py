@@ -63,10 +63,30 @@ async def send_sms(to_phone: str, message: str, image_url: str = None):
     
     if not client:
         logging.warning("Twilio not configured - SMS simulation mode")
-        print(f"SMS SIMULATION - To: {to_phone}, Message: {message}")
+        print(f"\n--- SMS SIMULATION ---")
+        print(f"To: {to_phone}")
+        print(f"Message: {message}")
         if image_url:
-            print(f"SMS SIMULATION - Image: {image_url}")
-        return {"status": "simulated", "message": "SMS simulated (Twilio not configured)"}
+            print(f"Photo URL: {image_url}")
+            # Test if image URL is accessible
+            try:
+                import requests
+                response = requests.head(image_url, timeout=5)
+                if response.status_code == 200:
+                    print(f"✅ Photo URL is accessible (Status: {response.status_code})")
+                else:
+                    print(f"❌ Photo URL returned status: {response.status_code}")
+            except Exception as e:
+                print(f"❌ Photo URL test failed: {str(e)}")
+        print(f"--- END SIMULATION ---\n")
+        
+        return {
+            "status": "simulated", 
+            "message": "SMS simulated (Twilio not configured)",
+            "to_phone": to_phone,
+            "has_photo": bool(image_url),
+            "photo_url": image_url if image_url else None
+        }
     
     try:
         twilio_phone = os.environ.get('TWILIO_PHONE_NUMBER', '+1234567890')
@@ -86,7 +106,9 @@ async def send_sms(to_phone: str, message: str, image_url: str = None):
         return {
             "status": "sent",
             "message_sid": message_obj.sid,
-            "message": "SMS sent successfully"
+            "message": "SMS sent successfully",
+            "to_phone": to_phone,
+            "has_photo": bool(image_url)
         }
         
     except Exception as e:
