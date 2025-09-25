@@ -979,6 +979,35 @@ async def test_sms_setup():
         "account_sid": os.environ.get('TWILIO_ACCOUNT_SID')[:8] + "..." if os.environ.get('TWILIO_ACCOUNT_SID') else None
     }
 
+@api_router.post("/admin/test-sms-photo/{booking_id}")
+async def test_sms_with_photo(booking_id: str):
+    """Test SMS with completion photo for a specific booking"""
+    
+    booking = await db.bookings.find_one({"id": booking_id})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    if not booking.get("completion_photo_path"):
+        raise HTTPException(status_code=400, detail="No completion photo available for this booking")
+    
+    # Generate test message
+    test_phone = "+1234567890"  # Test phone number
+    backend_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://clutterclear-1.preview.emergentagent.com')
+    photo_url = f"{backend_url}/api/public/completion-photo/{booking_id}"
+    
+    message = f"🧪 TEST SMS: Completion photo for booking {booking_id} at {booking.get('address', 'Unknown address')}"
+    
+    # Test SMS send
+    sms_result = await send_sms(test_phone, message, photo_url)
+    
+    return {
+        "message": "SMS photo test completed",
+        "booking_id": booking_id,
+        "sms_result": sms_result,
+        "photo_url": photo_url,
+        "test_phone": test_phone
+    }
+
 @api_router.post("/admin/login")
 async def admin_login(login_data: AdminLogin):
     """Simple admin password authentication"""
