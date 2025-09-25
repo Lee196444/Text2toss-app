@@ -741,6 +741,138 @@ const AdminDashboard = () => {
         </div>
       )}
 
+      {/* Route Modal */}
+      {showRouteModal && selectedRouteBooking && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-xl">🗺️ Route to Pickup Location</CardTitle>
+                <CardDescription>{selectedRouteBooking.address}</CardDescription>
+              </div>
+              <Button variant="outline" onClick={closeRouteModal} className="text-gray-600">
+                ✕ Close
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {/* Job Info */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <strong>Customer:</strong> {selectedRouteBooking.phone}
+                    </div>
+                    <div>
+                      <strong>Time:</strong> {formatTime(selectedRouteBooking.pickup_time)}
+                    </div>
+                    <div className="col-span-2">
+                      <strong>Items:</strong> {selectedRouteBooking.quote_details?.items.map(item => 
+                        `${item.quantity}x ${item.name}`
+                      ).join(', ')}
+                    </div>
+                    {selectedRouteBooking.special_instructions && (
+                      <div className="col-span-2">
+                        <strong>Notes:</strong> {selectedRouteBooking.special_instructions}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Map */}
+                <div className="h-96 bg-gray-100 rounded-lg overflow-hidden">
+                  {!GOOGLE_MAPS_API_KEY ? (
+                    <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+                      <div className="mb-4">
+                        <h3 className="text-lg font-semibold mb-2">📍 Navigation Options</h3>
+                        <p className="text-gray-600 mb-4">Choose your preferred navigation app:</p>
+                      </div>
+                      <div className="space-y-2">
+                        <Button 
+                          onClick={() => {
+                            const address = encodeURIComponent(selectedRouteBooking.address);
+                            window.open(`https://www.google.com/maps/dir/?api=1&destination=${address}`, '_blank');
+                          }}
+                          className="w-full bg-blue-600 hover:bg-blue-700"
+                        >
+                          Open in Google Maps
+                        </Button>
+                        <Button 
+                          onClick={() => {
+                            const address = encodeURIComponent(selectedRouteBooking.address);
+                            window.open(`https://maps.apple.com/?daddr=${address}`, '_blank');
+                          }}
+                          variant="outline"
+                          className="w-full"
+                        >
+                          Open in Apple Maps
+                        </Button>
+                        <Button 
+                          onClick={() => {
+                            const address = encodeURIComponent(selectedRouteBooking.address);
+                            window.open(`waze://ul?q=${address}&navigate=yes`, '_blank');
+                          }}
+                          variant="outline"
+                          className="w-full"
+                        >
+                          Open in Waze
+                        </Button>
+                      </div>
+                      <div className="mt-4 p-3 bg-yellow-50 rounded border border-yellow-200">
+                        <p className="text-sm text-yellow-800">
+                          <strong>Address:</strong> {selectedRouteBooking.address}
+                        </p>
+                      </div>
+                    </div>
+                  ) : isLoaded ? (
+                    <GoogleMap
+                      mapContainerStyle={{ width: '100%', height: '100%' }}
+                      center={mapCenter}
+                      zoom={13}
+                    >
+                      {routeDirections && <DirectionsRenderer directions={routeDirections} />}
+                    </GoogleMap>
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="text-center">
+                        <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+                        <p>Loading map...</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Route Info */}
+                {routeDirections && (
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <h4 className="font-semibold text-green-800 mb-2">📍 Route Information</h4>
+                    <div className="grid grid-cols-2 gap-4 text-sm text-green-700">
+                      <div>
+                        <strong>Distance:</strong> {routeDirections.routes[0].legs[0].distance.text}
+                      </div>
+                      <div>
+                        <strong>Duration:</strong> {routeDirections.routes[0].legs[0].duration.text}
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <Button 
+                        size="sm"
+                        onClick={() => {
+                          const address = encodeURIComponent(selectedRouteBooking.address);
+                          window.open(`https://www.google.com/maps/dir/?api=1&destination=${address}`, '_blank');
+                        }}
+                        className="bg-green-600 hover:bg-green-700 text-xs"
+                      >
+                        🚗 Start Navigation
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Completion Photo Modal */}
       {showCompletionModal && selectedBooking && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
