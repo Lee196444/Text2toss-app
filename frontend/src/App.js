@@ -175,7 +175,7 @@ const LandingPage = () => {
                   📸 AI-Powered Photo Quotes • No Callbacks Required
                 </Badge>
                 <h1 className="text-5xl lg:text-6xl font-bold text-white leading-tight">
-                  <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">TEXT-2-TOSS</span>
+                  <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">Text2toss</span>
                 </h1>
                 <p className="text-xl text-gray-200 leading-relaxed">
                   Upload photo of junk and quick description, get a quote in seconds! 
