@@ -340,38 +340,66 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-6">
-              <div className="text-2xl font-bold text-emerald-600">{dailyBookings.length}</div>
-              <p className="text-sm text-gray-700">Today's Pickups</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="text-2xl font-bold text-teal-600">
-                {formatPrice(dailyBookings.reduce((sum, booking) => sum + (booking.quote_details?.total_price || 0), 0))}
-              </div>
-              <p className="text-sm text-gray-700">Daily Revenue</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="text-2xl font-bold text-blue-600">
-                {Object.keys(weeklySchedule).length}
-              </div>
-              <p className="text-sm text-gray-700">Active Days</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="text-2xl font-bold text-purple-600">
-                {dailyBookings.filter(b => b.status === 'completed').length}
-              </div>
-              <p className="text-sm text-gray-700">Completed</p>
-            </CardContent>
-          </Card>
+        {/* Job Bins */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {(() => {
+            const bins = categorizBookings();
+            const binConfigs = [
+              { 
+                type: 'new', 
+                title: 'New Jobs', 
+                icon: '🆕', 
+                color: 'border-blue-300 bg-blue-50 hover:bg-blue-100',
+                textColor: 'text-blue-800',
+                countColor: 'text-blue-600'
+              },
+              { 
+                type: 'upcoming', 
+                title: 'Upcoming', 
+                icon: '📅', 
+                color: 'border-orange-300 bg-orange-50 hover:bg-orange-100',
+                textColor: 'text-orange-800',
+                countColor: 'text-orange-600'
+              },
+              { 
+                type: 'inProgress', 
+                title: 'In Progress', 
+                icon: '🚛', 
+                color: 'border-yellow-300 bg-yellow-50 hover:bg-yellow-100',
+                textColor: 'text-yellow-800',
+                countColor: 'text-yellow-600'
+              },
+              { 
+                type: 'completed', 
+                title: 'Completed', 
+                icon: '✅', 
+                color: 'border-green-300 bg-green-50 hover:bg-green-100',
+                textColor: 'text-green-800',
+                countColor: 'text-green-600'
+              }
+            ];
+
+            return binConfigs.map(bin => (
+              <Card 
+                key={bin.type}
+                className={`cursor-pointer transition-all duration-200 ${bin.color} border-2 hover:shadow-lg transform hover:scale-105`}
+                onClick={() => openBin(bin.type)}
+              >
+                <CardContent className="p-6 text-center">
+                  <div className="text-4xl mb-3">{bin.icon}</div>
+                  <div className={`text-3xl font-bold mb-2 ${bin.countColor}`}>
+                    {bins[bin.type].length}
+                  </div>
+                  <p className={`text-sm font-medium ${bin.textColor}`}>{bin.title}</p>
+                  {bins[bin.type].length > 0 && (
+                    <div className={`text-xs mt-2 ${bin.textColor}`}>
+                      Revenue: {formatPrice(bins[bin.type].reduce((sum, booking) => sum + (booking.quote_details?.total_price || 0), 0))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ));
+          })()}
         </div>
 
         {/* Main Content */}
