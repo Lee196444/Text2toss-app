@@ -285,15 +285,22 @@ Since this is ground level/curbside service only, there are NO charges for stair
 
 If the description mentions stairs, upper floors, basements, or difficult access, note in explanation that customer needs to move items to ground level/curbside first.
 
+PRICING PROCESS:
+1. Estimate total volume using the 1-10 scale above
+2. Select appropriate price range for that scale
+3. Adjust within range based on item condition, weight, disposal complexity
+4. Add any applicable additional charges
+
 Respond ONLY with a JSON object in this exact format:
 {{
   "total_price": 150.00,
+  "scale_level": 5,
   "breakdown": {{
-    "items_cost": 120.00,
-    "service_fee": 30.00,
-    "additional_charges": 0.00
+    "base_cost": 140.00,
+    "additional_charges": 10.00,
+    "total": 150.00
   }},
-  "explanation": "Brief explanation of the pricing factors considered for ground level pickup"
+  "explanation": "Scale 5 load (9x9x9 cubic feet) - dining table and chairs. Pricing includes ground level pickup, loading, and responsible disposal."
 }}"""
 
     try:
