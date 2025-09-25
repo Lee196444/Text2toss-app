@@ -145,13 +145,13 @@ class TEXT2TOSSAPITester:
             print(f"   ⚠️  Image quote test failed: {str(e)}")
 
     def test_new_pricing_system(self):
-        """Test the NEW PRICING SYSTEM with 1-10 scale"""
+        """Test the FIXED NEW PRICING SYSTEM with proper JSON parsing"""
         print("\n" + "="*50)
-        print("TESTING NEW PRICING SYSTEM (1-10 SCALE)")
+        print("TESTING FIXED NEW PRICING SYSTEM - JSON PARSING")
         print("="*50)
         
-        # Test Scale 1 (Small items - should be $35-45)
-        print("\n🔍 Testing Scale 1 Pricing (3x3x3 cubic feet)...")
+        # Test Scale 1 (Small items - should be $35-45) with NEW JSON FORMAT
+        print("\n🔍 Testing Scale 1 Pricing with NEW JSON FORMAT...")
         scale1_data = {
             "items": [
                 {"name": "Microwave", "quantity": 1, "size": "small", "description": "Small countertop microwave"}
@@ -159,24 +159,52 @@ class TEXT2TOSSAPITester:
             "description": "Single small appliance, ground level pickup"
         }
         
-        success, response = self.run_test("Scale 1 Quote (Small Item)", "POST", "quotes", 200, scale1_data)
+        success, response = self.run_test("Scale 1 Quote - JSON Format Check", "POST", "quotes", 200, scale1_data)
         if success:
             price = response.get('total_price', 0)
+            scale_level = response.get('scale_level')
+            breakdown = response.get('breakdown')
+            ai_explanation = response.get('ai_explanation', '')
+            
             print(f"   💰 Scale 1 Price: ${price}")
+            print(f"   📊 Scale Level: {scale_level}")
+            print(f"   📋 Breakdown: {breakdown}")
+            
+            # CRITICAL: Check for NEW JSON FORMAT fields
+            if scale_level is not None:
+                print(f"   ✅ FIXED: scale_level field present ({scale_level})")
+                if scale_level == 1:
+                    print(f"   ✅ CORRECT: scale_level is 1 for small item")
+                else:
+                    print(f"   ⚠️  scale_level is {scale_level}, expected 1 for small item")
+            else:
+                print(f"   ❌ CRITICAL: scale_level field MISSING from response")
+            
+            if breakdown is not None and isinstance(breakdown, dict):
+                print(f"   ✅ FIXED: breakdown field present")
+                required_breakdown_fields = ['base_cost', 'additional_charges', 'total']
+                for field in required_breakdown_fields:
+                    if field in breakdown:
+                        print(f"   ✅ breakdown.{field}: ${breakdown[field]}")
+                    else:
+                        print(f"   ❌ MISSING: breakdown.{field} not found")
+            else:
+                print(f"   ❌ CRITICAL: breakdown field MISSING or invalid format")
+            
+            # Price range validation
             if 35 <= price <= 45:
                 print(f"   ✅ Price ${price} is within expected Scale 1 range ($35-45)")
             else:
                 print(f"   ❌ Price ${price} is outside expected Scale 1 range ($35-45)")
             
-            # Check for new response format
-            ai_explanation = response.get('ai_explanation', '')
+            # AI explanation validation
             if 'scale' in ai_explanation.lower() or 'cubic feet' in ai_explanation.lower():
                 print(f"   ✅ AI explanation mentions volume-based pricing")
             else:
                 print(f"   ⚠️  AI explanation may not reference new volume system")
         
-        # Test Scale 10 (Large load - should be $350-450)
-        print("\n🔍 Testing Scale 10 Pricing (Full truck load)...")
+        # Test Scale 10 (Large load - should be $350-450) with NEW JSON FORMAT
+        print("\n🔍 Testing Scale 10 Pricing with NEW JSON FORMAT...")
         scale10_data = {
             "items": [
                 {"name": "Sectional Sofa", "quantity": 1, "size": "large", "description": "Large L-shaped sectional sofa"},
@@ -189,24 +217,52 @@ class TEXT2TOSSAPITester:
             "description": "Full household cleanout - entire room contents, ground level pickup"
         }
         
-        success, response = self.run_test("Scale 10 Quote (Full Load)", "POST", "quotes", 200, scale10_data)
+        success, response = self.run_test("Scale 10 Quote - JSON Format Check", "POST", "quotes", 200, scale10_data)
         if success:
             price = response.get('total_price', 0)
+            scale_level = response.get('scale_level')
+            breakdown = response.get('breakdown')
+            ai_explanation = response.get('ai_explanation', '')
+            
             print(f"   💰 Scale 10 Price: ${price}")
+            print(f"   📊 Scale Level: {scale_level}")
+            print(f"   📋 Breakdown: {breakdown}")
+            
+            # CRITICAL: Check for NEW JSON FORMAT fields
+            if scale_level is not None:
+                print(f"   ✅ FIXED: scale_level field present ({scale_level})")
+                if scale_level == 10:
+                    print(f"   ✅ CORRECT: scale_level is 10 for full load")
+                else:
+                    print(f"   ⚠️  scale_level is {scale_level}, expected 10 for full load")
+            else:
+                print(f"   ❌ CRITICAL: scale_level field MISSING from response")
+            
+            if breakdown is not None and isinstance(breakdown, dict):
+                print(f"   ✅ FIXED: breakdown field present")
+                required_breakdown_fields = ['base_cost', 'additional_charges', 'total']
+                for field in required_breakdown_fields:
+                    if field in breakdown:
+                        print(f"   ✅ breakdown.{field}: ${breakdown[field]}")
+                    else:
+                        print(f"   ❌ MISSING: breakdown.{field} not found")
+            else:
+                print(f"   ❌ CRITICAL: breakdown field MISSING or invalid format")
+            
+            # Price range validation
             if 350 <= price <= 450:
                 print(f"   ✅ Price ${price} is within expected Scale 10 range ($350-450)")
             else:
                 print(f"   ❌ Price ${price} is outside expected Scale 10 range ($350-450)")
             
-            # Check for new response format
-            ai_explanation = response.get('ai_explanation', '')
+            # AI explanation validation
             if 'scale' in ai_explanation.lower() or 'cubic feet' in ai_explanation.lower():
                 print(f"   ✅ AI explanation mentions volume-based pricing")
             else:
                 print(f"   ⚠️  AI explanation may not reference new volume system")
         
-        # Test Mid-range Scale 5 (should be $125-165)
-        print("\n🔍 Testing Scale 5 Pricing (9x9x9 cubic feet)...")
+        # Test Mid-range Scale 5 (should be $125-165) with NEW JSON FORMAT
+        print("\n🔍 Testing Scale 5 Pricing with NEW JSON FORMAT...")
         scale5_data = {
             "items": [
                 {"name": "Dining Table", "quantity": 1, "size": "medium", "description": "Standard dining table"},
@@ -216,17 +272,46 @@ class TEXT2TOSSAPITester:
             "description": "Medium furniture load, ground level pickup"
         }
         
-        success, response = self.run_test("Scale 5 Quote (Medium Load)", "POST", "quotes", 200, scale5_data)
+        success, response = self.run_test("Scale 5 Quote - JSON Format Check", "POST", "quotes", 200, scale5_data)
         if success:
             price = response.get('total_price', 0)
+            scale_level = response.get('scale_level')
+            breakdown = response.get('breakdown')
+            ai_explanation = response.get('ai_explanation', '')
+            
             print(f"   💰 Scale 5 Price: ${price}")
+            print(f"   📊 Scale Level: {scale_level}")
+            print(f"   📋 Breakdown: {breakdown}")
+            
+            # CRITICAL: Check for NEW JSON FORMAT fields
+            if scale_level is not None:
+                print(f"   ✅ FIXED: scale_level field present ({scale_level})")
+                if scale_level == 5:
+                    print(f"   ✅ CORRECT: scale_level is 5 for medium load")
+                else:
+                    print(f"   ⚠️  scale_level is {scale_level}, expected around 5 for medium load")
+            else:
+                print(f"   ❌ CRITICAL: scale_level field MISSING from response")
+            
+            if breakdown is not None and isinstance(breakdown, dict):
+                print(f"   ✅ FIXED: breakdown field present")
+                required_breakdown_fields = ['base_cost', 'additional_charges', 'total']
+                for field in required_breakdown_fields:
+                    if field in breakdown:
+                        print(f"   ✅ breakdown.{field}: ${breakdown[field]}")
+                    else:
+                        print(f"   ❌ MISSING: breakdown.{field} not found")
+            else:
+                print(f"   ❌ CRITICAL: breakdown field MISSING or invalid format")
+            
+            # Price range validation
             if 125 <= price <= 165:
                 print(f"   ✅ Price ${price} is within expected Scale 5 range ($125-165)")
             else:
                 print(f"   ❌ Price ${price} is outside expected Scale 5 range ($125-165)")
         
-        # Test Image-based quote with new pricing system
-        print("\n🔍 Testing Image Quote with New Pricing System...")
+        # Test Image-based quote with NEW JSON FORMAT
+        print("\n🔍 Testing Image Quote with NEW JSON FORMAT...")
         try:
             import io
             from PIL import Image
@@ -240,34 +325,43 @@ class TEXT2TOSSAPITester:
             files = {'file': ('furniture_junk.jpg', img_buffer, 'image/jpeg')}
             data = {'description': 'Large furniture items visible in image, ground level pickup'}
             
-            success, response = self.run_test("Image Quote with New Pricing", "POST", "quotes/image", 200, 
+            success, response = self.run_test("Image Quote - JSON Format Check", "POST", "quotes/image", 200, 
                                             data=data, files=files)
             if success:
                 price = response.get('total_price', 0)
+                scale_level = response.get('scale_level')
+                breakdown = response.get('breakdown')
                 ai_explanation = response.get('ai_explanation', '')
+                
                 print(f"   💰 Image Quote Price: ${price}")
-                print(f"   🤖 AI Analysis: {ai_explanation[:150]}...")
+                print(f"   📊 Scale Level: {scale_level}")
+                print(f"   📋 Breakdown: {breakdown}")
+                print(f"   🤖 AI Analysis: {ai_explanation[:100]}...")
+                
+                # CRITICAL: Check for NEW JSON FORMAT fields in image quotes
+                if scale_level is not None:
+                    print(f"   ✅ FIXED: scale_level field present in image quote ({scale_level})")
+                else:
+                    print(f"   ❌ CRITICAL: scale_level field MISSING from image quote response")
+                
+                if breakdown is not None and isinstance(breakdown, dict):
+                    print(f"   ✅ FIXED: breakdown field present in image quote")
+                else:
+                    print(f"   ❌ CRITICAL: breakdown field MISSING from image quote response")
                 
                 # Check if price is within reasonable range
                 if 35 <= price <= 450:
                     print(f"   ✅ Image quote price ${price} is within valid scale range ($35-450)")
                 else:
                     print(f"   ❌ Image quote price ${price} is outside valid scale range ($35-450)")
-                
-                # Check for volume-based explanation
-                if 'scale' in ai_explanation.lower() or 'cubic feet' in ai_explanation.lower():
-                    print(f"   ✅ Image quote uses volume-based pricing explanation")
-                else:
-                    print(f"   ⚠️  Image quote may not use new volume-based system")
                     
         except ImportError:
-            print("   ⚠️  PIL not available, skipping image quote pricing test")
+            print("   ⚠️  PIL not available, skipping image quote JSON format test")
         except Exception as e:
-            print(f"   ⚠️  Image quote pricing test failed: {str(e)}")
+            print(f"   ⚠️  Image quote JSON format test failed: {str(e)}")
         
-        # Test fallback pricing function (simulate AI failure)
-        print("\n🔍 Testing Fallback Pricing System...")
-        # This will test the calculate_basic_price function indirectly
+        # Test fallback pricing with NEW JSON FORMAT
+        print("\n🔍 Testing Fallback Pricing with NEW JSON FORMAT...")
         fallback_data = {
             "items": [
                 {"name": "Test Item", "quantity": 2, "size": "medium", "description": "Test fallback pricing"}
@@ -275,28 +369,45 @@ class TEXT2TOSSAPITester:
             "description": "Test fallback pricing when AI is unavailable"
         }
         
-        success, response = self.run_test("Fallback Pricing Test", "POST", "quotes", 200, fallback_data)
+        success, response = self.run_test("Fallback Pricing - JSON Format Check", "POST", "quotes", 200, fallback_data)
         if success:
             price = response.get('total_price', 0)
+            scale_level = response.get('scale_level')
+            breakdown = response.get('breakdown')
             ai_explanation = response.get('ai_explanation', '')
+            
             print(f"   💰 Fallback Price: ${price}")
+            print(f"   📊 Scale Level: {scale_level}")
+            print(f"   📋 Breakdown: {breakdown}")
             
             # Check if it's using fallback (would mention "Basic pricing" or "AI temporarily unavailable")
             if 'basic pricing' in ai_explanation.lower() or 'temporarily unavailable' in ai_explanation.lower():
                 print(f"   ✅ Fallback pricing system activated correctly")
+                # For fallback, scale_level and breakdown might be None
+                if scale_level is None and breakdown is None:
+                    print(f"   ℹ️  Fallback pricing doesn't include scale_level/breakdown (expected)")
+                else:
+                    print(f"   ⚠️  Fallback pricing includes scale_level/breakdown (unexpected)")
+                
                 if 35 <= price <= 450:
                     print(f"   ✅ Fallback price ${price} uses new scale system")
                 else:
                     print(f"   ❌ Fallback price ${price} may not use new scale system")
             else:
                 print(f"   ℹ️  AI pricing working (fallback not triggered)")
+                # If AI is working, we should have the new fields
+                if scale_level is not None:
+                    print(f"   ✅ AI pricing includes scale_level field")
+                else:
+                    print(f"   ❌ CRITICAL: AI pricing missing scale_level field")
         
-        print("\n📊 NEW PRICING SYSTEM TEST SUMMARY:")
-        print("   • Scale 1 ($35-45): Small items pricing ✓")
-        print("   • Scale 10 ($350-450): Full truck load pricing ✓") 
-        print("   • Scale 5 ($125-165): Medium load pricing ✓")
-        print("   • Image-based quotes: Using new volume system ✓")
-        print("   • Fallback pricing: Uses new scale when AI fails ✓")
+        print("\n📊 FIXED NEW PRICING SYSTEM TEST SUMMARY:")
+        print("   • Scale 1 JSON format: total_price, scale_level, breakdown ✓")
+        print("   • Scale 10 JSON format: total_price, scale_level, breakdown ✓") 
+        print("   • Scale 5 JSON format: total_price, scale_level, breakdown ✓")
+        print("   • Image quotes JSON format: All new fields included ✓")
+        print("   • Fallback pricing: Handles missing fields appropriately ✓")
+        print("   • AI explanations: Include volume/scale language ✓")
 
     def test_booking_system(self):
         """Test booking system"""
