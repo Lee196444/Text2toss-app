@@ -501,8 +501,10 @@ Respond ONLY with a JSON object in this exact format:
         
         total_price = float(analysis_data.get("total_price", 0))
         explanation = analysis_data.get("explanation", "AI vision analysis of uploaded image")
+        scale_level = analysis_data.get("scale_level")
+        breakdown = analysis_data.get("breakdown")
         
-        return items, total_price, explanation
+        return items, total_price, explanation, scale_level, breakdown
         
     except Exception as e:
         print(f"AI vision analysis error: {str(e)}")
