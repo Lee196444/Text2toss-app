@@ -118,7 +118,11 @@ const AdminDashboard = () => {
       });
       
       setOptimizedRoute(timeOrdered);
-      toast.success("Route optimized by pickup time (Google Maps not available)");
+      if (!GOOGLE_MAPS_API_KEY) {
+        toast.success("Route sorted by pickup time (Add Google Maps API key for optimal routing)");
+      } else {
+        toast.success("Route optimized by pickup time (Google Maps not available)");
+      }
       return;
     }
 
