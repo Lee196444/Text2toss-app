@@ -126,7 +126,7 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black/40 to-emerald-900/50">
-      <Toaster />
+      {/* Toast notifications handled by global function */}
       
       {/* Navigation */}
       <nav className="bg-black/70 backdrop-blur-md border-b border-emerald-400/30 sticky top-0 z-50">
