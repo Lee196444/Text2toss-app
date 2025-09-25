@@ -499,9 +499,56 @@ const BookingModal = ({ quote, onClose, onSuccess }) => {
   const [bookedTimeSlots, setBookedTimeSlots] = useState([]);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
 
+  // Check if date is allowed (no Fridays, Saturdays, Sundays)
+  const isDateAllowed = (dateString) => {
+    const date = new Date(dateString);
+    const dayOfWeek = date.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
+    return dayOfWeek >= 1 && dayOfWeek <= 4; // Monday(1) to Thursday(4)
+  };
+
+  // Get booked time slots for a specific date
+  const checkAvailableTimeSlots = async (selectedDate) => {
+    if (!selectedDate || !isDateAllowed(selectedDate)) {
+      setBookedTimeSlots([]);
+      return;
+    }
+
+    setCheckingAvailability(true);
+    try {
+      const response = await axios.get(`${API}/admin/daily-schedule?date=${selectedDate}`);
+      const bookedTimes = response.data.map(booking => booking.pickup_time);
+      setBookedTimeSlots(bookedTimes);
+    } catch (error) {
+      console.error("Failed to check availability:", error);
+      setBookedTimeSlots([]);
+    }
+    setCheckingAvailability(false);
+  };
+
+  // Handle date change
+  const handleDateChange = (selectedDate) => {
+    if (!isDateAllowed(selectedDate)) {
+      toast.error("Pickup is not available on weekends or Fridays. Please select Monday-Thursday.");
+      return;
+    }
+    
+    setBookingData({...bookingData, pickup_date: selectedDate, pickup_time: ""}); // Reset time selection
+    checkAvailableTimeSlots(selectedDate);
+  };
+
   const handleBooking = async () => {
     if (!bookingData.pickup_date || !bookingData.pickup_time || !bookingData.address || !bookingData.phone) {
       toast.error("Please fill in all required fields");
+      return;
+    }
+
+    if (!isDateAllowed(bookingData.pickup_date)) {
+      toast.error("Selected date is not available for pickup");
+      return;
+    }
+
+    if (bookedTimeSlots.includes(bookingData.pickup_time)) {
+      toast.error("Selected time slot is already booked. Please choose another time.");
       return;
     }
 
