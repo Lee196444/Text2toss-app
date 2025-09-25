@@ -270,7 +270,10 @@
 
 ## test_plan:
   current_focus:
-    - "NEW PRICING SYSTEM - Image quote AI vision provider fix"
+    - "NEW PAYMENT SYSTEM - Create Stripe checkout session"
+    - "NEW PAYMENT SYSTEM - Payment status check"
+    - "NEW PAYMENT SYSTEM - Stripe webhook handling"
+    - "NEW PAYMENT SYSTEM - Database integration"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
