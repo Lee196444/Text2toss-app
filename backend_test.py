@@ -419,11 +419,16 @@ class TEXT2TOSSAPITester:
             print("   ⚠️  No quote ID available, skipping booking tests")
             return
         
-        # Create booking
-        tomorrow = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
+        # Create booking - use next Monday (valid weekday)
+        today = datetime.now()
+        days_until_monday = (7 - today.weekday()) % 7
+        if days_until_monday == 0:  # If today is Monday, use next Monday
+            days_until_monday = 7
+        next_monday = (today + timedelta(days=days_until_monday)).strftime('%Y-%m-%d')
+        
         booking_data = {
             "quote_id": self.test_quote_id,
-            "pickup_date": f"{tomorrow}T10:00:00",
+            "pickup_date": f"{next_monday}T10:00:00",
             "pickup_time": "10:00-12:00",
             "address": "123 Test Street, Test City, TC 12345",
             "phone": "+1234567890",
