@@ -215,7 +215,7 @@ class BookingCompletion(BaseModel):
     completion_note: Optional[str] = None
 
 # AI-powered pricing logic for ground level and curbside pickup only
-async def calculate_ai_price(items: List[JunkItem], description: str) -> tuple[float, str]:
+async def calculate_ai_price(items: List[JunkItem], description: str) -> tuple[float, str, Optional[int], Optional[dict]]:
     """Use AI to analyze junk description and provide intelligent pricing for ground level/curbside pickup only"""
     
     # Prepare item descriptions for AI
