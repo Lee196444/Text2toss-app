@@ -378,6 +378,7 @@ class TEXT2TOSSAPITester:
         self.test_booking_system()
         self.test_admin_authentication()
         self.test_admin_schedule_endpoints()
+        self.test_admin_dashboard_buttons()  # NEW: Test recently fixed functionality
         self.test_booking_management()
         self.test_completion_photo_workflow()
         self.test_image_endpoints()
