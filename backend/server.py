@@ -380,7 +380,7 @@ def calculate_basic_price(items: List[JunkItem]) -> float:
     return round((price_range[0] + price_range[1]) / 2, 2)
 
 # AI Vision Analysis for Image-based Quotes
-async def analyze_image_for_quote(image_path: str, description: str) -> tuple[List[JunkItem], float, str]:
+async def analyze_image_for_quote(image_path: str, description: str) -> tuple[List[JunkItem], float, str, Optional[int], Optional[dict]]:
     """Use AI vision to analyze uploaded image and identify junk items for pricing"""
     
     ai_prompt = f"""You are a professional junk removal expert analyzing an image to provide accurate quotes. Analyze this image and identify all removable items.
