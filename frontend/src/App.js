@@ -872,7 +872,7 @@ const PaymentSuccess = () => {
                       </div>
                     </div>
                     <p className="text-xs text-gray-600">@Text2toss-AZ</p>
-                    <p className="text-xs text-blue-600 font-semibold">${quote?.total_price}</p>
+                    <p className="text-xs text-blue-600 font-semibold">${paymentData?.amount_total ? (paymentData.amount_total / 100).toFixed(2) : '0.00'}</p>
                   </div>
                   <p className="text-xs text-gray-600 mt-2">
                     Scan with Venmo app or send to @Text2toss-AZ
