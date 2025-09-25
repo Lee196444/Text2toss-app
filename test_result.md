@@ -281,11 +281,7 @@
   run_ui: false
 
 ## test_plan:
-  current_focus:
-    - "NEW PAYMENT SYSTEM - Create Stripe checkout session"
-    - "NEW PAYMENT SYSTEM - Payment status check"
-    - "NEW PAYMENT SYSTEM - Stripe webhook handling"
-    - "NEW PAYMENT SYSTEM - Database integration"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
