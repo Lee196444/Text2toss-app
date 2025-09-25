@@ -637,39 +637,36 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
-        {/* Weekly Overview */}
+        {/* Summary Stats */}
         <Card>
           <CardHeader>
-            <CardTitle>Weekly Overview</CardTitle>
-            <CardDescription>Bookings for the current week</CardDescription>
+            <CardTitle>Daily Summary</CardTitle>
+            <CardDescription>Overview for {new Date(selectedDate).toLocaleDateString()}</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-7 gap-4">
-              {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day, index) => {
-                const date = new Date(getStartOfWeek(new Date(selectedDate)));
-                date.setDate(date.getDate() + index);
-                const dateKey = date.toISOString().split('T')[0];
-                const dayBookings = weeklySchedule[dateKey] || [];
-
-                return (
-                  <div key={day} className="border rounded-lg p-3">
-                    <h4 className="font-semibold text-sm mb-2">{day}</h4>
-                    <p className="text-xs text-gray-500 mb-2">{date.toLocaleDateString()}</p>
-                    <div className="space-y-1">
-                      {dayBookings.length === 0 ? (
-                        <p className="text-xs text-gray-400">No pickups</p>
-                      ) : (
-                        <>
-                          <p className="text-sm font-medium">{dayBookings.length} pickups</p>
-                          <p className="text-xs text-emerald-600">
-                            {formatPrice(dayBookings.reduce((sum, b) => sum + (b.quote_details?.total_price || 0), 0))}
-                          </p>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-gray-700">{dailyBookings.length}</div>
+                <div className="text-sm text-gray-600">Total Jobs</div>
+              </div>
+              <div className="p-4 bg-emerald-50 rounded-lg">
+                <div className="text-2xl font-bold text-emerald-600">
+                  {formatPrice(dailyBookings.reduce((sum, booking) => sum + (booking.quote_details?.total_price || 0), 0))}
+                </div>
+                <div className="text-sm text-emerald-700">Daily Revenue</div>
+              </div>
+              <div className="p-4 bg-blue-50 rounded-lg">
+                <div className="text-2xl font-bold text-blue-600">
+                  {dailyBookings.filter(b => b.image_path).length}
+                </div>
+                <div className="text-sm text-blue-700">With Photos</div>
+              </div>
+              <div className="p-4 bg-green-50 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">
+                  {dailyBookings.filter(b => b.completion_photo_path).length}
+                </div>
+                <div className="text-sm text-green-700">Completed w/Photo</div>
+              </div>
             </div>
           </CardContent>
         </Card>
