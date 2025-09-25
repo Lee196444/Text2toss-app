@@ -274,6 +274,50 @@ const AdminDashboard = () => {
     return `$${price?.toFixed(2) || '0.00'}`;
   };
 
+  // Categorize bookings into bins
+  const categorizBookings = () => {
+    const today = new Date().toISOString().split('T')[0];
+    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    
+    const bins = {
+      new: [],      // scheduled for today
+      upcoming: [], // scheduled for future dates
+      inProgress: [], // currently in progress
+      completed: []   // completed jobs
+    };
+
+    dailyBookings.forEach(booking => {
+      const bookingDate = booking.pickup_date ? booking.pickup_date.split('T')[0] : '';
+      
+      if (booking.status === 'completed') {
+        bins.completed.push(booking);
+      } else if (booking.status === 'in_progress') {
+        bins.inProgress.push(booking);
+      } else if (booking.status === 'scheduled') {
+        if (bookingDate === today) {
+          bins.new.push(booking);
+        } else if (bookingDate > today) {
+          bins.upcoming.push(booking);
+        } else {
+          bins.new.push(booking); // Past due, show in new
+        }
+      }
+    });
+
+    return bins;
+  };
+
+  const openBin = (binType) => {
+    const bins = categorizBookings();
+    setBinBookings(bins[binType] || []);
+    setSelectedBin(binType);
+  };
+
+  const closeBin = () => {
+    setSelectedBin(null);
+    setBinBookings([]);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-black/40 to-emerald-900/50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
