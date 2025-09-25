@@ -621,13 +621,15 @@ async def create_quote_from_image(
             await f.write(content)
         
         # Analyze image with AI
-        items, total_price, ai_explanation = await analyze_image_for_quote(str(file_path), description)
+        items, total_price, ai_explanation, scale_level, breakdown = await analyze_image_for_quote(str(file_path), description)
         
         # Create quote with temporary image path
         quote = PriceQuote(
             user_id="anonymous",
             items=items,
             total_price=total_price,
+            scale_level=scale_level,
+            breakdown=breakdown,
             description=f"Image analysis: {description}" if description else "Image-based quote",
             ai_explanation=ai_explanation,
             temp_image_path=str(file_path)  # Store temp path, will be moved when booked
