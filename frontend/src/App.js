@@ -200,7 +200,7 @@ const LandingPage = () => {
                 </div>
               </div>
               
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button 
                   onClick={() => setShowQuote(true)}
                   size="lg"
