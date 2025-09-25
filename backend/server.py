@@ -667,15 +667,21 @@ async def get_weekly_schedule(start_date: str = None):
     
     end = start + timedelta(days=7)
     
-    # Use string matching since pickup_date is stored as string
-    start_str = start.strftime("%Y-%m-%d")
-    end_str = end.strftime("%Y-%m-%d")
+    # Get all bookings and filter in Python since dates are stored as strings
+    all_bookings = await db.bookings.find().to_list(1000)
+    bookings = []
     
-    bookings = await db.bookings.find({
-        "pickup_date": {
-            "$regex": f"^({start_str}|{(start + timedelta(days=1)).strftime('%Y-%m-%d')}|{(start + timedelta(days=2)).strftime('%Y-%m-%d')}|{(start + timedelta(days=3)).strftime('%Y-%m-%d')}|{(start + timedelta(days=4)).strftime('%Y-%m-%d')}|{(start + timedelta(days=5)).strftime('%Y-%m-%d')}|{(start + timedelta(days=6)).strftime('%Y-%m-%d')})"
-        }
-    }).sort("pickup_time", 1).to_list(1000)
+    for booking in all_bookings:
+        pickup_date_str = booking.get("pickup_date", "")
+        if pickup_date_str:
+            # Extract date part from pickup_date string
+            date_part = pickup_date_str.split("T")[0]  # Get YYYY-MM-DD part
+            try:
+                booking_date = datetime.fromisoformat(date_part).date()
+                if start <= booking_date < end:
+                    bookings.append(booking)
+            except:
+                continue
     
     # Group by date
     schedule = {}
