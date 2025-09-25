@@ -575,12 +575,14 @@ async def login(login_data: UserLogin):
 @api_router.post("/quotes", response_model=PriceQuote)
 async def create_quote(quote_data: PriceQuoteCreate):
     # Use AI to calculate intelligent pricing
-    total_price, ai_explanation = await calculate_ai_price(quote_data.items, quote_data.description)
+    total_price, ai_explanation, scale_level, breakdown = await calculate_ai_price(quote_data.items, quote_data.description)
     
     quote = PriceQuote(
         user_id="anonymous",  # Allow anonymous quotes
         items=quote_data.items,
         total_price=total_price,
+        scale_level=scale_level,
+        breakdown=breakdown,
         description=quote_data.description,
         ai_explanation=ai_explanation
     )
