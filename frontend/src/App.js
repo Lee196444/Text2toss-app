@@ -599,13 +599,29 @@ const BookingModal = ({ quote, onClose, onSuccess }) => {
     }
 
     try {
-      const response = await axios.post(`${API}/bookings`, {
+      // First create the booking
+      const bookingResponse = await axios.post(`${API}/bookings`, {
         quote_id: quote.id,
         ...bookingData
       });
-      onSuccess();
+      
+      const bookingId = bookingResponse.data.id;
+      
+      // Then initiate payment
+      const paymentResponse = await axios.post(`${API}/payments/create-checkout-session`, {
+        booking_id: bookingId,
+        origin_url: window.location.origin
+      });
+      
+      // Redirect to Stripe checkout
+      if (paymentResponse.data.url) {
+        window.location.href = paymentResponse.data.url;
+      } else {
+        throw new Error("Payment session creation failed");
+      }
+      
     } catch (error) {
-      toast.error("Failed to schedule pickup");
+      toast.error("Failed to process booking and payment");
       console.error(error);
     }
   };
