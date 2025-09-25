@@ -580,6 +580,29 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
     # Parse pickup datetime
     pickup_datetime = datetime.fromisoformat(booking_data.pickup_date)
     
+    # Validate pickup date (Monday-Thursday only)
+    day_of_week = pickup_datetime.weekday()  # 0=Monday, 6=Sunday
+    if day_of_week > 3:  # Thursday is 3
+        raise HTTPException(
+            status_code=400, 
+            detail="Pickup not available on Fridays or weekends. Please select Monday-Thursday."
+        )
+    
+    # Check if time slot is already booked
+    existing_booking = await db.bookings.find_one({
+        "pickup_date": {
+            "$regex": f"^{booking_data.pickup_date}"
+        },
+        "pickup_time": booking_data.pickup_time,
+        "status": {"$in": ["scheduled", "in_progress"]}
+    })
+    
+    if existing_booking:
+        raise HTTPException(
+            status_code=409, 
+            detail=f"Time slot {booking_data.pickup_time} is already booked for {booking_data.pickup_date}"
+        )
+    
     # Handle image preservation if quote had an image
     permanent_image_path = None
     if quote_doc.get("temp_image_path"):
