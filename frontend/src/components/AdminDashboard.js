@@ -962,35 +962,36 @@ const AdminDashboard = () => {
                         <h3 className="text-lg font-semibold mb-2">📍 Navigation Options</h3>
                         <p className="text-gray-600 mb-4">Choose your preferred navigation app:</p>
                       </div>
-                      <div className="space-y-2">
+                      <div className="space-y-3 w-full max-w-xs">
                         <Button 
                           onClick={() => {
                             const address = encodeURIComponent(selectedRouteBooking.address);
                             window.open(`https://www.google.com/maps/dir/?api=1&destination=${address}`, '_blank');
                           }}
-                          className="w-full bg-blue-600 hover:bg-blue-700"
+                          className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium"
                         >
-                          Open in Google Maps
+                          <span className="mr-2">🗺️</span>
+                          Google Maps
                         </Button>
                         <Button 
                           onClick={() => {
                             const address = encodeURIComponent(selectedRouteBooking.address);
                             window.open(`https://maps.apple.com/?daddr=${address}`, '_blank');
                           }}
-                          variant="outline"
-                          className="w-full"
+                          className="w-full bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300 text-gray-700 hover:text-gray-900 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium"
                         >
-                          Open in Apple Maps
+                          <span className="mr-2">🍎</span>
+                          Apple Maps
                         </Button>
                         <Button 
                           onClick={() => {
                             const address = encodeURIComponent(selectedRouteBooking.address);
                             window.open(`waze://ul?q=${address}&navigate=yes`, '_blank');
                           }}
-                          variant="outline"
-                          className="w-full"
+                          className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium"
                         >
-                          Open in Waze
+                          <span className="mr-2">🚗</span>
+                          Waze
                         </Button>
                       </div>
                       <div className="mt-4 p-3 bg-yellow-50 rounded border border-yellow-200">
