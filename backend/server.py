@@ -243,6 +243,11 @@ class PaymentRequest(BaseModel):
     booking_id: str
     origin_url: str
 
+class QuoteApprovalAction(BaseModel):
+    action: str  # "approve" or "reject"
+    admin_notes: Optional[str] = None
+    approved_price: Optional[float] = None  # Admin can adjust price
+
 # AI-powered pricing logic for ground level and curbside pickup only
 async def calculate_ai_price(items: List[JunkItem], description: str) -> tuple[float, str, Optional[int], Optional[dict]]:
     """Use AI to analyze junk description and provide intelligent pricing for ground level/curbside pickup only"""
