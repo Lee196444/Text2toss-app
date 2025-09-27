@@ -1046,6 +1046,7 @@ class TEXT2TOSSAPITester:
         self.test_payment_system()  # NEW: Test the Stripe payment integration
         self.test_admin_authentication()
         self.test_admin_schedule_endpoints()
+        self.test_calendar_functionality()  # NEW: Test the calendar functionality
         self.test_admin_dashboard_buttons()  # NEW: Test recently fixed functionality
         self.test_booking_management()
         self.test_completion_photo_workflow()
