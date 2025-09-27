@@ -671,7 +671,7 @@ const BookingModal = ({ quote, onClose, onSuccess }) => {
             </div>
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3 sm:space-y-4 max-h-[50vh] sm:max-h-none overflow-y-auto">
           {/* Payment Options */}
           <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
             <h3 className="font-semibold text-emerald-800 mb-3">Payment Options</h3>
