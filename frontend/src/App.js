@@ -202,7 +202,7 @@ const LandingPage = () => {
                 </div>
               </div>
               
-              <div className="flex flex-col gap-3 lg:gap-4 justify-center px-6 lg:px-0 max-w-full">
+              <div className="flex flex-col gap-3 lg:gap-4 justify-center px-4 sm:px-6 lg:px-0 max-w-full mx-auto">
                 <Button 
                   onClick={() => setShowQuote(true)}
                   size="lg"
