@@ -785,6 +785,17 @@ const BookingModal = ({ quote, onClose, onSuccess }) => {
           </Button>
         </CardFooter>
       </Card>
+      
+      {/* Availability Calendar Modal */}
+      {showCalendar && (
+        <AvailabilityCalendar
+          selectedDate={bookingData.pickup_date}
+          onDateSelect={(date) => {
+            handleDateChange(date);
+          }}
+          onClose={() => setShowCalendar(false)}
+        />
+      )}
     </div>
   );
 };
