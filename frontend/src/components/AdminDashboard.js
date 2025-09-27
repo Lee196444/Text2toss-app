@@ -549,6 +549,9 @@ const AdminDashboard = () => {
 
         {/* Quick Actions */}
         <div className="flex justify-center space-x-4 mb-6">
+          <Button onClick={openCalendar} size="sm" className="bg-blue-600 hover:bg-blue-700">
+            📅 Calendar View
+          </Button>
           <Button onClick={testSmsSetup} size="sm" variant="outline" className="text-xs">
             📱 Test SMS
           </Button>
