@@ -102,9 +102,23 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-## user_problem_statement: "Test the NEW PAYMENT SYSTEM that was just implemented with Stripe integration"
+## user_problem_statement: "Test the NEW CALENDAR FUNCTIONALITY that was just added to the admin dashboard"
 
 ## backend:
+  - task: "NEW CALENDAR FUNCTIONALITY - Calendar data endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "CRITICAL ISSUE FOUND: Calendar endpoint returning 500 Internal Server Error due to MongoDB ObjectId serialization issues. The aggregation pipeline was returning documents with _id fields that are not JSON serializable."
+        - working: true
+          agent: "testing"
+          comment: "FIXED AND COMPREHENSIVE TESTING COMPLETED: ✅ Fixed ObjectId serialization by removing _id fields before JSON response ✅ Calendar endpoint accessible with date range parameters (GET /api/admin/calendar-data?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD) ✅ Response format correct: Object with YYYY-MM-DD date keys containing booking arrays ✅ Found 23 bookings in September 2025 across 5 dates ✅ Booking structure includes all required fields: id, pickup_time, address, status ✅ Quote details lookup working via MongoDB aggregation pipeline ✅ Database integration working with existing bookings (27 total bookings found) ✅ All booking statuses included: scheduled, in_progress, completed ✅ Error handling working: 422 for missing parameters ✅ Date filtering working correctly within specified ranges ✅ Integration with existing data confirmed - calendar shows real booking data"
   - task: "Cleanup temp images endpoint"
     implemented: true
     working: true
