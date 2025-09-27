@@ -660,8 +660,8 @@ const BookingModal = ({ quote, onClose, onSuccess }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start sm:items-center justify-center p-2 sm:p-4 pt-4 sm:pt-4 pb-4 overflow-y-auto">
-      <Card className="w-full max-w-md mx-2 sm:mx-0 my-4 sm:my-0">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start sm:items-center justify-center p-2 sm:p-4 pt-2 sm:pt-4 pb-2 sm:pb-4 overflow-y-auto">
+      <Card className="w-full max-w-md mx-2 sm:mx-0 my-2 sm:my-4 max-h-[95vh] sm:max-h-none overflow-y-auto">
         <CardHeader>
           <CardTitle>Schedule Pickup & Pay</CardTitle>
           <CardDescription>
