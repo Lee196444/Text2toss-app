@@ -1088,19 +1088,31 @@ const AdminDashboard = () => {
                 />
               </div>
             </CardContent>
-            <div className="flex justify-between p-6 pt-0">
+            <div className="flex flex-col sm:flex-row gap-3 p-6 pt-0">
               <Button 
                 variant="outline" 
                 onClick={() => setShowCompletionModal(false)}
+                className="bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300 text-gray-600 hover:text-gray-800 px-6 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium flex-1"
               >
+                <span className="mr-2">✕</span>
                 Cancel
               </Button>
               <Button 
                 onClick={submitCompletion}
                 disabled={!completionPhoto || uploadingPhoto}
-                className="bg-green-600 hover:bg-green-700"
+                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:from-gray-300 disabled:to-gray-400 text-white px-6 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium flex-1 disabled:cursor-not-allowed"
               >
-                {uploadingPhoto ? "Uploading..." : "Complete Job"}
+                {uploadingPhoto ? (
+                  <>
+                    <span className="mr-2 animate-spin">⏳</span>
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <span className="mr-2">📸</span>
+                    Complete Job
+                  </>
+                )}
               </Button>
             </div>
           </Card>
