@@ -1371,33 +1371,126 @@ async def test_sms_setup():
     }
 
 @api_router.post("/admin/test-sms-photo/{booking_id}")
-async def test_sms_with_photo(booking_id: str):
-    """Test SMS with completion photo for a specific booking"""
+async def test_sms_photo(booking_id: str):
+    """Test SMS photo sending to confirm setup and functionality"""
     
     booking = await db.bookings.find_one({"id": booking_id})
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
     
     if not booking.get("completion_photo_path"):
-        raise HTTPException(status_code=400, detail="No completion photo available for this booking")
+        raise HTTPException(status_code=400, detail="No completion photo available")
     
-    # Generate test message
-    test_phone = "+1234567890"  # Test phone number
-    backend_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://text2toss.preview.emergentagent.com')
-    photo_url = f"{backend_url}/api/public/completion-photo/{booking_id}"
+    # Create fully accessible URL for the completion photo
+    completion_photo_url = f"https://text2toss.preview.emergentagent.com/api/public/completion-photo/{booking_id}"
     
-    message = f"🧪 TEST SMS: Completion photo for booking {booking_id} at {booking.get('address', 'Unknown address')}"
-    
-    # Test SMS send
-    sms_result = await send_sms(test_phone, message, photo_url)
+    result = send_sms(
+        to=booking["phone"],
+        message=f"TEST: Text2toss job completion photo. View at: {completion_photo_url}"
+    )
     
     return {
         "message": "SMS photo test completed",
-        "booking_id": booking_id,
-        "sms_result": sms_result,
-        "photo_url": photo_url,
-        "test_phone": test_phone
+        "sms_configured": result["success"],
+        "sms_simulation": result.get("simulation", False),
+        "photo_url": completion_photo_url,
+        "phone": booking["phone"]
     }
+
+# Quote Approval System Endpoints
+@api_router.get("/admin/pending-quotes")
+async def get_pending_quotes():
+    """Get all quotes pending approval (Scale 4-10)"""
+    try:
+        pipeline = [
+            {
+                "$match": {
+                    "approval_status": "pending_approval"
+                }
+            },
+            {
+                "$sort": {"created_at": -1}
+            }
+        ]
+        
+        quotes_cursor = db.quotes.aggregate(pipeline)
+        quotes = await quotes_cursor.to_list(length=None)
+        
+        # Parse quotes from mongo
+        parsed_quotes = []
+        for quote in quotes:
+            parsed_quote = parse_from_mongo(quote)
+            parsed_quotes.append(parsed_quote)
+        
+        return parsed_quotes
+        
+    except Exception as e:
+        logger.error(f"Error fetching pending quotes: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch pending quotes")
+
+@api_router.post("/admin/quotes/{quote_id}/approve")
+async def approve_quote(quote_id: str, approval_action: QuoteApprovalAction):
+    """Approve or reject a quote"""
+    try:
+        quote = await db.quotes.find_one({"id": quote_id})
+        if not quote:
+            raise HTTPException(status_code=404, detail="Quote not found")
+        
+        if quote.get("approval_status") not in ["pending_approval"]:
+            raise HTTPException(status_code=400, detail="Quote is not pending approval")
+        
+        # Prepare update data
+        update_data = {
+            "approval_status": "approved" if approval_action.action == "approve" else "rejected",
+            "admin_notes": approval_action.admin_notes,
+            "approved_by": "admin",  # You can enhance this with actual admin user
+            "approved_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # If price is adjusted
+        if approval_action.approved_price is not None:
+            update_data["approved_price"] = approval_action.approved_price
+        
+        # Update quote
+        await db.quotes.update_one(
+            {"id": quote_id},
+            {"$set": update_data}
+        )
+        
+        # Get updated quote for response
+        updated_quote = await db.quotes.find_one({"id": quote_id})
+        updated_quote = parse_from_mongo(updated_quote)
+        
+        return {
+            "message": f"Quote {approval_action.action}d successfully",
+            "quote": updated_quote
+        }
+        
+    except Exception as e:
+        logger.error(f"Error approving quote: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to process quote approval")
+
+@api_router.get("/admin/quote-approval-stats")
+async def get_quote_approval_stats():
+    """Get statistics for quote approval system"""
+    try:
+        # Count quotes by approval status
+        pending_count = await db.quotes.count_documents({"approval_status": "pending_approval"})
+        approved_count = await db.quotes.count_documents({"approval_status": "approved"})
+        rejected_count = await db.quotes.count_documents({"approval_status": "rejected"})
+        auto_approved_count = await db.quotes.count_documents({"approval_status": "auto_approved"})
+        
+        return {
+            "pending_approval": pending_count,
+            "approved": approved_count,
+            "rejected": rejected_count,
+            "auto_approved": auto_approved_count,
+            "total_requiring_approval": pending_count + approved_count + rejected_count
+        }
+        
+    except Exception as e:
+        logger.error(f"Error fetching approval stats: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch approval statistics")
 
 @api_router.post("/admin/login")
 async def admin_login(login_data: AdminLogin):
