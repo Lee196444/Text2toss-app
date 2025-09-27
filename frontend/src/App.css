@@ -207,6 +207,14 @@ p {
     text-overflow: ellipsis !important;
   }
   
+  /* Navigation buttons mobile optimization */
+  [data-testid="admin-login-nav-btn"],
+  [data-testid="get-quote-btn"] {
+    min-width: auto !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.025em !important;
+  }
+  
   .max-w-2xl,
   .max-w-4xl,
   .max-w-6xl {
