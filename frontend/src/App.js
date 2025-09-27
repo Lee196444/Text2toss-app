@@ -168,43 +168,45 @@ const LandingPage = () => {
       {/* Hero Section */}
       <section className="py-20 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
-              <div className="space-y-4">
-                <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-200">
-                  📸 AI-Powered Photo Quotes • No Callbacks Required
-                </Badge>
-                <h1 className="text-5xl lg:text-6xl font-bold text-white leading-tight">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            <div className="space-y-6 lg:space-y-8">
+              <div className="space-y-4 lg:space-y-6">
+                <div className="text-center lg:text-left">
+                  <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-200">
+                    📸 AI-Powered Photo Quotes • No Callbacks Required
+                  </Badge>
+                </div>
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight text-center lg:text-left">
                   <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">Text2toss</span>
                 </h1>
-                <div className="bg-emerald-900/40 border border-emerald-400/40 rounded-lg p-4 mb-4">
-                  <p className="text-emerald-200 text-lg font-semibold text-center">
+                <div className="bg-emerald-900/40 border border-emerald-400/40 rounded-lg p-3 lg:p-4 mb-4">
+                  <p className="text-emerald-200 text-base lg:text-lg font-semibold text-center">
                     📍 Servicing Flagstaff AZ and surrounding areas
                   </p>
                   <p className="text-emerald-300 text-sm text-center mt-1">
                     Locally owned and operated business
                   </p>
                 </div>
-                <p className="text-xl text-gray-200 leading-relaxed">
+                <p className="text-lg lg:text-xl text-gray-200 leading-relaxed text-center lg:text-left px-2 lg:px-0">
                   Upload photo of junk and quick description, get a quote in seconds! 
                   No more waiting on callbacks and no more hassles. 
                   <strong>Junk removal made seamless.</strong>
                 </p>
-                <div className="bg-emerald-900/30 border border-emerald-400/30 rounded-lg p-4 mt-4">
-                  <p className="text-emerald-200 text-sm font-medium">
+                <div className="bg-emerald-900/30 border border-emerald-400/30 rounded-lg p-3 lg:p-4 mt-4">
+                  <p className="text-emerald-200 text-sm font-medium text-center lg:text-left">
                     📍 Ground Level & Curbside Pickup Only
                   </p>
-                  <p className="text-emerald-300 text-sm mt-1">
+                  <p className="text-emerald-300 text-sm mt-1 text-center lg:text-left">
                     We pickup items from ground level locations and curbside. Items must be accessible without stairs.
                   </p>
                 </div>
               </div>
               
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col gap-3 lg:gap-4 justify-center px-4 lg:px-0">
                 <Button 
                   onClick={() => setShowQuote(true)}
                   size="lg"
-                  className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-lg px-8 py-6"
+                  className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-base lg:text-lg px-6 lg:px-8 py-4 lg:py-6 w-full sm:w-auto"
                   data-testid="hero-get-quote-btn"
                 >
                   📸 Upload Photo & Get Quote
@@ -212,7 +214,7 @@ const LandingPage = () => {
                 <Button 
                   variant="outline" 
                   size="lg"
-                  className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 text-lg px-8 py-6"
+                  className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 text-base lg:text-lg px-6 lg:px-8 py-4 lg:py-6 w-full sm:w-auto"
                   data-testid="learn-more-btn"
                   onClick={() => {
                     document.getElementById('how-it-works').scrollIntoView({ 
