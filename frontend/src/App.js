@@ -669,15 +669,24 @@ const BookingModal = ({ quote, onClose, onSuccess }) => {
 
           <div className="space-y-2">
             <Label>Pickup Date</Label>
-            <Input
-              type="date"
-              value={bookingData.pickup_date}
-              onChange={(e) => handleDateChange(e.target.value)}
-              min={new Date().toISOString().split('T')[0]}
-              data-testid="pickup-date-input"
-            />
+            <Button
+              variant="outline"
+              onClick={() => setShowCalendar(true)}
+              className="w-full justify-start text-left h-10"
+              data-testid="pickup-date-button"
+            >
+              {bookingData.pickup_date ? 
+                new Date(bookingData.pickup_date).toLocaleDateString('en-US', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                }) : 
+                "📅 Select pickup date"
+              }
+            </Button>
             <p className="text-xs text-gray-600">
-              ⚠️ Pickup available Monday-Thursday only (No Fridays, Weekends)
+              🟢 Available dates • 🟡 Limited slots • 🔴 Fully booked • ❌ Weekends unavailable
             </p>
           </div>
           <div className="space-y-2">
