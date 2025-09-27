@@ -202,19 +202,20 @@ const LandingPage = () => {
                 </div>
               </div>
               
-              <div className="flex flex-col gap-3 lg:gap-4 justify-center px-4 lg:px-0">
+              <div className="flex flex-col gap-3 lg:gap-4 justify-center px-6 lg:px-0 max-w-full">
                 <Button 
                   onClick={() => setShowQuote(true)}
                   size="lg"
-                  className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-base lg:text-lg px-6 lg:px-8 py-4 lg:py-6 w-full sm:w-auto"
+                  className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-sm sm:text-base lg:text-lg px-3 sm:px-6 lg:px-8 py-4 lg:py-6 w-full max-w-full text-center"
                   data-testid="hero-get-quote-btn"
                 >
-                  📸 Upload Photo & Get Quote
+                  <span className="block sm:hidden">📸 Get Quote</span>
+                  <span className="hidden sm:block">📸 Upload Photo & Get Quote</span>
                 </Button>
                 <Button 
                   variant="outline" 
                   size="lg"
-                  className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 text-base lg:text-lg px-6 lg:px-8 py-4 lg:py-6 w-full sm:w-auto"
+                  className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 text-sm sm:text-base lg:text-lg px-3 sm:px-6 lg:px-8 py-4 lg:py-6 w-full max-w-full text-center"
                   data-testid="learn-more-btn"
                   onClick={() => {
                     document.getElementById('how-it-works').scrollIntoView({ 
