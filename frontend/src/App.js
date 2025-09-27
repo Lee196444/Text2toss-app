@@ -807,12 +807,12 @@ const BookingModal = ({ quote, onClose, onSuccess }) => {
             />
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-3 p-4 sm:p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+        <CardFooter className="flex flex-col space-y-2 sm:space-y-3 p-3 sm:p-6 bg-white border-t">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 w-full">
             <Button 
               onClick={handleBooking} 
               data-testid="confirm-booking-btn" 
-              className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium"
+              className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white py-2 sm:py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium text-sm sm:text-base"
             >
               💳 Pay with Card
             </Button>
@@ -822,7 +822,7 @@ const BookingModal = ({ quote, onClose, onSuccess }) => {
                 alert("Venmo payment: After booking confirmation, you'll see a QR code to complete payment via Venmo app.");
                 handleBooking();
               }}
-              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium"
+              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-2 sm:py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium text-sm sm:text-base"
             >
               📱 Pay with Venmo
             </Button>
@@ -831,7 +831,7 @@ const BookingModal = ({ quote, onClose, onSuccess }) => {
             variant="outline" 
             onClick={onClose} 
             data-testid="cancel-booking-btn" 
-            className="w-full bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300 text-gray-600 hover:text-gray-800 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium"
+            className="w-full bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300 text-gray-600 hover:text-gray-800 py-2 sm:py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium text-sm sm:text-base"
           >
             Cancel
           </Button>
