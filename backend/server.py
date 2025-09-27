@@ -18,7 +18,7 @@ from emergentintegrations.llm.chat import LlmChat, UserMessage, FileContentWithM
 import json
 import re
 import base64
-from fastapi import UploadFile, File
+from fastapi import UploadFile, File, Form
 import aiofiles
 import os
 from pathlib import Path
