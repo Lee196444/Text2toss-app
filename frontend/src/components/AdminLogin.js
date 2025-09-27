@@ -41,14 +41,14 @@ const AdminLogin = ({ onLoginSuccess }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black/40 to-emerald-900/50 flex items-center justify-center p-6">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-white text-2xl font-bold">🔐</span>
+    <div className="min-h-screen bg-gradient-to-br from-black/40 to-emerald-900/50 flex items-center justify-center p-4 sm:p-6">
+      <Card className="w-full max-w-md mx-4">
+        <CardHeader className="text-center px-4 sm:px-6">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <span className="text-white text-xl sm:text-2xl font-bold">🔐</span>
           </div>
-          <CardTitle className="text-2xl">Admin Access</CardTitle>
-          <CardDescription>Enter the admin password to access the dashboard</CardDescription>
+          <CardTitle className="text-xl sm:text-2xl">Admin Access</CardTitle>
+          <CardDescription className="text-sm sm:text-base">Enter the admin password to access the dashboard</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
