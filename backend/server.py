@@ -1423,6 +1423,9 @@ async def get_pending_quotes():
         # Parse quotes from mongo
         parsed_quotes = []
         for quote in quotes:
+            # Remove MongoDB _id field to avoid serialization issues
+            if "_id" in quote:
+                del quote["_id"]
             parsed_quote = parse_from_mongo(quote)
             parsed_quotes.append(parsed_quote)
         
