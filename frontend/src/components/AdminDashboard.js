@@ -464,22 +464,26 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black/40 to-emerald-900/50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-black/40 to-emerald-900/50 p-2 sm:p-4">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-white">Admin Dashboard</h1>
-            <p className="text-gray-200">Manage daily pickups and optimize routes</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="text-center sm:text-left">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white">Admin Dashboard</h1>
+            <p className="text-gray-200 text-sm sm:text-base">Manage daily pickups and optimize routes</p>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
             <Input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-auto"
+              className="w-full sm:w-auto text-sm"
             />
-            <Button onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}>
+            <Button 
+              onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
+              size="sm"
+              className="w-full sm:w-auto"
+            >
               Today
             </Button>
           </div>
