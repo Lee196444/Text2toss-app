@@ -1384,9 +1384,9 @@ async def test_sms_photo(booking_id: str):
     # Create fully accessible URL for the completion photo
     completion_photo_url = f"https://text2toss.preview.emergentagent.com/api/public/completion-photo/{booking_id}"
     
-    result = send_sms(
-        to=booking["phone"],
-        message=f"TEST: Text2toss job completion photo. View at: {completion_photo_url}"
+    result = await send_sms(
+        booking["phone"],
+        f"TEST: Text2toss job completion photo. View at: {completion_photo_url}"
     )
     
     return {
