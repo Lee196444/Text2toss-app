@@ -1309,23 +1309,25 @@ const AdminDashboard = () => {
       {showQuoteApproval && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
           <Card className="w-full max-w-4xl max-h-[85vh] sm:max-h-[90vh] overflow-hidden mx-2 sm:mx-0 my-4 sm:my-0">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-2xl flex items-center gap-2">
-                  📋 Quote Approval Center
-                  {pendingQuotes.length > 0 && (
-                    <Badge variant="destructive">{pendingQuotes.length} Pending</Badge>
-                  )}
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 px-4 py-3 sm:px-6 sm:py-4">
+              <div className="min-w-0 flex-1">
+                <CardTitle className="text-lg sm:text-2xl flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                  <span className="flex items-center gap-2">
+                    📋 Quote Approval
+                    {pendingQuotes.length > 0 && (
+                      <Badge variant="destructive" className="text-xs">{pendingQuotes.length}</Badge>
+                    )}
+                  </span>
                 </CardTitle>
-                <CardDescription>
-                  Review and approve high-value quotes (Scale 4-10) before payment processing
+                <CardDescription className="text-xs sm:text-sm mt-1">
+                  Review high-value quotes (Scale 4-10) before payment
                 </CardDescription>
               </div>
               <Button 
                 onClick={() => setShowQuoteApproval(false)}
-                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium"
+                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium text-sm self-end sm:self-auto"
               >
-                <span className="mr-2">✕</span>
+                <span className="mr-1 sm:mr-2">✕</span>
                 Close
               </Button>
             </CardHeader>
