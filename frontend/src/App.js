@@ -148,21 +148,21 @@ const LandingPage = () => {
                 <Button 
                   variant="outline"
                   size="sm"
-                  className="border-emerald-400 text-emerald-400 hover:bg-emerald-400 hover:text-white text-xs sm:text-sm px-2 sm:px-4 py-2"
+                  className="border-emerald-400 text-emerald-400 hover:bg-emerald-400 hover:text-white text-xs sm:text-sm px-3 sm:px-4 py-2 min-w-0"
                   data-testid="admin-login-nav-btn"
                 >
                   <span className="hidden sm:inline">🔐 Admin Login</span>
-                  <span className="sm:hidden">🔐 Admin</span>
+                  <span className="sm:hidden">Admin</span>
                 </Button>
               </Link>
               <Button 
                 onClick={() => setShowQuote(true)}
                 size="sm"
-                className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-xs sm:text-sm px-2 sm:px-4 py-2"
+                className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-2 min-w-0 font-medium"
                 data-testid="get-quote-btn"
               >
                 <span className="hidden sm:inline">📸 Upload & Quote</span>
-                <span className="sm:hidden">📸 Quote</span>
+                <span className="sm:hidden">Get Quote</span>
               </Button>
             </div>
           </div>
