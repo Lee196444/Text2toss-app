@@ -480,6 +480,11 @@ const LandingPage = () => {
                       <div>
                         <h3 className="text-2xl font-bold text-emerald-800 mb-2">
                           Total: ${quote.total_price}
+                          {quote.scale_level && quote.scale_level >= 4 && (
+                            <span className="ml-2 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
+                              Requires Approval
+                            </span>
+                          )}
                         </h3>
                         <p className="text-emerald-600 text-sm mb-2">Quote ID: {quote.id}</p>
                         {quote.ai_explanation && (
@@ -488,13 +493,26 @@ const LandingPage = () => {
                             <p className="text-sm text-gray-700">{quote.ai_explanation}</p>
                           </div>
                         )}
+                        
+                        {/* Fine print for high-value quotes */}
+                        {quote.scale_level && quote.scale_level >= 4 && (
+                          <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                            <p className="text-xs text-yellow-800 font-medium">
+                              📋 <strong>Important Notice:</strong> This quote requires admin approval before payment processing.
+                            </p>
+                            <p className="text-xs text-yellow-700 mt-1">
+                              Large jobs (Scale 4-10) are reviewed for accuracy. You will be contacted within 24 hours 
+                              with final pricing confirmation before any charges are processed.
+                            </p>
+                          </div>
+                        )}
                       </div>
                       <Button 
                         onClick={() => setShowBooking(true)}
                         className="bg-emerald-600 hover:bg-emerald-700"
                         data-testid="book-pickup-btn"
                       >
-                        Book Pickup
+                        {quote.scale_level && quote.scale_level >= 4 ? 'Schedule Pickup (Pending Approval)' : 'Book Pickup'}
                       </Button>
                     </div>
                   </CardContent>
