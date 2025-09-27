@@ -724,8 +724,13 @@ const AdminDashboard = () => {
                   Total Revenue: {formatPrice(binBookings.reduce((sum, booking) => sum + (booking.quote_details?.total_price || 0), 0))}
                 </CardDescription>
               </div>
-              <Button variant="outline" onClick={closeBin} className="text-gray-600 w-full sm:w-auto">
-                ✕ Close
+              <Button 
+                variant="outline" 
+                onClick={closeBin} 
+                className="bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300 text-gray-600 hover:text-gray-800 w-full sm:w-auto px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium"
+              >
+                <span className="mr-2">✕</span>
+                Close
               </Button>
             </CardHeader>
             <CardContent className="overflow-y-auto max-h-[70vh]">
