@@ -1322,8 +1322,12 @@ const AdminDashboard = () => {
                   Review and approve high-value quotes (Scale 4-10) before payment processing
                 </CardDescription>
               </div>
-              <Button variant="outline" onClick={() => setShowQuoteApproval(false)}>
-                ✕ Close
+              <Button 
+                onClick={() => setShowQuoteApproval(false)}
+                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium"
+              >
+                <span className="mr-2">✕</span>
+                Close
               </Button>
             </CardHeader>
             <CardContent className="overflow-y-auto max-h-[70vh]">
