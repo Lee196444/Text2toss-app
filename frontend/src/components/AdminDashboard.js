@@ -528,7 +528,14 @@ const AdminDashboard = () => {
               <Card 
                 key={bin.type}
                 className={`cursor-pointer transition-all duration-200 ${bin.color} border-2 hover:shadow-lg transform hover:scale-105`}
-                onClick={() => openBin(bin.type)}
+                onClick={() => {
+                  // Open calendar for NEW jobs, regular bin view for others
+                  if (bin.type === 'new') {
+                    openCalendar();
+                  } else {
+                    openBin(bin.type);
+                  }
+                }}
               >
                 <CardContent className="p-6 text-center">
                   <div className="text-4xl mb-3">{bin.icon}</div>
