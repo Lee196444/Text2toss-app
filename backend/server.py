@@ -873,6 +873,64 @@ async def get_weekly_schedule(start_date: str = None):
         schedule[date_key].append(booking_data)
     
     return schedule
+@api_router.get("/admin/calendar-data")
+async def get_calendar_data(start_date: str, end_date: str):
+    """Get calendar data for a month range showing all scheduled jobs"""
+    try:
+        # Query bookings within the date range
+        pipeline = [
+            {
+                "$addFields": {
+                    "pickup_date_only": {
+                        "$dateToString": {
+                            "format": "%Y-%m-%d",
+                            "date": {"$dateFromString": {"dateString": "$pickup_date"}}
+                        }
+                    }
+                }
+            },
+            {
+                "$match": {
+                    "pickup_date_only": {
+                        "$gte": start_date,
+                        "$lte": end_date
+                    }
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "quotes",
+                    "localField": "quote_id",
+                    "foreignField": "id",
+                    "as": "quote_details"
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$quote_details",
+                    "preserveNullAndEmptyArrays": True
+                }
+            },
+            {"$sort": {"pickup_date": 1, "pickup_time": 1}}
+        ]
+        
+        bookings_cursor = db.bookings.aggregate(pipeline)
+        bookings = await bookings_cursor.to_list(length=None)
+        
+        # Group bookings by date
+        calendar_data = {}
+        for booking in bookings:
+            booking = parse_from_mongo(booking)
+            date_key = booking['pickup_date_only']
+            if date_key not in calendar_data:
+                calendar_data[date_key] = []
+            calendar_data[date_key].append(booking)
+        
+        return calendar_data
+        
+    except Exception as e:
+        logger.error(f"Error fetching calendar data: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch calendar data")
 
 @api_router.get("/availability/{date}")
 async def check_availability(date: str):
