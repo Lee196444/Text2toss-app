@@ -647,34 +647,35 @@ const AdminDashboard = () => {
                   No jobs in this category
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {binBookings.map((booking, index) => (
-                    <div key={booking.id} className="border rounded-lg p-4 space-y-3 bg-white shadow-sm">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <Badge variant="secondary">#{index + 1}</Badge>
-                          <Badge variant="secondary">{formatTime(booking.pickup_time)}</Badge>
+                    <div key={booking.id} className="border rounded-lg p-3 sm:p-4 space-y-3 bg-white shadow-sm">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div className="flex flex-wrap items-center gap-1 sm:gap-2">
+                          <Badge variant="secondary" className="text-xs">#{index + 1}</Badge>
+                          <Badge variant="secondary" className="text-xs">{formatTime(booking.pickup_time)}</Badge>
                           <Badge 
                             variant={
                               booking.status === 'completed' ? 'success' : 
                               booking.status === 'in_progress' ? 'warning' : 
                               'default'
                             }
+                            className="text-xs"
                           >
                             {booking.status}
                           </Badge>
                           {booking.image_path && (
-                            <Badge variant="outline" className="text-blue-600">
+                            <Badge variant="outline" className="text-blue-600 text-xs hidden sm:inline-flex">
                               📸 Has Photo
                             </Badge>
                           )}
                           {booking.status !== 'scheduled' && (
-                            <Badge variant="outline" className="text-green-600">
+                            <Badge variant="outline" className="text-green-600 text-xs hidden sm:inline-flex">
                               📱 SMS Sent
                             </Badge>
                           )}
                         </div>
-                        <span className="font-semibold text-emerald-600">
+                        <span className="font-semibold text-emerald-600 text-sm sm:text-base">
                           {formatPrice(booking.quote_details?.total_price)}
                         </span>
                       </div>
