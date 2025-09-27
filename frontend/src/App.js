@@ -143,22 +143,26 @@ const LandingPage = () => {
               <a href="#pricing" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors">Pricing</a>
               <a href="#contact" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors">Contact</a>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 sm:space-x-3">
               <Link to="/admin">
                 <Button 
                   variant="outline"
-                  className="border-emerald-400 text-emerald-400 hover:bg-emerald-400 hover:text-white"
+                  size="sm"
+                  className="border-emerald-400 text-emerald-400 hover:bg-emerald-400 hover:text-white text-xs sm:text-sm px-2 sm:px-4 py-2"
                   data-testid="admin-login-nav-btn"
                 >
-                  🔐 Admin Login
+                  <span className="hidden sm:inline">🔐 Admin Login</span>
+                  <span className="sm:hidden">🔐 Admin</span>
                 </Button>
               </Link>
               <Button 
                 onClick={() => setShowQuote(true)}
-                className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white px-6"
+                size="sm"
+                className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-xs sm:text-sm px-2 sm:px-4 py-2"
                 data-testid="get-quote-btn"
               >
-                📸 Upload & Quote
+                <span className="hidden sm:inline">📸 Upload & Quote</span>
+                <span className="sm:hidden">📸 Quote</span>
               </Button>
             </div>
           </div>
