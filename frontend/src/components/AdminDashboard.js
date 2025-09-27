@@ -606,6 +606,18 @@ const AdminDashboard = () => {
           <Button onClick={openCalendar} size="sm" className="bg-blue-600 hover:bg-blue-700 text-xs sm:text-sm">
             📅 Calendar
           </Button>
+          <Button 
+            onClick={() => setShowQuoteApproval(true)} 
+            size="sm" 
+            className="bg-orange-600 hover:bg-orange-700 text-xs sm:text-sm relative"
+          >
+            📋 Quotes
+            {pendingQuotes.length > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                {pendingQuotes.length}
+              </span>
+            )}
+          </Button>
           <Button onClick={testSmsSetup} size="sm" variant="outline" className="text-xs">
             📱 SMS
           </Button>
