@@ -39,6 +39,9 @@ const AdminDashboard = () => {
   const [showCalendar, setShowCalendar] = useState(false);
   const [calendarData, setCalendarData] = useState({});
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [pendingQuotes, setPendingQuotes] = useState([]);
+  const [showQuoteApproval, setShowQuoteApproval] = useState(false);
+  const [approvalStats, setApprovalStats] = useState({});
 
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
