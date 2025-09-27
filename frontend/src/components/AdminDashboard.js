@@ -1027,7 +1027,7 @@ const AdminDashboard = () => {
                   variant="outline" 
                   size="sm"
                   onClick={() => changeMonth(-1)}
-                  className="text-gray-600"
+                  className="text-gray-600 text-xs sm:text-sm"
                 >
                   ← Prev
                 </Button>
@@ -1035,11 +1035,11 @@ const AdminDashboard = () => {
                   variant="outline" 
                   size="sm"
                   onClick={() => changeMonth(1)}
-                  className="text-gray-600"
+                  className="text-gray-600 text-xs sm:text-sm"
                 >
                   Next →
                 </Button>
-                <Button variant="outline" onClick={closeCalendar} className="text-gray-600">
+                <Button variant="outline" onClick={closeCalendar} className="text-gray-600 text-xs sm:text-sm">
                   ✕ Close
                 </Button>
               </div>
