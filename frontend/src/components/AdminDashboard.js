@@ -728,7 +728,7 @@ const AdminDashboard = () => {
                       </div>
 
                       {/* Action Buttons */}
-                      <div className="flex space-x-2 flex-wrap gap-1 pt-2 border-t">
+                      <div className="flex flex-wrap gap-1 sm:gap-2 pt-2 border-t">
                         {/* Start Route Button - Available for all jobs */}
                         <Button 
                           size="sm" 
