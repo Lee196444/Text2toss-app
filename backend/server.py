@@ -1466,6 +1466,8 @@ async def approve_quote(quote_id: str, approval_action: QuoteApprovalAction):
         
         # Get updated quote for response
         updated_quote = await db.quotes.find_one({"id": quote_id})
+        if "_id" in updated_quote:
+            del updated_quote["_id"]
         updated_quote = parse_from_mongo(updated_quote)
         
         return {
