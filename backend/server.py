@@ -1538,6 +1538,23 @@ async def create_checkout_session(payment_request: PaymentRequest, request: Requ
     if not quote:
         raise HTTPException(status_code=404, detail="Quote not found")
     
+    # Check if quote requires approval and is not yet approved
+    if quote.get("requires_approval", False) and quote.get("approval_status") != "approved":
+        status = quote.get("approval_status", "pending_approval")
+        if status == "pending_approval":
+            raise HTTPException(
+                status_code=400, 
+                detail="This quote requires admin approval before payment can be processed. You will be notified once approved."
+            )
+        elif status == "rejected":
+            raise HTTPException(
+                status_code=400, 
+                detail="This quote has been rejected. Please request a new quote."
+            )
+    
+    # Use approved price if available, otherwise use original price
+    amount = float(quote.get("approved_price", quote["total_price"]))
+    
     # Amount from the quote (server-side validation)
     amount = float(quote["total_price"])
     
