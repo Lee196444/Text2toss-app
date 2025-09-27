@@ -592,28 +592,28 @@ const AdminDashboard = () => {
             <CardDescription>Overview for {new Date(selectedDate).toLocaleDateString()}</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-gray-700">{dailyBookings.length}</div>
-                <div className="text-sm text-gray-600">Total Jobs</div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 text-center">
+              <div className="p-3 sm:p-4 bg-gray-50 rounded-lg">
+                <div className="text-xl sm:text-2xl font-bold text-gray-700">{dailyBookings.length}</div>
+                <div className="text-xs sm:text-sm text-gray-600">Total Jobs</div>
               </div>
-              <div className="p-4 bg-emerald-50 rounded-lg">
-                <div className="text-2xl font-bold text-emerald-600">
+              <div className="p-3 sm:p-4 bg-emerald-50 rounded-lg">
+                <div className="text-xl sm:text-2xl font-bold text-emerald-600">
                   {formatPrice(dailyBookings.reduce((sum, booking) => sum + (booking.quote_details?.total_price || 0), 0))}
                 </div>
-                <div className="text-sm text-emerald-700">Daily Revenue</div>
+                <div className="text-xs sm:text-sm text-emerald-700">Daily Revenue</div>
               </div>
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">
+              <div className="p-3 sm:p-4 bg-blue-50 rounded-lg">
+                <div className="text-xl sm:text-2xl font-bold text-blue-600">
                   {dailyBookings.filter(b => b.image_path).length}
                 </div>
-                <div className="text-sm text-blue-700">With Photos</div>
+                <div className="text-xs sm:text-sm text-blue-700">With Photos</div>
               </div>
-              <div className="p-4 bg-green-50 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">
+              <div className="p-3 sm:p-4 bg-green-50 rounded-lg">
+                <div className="text-xl sm:text-2xl font-bold text-green-600">
                   {dailyBookings.filter(b => b.completion_photo_path).length}
                 </div>
-                <div className="text-sm text-green-700">Completed w/Photo</div>
+                <div className="text-xs sm:text-sm text-green-700">Completed w/Photo</div>
               </div>
             </div>
           </CardContent>
