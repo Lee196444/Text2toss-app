@@ -1092,7 +1092,7 @@ const AdminDashboard = () => {
                             closeCalendar();
                           }}
                         >
-                          <div className={`text-sm font-semibold mb-1 ${
+                          <div className={`text-xs sm:text-sm font-semibold mb-1 ${
                             isToday ? 'text-yellow-800' : 
                             isSelected ? 'text-blue-800' : 
                             'text-gray-700'
@@ -1102,22 +1102,22 @@ const AdminDashboard = () => {
                           
                           {/* Jobs for this day */}
                           <div className="space-y-px">
-                            {dayJobs.slice(0, 3).map((job, index) => (
+                            {dayJobs.slice(0, window.innerWidth < 640 ? 2 : 3).map((job, index) => (
                               <div 
                                 key={job.id}
-                                className={`text-xs p-1 rounded truncate ${
+                                className={`text-xs p-0.5 sm:p-1 rounded truncate ${
                                   job.status === 'completed' ? 'bg-green-100 text-green-800' :
                                   job.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
                                   'bg-blue-100 text-blue-800'
                                 }`}
                                 title={`${job.pickup_time} - ${job.address} - $${job.quote_details?.total_price || 0}`}
                               >
-                                {job.pickup_time.split('-')[0]} ${formatPrice(job.quote_details?.total_price)}
+                                <span className="hidden sm:inline">{job.pickup_time.split('-')[0]} </span>${job.quote_details?.total_price || 0}
                               </div>
                             ))}
-                            {dayJobs.length > 3 && (
+                            {dayJobs.length > (window.innerWidth < 640 ? 2 : 3) && (
                               <div className="text-xs text-gray-600 text-center">
-                                +{dayJobs.length - 3} more
+                                +{dayJobs.length - (window.innerWidth < 640 ? 2 : 3)} more
                               </div>
                             )}
                           </div>
