@@ -1068,7 +1068,7 @@ const AdminDashboard = () => {
                     // Empty cells for days before the first day of the month
                     for (let i = 0; i < firstDayOfWeek; i++) {
                       cells.push(
-                        <div key={`empty-${i}`} className="h-24 bg-gray-50 rounded border"></div>
+                        <div key={`empty-${i}`} className="h-16 sm:h-24 bg-gray-50 rounded border"></div>
                       );
                     }
                     
