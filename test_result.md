@@ -236,6 +236,30 @@
           agent: "testing"
           comment: "VERIFIED: Database integration working perfectly. PaymentTransaction records created and stored in payment_transactions collection with session_id, booking_id, amount, currency, payment_status, and metadata. Transaction data retrievable via status endpoint. Booking linkage confirmed through booking_id field."
 
+  - task: "NEW AVAILABILITY CALENDAR - Availability range endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "COMPREHENSIVE TESTING COMPLETED: ✅ GET /api/availability-range endpoint working perfectly with date parameters (start_date, end_date) ✅ Response format correct: Object with YYYY-MM-DD date keys containing availability data ✅ Required fields present: available_count, total_slots, is_restricted, status ✅ Status categories working correctly: 'restricted' (weekends), 'fully_booked' (0 available), 'limited' (1-2 available), 'available' (3-5 available) ✅ Weekend restrictions: Fridays, Saturdays, Sundays correctly marked as restricted ✅ September 2025 testing: Found 30 dates with proper status distribution (12 restricted, 1 fully_booked, 3 limited, 14 available) ✅ Integration with existing booking data working correctly ✅ Error handling: Proper 500/422 responses for invalid dates and missing parameters ✅ Database integration seamless with MongoDB aggregation pipeline ⚠️ Minor issue: Some dates show duplicate time slots in booked_slots (multiple bookings for same time slot) but doesn't affect availability calculation accuracy"
+
+  - task: "NEW AVAILABILITY CALENDAR - Individual date availability endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "COMPREHENSIVE TESTING COMPLETED: ✅ GET /api/availability/{date} endpoint working perfectly ✅ Response includes all required fields: date, available_slots, booked_slots, is_restricted ✅ Weekend restriction logic working: Saturday 2025-09-27 correctly marked as restricted with proper reason message ✅ Weekday availability working: Wednesday 2025-09-24 correctly not restricted ✅ Time slot format correct: HH:MM-HH:MM format in available_slots and booked_slots arrays ✅ Integration with booking data: Availability counts match existing calendar bookings ✅ Error handling: Proper 500 response for invalid date formats ✅ Restriction reason messages provided for weekend dates"
+
 ## frontend:
   - task: "Cleanup button functionality"
     implemented: true
