@@ -210,10 +210,10 @@ const LandingPage = () => {
                 <Button 
                   onClick={() => setShowQuote(true)}
                   size="lg"
-                  className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-sm sm:text-base lg:text-lg px-3 sm:px-6 lg:px-8 py-4 lg:py-6 w-full max-w-full text-center"
+                  className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-sm sm:text-base lg:text-lg px-4 sm:px-6 lg:px-8 py-4 lg:py-6 w-full max-w-full text-center font-semibold"
                   data-testid="hero-get-quote-btn"
                 >
-                  <span className="block sm:hidden">📸 Get Quote</span>
+                  <span className="block sm:hidden">📸 Upload & Quote</span>
                   <span className="hidden sm:block">📸 Upload Photo & Get Quote</span>
                 </Button>
                 <Button 
