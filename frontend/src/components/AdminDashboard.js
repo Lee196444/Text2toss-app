@@ -1047,16 +1047,16 @@ const AdminDashboard = () => {
             <CardContent className="overflow-y-auto max-h-[70vh]">
               <div className="calendar-grid">
                 {/* Calendar Header */}
-                <div className="grid grid-cols-7 gap-1 mb-2">
+                <div className="grid grid-cols-7 gap-px sm:gap-1 mb-2">
                   {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                    <div key={day} className="p-2 text-center font-semibold text-gray-700 bg-gray-100 rounded">
+                    <div key={day} className="p-1 sm:p-2 text-center font-semibold text-gray-700 bg-gray-100 rounded text-xs sm:text-sm">
                       {day}
                     </div>
                   ))}
                 </div>
 
                 {/* Calendar Days */}
-                <div className="grid grid-cols-7 gap-1">
+                <div className="grid grid-cols-7 gap-px sm:gap-1">
                   {(() => {
                     const daysInMonth = getDaysInMonth(currentMonth);
                     const firstDayOfWeek = getFirstDayOfWeek(currentMonth);
