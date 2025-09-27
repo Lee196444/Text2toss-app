@@ -414,38 +414,45 @@ IMPORTANT SERVICE LIMITATIONS:
 - We ONLY provide ground level pickup (no stairs, no upper floors)
 - Items must be accessible at ground level or placed curbside
 
-Please analyze the image and provide:
-1. Identify all junk/furniture items visible
-2. Estimate quantity and size of each item
-3. Consider condition and removal difficulty
-4. Calculate pricing for ground level pickup only
+CRITICAL VOLUME ASSESSMENT INSTRUCTIONS:
+1. CAREFULLY estimate the total cubic footage of ALL materials in the image
+2. For PILES, STACKS, or OUTDOOR MATERIALS: Measure length × width × height to estimate total volume
+3. For LARGE PILES (like logs, debris, construction materials): These often represent Scale 6-10 loads
+4. Use REFERENCE OBJECTS (people, cars, houses, tools) in the image to gauge true scale
+5. Consider that outdoor piles often appear smaller than they actually are
 
 VOLUME-BASED PRICING SCALE (Ground Level Only):
-Use this 1-10 scale to estimate total volume and price accordingly:
+**CRITICAL**: Base pricing on TOTAL ESTIMATED CUBIC FEET, not item count
 
-SCALE 1 (3x3x3 cubic feet): $35-45
-- Small box, bag, or single small item
-- Examples: microwave, small chair, boxes
+SCALE 1 (3×3×3 = 27 cubic feet): $35-45
+- Small single item or small pile
+- Examples: microwave, small chair, few boxes
 
-SCALE 2-3 (6x6x6 cubic feet): $65-85  
-- Few small to medium items
+SCALE 2-3 (6×6×6 = 216 cubic feet): $65-85  
+- Small to medium pile or several items
 - Examples: desk chair, small dresser, multiple boxes
 
-SCALE 4-5 (9x9x9 cubic feet): $125-165
-- Medium furniture pieces or multiple items
-- Examples: mattress, dining table, several appliances
+SCALE 4-5 (9×9×9 = 729 cubic feet): $125-165
+- Medium-sized pile or furniture collection
+- Examples: mattress, dining table, moderate debris pile
 
-SCALE 6-7 (12x12x12 cubic feet): $195-245
-- Large furniture or substantial load
-- Examples: couch, refrigerator, bedroom set
+SCALE 6-7 (12×12×12 = 1,728 cubic feet): $195-245
+- Large pile or substantial furniture load
+- Examples: couch, refrigerator, large debris pile, STACKED LOGS
 
-SCALE 8-9 (15x15x15 cubic feet): $275-325
-- Very large items or significant volume
-- Examples: sectional sofa, multiple large appliances
+SCALE 8-9 (15×15×15 = 3,375 cubic feet): $275-325
+- Very large pile or significant volume
+- Examples: MASSIVE LOG PILES, construction debris, large furniture collection
 
-SCALE 10 (Full truck load): $350-450
-- Maximum capacity load
-- Examples: entire room contents, full household cleanout
+SCALE 10 (18×18×18+ = 5,832+ cubic feet): $350-450
+- Huge pile requiring full truck capacity
+- Examples: ENORMOUS LOG STACKS, entire room contents, major cleanouts
+
+**SPECIAL CONSIDERATIONS FOR OUTDOOR MATERIALS:**
+- Large log piles, construction debris, landscaping waste typically Scale 6-10
+- Stack height is critical - tall piles have exponentially more volume
+- Use objects in photo for scale reference (people = ~6ft, cars = ~12ft long)
+- When in doubt about pile size, err on the higher scale estimate
 
 Additional charges may apply for:
 - Hazardous materials disposal: +$25-50
