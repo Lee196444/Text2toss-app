@@ -503,7 +503,7 @@ Respond ONLY with a JSON object in this exact format:
             api_key=os.environ.get('EMERGENT_LLM_KEY'),
             session_id=f"vision_analysis_{datetime.now().timestamp()}",
             system_message="You are a professional junk removal expert with visual analysis capabilities. Always respond with valid JSON only."
-        ).with_model("google", "gemini-pro")  # Use Gemini for vision analysis with file attachments
+        ).with_model("gemini", "gemini-pro")  # Use Gemini for vision analysis with file attachments
         
         # Send message with image
         user_message = UserMessage(
