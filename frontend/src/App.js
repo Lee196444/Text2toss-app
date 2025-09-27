@@ -9,6 +9,7 @@ import { Textarea } from "./components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./components/ui/card";
 import { Badge } from "./components/ui/badge";
 import { Calendar } from "./components/ui/calendar";
+import AvailabilityCalendar from "./components/AvailabilityCalendar";
 import { Label } from "./components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select";
 import { toast } from "sonner";
