@@ -226,6 +226,7 @@ class BookingCreate(BaseModel):
     address: str
     phone: str
     special_instructions: Optional[str] = None
+    curbside_confirmed: bool = False
 
 class BookingCompletion(BaseModel):
     completion_note: Optional[str] = None
