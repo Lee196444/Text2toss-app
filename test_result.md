@@ -467,7 +467,7 @@
 
 ## test_plan:
   current_focus:
-    - "NEW QUOTE APPROVAL SYSTEM - High-value quote approval requirement"
+    - "UPDATED BOOKING FORM - Button layout fixes and curbside confirmation"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
