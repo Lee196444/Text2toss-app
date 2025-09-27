@@ -449,7 +449,8 @@
 
 ## test_plan:
   current_focus:
-    - "COMPREHENSIVE MOBILE ADMIN TESTING - Post Mobile-Responsiveness Updates"
+    - "NEW AVAILABILITY CALENDAR - Availability range endpoint"
+    - "NEW AVAILABILITY CALENDAR - Individual date availability endpoint"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
