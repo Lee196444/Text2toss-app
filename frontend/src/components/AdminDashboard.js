@@ -814,14 +814,14 @@ const AdminDashboard = () => {
 
       {/* Route Modal */}
       {showRouteModal && selectedRouteBooking && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-xl">🗺️ Route to Pickup Location</CardTitle>
-                <CardDescription>{selectedRouteBooking.address}</CardDescription>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
+          <Card className="w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <CardTitle className="text-lg sm:text-xl">🗺️ Route to Pickup Location</CardTitle>
+                <CardDescription className="text-sm break-words">{selectedRouteBooking.address}</CardDescription>
               </div>
-              <Button variant="outline" onClick={closeRouteModal} className="text-gray-600">
+              <Button variant="outline" onClick={closeRouteModal} className="text-gray-600 w-full sm:w-auto">
                 ✕ Close
               </Button>
             </CardHeader>
