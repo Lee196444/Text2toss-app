@@ -1443,21 +1443,21 @@ const AdminDashboard = () => {
               )}
               
               {/* Approval Statistics */}
-              <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 border-t">
-                <div className="bg-orange-50 p-3 rounded-lg text-center">
-                  <div className="text-xl font-bold text-orange-600">{approvalStats.pending_approval || 0}</div>
+              <div className="mt-4 sm:mt-6 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 pt-4 sm:pt-6 border-t">
+                <div className="bg-orange-50 p-2 sm:p-3 rounded-lg text-center">
+                  <div className="text-lg sm:text-xl font-bold text-orange-600">{approvalStats.pending_approval || 0}</div>
                   <div className="text-xs text-orange-800">Pending</div>
                 </div>
-                <div className="bg-green-50 p-3 rounded-lg text-center">
-                  <div className="text-xl font-bold text-green-600">{approvalStats.approved || 0}</div>
+                <div className="bg-green-50 p-2 sm:p-3 rounded-lg text-center">
+                  <div className="text-lg sm:text-xl font-bold text-green-600">{approvalStats.approved || 0}</div>
                   <div className="text-xs text-green-800">Approved</div>
                 </div>
-                <div className="bg-red-50 p-3 rounded-lg text-center">
-                  <div className="text-xl font-bold text-red-600">{approvalStats.rejected || 0}</div>
+                <div className="bg-red-50 p-2 sm:p-3 rounded-lg text-center">
+                  <div className="text-lg sm:text-xl font-bold text-red-600">{approvalStats.rejected || 0}</div>
                   <div className="text-xs text-red-800">Rejected</div>
                 </div>
-                <div className="bg-blue-50 p-3 rounded-lg text-center">
-                  <div className="text-xl font-bold text-blue-600">{approvalStats.auto_approved || 0}</div>
+                <div className="bg-blue-50 p-2 sm:p-3 rounded-lg text-center">
+                  <div className="text-lg sm:text-xl font-bold text-blue-600">{approvalStats.auto_approved || 0}</div>
                   <div className="text-xs text-blue-800">Auto-Approved</div>
                 </div>
               </div>
