@@ -492,8 +492,8 @@ const AdminDashboard = () => {
             const binConfigs = [
               { 
                 type: 'new', 
-                title: 'New Jobs', 
-                icon: '🆕', 
+                title: 'Calendar View', 
+                icon: '📅', 
                 color: 'border-blue-300 bg-blue-50 hover:bg-blue-100',
                 textColor: 'text-blue-800',
                 countColor: 'text-blue-600'
