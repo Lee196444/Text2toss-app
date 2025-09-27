@@ -559,18 +559,18 @@ const AdminDashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="flex justify-center space-x-4 mb-6">
-          <Button onClick={openCalendar} size="sm" className="bg-blue-600 hover:bg-blue-700">
-            📅 Calendar View
+        <div className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-4 sm:mb-6">
+          <Button onClick={openCalendar} size="sm" className="bg-blue-600 hover:bg-blue-700 text-xs sm:text-sm">
+            📅 Calendar
           </Button>
           <Button onClick={testSmsSetup} size="sm" variant="outline" className="text-xs">
-            📱 Test SMS
+            📱 SMS
           </Button>
           <Button onClick={cleanupTempImages} size="sm" variant="outline" className="text-xs">
             🗑️ Cleanup
           </Button>
-          <Button onClick={calculateOptimalRoute} size="sm" className="bg-emerald-600 hover:bg-emerald-700">
-            🗺️ Optimize Route
+          <Button onClick={calculateOptimalRoute} size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-xs sm:text-sm">
+            🗺️ Route
           </Button>
         </div>
 
