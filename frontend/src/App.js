@@ -554,7 +554,8 @@ const BookingModal = ({ quote, onClose, onSuccess }) => {
     pickup_time: "",
     address: "",
     phone: "",
-    special_instructions: ""
+    special_instructions: "",
+    curbside_confirmed: false
   });
   const [bookedTimeSlots, setBookedTimeSlots] = useState([]);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
