@@ -873,6 +873,7 @@ async def get_weekly_schedule(start_date: str = None):
         schedule[date_key].append(booking_data)
     
     return schedule
+
 @api_router.get("/admin/calendar-data")
 async def get_calendar_data(start_date: str, end_date: str):
     """Get calendar data for a month range showing all scheduled jobs"""
