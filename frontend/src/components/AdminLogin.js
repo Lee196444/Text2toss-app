@@ -50,10 +50,10 @@ const AdminLogin = ({ onLoginSuccess }) => {
           <CardTitle className="text-xl sm:text-2xl">Admin Access</CardTitle>
           <CardDescription className="text-sm sm:text-base">Enter the admin password to access the dashboard</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 sm:px-6">
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="admin-password">Admin Password</Label>
+              <Label htmlFor="admin-password" className="text-sm sm:text-base">Admin Password</Label>
               <Input
                 id="admin-password"
                 type="password"
@@ -62,12 +62,13 @@ const AdminLogin = ({ onLoginSuccess }) => {
                 onChange={(e) => setPassword(e.target.value)}
                 data-testid="admin-password-input"
                 autoComplete="current-password"
+                className="h-11 sm:h-12 text-base"
               />
             </div>
             
             <Button 
               type="submit" 
-              className="w-full bg-emerald-600 hover:bg-emerald-700"
+              className="w-full bg-emerald-600 hover:bg-emerald-700 h-11 sm:h-12 text-sm sm:text-base"
               disabled={isLogging}
               data-testid="admin-login-btn"
             >
@@ -75,8 +76,8 @@ const AdminLogin = ({ onLoginSuccess }) => {
             </Button>
             
             <div className="text-center">
-              <p className="text-sm text-gray-600">
-                Default password: <span className="font-mono bg-gray-100 px-2 py-1 rounded">admin123</span>
+              <p className="text-xs sm:text-sm text-gray-600">
+                Default password: <span className="font-mono bg-gray-100 px-1 sm:px-2 py-1 rounded text-xs sm:text-sm">admin123</span>
               </p>
             </div>
           </form>
