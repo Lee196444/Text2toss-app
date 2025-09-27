@@ -198,6 +198,15 @@ p {
     margin: 1rem !important;
   }
   
+  /* Fix button overflow on mobile */
+  [data-testid="hero-get-quote-btn"],
+  [data-testid="learn-more-btn"] {
+    max-width: calc(100vw - 3rem) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  
   .max-w-2xl,
   .max-w-4xl,
   .max-w-6xl {
