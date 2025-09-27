@@ -466,8 +466,7 @@
   run_ui: false
 
 ## test_plan:
-  current_focus:
-    - "UPDATED BOOKING FORM - Button layout fixes and curbside confirmation"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
