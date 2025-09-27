@@ -498,12 +498,12 @@ Respond ONLY with a JSON object in this exact format:
             mime_type="image/jpeg"
         )
         
-        # Initialize AI chat with vision capabilities
+        # Initialize AI chat with vision capabilities - Use Gemini for file attachments
         chat = LlmChat(
             api_key=os.environ.get('EMERGENT_LLM_KEY'),
             session_id=f"vision_analysis_{datetime.now().timestamp()}",
             system_message="You are a professional junk removal expert with visual analysis capabilities. Always respond with valid JSON only."
-        ).with_model("openai", "gpt-4o")  # Use vision-capable model
+        ).with_model("google", "gemini-2.0-flash-exp")  # Use Gemini for vision analysis with file attachments
         
         # Send message with image
         user_message = UserMessage(
