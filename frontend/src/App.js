@@ -616,6 +616,11 @@ const BookingModal = ({ quote, onClose, onSuccess }) => {
       return;
     }
 
+    if (!bookingData.curbside_confirmed) {
+      toast.error("Please confirm that all items are placed on the ground by the curb");
+      return;
+    }
+
     if (!isDateAllowed(bookingData.pickup_date)) {
       toast.error("Selected date is not available for pickup");
       return;
