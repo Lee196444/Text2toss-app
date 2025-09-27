@@ -54,6 +54,8 @@ const AdminDashboard = () => {
   useEffect(() => {
     fetchDailySchedule();
     fetchWeeklySchedule();
+    fetchPendingQuotes();
+    fetchApprovalStats();
   }, [selectedDate]);
 
   const fetchDailySchedule = async () => {
