@@ -650,7 +650,7 @@ async def create_quote(quote_data: PriceQuoteCreate):
 @api_router.post("/quotes/image", response_model=PriceQuote)
 async def create_quote_from_image(
     file: UploadFile = File(...),
-    description: str = ""
+    description: str = Form(default="")
 ):
     """Create quote by analyzing uploaded image with AI vision"""
     
