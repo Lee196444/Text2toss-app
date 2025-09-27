@@ -921,6 +921,12 @@ async def get_calendar_data(start_date: str, end_date: str):
         # Group bookings by date
         calendar_data = {}
         for booking in bookings:
+            # Remove MongoDB _id fields to avoid serialization issues
+            if "_id" in booking:
+                del booking["_id"]
+            if "quote_details" in booking and "_id" in booking["quote_details"]:
+                del booking["quote_details"]["_id"]
+            
             booking = parse_from_mongo(booking)
             date_key = booking['pickup_date_only']
             if date_key not in calendar_data:
