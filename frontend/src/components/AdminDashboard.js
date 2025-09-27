@@ -1406,7 +1406,7 @@ const AdminDashboard = () => {
                             </div>
                           </div>
                           
-                          <div className="flex gap-3">
+                          <div className="flex flex-col sm:flex-row gap-3">
                             <Button 
                               onClick={() => {
                                 const adjustedPrice = document.getElementById(`price-${quote.id}`).value;
@@ -1418,19 +1418,20 @@ const AdminDashboard = () => {
                                   adjustedPrice ? parseFloat(adjustedPrice) : null
                                 );
                               }}
-                              className="bg-green-600 hover:bg-green-700 flex-1"
+                              className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white flex-1 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium"
                             >
-                              ✅ Approve Quote
+                              <span className="mr-2">✅</span>
+                              Approve Quote
                             </Button>
                             <Button 
                               onClick={() => {
                                 const notes = document.getElementById(`notes-${quote.id}`).value;
                                 handleQuoteApproval(quote.id, 'reject', notes || 'Quote rejected by admin');
                               }}
-                              variant="destructive"
-                              className="flex-1"
+                              className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white flex-1 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium"
                             >
-                              ❌ Reject Quote
+                              <span className="mr-2">❌</span>
+                              Reject Quote
                             </Button>
                           </div>
                         </div>
