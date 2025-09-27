@@ -169,7 +169,7 @@ const LandingPage = () => {
       <section className="py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            <div className="space-y-6 lg:space-y-8">
+            <div className="space-y-6 lg:space-y-8 px-2 lg:px-0">
               <div className="space-y-4 lg:space-y-6">
                 <div className="text-center lg:text-left">
                   <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-200">
