@@ -942,53 +942,134 @@ async def get_calendar_data(start_date: str, end_date: str):
 @api_router.get("/availability/{date}")
 async def check_availability(date: str):
     """Check available time slots for a specific date"""
-    
-    # Check if date is allowed (Monday-Thursday only)
     try:
-        check_date = datetime.fromisoformat(date).date()
-        day_of_week = check_date.weekday()  # 0=Monday, 6=Sunday
-        
-        if day_of_week > 3:  # Thursday is 3, so > 3 means Friday/Weekend
+        # Check if date is allowed (Monday-Thursday only)
+        date_obj = datetime.fromisoformat(date).date()
+        if date_obj.weekday() >= 4:  # Friday(4), Saturday(5), Sunday(6)
             return {
                 "date": date,
-                "available": False,
-                "reason": "Pickup not available on Fridays or weekends",
-                "blocked_day": True,
                 "available_slots": [],
-                "booked_slots": []
+                "booked_slots": [],
+                "is_restricted": True,
+                "restriction_reason": "Pickup not available on Fridays, Saturdays, or Sundays"
             }
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid date format")
-    
-    # Get existing bookings for this date
-    bookings = await db.bookings.find({
-        "pickup_date": {
-            "$regex": f"^{date}"
-        },
-        "status": {"$in": ["scheduled", "in_progress"]}  # Don't count cancelled/completed
-    }).to_list(1000)
-    
-    booked_slots = [booking.get("pickup_time") for booking in bookings if booking.get("pickup_time")]
-    
-    all_slots = [
-        "08:00-10:00",
-        "10:00-12:00", 
-        "12:00-14:00",
-        "14:00-16:00",
-        "16:00-18:00"
-    ]
-    
-    available_slots = [slot for slot in all_slots if slot not in booked_slots]
-    
-    return {
-        "date": date,
-        "available": len(available_slots) > 0,
-        "blocked_day": False,
-        "available_slots": available_slots,
-        "booked_slots": booked_slots,
-        "total_slots": len(all_slots),
-        "available_count": len(available_slots)
-    }
+        
+        # Get existing bookings for this date
+        pipeline = [
+            {
+                "$addFields": {
+                    "pickup_date_only": {
+                        "$dateToString": {
+                            "format": "%Y-%m-%d",
+                            "date": {"$dateFromString": {"dateString": "$pickup_date"}}
+                        }
+                    }
+                }
+            },
+            {
+                "$match": {
+                    "pickup_date_only": date
+                }
+            }
+        ]
+        
+        bookings_cursor = db.bookings.aggregate(pipeline)
+        bookings = await bookings_cursor.to_list(length=None)
+        
+        # All possible time slots
+        all_slots = [
+            "08:00-10:00",
+            "10:00-12:00", 
+            "12:00-14:00",
+            "14:00-16:00",
+            "16:00-18:00"
+        ]
+        
+        # Get booked time slots
+        booked_slots = [booking["pickup_time"] for booking in bookings]
+        available_slots = [slot for slot in all_slots if slot not in booked_slots]
+        
+        return {
+            "date": date,
+            "available_slots": available_slots,
+            "booked_slots": booked_slots,
+            "is_restricted": False,
+            "available_count": len(available_slots),
+            "total_slots": len(all_slots)
+        }
+        
+    except Exception as e:
+        logging.error(f"Error checking availability for {date}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to check availability")
+
+@api_router.get("/availability-range")
+async def check_availability_range(start_date: str, end_date: str):
+    """Check availability for a date range - used for calendar view"""
+    try:
+        start = datetime.fromisoformat(start_date).date()
+        end = datetime.fromisoformat(end_date).date()
+        
+        availability_data = {}
+        current_date = start
+        
+        while current_date <= end:
+            date_str = current_date.isoformat()
+            
+            # Check if date is restricted (Friday, Saturday, Sunday)
+            if current_date.weekday() >= 4:
+                availability_data[date_str] = {
+                    "available_count": 0,
+                    "total_slots": 5,
+                    "is_restricted": True,
+                    "status": "restricted"
+                }
+            else:
+                # Get bookings for this date
+                pipeline = [
+                    {
+                        "$addFields": {
+                            "pickup_date_only": {
+                                "$dateToString": {
+                                    "format": "%Y-%m-%d",
+                                    "date": {"$dateFromString": {"dateString": "$pickup_date"}}
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "$match": {
+                            "pickup_date_only": date_str
+                        }
+                    }
+                ]
+                
+                bookings_cursor = db.bookings.aggregate(pipeline)
+                bookings = await bookings_cursor.to_list(length=None)
+                
+                booked_count = len(bookings)
+                available_count = 5 - booked_count  # 5 total time slots
+                
+                if available_count == 0:
+                    status = "fully_booked"
+                elif available_count <= 2:
+                    status = "limited"
+                else:
+                    status = "available"
+                
+                availability_data[date_str] = {
+                    "available_count": available_count,
+                    "total_slots": 5,
+                    "is_restricted": False,
+                    "status": status
+                }
+            
+            current_date += timedelta(days=1)
+        
+        return availability_data
+        
+    except Exception as e:
+        logging.error(f"Error checking availability range: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to check availability range")
 
 @api_router.patch("/admin/bookings/{booking_id}")
 async def update_booking_status(booking_id: str, status_update: dict):
