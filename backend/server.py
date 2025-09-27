@@ -1557,7 +1557,15 @@ async def create_checkout_session(payment_request: PaymentRequest, request: Requ
             )
     
     # Use approved price if available, otherwise use original price
-    amount = float(quote.get("approved_price", quote["total_price"]))
+    approved_price = quote.get("approved_price")
+    original_price = quote.get("total_price")
+    
+    if approved_price is not None:
+        amount = float(approved_price)
+    elif original_price is not None:
+        amount = float(original_price)
+    else:
+        raise HTTPException(status_code=400, detail="Quote has no valid price")
     
     # Initialize Stripe with webhook URL
     host_url = str(request.base_url)
