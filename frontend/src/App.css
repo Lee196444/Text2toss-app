@@ -110,15 +110,131 @@ p {
   color: #6b7280;
 }
 
-/* Responsive design helpers */
-@media (max-width: 768px) {
+/* Mobile-first responsive design */
+/* Base styles are mobile-first, then scaled up */
+
+/* Extra small devices (phones, 320px and up) */
+@media (max-width: 480px) {
+  body {
+    font-size: 14px;
+    background-attachment: scroll; /* Better performance on mobile */
+  }
+  
   .text-5xl {
-    font-size: 2.5rem;
+    font-size: 2rem !important;
+    line-height: 1.2;
   }
   
   .text-6xl {
-    font-size: 3rem;
+    font-size: 2.25rem !important;
+    line-height: 1.2;
   }
+  
+  .text-4xl {
+    font-size: 1.75rem !important;
+  }
+  
+  .text-3xl {
+    font-size: 1.5rem !important;
+  }
+  
+  .text-2xl {
+    font-size: 1.25rem !important;
+  }
+  
+  .text-xl {
+    font-size: 1.125rem !important;
+  }
+  
+  /* Reduce padding on mobile */
+  .p-6 {
+    padding: 1rem !important;
+  }
+  
+  .p-8 {
+    padding: 1.5rem !important;
+  }
+  
+  .px-8 {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  .py-6 {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+  }
+  
+  /* Adjust grid layouts for mobile */
+  .grid-cols-2 {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
+  
+  .md\\:grid-cols-2 {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
+  
+  .md\\:grid-cols-3 {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
+  
+  .md\\:grid-cols-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  
+  /* Make buttons more touch-friendly */
+  button {
+    min-height: 44px !important;
+    padding: 0.75rem 1rem !important;
+  }
+  
+  /* Improve modal sizing on mobile */
+  .max-w-md {
+    max-width: calc(100vw - 2rem) !important;
+    margin: 1rem !important;
+  }
+  
+  .max-w-2xl,
+  .max-w-4xl,
+  .max-w-6xl {
+    max-width: calc(100vw - 1rem) !important;
+    margin: 0.5rem !important;
+  }
+  
+  /* Calendar responsive adjustments */
+  .calendar-grid .grid-cols-7 > div {
+    min-height: 60px !important;
+    font-size: 0.75rem !important;
+  }
+  
+  /* Job bins responsive */
+  .transform.hover\\:scale-105:hover {
+    transform: scale(1.02) !important;
+  }
+}
+
+/* Small devices (tablets, 481px and up) */
+@media (min-width: 481px) and (max-width: 768px) {
+  .text-5xl {
+    font-size: 2.5rem !important;
+  }
+  
+  .text-6xl {
+    font-size: 3rem !important;
+  }
+  
+  .grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  
+  .md\\:grid-cols-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+/* Medium devices (desktops, 769px and up) */
+@media (min-width: 769px) {
+  /* Desktop styles - keep existing */
 }
 
 /* Accessibility improvements */
