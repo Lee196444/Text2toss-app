@@ -680,22 +680,22 @@ const AdminDashboard = () => {
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
                         {/* Booking Details */}
                         <div className="md:col-span-2">
-                          <div className="text-sm space-y-1">
-                            <p className="font-medium text-gray-900">{booking.address}</p>
+                          <div className="text-xs sm:text-sm space-y-1">
+                            <p className="font-medium text-gray-900 break-words">{booking.address}</p>
                             <p className="text-gray-600">📞 {booking.phone}</p>
                             <p className="text-gray-600">📅 {new Date(booking.pickup_date).toLocaleDateString()}</p>
                             {booking.quote_details && (
-                              <p className="text-gray-600">
+                              <p className="text-gray-600 break-words">
                                 📦 Items: {booking.quote_details.items.map(item => 
                                   `${item.quantity}x ${item.name}`
                                 ).join(', ')}
                               </p>
                             )}
                             {booking.special_instructions && (
-                              <p className="text-gray-600">📝 {booking.special_instructions}</p>
+                              <p className="text-gray-600 break-words">📝 {booking.special_instructions}</p>
                             )}
                           </div>
                         </div>
