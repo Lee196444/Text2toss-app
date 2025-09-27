@@ -1123,25 +1123,31 @@ const AdminDashboard = () => {
                   Click on any date to see scheduled jobs for that day
                 </CardDescription>
               </div>
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 <Button 
                   variant="outline" 
                   size="sm"
                   onClick={() => changeMonth(-1)}
-                  className="text-gray-600 text-xs sm:text-sm"
+                  className="bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300 text-gray-600 hover:text-gray-800 text-xs sm:text-sm px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium"
                 >
-                  ← Prev
+                  <span className="mr-1">←</span>
+                  Prev
                 </Button>
                 <Button 
                   variant="outline" 
                   size="sm"
                   onClick={() => changeMonth(1)}
-                  className="text-gray-600 text-xs sm:text-sm"
+                  className="bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300 text-gray-600 hover:text-gray-800 text-xs sm:text-sm px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium"
                 >
-                  Next →
+                  Next
+                  <span className="ml-1">→</span>
                 </Button>
-                <Button variant="outline" onClick={closeCalendar} className="text-gray-600 text-xs sm:text-sm">
-                  ✕ Close
+                <Button 
+                  onClick={closeCalendar} 
+                  className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white text-xs sm:text-sm px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium"
+                >
+                  <span className="mr-1">✕</span>
+                  Close
                 </Button>
               </div>
             </CardHeader>
