@@ -1555,9 +1555,6 @@ async def create_checkout_session(payment_request: PaymentRequest, request: Requ
     # Use approved price if available, otherwise use original price
     amount = float(quote.get("approved_price", quote["total_price"]))
     
-    # Amount from the quote (server-side validation)
-    amount = float(quote["total_price"])
-    
     # Initialize Stripe with webhook URL
     host_url = str(request.base_url)
     webhook_url = f"{host_url}api/webhook/stripe"
