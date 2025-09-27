@@ -814,81 +814,90 @@ const AdminDashboard = () => {
                         </div>
                       </div>
 
-                      {/* Action Buttons */}
-                      <div className="flex flex-wrap gap-1 sm:gap-2 pt-2 border-t">
-                        {/* Start Route Button - Available for all jobs */}
-                        <Button 
-                          size="sm" 
-                          onClick={() => startRoute(booking)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white text-xs"
-                        >
-                          🗺️ Start Route
-                        </Button>
-                        
-                        {booking.status === 'scheduled' && (
+                      {/* Modern Action Buttons */}
+                      <div className="pt-3 border-t border-gray-100">
+                        <div className="flex flex-wrap gap-2">
+                          {/* Universal Route Button */}
                           <Button 
                             size="sm" 
-                            variant="outline"
-                            onClick={() => updateBookingStatus(booking.id, 'in_progress')}
-                            className="text-xs"
+                            onClick={() => startRoute(booking)}
+                            className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 flex-shrink-0"
                           >
-                            ▶️ Start Job
+                            <span className="mr-1">🗺️</span>
+                            Route
                           </Button>
-                        )}
-                        
-                        {booking.status === 'in_progress' && (
-                          <>
-                            <Button 
-                              size="sm" 
-                              onClick={() => updateBookingStatus(booking.id, 'completed')}
-                              className="bg-gray-600 hover:bg-gray-700 text-xs"
-                            >
-                              ✅ Complete
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              onClick={() => handleCompleteWithPhoto(booking)}
-                              className="bg-green-600 hover:bg-green-700 text-xs"
-                            >
-                              📸 Complete + Photo
-                            </Button>
-                          </>
-                        )}
-                        
-                        {booking.status === 'completed' && (
-                          <>
-                            {!booking.completion_photo_path && (
+                          
+                          {/* Status-specific Action Buttons */}
+                          <div className="flex flex-wrap gap-2 flex-1">
+                            {booking.status === 'scheduled' && (
                               <Button 
                                 size="sm" 
-                                onClick={() => handleCompleteWithPhoto(booking)}
-                                variant="outline"
-                                className="border-green-500 text-green-700 hover:bg-green-50 text-xs"
+                                onClick={() => updateBookingStatus(booking.id, 'in_progress')}
+                                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                               >
-                                📸 Add Photo
+                                <span className="mr-1">▶️</span>
+                                Start Job
                               </Button>
                             )}
-                            {booking.completion_photo_path && (
-                              <div className="flex gap-1">
+                            
+                            {booking.status === 'in_progress' && (
+                              <>
                                 <Button 
                                   size="sm" 
-                                  variant="outline"
-                                  onClick={() => notifyCustomer(booking.id)}
-                                  className="text-xs"
+                                  onClick={() => updateBookingStatus(booking.id, 'completed')}
+                                  className="bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                                 >
-                                  📱 SMS + Photo
+                                  <span className="mr-1">✅</span>
+                                  Complete
                                 </Button>
                                 <Button 
                                   size="sm" 
-                                  variant="outline"
-                                  onClick={() => testSmsPhoto(booking.id)}
-                                  className="text-xs bg-blue-50 border-blue-200 text-blue-700"
+                                  onClick={() => handleCompleteWithPhoto(booking)}
+                                  className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                                 >
-                                  🧪 Test
+                                  <span className="mr-1">📸</span>
+                                  + Photo
                                 </Button>
+                              </>
+                            )}
+                            
+                            {booking.status === 'completed' && (
+                              <div className="flex flex-wrap gap-2">
+                                {!booking.completion_photo_path && (
+                                  <Button 
+                                    size="sm" 
+                                    onClick={() => handleCompleteWithPhoto(booking)}
+                                    className="bg-white border-2 border-green-400 text-green-700 hover:bg-green-50 hover:border-green-500 text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                                  >
+                                    <span className="mr-1">📸</span>
+                                    Add Photo
+                                  </Button>
+                                )}
+                                {booking.completion_photo_path && (
+                                  <>
+                                    <Button 
+                                      size="sm" 
+                                      onClick={() => notifyCustomer(booking.id)}
+                                      className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                                    >
+                                      <span className="mr-1">📱</span>
+                                      SMS
+                                    </Button>
+                                    <Button 
+                                      size="sm" 
+                                      onClick={() => testSmsPhoto(booking.id)}
+                                      className="bg-white border-2 border-blue-400 text-blue-700 hover:bg-blue-50 hover:border-blue-500 text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                                    >
+                                      <span className="mr-1">🧪</span>
+                                      Test
+                                    </Button>
+                                  </>
+                                )}
                               </div>
                             )}
-                          </>
-                        )}
+                          </div>
+                        </div>
+                      </div>
                       </div>
                     </div>
                   ))}
