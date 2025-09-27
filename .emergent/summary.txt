@@ -1,96 +1,105 @@
 <analysis>
-The previous AI engineer developed a Text2toss Junk-Removal-app from scratch, focusing on delivering core value quickly. Initial work involved setting up a React frontend and FastAPI backend, establishing basic junk removal quoting and booking. Subsequent iterations introduced a hexagonal background, an admin dashboard with daily/weekly schedules, and Google Maps integration (awaiting API key). The engineer then enhanced the app with AI-powered quote generation using image upload, refined the service to ground/curbside pickup only, and fixed a non-functional Learn More button. Key security was added with a simple admin password login. Advanced features included completion photo uploads for admin and automated SMS notifications (in simulation mode) using Twilio. Branding was consistently updated to TEXT-2-TOSS with a real job photo. The dashboard was reorganized into a bin-based system, and calendar/time slot booking restrictions were implemented. Throughout, the engineer addressed several bugs, including backend date handling, MongoDB serialization, frontend component imports, and ensured comprehensive testing, apologizing for prior incomplete fixes to build trust.
+The AI engineer successfully progressed the Text2toss Junk-Removal-app through several development cycles. Initially, the focus was on bug fixes, specifically resolving issues with the admin dashboard's Cleanup and Optimize Route buttons, which were non-functional due to UI feedback and a missing Google Maps API key. A key achievement was enhancing the pricing system to a 1-10 volume-based scale, including robust AI prompt engineering for accurate image analysis with the Gemini 2.5 Flash model. The application's branding was updated to Text2toss, alongside significant UI/UX improvements for mobile responsiveness across all pages, including navigation and hero sections. A crucial new feature was the implementation of a comprehensive payment system using Stripe and Venmo, integrated into the booking flow. This was further augmented by an admin-side quote approval system for high-value jobs, and a visual calendar view for scheduled bookings. The engineer meticulously debugged and tested each feature, ensuring functionality and responsiveness, and is currently focused on modernizing the admin dashboard's button layouts and styling.
 </analysis>
 
 <product_requirements>
-The Text2toss Junk-Removal-app aims to streamline junk removal by offering instant quotes. The core problem solved is providing quick, transparent pricing without callbacks and efficient job management for the service provider.
+The Text2toss Junk-Removal-app provides instant, AI-powered junk removal quotes and efficient job management. Users can receive quotes via text or image upload and schedule pickups based on availability. The admin dashboard allows managing jobs through a bin system, viewing schedules, handling completion photos, and sending SMS notifications.
 
 **Implemented Features:**
-*   **Instant Quoting:** Users describe junk items (text or photo upload) and receive AI-powered quotes in seconds. The AI considers item details, location, and service limitations (ground/curbside only).
-*   **Booking System:** Customers can schedule pickups based on available dates and time slots, with restrictions preventing bookings on Fridays/weekends and preventing double-booking.
-*   **Admin Dashboard:** A password-protected interface for the service provider to manage operations.
-    *   **Bin-based Job Management:** Organizes jobs into New, Upcoming, In Progress, and Completed bins with counts and revenue.
-    *   **Daily/Weekly Schedule:** View all scheduled pickups, including customer photos (uploaded during quoting).
-    *   **Completion Photos:** Admins can upload photos of cleaned areas after job completion.
-    *   **Route Optimization:** A Start Route button (functionality partially implemented, with issues) opens a map to the pickup location.
-    *   **SMS Notifications:** Automated text messages to customers for job status updates (booked, started, completed) and completion photos (simulation mode, requires Twilio credentials).
-    *   **Image Management:** Customer-uploaded images are only permanently stored upon booking; temporary images are cleaned up.
-*   **User Interface:** Modern, responsive design using Shadcn UI components, a dark hexagonal background, and improved text contrast. The hero section features TEXT-2-TOSS branding, a real job photo, and highlights instant photo quotes and no callbacks. Learn More button scrolls to How It Works section.
+*   **Instant Quoting:** AI-powered quotes (Gemini 2.5 Flash for image, GPT-4o-mini for text) based on a 1-10 volume scale (e.g., Scale 1: 5-45, Scale 10: 50-450). Includes enhanced prompts for outdoor materials.
+*   **Booking System:** Schedule pickups, with calendar showing blocked days (Fri/Sat/Sun) and time slot availability.
+*   **Payment System:** Integrated Stripe for card payments and Venmo QR code option in the booking modal.
+*   **Quote Approval System:** High-value quotes (Scale 4-10) require admin approval before payment, with fine print disclaimer.
+*   **Admin Dashboard:** Password-protected interface for job management, including:
+    *   Fixed Cleanup and Optimize Route buttons with visual feedback.
+    *   New monthly calendar view showing scheduled jobs.
+    *   New Jobs bin now opens the calendar view.
+    *   Improved Google Maps API key integration prompt.
+*   **User Interface:** Updated branding to Text2toss (logo, modal titles). Centered hero section buttons. Added Servicing Flagstaff AZ text. Fully mobile-responsive design across all pages (landing, quote modal, admin login, admin dashboard), with optimized button text and layouts for various screen sizes.
 </product_requirements>
 
 <key_technical_concepts>
 - **Full-stack Development:** React (frontend), FastAPI (backend), MongoDB (database).
-- **Shadcn UI:** Modern component library for consistent UI/UX.
-- **AI/LLM Integration:** GPT-4o vision model via Emergent Universal Key for text and image-based quoting.
+- **Shadcn UI:** Modern component library for UI/UX.
+- **AI/LLM Integration:** Gemini 2.5 Flash (vision), GPT-4o-mini (text) via Emergent Universal Key for quoting.
 - **Twilio SMS:** For automated customer notifications (simulation mode).
 - **Google Maps API:** For route optimization (awaiting API key).
-- **Pydantic/UUIDs:** For robust data modeling and MongoDB object handling.
-- **Supervisorctl:** For service management and restarts.
+- **Stripe Integration:** For payment processing.
+- **Pydantic/UUIDs:** For data modeling and MongoDB object handling.
+- **Supervisorctl:** For service management.
+- **Tailwind CSS:** For responsive design and styling.
 </key_technical_concepts>
 
 <code_architecture>
-The application follows a standard full-stack architecture with a React frontend, a FastAPI backend, and MongoDB for data persistence.
+The application uses a standard full-stack setup with React, FastAPI, and MongoDB.
 
 
 
 **Key Files and Changes:**
 
 *   ****:
-    *   **Importance**: This is the core of the backend, defining all API endpoints, database interactions, AI logic, and external integrations (Twilio).
+    *   **Importance**: Central backend logic, API endpoints, database, and integrations.
     *   **Changes**:
-        *   Initial CRUD endpoints for quotes and bookings.
-        *   Admin endpoints (, , ).
-        *   AI integration for quote generation (, ).
-        *   Image upload and storage logic (temporary and permanent storage paths).
-        *   Endpoints for serving booking images (, ).
-        *   Admin login and authentication logic ().
-        *   Twilio SMS integration (, , , ).
-        *   Availability endpoint () and booking validation for date/time slots.
-        *   Extensive bug fixes related to date parsing, MongoDB ObjectId serialization, image URL accessibility for SMS.
+        *   Fixed  endpoint and improved Google Maps API key messaging.
+        *   Implemented new 1-10 pricing scale constants and logic (, ).
+        *   Updated  and  functions to use new pricing scale and extract , .
+        *   Enhanced AI prompts for vision and text models to improve volume assessment, especially for outdoor items.
+        *   Integrated Stripe payment processing:  model,  in , , ,  endpoints.
+        *   Added quote approval logic: , ,  fields in  model.
+        *   New admin endpoints: , , , .
+        *   Modified booking and payment endpoints to incorporate quote approval checks.
+        *   Switched AI vision model to .
 *   ****:
-    *   **Importance**: Main React application component, handles routing, global UI layout, and key customer-facing interactions.
+    *   **Importance**: Main application UI, routing, and customer interaction.
     *   **Changes**:
-        *   Initial landing page structure, quote modal, and booking form.
-        *   Integration of  and  components for secure admin access.
-        *   Hero section content, branding (), and image updates.
-        *   Logic for image upload, displaying AI explanations, and service limitations messaging.
-        *   Learn More button functionality (smooth scroll).
-        *   Navigation bar updates, including the prominent Admin Login button.
-        *    component: Updated for calendar day blocking (Fri/Sat/Sun) and time slot availability display.
+        *   Fixed  component setup by removing custom  dependency on .
+        *   Updated branding: TEXT-2-TOSS changed to Text2toss across main sections and modals.
+        *   Hero section buttons centered, Servicing Flagstaff AZ text added.
+        *    updated to integrate Stripe/Venmo payments and display fine print for quote approval.
+        *   Added  and  routes and components.
+        *   Replaced native date input with  component in .
+        *   Extensive mobile responsiveness improvements (CSS classes, component structure).
 *   ****:
-    *   **Importance**: Defines global styles and Tailwind CSS utility classes.
-    *   **Changes**: Set the user-provided hexagonal pattern as the background, adjusted transparency of elements, and updated font colors for improved contrast and readability across the app.
+    *   **Importance**: Global styles and Tailwind CSS.
+    *   **Changes**: Added comprehensive mobile-responsive CSS breakpoints, touch optimizations, typography scaling, and layout adjustments for various screen sizes.
 *   ****:
-    *   **Importance**: Dedicated component for the admin user interface.
+    *   **Importance**: Admin interface for managing operations.
     *   **Changes**:
-        *   Initial display for daily schedule, weekly overview, and route map (with Google Maps integration).
-        *   Implementation of the bin-based system (New, Upcoming, In Progress, Completed).
-        *   Display of customer-uploaded photos and Has Photo badges.
-        *   Features for completion photo upload and display.
-        *   SMS notification features (Test SMS button, SMS Sent badges).
-        *   Start Route button (functional but with reported issues) and route modal.
-        *   Fixes for Google Maps fallback, weekly schedule data display, and various UI component imports ().
+        *   Implemented client-side toast notifications for Cleanup and Optimize Route actions.
+        *   Enhanced Optimize Route feedback for missing API key and insufficient bookings.
+        *   Added a Calendar quick action button and a  for monthly view of scheduled jobs.
+        *   Modified New Jobs bin to open the calendar modal on click.
+        *   Integrated  with Quote Approval button to manage pending quotes.
+        *   Started modernization of button layouts and styling for mobile responsiveness.
 *   ****:
-    *   **Importance**: Provides the login interface for admin users.
-    *   **Changes**: New component created to handle password input and authentication to the backend.
+    *   **Importance**: Admin authentication.
+    *   **Changes**: Mobile responsiveness improvements for login form and styling.
 *   ****:
-    *   **Importance**: Wraps the  to enforce authentication.
-    *   **Changes**: New component created to manage session and redirect unauthenticated users to the login page.
+    *   **Importance**: Custom wrapper for  toast notifications.
+    *   **Changes**: Fixed a critical bug by removing  import from next-themes as it caused silent failure in a React app.
 *   ****:
-    *   **Importance**: Shadcn UI component for displaying small status labels.
-    *   **Changes**: Added  and  variants to support more detailed status indicators in the admin dashboard.
+    *   **Importance**: New component for visual date selection with availability.
+    *   **Changes**: Created to display a calendar with color-coded dates (booked/available) and time slot counts, replacing the native HTML date input.
+*   ****:
+    *   **Importance**: Frontend environment variables.
+    *   **Changes**: Added a placeholder for .
+*   ****:
+    *   **Importance**: Backend environment variables.
+    *   **Changes**: Added placeholder for .
 </code_architecture>
 
 <pending_tasks>
-- **Google Maps API Key Integration**: The Google Maps functionality in the admin dashboard (route optimization) is present but requires a valid API key to be fully functional.
-- **Start Route Button Debugging**: The Start Route button on job cards in the admin dashboard was implemented but reported to be not working and needs to be fixed.
+- **Google Maps API Key Integration**: The Google Maps functionality in the admin dashboard (route optimization) is present but requires a valid API key to be fully functional. The current implementation only provides a message.
 - **Twilio Credentials**: SMS notifications are in simulation mode and require , , and  in the backend's  for live functionality.
+- **Admin Dashboard Button Layout Modernization**: Continue updating the button layouts on the admin dashboard, specifically the job bins, to make them cleaner, more readable, and modern.
 </pending_tasks>
 
 <current_work>
-The most recent work involved implementing a comprehensive calendar and time slot management system within the  component on the customer-facing frontend. This system now prevents customers from scheduling pickups on Fridays, Saturdays, and Sundays by displaying a clear warning and visually blocking these days in the calendar. Furthermore, it manages time slot availability, preventing double bookings by checking existing appointments for a selected date and visually marking unavailable slots as 🚫 Booked. The backend has been updated with an  endpoint to check for available slots and includes server-side validation in the booking creation endpoint to ensure no double bookings occur and that restricted days are respected, even if frontend checks are bypassed. The AI engineer successfully tested this feature, confirming that Friday (9/26) was blocked and Thursday (9/25) correctly showed one booked slot and multiple available slots.
+The most immediate work involves modernizing the layout and styling of buttons and other UI elements on the admin side of the application. The user explicitly requested to Fix all the buttons lay out on the admin page and all the buttons on the schedule page make them clean and read able and make it look more modern and up to date with current apps.
+
+The AI engineer has already initiated this process by starting to modernize the  component, specifically focusing on the Quick Actions section. The next step is to continue these styling improvements to the Job Bins layout within the  file, ensuring a consistent and updated aesthetic that aligns with current app design trends. This is a continuation of the broader effort to enhance the app's mobile responsiveness and overall user experience on the admin interface.
 </current_work>
 
 <optional_next_step>
-Verify the calendar and time slot restrictions in the frontend.
+Continue modernizing the Job Bins layout in .
 </optional_next_step>

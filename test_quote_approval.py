@@ -5,7 +5,7 @@ import json
 from datetime import datetime, timedelta
 
 class QuoteApprovalTester:
-    def __init__(self, base_url="https://text2toss.preview.emergentagent.com"):
+    def __init__(self, base_url="https://text2toss-1.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.admin_token = None
@@ -242,7 +242,7 @@ class QuoteApprovalTester:
                 # Try to create payment for unapproved quote - should fail
                 payment_request = {
                     "booking_id": test_booking_id,
-                    "origin_url": "https://text2toss.preview.emergentagent.com"
+                    "origin_url": "https://text2toss-1.preview.emergentagent.com"
                 }
                 
                 success, response = self.run_test("Create Payment for Unapproved Quote (Should Fail)", "POST", 
@@ -274,7 +274,7 @@ class QuoteApprovalTester:
                 # Try to create payment for auto-approved quote - should succeed
                 payment_request = {
                     "booking_id": auto_booking_id,
-                    "origin_url": "https://text2toss.preview.emergentagent.com"
+                    "origin_url": "https://text2toss-1.preview.emergentagent.com"
                 }
                 
                 success, response = self.run_test("Create Payment for Auto-Approved Quote (Should Succeed)", "POST", 

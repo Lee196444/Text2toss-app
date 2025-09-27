@@ -9,7 +9,7 @@ import sys
 
 def test_json_format():
     """Test if the new JSON format is being returned"""
-    base_url = "https://text2toss.preview.emergentagent.com/api"
+    base_url = "https://text2toss-1.preview.emergentagent.com/api"
     
     print("🔍 TESTING NEW JSON RESPONSE FORMAT")
     print("="*60)
