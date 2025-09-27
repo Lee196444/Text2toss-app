@@ -644,6 +644,10 @@ async def create_quote(quote_data: PriceQuoteCreate):
     # Use AI to calculate intelligent pricing
     total_price, ai_explanation, scale_level, breakdown = await calculate_ai_price(quote_data.items, quote_data.description)
     
+    # Determine if quote requires approval (Scale 4-10)
+    requires_approval = scale_level and scale_level >= 4
+    approval_status = "pending_approval" if requires_approval else "auto_approved"
+    
     quote = PriceQuote(
         user_id="anonymous",  # Allow anonymous quotes
         items=quote_data.items,
@@ -651,7 +655,9 @@ async def create_quote(quote_data: PriceQuoteCreate):
         scale_level=scale_level,
         breakdown=breakdown,
         description=quote_data.description,
-        ai_explanation=ai_explanation
+        ai_explanation=ai_explanation,
+        requires_approval=requires_approval,
+        approval_status=approval_status
     )
     
     quote_mongo = prepare_for_mongo(quote.dict())
