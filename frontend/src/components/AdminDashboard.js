@@ -615,20 +615,20 @@ const AdminDashboard = () => {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
               <Button 
                 onClick={openCalendar} 
-                className="bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-18 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105"
+                className="bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
               >
-                <span className="text-xl sm:text-2xl mb-1 group-hover:animate-pulse">📅</span>
-                <span className="text-xs sm:text-sm font-medium">Calendar</span>
+                <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">📅</span>
+                <span className="text-xs sm:text-sm font-medium leading-tight">Calendar</span>
               </Button>
               
               <Button 
                 onClick={() => setShowQuoteApproval(true)} 
-                className="bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-18 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 relative group transform hover:scale-105"
+                className="bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 relative group transform hover:scale-105 min-h-[64px]"
               >
-                <span className="text-xl sm:text-2xl mb-1 group-hover:animate-pulse">📋</span>
-                <span className="text-xs sm:text-sm font-medium">Quotes</span>
+                <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">📋</span>
+                <span className="text-xs sm:text-sm font-medium leading-tight">Quotes</span>
                 {pendingQuotes.length > 0 && (
-                  <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center font-bold shadow-md animate-bounce">
+                  <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center font-bold shadow-md animate-bounce">
                     {pendingQuotes.length}
                   </div>
                 )}
@@ -636,26 +636,26 @@ const AdminDashboard = () => {
               
               <Button 
                 onClick={testSmsSetup} 
-                className="bg-gradient-to-br from-gray-50 to-white hover:from-white hover:to-gray-50 text-gray-700 border-2 border-gray-200 hover:border-gray-300 shadow-md hover:shadow-lg transition-all duration-300 h-18 sm:h-20 flex flex-col items-center justify-center rounded-xl group transform hover:scale-105"
+                className="bg-gradient-to-br from-gray-50 to-white hover:from-white hover:to-gray-50 text-gray-700 border-2 border-gray-200 hover:border-gray-300 shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl group transform hover:scale-105 min-h-[64px]"
               >
-                <span className="text-xl sm:text-2xl mb-1 group-hover:animate-pulse">📱</span>
-                <span className="text-xs sm:text-sm font-medium">Test SMS</span>
+                <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">📱</span>
+                <span className="text-xs sm:text-sm font-medium leading-tight">Test SMS</span>
               </Button>
               
               <Button 
                 onClick={cleanupTempImages} 
-                className="bg-gradient-to-br from-gray-50 to-white hover:from-white hover:to-gray-50 text-gray-700 border-2 border-gray-200 hover:border-gray-300 shadow-md hover:shadow-lg transition-all duration-300 h-18 sm:h-20 flex flex-col items-center justify-center rounded-xl group transform hover:scale-105"
+                className="bg-gradient-to-br from-gray-50 to-white hover:from-white hover:to-gray-50 text-gray-700 border-2 border-gray-200 hover:border-gray-300 shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl group transform hover:scale-105 min-h-[64px]"
               >
-                <span className="text-xl sm:text-2xl mb-1 group-hover:animate-pulse">🗑️</span>
-                <span className="text-xs sm:text-sm font-medium">Cleanup</span>
+                <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">🗑️</span>
+                <span className="text-xs sm:text-sm font-medium leading-tight">Cleanup</span>
               </Button>
               
               <Button 
                 onClick={calculateOptimalRoute} 
-                className="bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-18 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 col-span-2 sm:col-span-1"
+                className="bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 col-span-2 sm:col-span-1 min-h-[64px]"
               >
-                <span className="text-xl sm:text-2xl mb-1 group-hover:animate-pulse">🗺️</span>
-                <span className="text-xs sm:text-sm font-medium">Route</span>
+                <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">🗺️</span>
+                <span className="text-xs sm:text-sm font-medium leading-tight">Route</span>
               </Button>
             </div>
           </CardContent>
