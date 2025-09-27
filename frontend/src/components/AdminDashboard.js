@@ -922,8 +922,12 @@ const AdminDashboard = () => {
                 <CardTitle className="text-lg sm:text-xl">🗺️ Route to Pickup Location</CardTitle>
                 <CardDescription className="text-sm break-words">{selectedRouteBooking.address}</CardDescription>
               </div>
-              <Button variant="outline" onClick={closeRouteModal} className="text-gray-600 w-full sm:w-auto">
-                ✕ Close
+              <Button 
+                onClick={closeRouteModal} 
+                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white w-full sm:w-auto px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium"
+              >
+                <span className="mr-2">✕</span>
+                Close
               </Button>
             </CardHeader>
             <CardContent>
