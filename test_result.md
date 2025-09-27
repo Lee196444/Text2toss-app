@@ -464,8 +464,7 @@
 
 ## test_plan:
   current_focus:
-    - "NEW AVAILABILITY CALENDAR - Availability range endpoint"
-    - "NEW AVAILABILITY CALENDAR - Individual date availability endpoint"
+    - "NEW QUOTE APPROVAL SYSTEM - High-value quote approval requirement"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
