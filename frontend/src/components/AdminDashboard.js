@@ -468,6 +468,44 @@ const AdminDashboard = () => {
     return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
   };
 
+  const fetchPendingQuotes = async () => {
+    try {
+      const response = await axios.get(`${API}/admin/pending-quotes`);
+      setPendingQuotes(response.data);
+    } catch (error) {
+      console.error('Error fetching pending quotes:', error);
+    }
+  };
+
+  const fetchApprovalStats = async () => {
+    try {
+      const response = await axios.get(`${API}/admin/quote-approval-stats`);
+      setApprovalStats(response.data);
+    } catch (error) {
+      console.error('Error fetching approval stats:', error);
+    }
+  };
+
+  const handleQuoteApproval = async (quoteId, action, adminNotes = '', approvedPrice = null) => {
+    try {
+      const response = await axios.post(`${API}/admin/quotes/${quoteId}/approve`, {
+        action,
+        admin_notes: adminNotes,
+        approved_price: approvedPrice
+      });
+      
+      toast.success(`Quote ${action}d successfully`);
+      
+      // Refresh data
+      fetchPendingQuotes();
+      fetchApprovalStats();
+      
+    } catch (error) {
+      toast.error(`Failed to ${action} quote`);
+      console.error(error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-black/40 to-emerald-900/50 p-2 sm:p-4">
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
