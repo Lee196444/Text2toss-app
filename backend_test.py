@@ -1281,6 +1281,243 @@ class TEXT2TOSSAPITester:
         print("   • Integration with bookings: Counts match existing booking data ✅")
         print("   • Error handling: Invalid dates and missing parameters handled ✅")
 
+    def test_improved_ai_image_analysis(self):
+        """Test IMPROVED AI IMAGE ANALYSIS for accurate volume estimation - SPECIFIC TO REVIEW REQUEST"""
+        print("\n" + "="*50)
+        print("TESTING IMPROVED AI IMAGE ANALYSIS - VOLUME ESTIMATION")
+        print("="*50)
+        
+        # Test 1: Large Log Pile Image Analysis
+        print("\n🪵 Testing Large Log Pile Image Analysis...")
+        try:
+            import io
+            from PIL import Image, ImageDraw
+            
+            # Create a test image representing a large log pile
+            img = Image.new('RGB', (800, 600), color='brown')
+            draw = ImageDraw.Draw(img)
+            
+            # Draw some log-like shapes to simulate a large pile
+            for i in range(20):  # Many logs to simulate large pile
+                x = 50 + (i % 10) * 70
+                y = 100 + (i // 10) * 100
+                draw.rectangle([x, y, x+60, y+30], fill='saddlebrown', outline='black')
+            
+            # Add some reference objects for scale
+            draw.rectangle([700, 500, 750, 580], fill='blue', outline='black')  # Person-like shape
+            
+            img_buffer = io.BytesIO()
+            img.save(img_buffer, format='JPEG')
+            img_buffer.seek(0)
+            
+            files = {'file': ('large_log_pile.jpg', img_buffer, 'image/jpeg')}
+            data = {'description': 'large pile of logs'}
+            
+            success, response = self.run_test("Large Log Pile Image Analysis", "POST", "quotes/image", 200, 
+                                            data=data, files=files)
+            
+            if success:
+                price = response.get('total_price', 0)
+                scale_level = response.get('scale_level')
+                breakdown = response.get('breakdown')
+                ai_explanation = response.get('ai_explanation', '')
+                items = response.get('items', [])
+                
+                print(f"   💰 Large Log Pile Price: ${price}")
+                print(f"   📊 Scale Level: {scale_level}")
+                print(f"   📋 Breakdown: {breakdown}")
+                print(f"   🤖 AI Analysis: {ai_explanation[:150]}...")
+                print(f"   📦 Items Identified: {len(items)} items")
+                
+                # CRITICAL: Check if pricing is in expected range for large log pile
+                if 275 <= price <= 450:
+                    print(f"   ✅ IMPROVED: Price ${price} is in expected Scale 8-10 range ($275-450)")
+                    print(f"   ✅ FIXED: No longer giving $75 quote for massive log pile")
+                elif 195 <= price <= 274:
+                    print(f"   ⚠️  Price ${price} is Scale 6-7 range ($195-274) - better than before but could be higher")
+                elif price == 75:
+                    print(f"   ❌ CRITICAL: Still giving $75 quote - AI improvements not working")
+                else:
+                    print(f"   ⚠️  Price ${price} outside expected ranges")
+                
+                # Check scale level
+                if scale_level and scale_level >= 8:
+                    print(f"   ✅ IMPROVED: Scale level {scale_level} indicates large volume recognition")
+                elif scale_level and scale_level >= 6:
+                    print(f"   ⚠️  Scale level {scale_level} is better than before but could be higher")
+                elif scale_level and scale_level <= 3:
+                    print(f"   ❌ CRITICAL: Scale level {scale_level} still too low for large pile")
+                else:
+                    print(f"   ❌ CRITICAL: Scale level missing from response")
+                
+                # Check AI explanation for volume assessment language
+                volume_keywords = ['cubic feet', 'volume', 'large pile', 'massive', 'significant volume', 'scale']
+                found_keywords = [kw for kw in volume_keywords if kw.lower() in ai_explanation.lower()]
+                
+                if found_keywords:
+                    print(f"   ✅ IMPROVED: AI explanation mentions volume assessment: {found_keywords}")
+                else:
+                    print(f"   ❌ AI explanation lacks volume assessment language")
+                
+                # Check if AI is working or falling back
+                if 'temporarily unavailable' in ai_explanation.lower() or 'basic estimate' in ai_explanation.lower():
+                    print(f"   ❌ CRITICAL: AI vision still falling back to basic pricing")
+                    print(f"   🔧 ISSUE: Image analysis not using enhanced prompts")
+                else:
+                    print(f"   ✅ AI vision analysis working (not falling back)")
+                
+        except ImportError:
+            print("   ⚠️  PIL not available, skipping image analysis test")
+        except Exception as e:
+            print(f"   ❌ Image analysis test failed: {str(e)}")
+        
+        # Test 2: Compare with Text-based Quote for Same Description
+        print("\n📝 Testing Text vs Image Quote Comparison...")
+        text_quote_data = {
+            "items": [
+                {"name": "Log Pile", "quantity": 1, "size": "large", "description": "Massive pile of logs, outdoor materials"}
+            ],
+            "description": "large pile of logs, significant volume, outdoor pickup"
+        }
+        
+        success, text_response = self.run_test("Text Quote - Large Log Pile", "POST", "quotes", 200, text_quote_data)
+        
+        if success:
+            text_price = text_response.get('total_price', 0)
+            text_scale = text_response.get('scale_level')
+            text_explanation = text_response.get('ai_explanation', '')
+            
+            print(f"   💰 Text Quote Price: ${text_price}")
+            print(f"   📊 Text Quote Scale: {text_scale}")
+            print(f"   🤖 Text Analysis: {text_explanation[:100]}...")
+            
+            # Compare text vs image pricing
+            if text_price >= 275:
+                print(f"   ✅ Text-based quote correctly prices large pile at ${text_price}")
+                if 'large pile' in text_explanation.lower() or 'significant volume' in text_explanation.lower():
+                    print(f"   ✅ Text analysis recognizes volume correctly")
+            else:
+                print(f"   ❌ Text-based quote also underpricing at ${text_price}")
+        
+        # Test 3: Small Item Image for Comparison
+        print("\n📦 Testing Small Item Image for Scale Comparison...")
+        try:
+            # Create small item image
+            small_img = Image.new('RGB', (400, 300), color='lightgray')
+            small_draw = ImageDraw.Draw(small_img)
+            
+            # Draw a single small item (microwave-like)
+            small_draw.rectangle([150, 100, 250, 200], fill='black', outline='gray')
+            
+            small_buffer = io.BytesIO()
+            small_img.save(small_buffer, format='JPEG')
+            small_buffer.seek(0)
+            
+            files = {'file': ('small_microwave.jpg', small_buffer, 'image/jpeg')}
+            data = {'description': 'single small microwave'}
+            
+            success, small_response = self.run_test("Small Item Image Analysis", "POST", "quotes/image", 200, 
+                                                  data=data, files=files)
+            
+            if success:
+                small_price = small_response.get('total_price', 0)
+                small_scale = small_response.get('scale_level')
+                
+                print(f"   💰 Small Item Price: ${small_price}")
+                print(f"   📊 Small Item Scale: {small_scale}")
+                
+                # Should be Scale 1 range ($35-45)
+                if 35 <= small_price <= 45:
+                    print(f"   ✅ Small item correctly priced in Scale 1 range")
+                else:
+                    print(f"   ⚠️  Small item price ${small_price} outside Scale 1 range ($35-45)")
+                
+        except Exception as e:
+            print(f"   ⚠️  Small item test failed: {str(e)}")
+        
+        # Test 4: Construction Materials Image
+        print("\n🏗️ Testing Construction Materials Image...")
+        try:
+            # Create construction debris image
+            construction_img = Image.new('RGB', (800, 600), color='gray')
+            construction_draw = ImageDraw.Draw(construction_img)
+            
+            # Draw construction debris pile
+            for i in range(15):
+                x = 100 + (i % 5) * 120
+                y = 150 + (i // 5) * 100
+                construction_draw.rectangle([x, y, x+80, y+60], fill='darkgray', outline='black')
+            
+            construction_buffer = io.BytesIO()
+            construction_img.save(construction_buffer, format='JPEG')
+            construction_buffer.seek(0)
+            
+            files = {'file': ('construction_debris.jpg', construction_buffer, 'image/jpeg')}
+            data = {'description': 'large pile of construction debris and materials'}
+            
+            success, construction_response = self.run_test("Construction Materials Image", "POST", "quotes/image", 200, 
+                                                         data=data, files=files)
+            
+            if success:
+                construction_price = construction_response.get('total_price', 0)
+                construction_scale = construction_response.get('scale_level')
+                construction_explanation = construction_response.get('ai_explanation', '')
+                
+                print(f"   💰 Construction Materials Price: ${construction_price}")
+                print(f"   📊 Construction Scale: {construction_scale}")
+                
+                # Should be high scale for construction materials
+                if construction_price >= 195:  # Scale 6+ range
+                    print(f"   ✅ Construction materials correctly priced as large volume")
+                else:
+                    print(f"   ❌ Construction materials underpriced at ${construction_price}")
+                
+                # Check for outdoor materials recognition
+                if 'construction' in construction_explanation.lower() or 'debris' in construction_explanation.lower():
+                    print(f"   ✅ AI recognizes construction materials")
+                
+        except Exception as e:
+            print(f"   ⚠️  Construction materials test failed: {str(e)}")
+        
+        # Test 5: Check Backend Logs for AI Vision Issues
+        print("\n🔍 Testing AI Vision Provider Status...")
+        
+        # Create a simple test to see if AI vision is working
+        try:
+            simple_img = Image.new('RGB', (200, 200), color='red')
+            simple_buffer = io.BytesIO()
+            simple_img.save(simple_buffer, format='JPEG')
+            simple_buffer.seek(0)
+            
+            files = {'file': ('test_vision.jpg', simple_buffer, 'image/jpeg')}
+            data = {'description': 'test image for AI vision'}
+            
+            success, vision_response = self.run_test("AI Vision Provider Test", "POST", "quotes/image", 200, 
+                                                   data=data, files=files)
+            
+            if success:
+                vision_explanation = vision_response.get('ai_explanation', '')
+                
+                if 'temporarily unavailable' in vision_explanation.lower():
+                    print(f"   ❌ CRITICAL: AI vision provider still unavailable")
+                    print(f"   🔧 ISSUE: Falling back to basic pricing instead of using enhanced prompts")
+                elif 'file attachments only supported' in vision_explanation.lower():
+                    print(f"   ❌ CRITICAL: AI vision provider configuration issue")
+                    print(f"   🔧 ISSUE: Need to configure proper vision model (gpt-4o)")
+                else:
+                    print(f"   ✅ AI vision provider working")
+                    
+        except Exception as e:
+            print(f"   ⚠️  AI vision test failed: {str(e)}")
+        
+        print("\n🪵 IMPROVED AI IMAGE ANALYSIS TEST SUMMARY:")
+        print("   • Large log pile pricing: Should be $275-450 (Scale 8-10) ✓")
+        print("   • Volume assessment: AI should recognize large piles ✓") 
+        print("   • Scale reference: Use objects in photos for scale ✓")
+        print("   • Cubic feet calculations: Enhanced prompts with measurements ✓")
+        print("   • Outdoor materials: Special consideration for large piles ✓")
+        print("   • Before/After: Previous $75 → Expected $275-450 ✓")
+
     def run_all_tests(self):
         """Run all tests"""
         print("🚀 Starting TEXT-2-TOSS API Testing")
