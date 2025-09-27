@@ -622,22 +622,22 @@ const AdminDashboard = () => {
 
       {/* Bin View Modal */}
       {selectedBin && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-center justify-center p-4">
-          <Card className="w-full max-w-6xl max-h-[90vh] overflow-hidden">
-            <CardHeader className="flex flex-row items-center justify-between">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-center justify-center p-2 sm:p-4">
+          <Card className="w-full max-w-6xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
               <div>
-                <CardTitle className="text-2xl flex items-center gap-2">
+                <CardTitle className="text-lg sm:text-2xl flex items-center gap-2">
                   {selectedBin === 'new' && '🆕 New Jobs'}
                   {selectedBin === 'upcoming' && '📅 Upcoming Jobs'}
                   {selectedBin === 'inProgress' && '🚛 Jobs In Progress'}
                   {selectedBin === 'completed' && '✅ Completed Jobs'}
                   <span className="text-sm font-normal">({binBookings.length})</span>
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-sm">
                   Total Revenue: {formatPrice(binBookings.reduce((sum, booking) => sum + (booking.quote_details?.total_price || 0), 0))}
                 </CardDescription>
               </div>
-              <Button variant="outline" onClick={closeBin} className="text-gray-600">
+              <Button variant="outline" onClick={closeBin} className="text-gray-600 w-full sm:w-auto">
                 ✕ Close
               </Button>
             </CardHeader>
