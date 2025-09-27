@@ -179,6 +179,13 @@ class PriceQuote(BaseModel):
     description: str
     ai_explanation: Optional[str] = None
     temp_image_path: Optional[str] = None  # Temporary image path (deleted if not booked)
+    # Quote approval system for high-value jobs (Scale 4-10)
+    approval_status: str = "auto_approved"  # auto_approved, pending_approval, approved, rejected
+    requires_approval: bool = False  # True for Scale 4-10 quotes
+    admin_notes: Optional[str] = None  # Admin notes for approval/rejection
+    approved_price: Optional[float] = None  # Admin can adjust price
+    approved_by: Optional[str] = None  # Admin who approved/rejected
+    approved_at: Optional[datetime] = None  # When approved/rejected
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class PriceQuoteCreate(BaseModel):
