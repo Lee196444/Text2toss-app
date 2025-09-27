@@ -1924,6 +1924,7 @@ class TEXT2TOSSAPITester:
         self.test_booking_management()
         self.test_completion_photo_workflow()
         self.test_image_endpoints()
+        self.test_quote_approval_system()  # NEW: Test the complete quote approval system
         
         # Print summary
         print("\n" + "="*60)
