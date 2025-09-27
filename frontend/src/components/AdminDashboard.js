@@ -1150,30 +1150,30 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Monthly Summary */}
-                <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="bg-blue-50 p-4 rounded-lg text-center">
-                    <div className="text-2xl font-bold text-blue-600">
+                <div className="mt-4 sm:mt-6 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                  <div className="bg-blue-50 p-3 sm:p-4 rounded-lg text-center">
+                    <div className="text-xl sm:text-2xl font-bold text-blue-600">
                       {Object.values(calendarData).flat().length}
                     </div>
-                    <div className="text-sm text-blue-800">Total Jobs</div>
+                    <div className="text-xs sm:text-sm text-blue-800">Total Jobs</div>
                   </div>
-                  <div className="bg-green-50 p-4 rounded-lg text-center">
-                    <div className="text-2xl font-bold text-green-600">
+                  <div className="bg-green-50 p-3 sm:p-4 rounded-lg text-center">
+                    <div className="text-xl sm:text-2xl font-bold text-green-600">
                       {Object.values(calendarData).flat().filter(j => j.status === 'completed').length}
                     </div>
-                    <div className="text-sm text-green-800">Completed</div>
+                    <div className="text-xs sm:text-sm text-green-800">Completed</div>
                   </div>
-                  <div className="bg-emerald-50 p-4 rounded-lg text-center">
-                    <div className="text-2xl font-bold text-emerald-600">
+                  <div className="bg-emerald-50 p-3 sm:p-4 rounded-lg text-center">
+                    <div className="text-xl sm:text-2xl font-bold text-emerald-600">
                       {formatPrice(Object.values(calendarData).flat().filter(j => j.status === 'completed').reduce((sum, job) => sum + (job.quote_details?.total_price || 0), 0))}
                     </div>
-                    <div className="text-sm text-emerald-800">Revenue</div>
+                    <div className="text-xs sm:text-sm text-emerald-800">Revenue</div>
                   </div>
-                  <div className="bg-orange-50 p-4 rounded-lg text-center">
-                    <div className="text-2xl font-bold text-orange-600">
+                  <div className="bg-orange-50 p-3 sm:p-4 rounded-lg text-center">
+                    <div className="text-xl sm:text-2xl font-bold text-orange-600">
                       {Object.values(calendarData).flat().filter(j => j.status === 'scheduled').length}
                     </div>
-                    <div className="text-sm text-orange-800">Upcoming</div>
+                    <div className="text-xs sm:text-sm text-orange-800">Upcoming</div>
                   </div>
                 </div>
               </div>
