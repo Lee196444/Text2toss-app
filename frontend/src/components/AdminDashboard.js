@@ -418,6 +418,51 @@ const AdminDashboard = () => {
     setRouteDirections(null);
   };
 
+  const fetchCalendarData = async (month = currentMonth) => {
+    try {
+      // Get first and last day of the month
+      const firstDay = new Date(month.getFullYear(), month.getMonth(), 1);
+      const lastDay = new Date(month.getFullYear(), month.getMonth() + 1, 0);
+      
+      const startDate = firstDay.toISOString().split('T')[0];
+      const endDate = lastDay.toISOString().split('T')[0];
+      
+      const response = await axios.get(`${API}/admin/calendar-data?start_date=${startDate}&end_date=${endDate}`);
+      setCalendarData(response.data);
+    } catch (error) {
+      toast.error("Failed to fetch calendar data");
+      console.error(error);
+    }
+  };
+
+  const openCalendar = () => {
+    setShowCalendar(true);
+    fetchCalendarData();
+  };
+
+  const closeCalendar = () => {
+    setShowCalendar(false);
+  };
+
+  const changeMonth = (direction) => {
+    const newMonth = new Date(currentMonth);
+    newMonth.setMonth(currentMonth.getMonth() + direction);
+    setCurrentMonth(newMonth);
+    fetchCalendarData(newMonth);
+  };
+
+  const getDaysInMonth = (date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  };
+
+  const getFirstDayOfWeek = (date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  };
+
+  const formatCalendarDate = (year, month, day) => {
+    return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-black/40 to-emerald-900/50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
