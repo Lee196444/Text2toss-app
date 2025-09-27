@@ -778,22 +778,22 @@ const BookingModal = ({ quote, onClose, onSuccess }) => {
             />
           </div>
           {/* Confirmation Checkbox */}
-          <div className="space-y-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <div className="flex items-start space-x-3">
+          <div className="space-y-2 sm:space-y-3 p-3 sm:p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="flex items-start space-x-2 sm:space-x-3">
               <input
                 type="checkbox"
                 id="curbside-confirmation"
                 checked={bookingData.curbside_confirmed || false}
                 onChange={(e) => setBookingData({...bookingData, curbside_confirmed: e.target.checked})}
-                className="mt-1 h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
+                className="mt-0.5 sm:mt-1 h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded flex-shrink-0"
                 data-testid="curbside-checkbox"
               />
-              <Label htmlFor="curbside-confirmation" className="text-sm font-medium text-yellow-800 cursor-pointer leading-tight">
+              <Label htmlFor="curbside-confirmation" className="text-xs sm:text-sm font-medium text-yellow-800 cursor-pointer leading-tight">
                 ✅ I confirm all removal items are placed on the ground by the curb for easy pickup
               </Label>
             </div>
-            <p className="text-xs text-yellow-700 ml-7">
-              📋 <strong>Important:</strong> Items must be accessible from the street level. We cannot collect items from inside homes, garages, or upper floors without additional arrangements.
+            <p className="text-xs text-yellow-700 ml-6 sm:ml-7 leading-tight">
+              📋 <strong>Important:</strong> Items must be accessible from street level. No indoor/upper floor collection without arrangements.
             </p>
           </div>
 
