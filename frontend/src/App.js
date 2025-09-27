@@ -540,6 +540,7 @@ const BookingModal = ({ quote, onClose, onSuccess }) => {
   });
   const [bookedTimeSlots, setBookedTimeSlots] = useState([]);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
 
   // Check if date is allowed (no Fridays, Saturdays, Sundays)
   const isDateAllowed = (dateString) => {
