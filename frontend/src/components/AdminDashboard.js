@@ -1082,7 +1082,7 @@ const AdminDashboard = () => {
                       cells.push(
                         <div 
                           key={day}
-                          className={`h-24 p-1 border rounded cursor-pointer transition-all hover:bg-blue-50 ${
+                          className={`h-16 sm:h-24 p-1 border rounded cursor-pointer transition-all hover:bg-blue-50 ${
                             isToday ? 'bg-yellow-50 border-yellow-300' : 
                             isSelected ? 'bg-blue-50 border-blue-300' : 
                             'bg-white border-gray-200'
