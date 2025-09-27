@@ -654,6 +654,8 @@ async def create_quote_from_image(
 ):
     """Create quote by analyzing uploaded image with AI vision"""
     
+    print(f"Image quote endpoint received description: '{description}'")
+    
     # Validate file type
     if not file.content_type.startswith('image/'):
         raise HTTPException(status_code=400, detail="Only image files are allowed")
