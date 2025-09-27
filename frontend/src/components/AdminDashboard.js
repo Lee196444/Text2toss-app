@@ -1236,6 +1236,160 @@ const AdminDashboard = () => {
           </Card>
         </div>
       )}
+
+      {/* Quote Approval Modal */}
+      {showQuoteApproval && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-2xl flex items-center gap-2">
+                  📋 Quote Approval Center
+                  {pendingQuotes.length > 0 && (
+                    <Badge variant="destructive">{pendingQuotes.length} Pending</Badge>
+                  )}
+                </CardTitle>
+                <CardDescription>
+                  Review and approve high-value quotes (Scale 4-10) before payment processing
+                </CardDescription>
+              </div>
+              <Button variant="outline" onClick={() => setShowQuoteApproval(false)}>
+                ✕ Close
+              </Button>
+            </CardHeader>
+            <CardContent className="overflow-y-auto max-h-[70vh]">
+              {pendingQuotes.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="text-gray-500 text-lg">✅ No quotes pending approval</div>
+                  <p className="text-gray-400 mt-2">All high-value quotes have been reviewed</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {pendingQuotes.map((quote) => (
+                    <Card key={quote.id} className="border-l-4 border-l-orange-400">
+                      <CardHeader className="pb-3">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <CardTitle className="text-lg flex items-center gap-2">
+                              Quote ${quote.total_price}
+                              <Badge variant="outline">Scale {quote.scale_level}</Badge>
+                              <Badge className="bg-orange-100 text-orange-800">Pending Review</Badge>
+                            </CardTitle>
+                            <CardDescription className="text-sm">
+                              Created: {new Date(quote.created_at).toLocaleDateString()} • ID: {quote.id}
+                            </CardDescription>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          {/* Quote Details */}
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <h4 className="font-semibold mb-2">Job Description:</h4>
+                            <p className="text-sm text-gray-700 mb-3">{quote.description}</p>
+                            
+                            <h4 className="font-semibold mb-2">Items:</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
+                              {quote.items.map((item, index) => (
+                                <div key={index} className="text-sm bg-white p-2 rounded border">
+                                  {item.quantity}x {item.name} ({item.size})
+                                </div>
+                              ))}
+                            </div>
+                            
+                            {quote.ai_explanation && (
+                              <div>
+                                <h4 className="font-semibold mb-2">AI Analysis:</h4>
+                                <p className="text-sm text-gray-600">{quote.ai_explanation}</p>
+                              </div>
+                            )}
+                            
+                            {quote.temp_image_path && (
+                              <div className="mt-3">
+                                <Badge className="bg-blue-100 text-blue-800">📸 Has Image</Badge>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Approval Actions */}
+                          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
+                            <div className="flex-1">
+                              <Label className="text-sm font-medium">Adjust Price (Optional)</Label>
+                              <Input
+                                type="number"
+                                placeholder={quote.total_price}
+                                id={`price-${quote.id}`}
+                                className="mt-1"
+                                step="0.01"
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <Label className="text-sm font-medium">Admin Notes</Label>
+                              <Input
+                                placeholder="Optional notes for customer"
+                                id={`notes-${quote.id}`}
+                                className="mt-1"
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="flex gap-3">
+                            <Button 
+                              onClick={() => {
+                                const adjustedPrice = document.getElementById(`price-${quote.id}`).value;
+                                const notes = document.getElementById(`notes-${quote.id}`).value;
+                                handleQuoteApproval(
+                                  quote.id, 
+                                  'approve', 
+                                  notes,
+                                  adjustedPrice ? parseFloat(adjustedPrice) : null
+                                );
+                              }}
+                              className="bg-green-600 hover:bg-green-700 flex-1"
+                            >
+                              ✅ Approve Quote
+                            </Button>
+                            <Button 
+                              onClick={() => {
+                                const notes = document.getElementById(`notes-${quote.id}`).value;
+                                handleQuoteApproval(quote.id, 'reject', notes || 'Quote rejected by admin');
+                              }}
+                              variant="destructive"
+                              className="flex-1"
+                            >
+                              ❌ Reject Quote
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+              
+              {/* Approval Statistics */}
+              <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 border-t">
+                <div className="bg-orange-50 p-3 rounded-lg text-center">
+                  <div className="text-xl font-bold text-orange-600">{approvalStats.pending_approval || 0}</div>
+                  <div className="text-xs text-orange-800">Pending</div>
+                </div>
+                <div className="bg-green-50 p-3 rounded-lg text-center">
+                  <div className="text-xl font-bold text-green-600">{approvalStats.approved || 0}</div>
+                  <div className="text-xs text-green-800">Approved</div>
+                </div>
+                <div className="bg-red-50 p-3 rounded-lg text-center">
+                  <div className="text-xl font-bold text-red-600">{approvalStats.rejected || 0}</div>
+                  <div className="text-xs text-red-800">Rejected</div>
+                </div>
+                <div className="bg-blue-50 p-3 rounded-lg text-center">
+                  <div className="text-xl font-bold text-blue-600">{approvalStats.auto_approved || 0}</div>
+                  <div className="text-xs text-blue-800">Auto-Approved</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };
