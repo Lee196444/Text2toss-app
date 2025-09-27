@@ -601,53 +601,65 @@ const AdminDashboard = () => {
           })()}
         </div>
 
-        {/* Modern Quick Actions Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
-          <Button 
-            onClick={openCalendar} 
-            className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 h-16 flex flex-col items-center justify-center rounded-xl border-0"
-          >
-            <span className="text-xl mb-1">📅</span>
-            <span className="text-sm font-medium">Calendar</span>
-          </Button>
-          
-          <Button 
-            onClick={() => setShowQuoteApproval(true)} 
-            className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 h-16 flex flex-col items-center justify-center rounded-xl border-0 relative"
-          >
-            <span className="text-xl mb-1">📋</span>
-            <span className="text-sm font-medium">Quotes</span>
-            {pendingQuotes.length > 0 && (
-              <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold shadow-md">
-                {pendingQuotes.length}
-              </div>
-            )}
-          </Button>
-          
-          <Button 
-            onClick={testSmsSetup} 
-            className="bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 hover:border-gray-300 shadow-lg hover:shadow-xl transition-all duration-200 h-16 flex flex-col items-center justify-center rounded-xl"
-          >
-            <span className="text-xl mb-1">📱</span>
-            <span className="text-sm font-medium">Test SMS</span>
-          </Button>
-          
-          <Button 
-            onClick={cleanupTempImages} 
-            className="bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 hover:border-gray-300 shadow-lg hover:shadow-xl transition-all duration-200 h-16 flex flex-col items-center justify-center rounded-xl"
-          >
-            <span className="text-xl mb-1">🗑️</span>
-            <span className="text-sm font-medium">Cleanup</span>
-          </Button>
-          
-          <Button 
-            onClick={calculateOptimalRoute} 
-            className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 h-16 flex flex-col items-center justify-center rounded-xl border-0 sm:col-span-1 lg:col-span-1"
-          >
-            <span className="text-xl mb-1">🗺️</span>
-            <span className="text-sm font-medium">Route</span>
-          </Button>
-        </div>
+        {/* Modern Quick Actions Grid - Improved Layout */}
+        <Card className="bg-white/95 backdrop-blur-sm border-gray-200 shadow-lg">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+              ⚡ Quick Actions
+            </CardTitle>
+            <CardDescription className="text-sm text-gray-600">
+              Admin tools and management functions
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
+              <Button 
+                onClick={openCalendar} 
+                className="bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-18 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105"
+              >
+                <span className="text-xl sm:text-2xl mb-1 group-hover:animate-pulse">📅</span>
+                <span className="text-xs sm:text-sm font-medium">Calendar</span>
+              </Button>
+              
+              <Button 
+                onClick={() => setShowQuoteApproval(true)} 
+                className="bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-18 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 relative group transform hover:scale-105"
+              >
+                <span className="text-xl sm:text-2xl mb-1 group-hover:animate-pulse">📋</span>
+                <span className="text-xs sm:text-sm font-medium">Quotes</span>
+                {pendingQuotes.length > 0 && (
+                  <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center font-bold shadow-md animate-bounce">
+                    {pendingQuotes.length}
+                  </div>
+                )}
+              </Button>
+              
+              <Button 
+                onClick={testSmsSetup} 
+                className="bg-gradient-to-br from-gray-50 to-white hover:from-white hover:to-gray-50 text-gray-700 border-2 border-gray-200 hover:border-gray-300 shadow-md hover:shadow-lg transition-all duration-300 h-18 sm:h-20 flex flex-col items-center justify-center rounded-xl group transform hover:scale-105"
+              >
+                <span className="text-xl sm:text-2xl mb-1 group-hover:animate-pulse">📱</span>
+                <span className="text-xs sm:text-sm font-medium">Test SMS</span>
+              </Button>
+              
+              <Button 
+                onClick={cleanupTempImages} 
+                className="bg-gradient-to-br from-gray-50 to-white hover:from-white hover:to-gray-50 text-gray-700 border-2 border-gray-200 hover:border-gray-300 shadow-md hover:shadow-lg transition-all duration-300 h-18 sm:h-20 flex flex-col items-center justify-center rounded-xl group transform hover:scale-105"
+              >
+                <span className="text-xl sm:text-2xl mb-1 group-hover:animate-pulse">🗑️</span>
+                <span className="text-xs sm:text-sm font-medium">Cleanup</span>
+              </Button>
+              
+              <Button 
+                onClick={calculateOptimalRoute} 
+                className="bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-18 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 col-span-2 sm:col-span-1"
+              >
+                <span className="text-xl sm:text-2xl mb-1 group-hover:animate-pulse">🗺️</span>
+                <span className="text-xs sm:text-sm font-medium">Route</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Instructions */}
         <Card className="bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-200">
