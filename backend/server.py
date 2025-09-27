@@ -542,7 +542,21 @@ Respond ONLY with a JSON object in this exact format:
         
     except Exception as e:
         print(f"AI vision analysis error: {str(e)}")
-        # Fallback - create default item if image analysis fails
+        # Enhanced fallback - use text-based AI pricing with description if available
+        if description and description.strip():
+            try:
+                # Create items based on description for enhanced fallback
+                fallback_items = [JunkItem(name="Items from image description", quantity=1, size="large", description=description)]
+                
+                # Use text-based AI pricing with the description
+                fallback_price, fallback_explanation, scale_level, breakdown = await calculate_ai_price(fallback_items, f"Image analysis unavailable. Based on description: {description}")
+                
+                return fallback_items, fallback_price, f"Image analysis temporarily unavailable. Pricing based on description: {fallback_explanation}", scale_level, breakdown
+                
+            except Exception as text_ai_error:
+                print(f"Text-based fallback also failed: {str(text_ai_error)}")
+        
+        # Basic fallback if description-based pricing also fails
         fallback_items = [JunkItem(name="Unidentified items from image", quantity=1, size="medium")]
         fallback_price = 75.0
         fallback_explanation = "Image analysis temporarily unavailable. Basic estimate provided - please describe items for accurate pricing."
