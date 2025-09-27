@@ -36,6 +36,9 @@ const AdminDashboard = () => {
   const [showRouteModal, setShowRouteModal] = useState(false);
   const [selectedRouteBooking, setSelectedRouteBooking] = useState(null);
   const [routeDirections, setRouteDirections] = useState(null);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [calendarData, setCalendarData] = useState({});
+  const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
