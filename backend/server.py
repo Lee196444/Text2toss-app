@@ -200,7 +200,14 @@ class ImageQuoteCreate(BaseModel):
     description: str
 
 class AdminLogin(BaseModel):
+    username: str
     password: str
+
+class AdminUser(BaseModel):
+    username: str
+    password_hash: str
+    display_name: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class Booking(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
