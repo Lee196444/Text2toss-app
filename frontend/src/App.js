@@ -838,7 +838,7 @@ const VenmoPaymentModal = ({ quote, bookingId, qrCode, onClose }) => {
 };
 
 // Booking Modal Component
-const BookingModal = ({ quote, onClose, onSuccess }) => {
+const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
   const [bookingData, setBookingData] = useState({
     pickup_date: "",
     pickup_time: "",
