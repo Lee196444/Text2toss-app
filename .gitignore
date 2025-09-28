@@ -80,10 +80,17 @@ agenthub/agents/youtube/db
 android-sdk/ frontend/node_modules/.cache/default-development/0.pack
 frontend/node_modules/.cache/default-development/0.pack
 -e 
-# Environment files
+# Environment files - CRITICAL: Keep all .env files private
 *.env
 *.env.*
--e 
-# Environment files
-*.env
-*.env.*
+.env.local
+.env.production
+.env.development
+!*.env.example
+
+# Secret and credential files
+*secret*
+*credential*
+*key*.json
+*token*.txt
+*auth*.json
