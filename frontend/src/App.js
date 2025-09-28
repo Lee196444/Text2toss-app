@@ -141,7 +141,6 @@ const LandingPage = () => {
             </div>
             <div className="hidden md:flex items-center space-x-8">
               <a href="#how-it-works" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors">How It Works</a>
-              <a href="#pricing" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors">Pricing</a>
               <a href="#contact" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors">Contact</a>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-3">
