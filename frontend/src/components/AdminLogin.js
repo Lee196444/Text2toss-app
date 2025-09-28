@@ -60,11 +60,25 @@ const AdminLogin = ({ onLoginSuccess }) => {
         <CardContent className="px-4 sm:px-6">
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="admin-password" className="text-sm sm:text-base">Admin Password</Label>
+              <Label htmlFor="admin-username" className="text-sm sm:text-base">Username</Label>
+              <Input
+                id="admin-username"
+                type="text"
+                placeholder="Enter username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                data-testid="admin-username-input"
+                autoComplete="username"
+                className="h-11 sm:h-12 text-base"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="admin-password" className="text-sm sm:text-base">Password</Label>
               <Input
                 id="admin-password"
                 type="password"
-                placeholder="Enter admin password"
+                placeholder="Enter password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 data-testid="admin-password-input"
@@ -75,16 +89,16 @@ const AdminLogin = ({ onLoginSuccess }) => {
             
             <Button 
               type="submit" 
-              className="w-full bg-emerald-600 hover:bg-emerald-700 h-11 sm:h-12 text-sm sm:text-base"
+              className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 h-11 sm:h-12 text-sm sm:text-base shadow-lg hover:shadow-xl transition-all duration-200"
               disabled={isLogging}
               data-testid="admin-login-btn"
             >
-              {isLogging ? "Logging in..." : "Access Dashboard"}
+              {isLogging ? "Logging in..." : "🔐 Access Dashboard"}
             </Button>
             
             <div className="text-center">
-              <p className="text-xs sm:text-sm text-gray-600">
-                Default password: <span className="font-mono bg-gray-100 px-1 sm:px-2 py-1 rounded text-xs sm:text-sm">admin123</span>
+              <p className="text-xs sm:text-sm text-gray-500 bg-gray-50 p-2 rounded">
+                🔒 Secure Admin Portal - Authorized Access Only
               </p>
             </div>
           </form>
