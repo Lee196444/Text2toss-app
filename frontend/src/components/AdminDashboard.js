@@ -1414,28 +1414,18 @@ const AdminDashboard = () => {
                   
                   <div className="space-y-3">
                     <div>
-                      <Label htmlFor="customer-phone">Customer Phone</Label>
-                      <select
+                      <Label htmlFor="customer-phone">Customer Phone Number</Label>
+                      <input
                         id="customer-phone"
+                        type="tel"
+                        placeholder="Enter phone number (e.g., +19283956444)"
                         value={selectedCustomerPhone}
                         onChange={(e) => setSelectedCustomerPhone(e.target.value)}
                         className="w-full mt-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                      >
-                        <option value="">Select a customer...</option>
-                        {allBookings
-                          .filter((booking) => booking.phone)
-                          .reduce((unique, booking) => {
-                            if (!unique.find(item => item.phone === booking.phone)) {
-                              unique.push({phone: booking.phone, address: booking.address});
-                            }
-                            return unique;
-                          }, [])
-                          .map((customer, index) => (
-                            <option key={index} value={customer.phone}>
-                              {customer.phone} - {customer.address}
-                            </option>
-                          ))}
-                      </select>
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Include country code (e.g., +1 for US numbers)
+                      </p>
                     </div>
                     
                     <div>
