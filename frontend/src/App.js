@@ -479,7 +479,7 @@ const LandingPage = () => {
                       <div>
                         <h3 className="text-2xl font-bold text-emerald-800 mb-2">
                           Total: ${quote.total_price}
-                          {quote.scale_level && quote.scale_level >= 4 && (
+                          {quote.scale_level && quote.scale_level >= 9 && (
                             <span className="ml-2 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
                               Requires Approval
                             </span>
