@@ -1,0 +1,7 @@
+# Prevent GitHub secret detection on dependency files
+**/yarn.lock -diff -text
+**/package-lock.json -diff -text
+
+# These files contain legitimate package hashes, not secrets
+frontend/yarn.lock linguist-generated=true
+yarn.lock linguist-generated=true
