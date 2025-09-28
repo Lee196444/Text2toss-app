@@ -1766,6 +1766,108 @@ async def stripe_webhook(request: Request):
         logger.error(f"Stripe webhook error: {str(e)}")
         raise HTTPException(status_code=400, detail="Webhook error")
 
+@api_router.post("/admin/optimize-route")
+async def optimize_route():
+    """Optimize pickup routes for scheduled bookings using Google Maps"""
+    try:
+        # Check if Google Maps API key is available
+        google_maps_key = os.environ.get('GOOGLE_MAPS_API_KEY')
+        if not google_maps_key:
+            return {
+                "message": "Google Maps API key not configured. Please add GOOGLE_MAPS_API_KEY to your environment.",
+                "optimized": False,
+                "setup_required": True
+            }
+        
+        # Get today's scheduled bookings
+        today = datetime.now(timezone.utc).date()
+        bookings = await db.bookings.find({
+            "pickup_date": today.isoformat(),
+            "status": "scheduled"
+        }).to_list(length=None)
+        
+        if len(bookings) < 2:
+            return {"message": "Need at least 2 bookings to optimize route", "optimized": False}
+        
+        # Extract addresses for route optimization
+        addresses = [booking["address"] for booking in bookings]
+        
+        # Call Google Maps Distance Matrix API for route optimization
+        optimized_route = await calculate_optimized_route(addresses, google_maps_key)
+        
+        logger.info(f"Route optimized for {len(bookings)} bookings using Google Maps")
+        
+        return {
+            "message": f"Route optimized for {len(bookings)} pickups using Google Maps",
+            "optimized": True,
+            "bookings_count": len(bookings),
+            "route_data": optimized_route
+        }
+        
+    except Exception as e:
+        logger.error(f"Route optimization failed: {str(e)}")
+        return {
+            "message": f"Route optimization failed: {str(e)}",
+            "optimized": False,
+            "error": str(e)
+        }
+
+async def calculate_optimized_route(addresses: list, api_key: str):
+    """Calculate optimized route using Google Maps Distance Matrix API"""
+    try:
+        import httpx
+        
+        # For simplicity, we'll use the first address as origin and calculate distances
+        if len(addresses) < 2:
+            return {"route": addresses}
+        
+        origin = addresses[0]
+        destinations = "|".join(addresses[1:])
+        
+        url = "https://maps.googleapis.com/maps/api/distancematrix/json"
+        params = {
+            "origins": origin,
+            "destinations": destinations,
+            "key": api_key,
+            "units": "imperial"
+        }
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, params=params)
+            response.raise_for_status()
+            data = response.json()
+            
+            if data.get("status") == "OK":
+                # Simple optimization: sort by distance (in production, use proper TSP algorithm)
+                distances = []
+                elements = data.get("rows", [{}])[0].get("elements", [])
+                
+                for i, element in enumerate(elements):
+                    if element.get("status") == "OK":
+                        distance = element.get("distance", {}).get("value", float('inf'))
+                        distances.append((i + 1, distance, addresses[i + 1]))
+                
+                # Sort by distance and create optimized route
+                distances.sort(key=lambda x: x[1])
+                optimized_addresses = [origin] + [addr for _, _, addr in distances]
+                
+                return {
+                    "route": optimized_addresses,
+                    "total_addresses": len(optimized_addresses),
+                    "optimization_method": "distance_based"
+                }
+            else:
+                return {
+                    "route": addresses,
+                    "error": f"Google Maps API error: {data.get('status', 'Unknown error')}"
+                }
+                
+    except Exception as e:
+        logger.error(f"Google Maps API call failed: {str(e)}")
+        return {
+            "route": addresses,
+            "error": f"Route calculation failed: {str(e)}"
+        }
 # Include the router in the main app
 app.include_router(api_router)
 
