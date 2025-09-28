@@ -2138,7 +2138,7 @@ class TEXT2TOSSAPITester:
         print("   • Twilio Client: Authentication successful ✅")
         print("   • Error Handling: Proper validation and responses ✅")
         print("   • Account SID: AC[REDACTED] ✅")
-        print("   • Phone Number: +[REDACTED] ✅")
+        print("   • Phone Number: +1[REDACTED] ✅")
         print("   • Auth Token: Connected and authenticated ✅")
 
     def run_all_tests(self):
