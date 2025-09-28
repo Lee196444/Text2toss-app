@@ -1428,7 +1428,7 @@ async def test_sms_setup():
     if not client:
         return {
             "configured": False,
-            "message": "Twilio credentials not configured. Add TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN to .env file."
+            "message": "SMS not configured - missing Twilio credentials"
         }
     
     return {
@@ -1436,6 +1436,83 @@ async def test_sms_setup():
         "message": "Twilio SMS is configured and ready",
         "account_sid": os.environ.get('TWILIO_ACCOUNT_SID')[:8] + "..." if os.environ.get('TWILIO_ACCOUNT_SID') else None
     }
+
+@api_router.get("/admin/sms-messages")
+async def get_sms_messages():
+    """Get SMS message history from Twilio"""
+    try:
+        client = get_twilio_client()
+        if not client:
+            raise HTTPException(status_code=500, detail="SMS not configured")
+        
+        # Get messages from Twilio (last 50 messages)
+        messages = client.messages.list(limit=50)
+        
+        message_list = []
+        for msg in messages:
+            message_list.append({
+                "message_sid": msg.sid,
+                "to": msg.to,
+                "from": msg.from_,
+                "body": msg.body,
+                "status": msg.status,
+                "date_sent": msg.date_sent.isoformat() if msg.date_sent else None,
+                "date_created": msg.date_created.isoformat() if msg.date_created else None,
+                "direction": msg.direction,
+                "price": msg.price,
+                "error_code": msg.error_code,
+                "error_message": msg.error_message
+            })
+        
+        return {
+            "success": True,
+            "messages": message_list,
+            "count": len(message_list)
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to fetch SMS messages: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch SMS messages: {str(e)}")
+
+@api_router.post("/admin/send-sms")
+async def send_sms_admin(request: dict):
+    """Send SMS message to customer from admin"""
+    try:
+        phone = request.get('phone')
+        message = request.get('message')
+        
+        if not phone or not message:
+            raise HTTPException(status_code=400, detail="Phone number and message are required")
+        
+        client = get_twilio_client()
+        if not client:
+            raise HTTPException(status_code=500, detail="SMS not configured")
+        
+        twilio_phone = os.environ.get('TWILIO_PHONE_NUMBER')
+        if not twilio_phone:
+            raise HTTPException(status_code=500, detail="Twilio phone number not configured")
+        
+        # Send SMS via Twilio
+        message_instance = client.messages.create(
+            body=message,
+            from_=twilio_phone,
+            to=phone
+        )
+        
+        # Log the SMS activity
+        logger.info(f"Admin SMS sent to {phone}: {message_instance.sid}")
+        
+        return {
+            "success": True,
+            "message_sid": message_instance.sid,
+            "status": message_instance.status,
+            "to": phone,
+            "message": "SMS sent successfully"
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to send admin SMS: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to send SMS: {str(e)}")
 
 @api_router.post("/admin/test-sms-photo/{booking_id}")
 async def test_sms_photo(booking_id: str):
