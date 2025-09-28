@@ -1942,7 +1942,7 @@ class TEXT2TOSSAPITester:
             else:
                 print(f"   ❌ CRITICAL: Twilio SMS not configured - credentials missing or invalid")
                 print(f"   Expected: TWILIO_ACCOUNT_SID=AC[REDACTED]")
-                print(f"   Expected: TWILIO_PHONE_NUMBER=+[REDACTED]")
+                print(f"   Expected: TWILIO_PHONE_NUMBER=+1[REDACTED]")
                 print(f"   Expected: TWILIO_AUTH_TOKEN=configured")
         
         # Test 2: Environment Configuration Validation
