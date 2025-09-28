@@ -587,6 +587,20 @@ const LandingPage = () => {
         />
       )}
 
+      {/* Venmo Payment Modal */}
+      {showVenmoPayment && (
+        <VenmoPaymentModal 
+          quote={quote}
+          bookingId={venmoBookingId}
+          qrCode={venmoQRCode}
+          onClose={() => {
+            setShowVenmoPayment(false);
+            setShowQuote(false);
+            toast.success("Booking confirmed! Payment instructions sent via SMS.");
+          }}
+        />
+      )}
+
       {/* Contact Section */}
       <section id="contact" className="py-12 sm:py-20 bg-slate-900/90 backdrop-blur-sm">
         <div className="container mx-auto px-4 sm:px-6">
