@@ -1513,19 +1513,42 @@ async def get_quote_approval_stats():
 
 @api_router.post("/admin/login")
 async def admin_login(login_data: AdminLogin):
-    """Simple admin password authentication"""
-    admin_password = os.environ.get('ADMIN_PASSWORD', 'admin123')
-    
-    if login_data.password == admin_password:
-        # Create a simple admin session token
+    """Secure admin username/password authentication"""
+    try:
+        # Get admin user from database
+        admin_user = await db.admin_users.find_one({"username": login_data.username})
+        
+        if not admin_user:
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+        
+        # Verify password
+        if not pwd_context.verify(login_data.password, admin_user["password_hash"]):
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+        
+        # Create admin session token with user info
         admin_token = jwt.encode(
-            {"admin": True, "exp": datetime.now(timezone.utc) + timedelta(hours=8)}, 
+            {
+                "admin": True, 
+                "username": admin_user["username"],
+                "display_name": admin_user["display_name"],
+                "exp": datetime.now(timezone.utc) + timedelta(hours=8)
+            }, 
             SECRET_KEY, 
             algorithm=ALGORITHM
         )
-        return {"success": True, "token": admin_token, "message": "Login successful"}
-    else:
-        raise HTTPException(status_code=401, detail="Invalid admin password")
+        
+        return {
+            "success": True, 
+            "token": admin_token, 
+            "message": "Login successful",
+            "display_name": admin_user["display_name"]
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Admin login error: {str(e)}")
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
 @api_router.get("/admin/verify")
 async def verify_admin_token(token: str = None):
