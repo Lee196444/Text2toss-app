@@ -664,11 +664,11 @@ const AdminDashboard = () => {
               </Button>
               
               <Button 
-                onClick={testSmsSetup} 
-                className="bg-gradient-to-br from-gray-50 to-white hover:from-white hover:to-gray-50 text-gray-700 border-2 border-gray-200 hover:border-gray-300 shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl group transform hover:scale-105 min-h-[64px]"
+                onClick={() => setShowSmsCenter(true)} 
+                className="bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 text-blue-700 border-2 border-blue-200 hover:border-blue-300 shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl group transform hover:scale-105 min-h-[64px]"
               >
-                <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">📱</span>
-                <span className="text-xs sm:text-sm font-medium leading-tight">Test SMS</span>
+                <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">💬</span>
+                <span className="text-xs sm:text-sm font-medium leading-tight">SMS Center</span>
               </Button>
               
               <Button 
