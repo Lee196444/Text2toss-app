@@ -1422,7 +1422,7 @@ const AdminDashboard = () => {
                         className="w-full mt-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                       >
                         <option value="">Select a customer...</option>
-                        {bookings
+                        {allBookings
                           .filter((booking) => booking.phone)
                           .reduce((unique, booking) => {
                             if (!unique.find(item => item.phone === booking.phone)) {
