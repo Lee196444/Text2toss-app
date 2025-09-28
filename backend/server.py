@@ -387,7 +387,7 @@ Since this is ground level/curbside service only, there are NO charges for stair
 If the description mentions stairs, upper floors, basements, or difficult access, note in explanation that customer needs to move items to ground level/curbside first.
 
 PRICING PROCESS:
-1. Estimate total volume using the 1-10 scale above
+1. Estimate total volume using the 1-20 scale above
 2. Select appropriate price range for that scale
 3. Adjust within range based on item condition, weight, disposal complexity
 4. Add any applicable additional charges
