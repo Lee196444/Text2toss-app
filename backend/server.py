@@ -425,7 +425,15 @@ Respond ONLY with a JSON object in this exact format:
         print(f"AI pricing error: {str(e)}")
         # Fallback to basic pricing if AI fails
         fallback_price = calculate_basic_price(items)
-        return fallback_price, "Basic pricing applied (AI temporarily unavailable)", None, None
+        fallback_breakdown = {
+            "base_price": f"{fallback_price:.2f}",
+            "volume_assessment": f"Estimated {len(items)} items",
+            "items": [{"name": item.name, "size": item.size, "estimated_cost": fallback_price / len(items)} for item in items],
+            "factors": ["Ground level pickup included", "Standard rates applied", "AI analysis unavailable"],
+            "additional_charges": 0,
+            "total": fallback_price
+        }
+        return fallback_price, "Basic pricing applied (AI temporarily unavailable)", 3, fallback_breakdown
 
 # Fallback basic pricing function using new 1-10 scale
 def calculate_basic_price(items: List[JunkItem]) -> float:
