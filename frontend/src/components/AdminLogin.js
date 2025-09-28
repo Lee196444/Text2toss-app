@@ -17,25 +17,31 @@ const AdminLogin = ({ onLoginSuccess }) => {
   const handleLogin = async (e) => {
     e.preventDefault();
     
-    if (!password) {
-      toast.error("Please enter the admin password");
+    if (!username || !password) {
+      toast.error("Please enter both username and password");
       return;
     }
 
     setIsLogging(true);
     try {
       const response = await axios.post(`${API}/admin/login`, {
+        username: username,
         password: password
       });
 
       if (response.data.success) {
-        // Store admin token
+        // Store admin token and user info
         localStorage.setItem('admin_token', response.data.token);
-        toast.success("Login successful!");
+        localStorage.setItem('admin_user', JSON.stringify({
+          username: username,
+          display_name: response.data.display_name
+        }));
+        toast.success(`Welcome back, ${response.data.display_name}!`);
         onLoginSuccess();
       }
     } catch (error) {
-      toast.error("Invalid admin password");
+      toast.error("Invalid username or password");
+      setUsername("");
       setPassword("");
     }
     setIsLogging(false);
