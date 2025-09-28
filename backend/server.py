@@ -874,6 +874,7 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
         phone=booking_data.phone,
         special_instructions=booking_data.special_instructions,
         curbside_confirmed=booking_data.curbside_confirmed,
+        sms_notifications=booking_data.sms_notifications,
         image_path=permanent_image_path
     )
     
