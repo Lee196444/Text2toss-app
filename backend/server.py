@@ -375,7 +375,17 @@ Respond ONLY with a JSON object in this exact format:
   "total_price": 150.00,
   "scale_level": 5,
   "breakdown": {{
-    "base_cost": 140.00,
+    "base_price": "140.00",
+    "volume_assessment": "Medium load - dining room furniture",
+    "items": [
+      {{"name": "Dining table", "size": "large", "estimated_cost": 80.00}},
+      {{"name": "4 chairs", "size": "medium", "estimated_cost": 60.00}}
+    ],
+    "factors": [
+      "Ground level pickup only",
+      "Standard disposal fees included",
+      "No hazardous materials"
+    ],
     "additional_charges": 10.00,
     "total": 150.00
   }},
@@ -534,7 +544,17 @@ Respond ONLY with a JSON object in this exact format:
   "total_price": 150.00,
   "scale_level": 5,
   "breakdown": {{
-    "base_cost": 140.00,
+    "base_price": "140.00",
+    "volume_assessment": "Medium load - dining room furniture",
+    "items": [
+      {{"name": "Dining table", "size": "large", "estimated_cost": 80.00}},
+      {{"name": "4 chairs", "size": "medium", "estimated_cost": 60.00}}
+    ],
+    "factors": [
+      "Ground level pickup only",
+      "Standard disposal fees included",
+      "No hazardous materials"
+    ],
     "additional_charges": 10.00,
     "total": 150.00
   }},
