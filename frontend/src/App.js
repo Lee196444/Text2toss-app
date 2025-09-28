@@ -586,6 +586,120 @@ const LandingPage = () => {
           }}
         />
       )}
+
+      {/* Contact Section */}
+      <section id="contact" className="py-12 sm:py-20 bg-slate-900/90 backdrop-blur-sm">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-5xl font-bold text-white mb-4">
+              Get In <span className="text-emerald-400">Touch</span>
+            </h2>
+            <p className="text-gray-300 text-lg sm:text-xl max-w-2xl mx-auto">
+              Ready to clear out your space? Contact us for fast, professional junk removal services.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            {/* Phone */}
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 text-center hover:bg-slate-800/70 transition-all duration-300 border border-slate-700">
+              <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">📞</span>
+              </div>
+              <h3 className="font-semibold text-white mb-2">Call Us</h3>
+              <a 
+                href="tel:9288539619" 
+                className="text-emerald-400 hover:text-emerald-300 transition-colors text-lg font-medium"
+              >
+                (928) 853-9619
+              </a>
+              <p className="text-gray-400 text-sm mt-2">Mon-Sat: 8AM-6PM</p>
+            </div>
+
+            {/* Email */}
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 text-center hover:bg-slate-800/70 transition-all duration-300 border border-slate-700">
+              <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">✉️</span>
+              </div>
+              <h3 className="font-semibold text-white mb-2">Email Us</h3>
+              <a 
+                href="mailto:text2toss@gmail.com" 
+                className="text-emerald-400 hover:text-emerald-300 transition-colors text-lg font-medium"
+              >
+                text2toss@gmail.com
+              </a>
+              <p className="text-gray-400 text-sm mt-2">Quick Response</p>
+            </div>
+
+            {/* Facebook */}
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 text-center hover:bg-slate-800/70 transition-all duration-300 border border-slate-700">
+              <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">📘</span>
+              </div>
+              <h3 className="font-semibold text-white mb-2">Follow Us</h3>
+              <a 
+                href="https://facebook.com/text2toss" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-emerald-400 hover:text-emerald-300 transition-colors text-lg font-medium"
+              >
+                Facebook
+              </a>
+              <p className="text-gray-400 text-sm mt-2">Updates & Tips</p>
+            </div>
+          </div>
+
+          {/* Service Area Info */}
+          <div className="mt-12 text-center">
+            <div className="bg-slate-800/30 backdrop-blur-sm rounded-xl p-6 max-w-2xl mx-auto border border-slate-700">
+              <h3 className="font-semibold text-white mb-3">🏔️ Serving Flagstaff, Arizona</h3>
+              <p className="text-gray-300 text-sm leading-relaxed">
+                Professional junk removal services • Ground level & curbside pickup only<br />
+                Fast response times • Eco-friendly disposal • Competitive AI-powered pricing
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-slate-900/95 backdrop-blur-sm border-t border-slate-800 py-8 sm:py-12">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
+            <div>
+              <div className="flex items-center justify-center md:justify-start space-x-3 mb-4">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-lg sm:text-xl font-bold">🏠</span>
+                </div>
+                <span className="text-lg sm:text-2xl font-bold text-white">Text2toss</span>
+              </div>
+              <p className="text-gray-400 text-sm sm:text-base leading-relaxed">
+                Fast, reliable junk removal with instant AI-powered quotes. Ground level & curbside pickup only.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-white mb-4 text-sm sm:text-base">Contact Info</h3>
+              <div className="space-y-2">
+                <a href="tel:9288539619" className="block text-gray-400 hover:text-emerald-400 transition-colors text-sm sm:text-base">📞 (928) 853-9619</a>
+                <a href="mailto:text2toss@gmail.com" className="block text-gray-400 hover:text-emerald-400 transition-colors text-sm sm:text-base">✉️ text2toss@gmail.com</a>
+                <a href="https://facebook.com/text2toss" target="_blank" rel="noopener noreferrer" className="block text-gray-400 hover:text-emerald-400 transition-colors text-sm sm:text-base">📘 Facebook</a>
+              </div>
+            </div>
+            <div>
+              <h3 className="font-semibold text-white mb-4 text-sm sm:text-base">Service Area</h3>
+              <p className="text-gray-400 text-sm sm:text-base">
+                🏔️ Flagstaff, Arizona<br />
+                📍 Ground Level & Curbside Only<br />
+                ⏰ Mon-Sat: 8AM-6PM
+              </p>
+            </div>
+          </div>
+          <div className="border-t border-slate-800 mt-8 pt-8 text-center">
+            <p className="text-gray-400 text-sm sm:text-base">
+              © 2024 Text2toss. All rights reserved. | Professional junk removal services in Flagstaff, AZ.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
