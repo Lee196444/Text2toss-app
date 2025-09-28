@@ -461,8 +461,8 @@
 
 ## metadata:
   created_by: "main_agent"
-  version: "1.2"
-  test_sequence: 3
+  version: "1.3"
+  test_sequence: 4
   run_ui: false
 
 ## test_plan:
