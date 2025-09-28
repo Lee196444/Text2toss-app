@@ -8,7 +8,7 @@ import json
 from datetime import datetime, timedelta
 
 class PaymentSystemTester:
-    def __init__(self, base_url="https://text2toss-1.preview.emergentagent.com"):
+    def __init__(self, base_url="https://text2toss-venmo.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.test_quote_id = None
@@ -112,7 +112,7 @@ class PaymentSystemTester:
         
         payment_request = {
             "booking_id": self.test_booking_id,
-            "origin_url": "https://text2toss-1.preview.emergentagent.com"
+            "origin_url": "https://text2toss-venmo.preview.emergentagent.com"
         }
         
         success, response = self.make_request("POST", "payments/create-checkout-session", payment_request)
@@ -247,7 +247,7 @@ class PaymentSystemTester:
         # Test 1: Invalid booking ID
         invalid_payment_request = {
             "booking_id": "invalid_booking_id_12345",
-            "origin_url": "https://text2toss-1.preview.emergentagent.com"
+            "origin_url": "https://text2toss-venmo.preview.emergentagent.com"
         }
         
         success, response = self.make_request("POST", "payments/create-checkout-session", 

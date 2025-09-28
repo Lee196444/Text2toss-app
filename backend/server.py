@@ -1324,7 +1324,7 @@ async def upload_completion_photo(
         
         if phone:
             # Create public URL for the image accessible by SMS
-            backend_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://text2toss-1.preview.emergentagent.com')
+            backend_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://text2toss-venmo.preview.emergentagent.com')
             photo_url = f"{backend_url}/api/public/completion-photo/{booking_id}"
             
             completion_message = f"📸 Text2toss Complete: Your junk has been removed from {booking['address']}. "
@@ -1433,7 +1433,7 @@ async def notify_customer_completion(booking_id: str):
     # Send SMS with or without photo
     if booking.get("completion_photo_path"):
         # Send with photo
-        backend_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://text2toss-1.preview.emergentagent.com')
+        backend_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://text2toss-venmo.preview.emergentagent.com')
         photo_url = f"{backend_url}/api/public/completion-photo/{booking_id}"
         
         message = f"📸 Text2toss Complete: Your junk removal is finished at {booking['address']}. "
@@ -1560,7 +1560,7 @@ async def test_sms_photo(booking_id: str):
         raise HTTPException(status_code=400, detail="No completion photo available")
     
     # Create fully accessible URL for the completion photo
-    completion_photo_url = f"https://text2toss-1.preview.emergentagent.com/api/public/completion-photo/{booking_id}"
+    completion_photo_url = f"https://text2toss-venmo.preview.emergentagent.com/api/public/completion-photo/{booking_id}"
     
     result = await send_sms(
         booking["phone"],
