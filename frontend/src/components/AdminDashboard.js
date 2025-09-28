@@ -866,10 +866,15 @@ const AdminDashboard = () => {
                               📱 SMS Sent
                             </Badge>
                           )}
+                          {booking.quote_details?.total_price && (
+                            <div className="text-lg font-bold text-emerald-600">
+                              ${booking.quote_details.total_price}
+                            </div>
+                          )}
                         </div>
-                        <span className="font-semibold text-emerald-600 text-sm sm:text-base">
-                          {formatPrice(booking.quote_details?.total_price)}
-                        </span>
+                        <div className="text-xs sm:text-sm text-gray-500 text-right">
+                          ID: {booking.id.substring(0, 8)}...
+                        </div>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
