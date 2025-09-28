@@ -241,6 +241,7 @@ class BookingCreate(BaseModel):
     phone: str
     special_instructions: Optional[str] = None
     curbside_confirmed: bool = False
+    sms_notifications: bool = False
     
     @validator('phone')
     def validate_phone(cls, v):
