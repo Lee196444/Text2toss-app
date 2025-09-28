@@ -824,7 +824,10 @@ const AdminDashboard = () => {
                 </div>
               ) : (
                 <div className="space-y-3 sm:space-y-4">
-                  {binBookings.map((booking, index) => (
+                  {/* Sort jobs by pickup date descending */}
+                  {binBookings
+                    .sort((a, b) => new Date(b.pickup_date) - new Date(a.pickup_date))
+                    .map((booking, index) => (
                     <div key={booking.id} className="border rounded-lg p-3 sm:p-4 space-y-3 bg-white shadow-sm">
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                         <div className="flex flex-wrap items-center gap-1 sm:gap-2">
