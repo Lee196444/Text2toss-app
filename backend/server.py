@@ -1235,9 +1235,12 @@ async def update_booking_status(booking_id: str, status_update: dict):
         if phone and not phone.startswith('+'):
             phone = '+1' + phone  # Assume US number if no country code
         
-        if phone:
+        # Only send SMS if customer opted in for notifications
+        if phone and booking.get('sms_notifications', False):
             sms_result = await send_sms(phone, sms_messages[new_status])
             logging.info(f"SMS sent for booking {booking_id}: {sms_result}")
+        elif phone and not booking.get('sms_notifications', False):
+            logging.info(f"SMS not sent for booking {booking_id}: Customer opted out of notifications")
     
     return {"message": "Booking status updated and customer notified"}
 
