@@ -954,55 +954,6 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
     }
   };
 
-  const handleBooking = async () => {
-    if (!bookingData.pickup_date || !bookingData.pickup_time || !bookingData.address || !bookingData.phone) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
-    if (!bookingData.curbside_confirmed) {
-      toast.error("Please confirm that all items are placed on the ground by the curb");
-      return;
-    }
-
-    if (!isDateAllowed(bookingData.pickup_date)) {
-      toast.error("Selected date is not available for pickup");
-      return;
-    }
-
-    if (bookedTimeSlots.includes(bookingData.pickup_time)) {
-      toast.error("Selected time slot is already booked. Please choose another time.");
-      return;
-    }
-
-    try {
-      // First create the booking
-      const bookingResponse = await axios.post(`${API}/bookings`, {
-        quote_id: quote.id,
-        ...bookingData
-      });
-      
-      const bookingId = bookingResponse.data.id;
-      
-      // Then initiate payment
-      const paymentResponse = await axios.post(`${API}/payments/create-checkout-session`, {
-        booking_id: bookingId,
-        origin_url: window.location.origin
-      });
-      
-      // Redirect to Stripe checkout
-      if (paymentResponse.data.url) {
-        window.location.href = paymentResponse.data.url;
-      } else {
-        throw new Error("Payment session creation failed");
-      }
-      
-    } catch (error) {
-      toast.error("Failed to process booking and payment");
-      console.error(error);
-    }
-  };
-
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start sm:items-center justify-center p-2 sm:p-4 pt-2 sm:pt-4 pb-2 sm:pb-4 overflow-y-auto">
       <Card className="w-full max-w-md mx-2 sm:mx-0 my-2 sm:my-4 max-h-[95vh] sm:max-h-none overflow-y-auto">
