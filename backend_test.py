@@ -2163,6 +2163,7 @@ class TEXT2TOSSAPITester:
         self.test_completion_photo_workflow()
         self.test_image_endpoints()
         self.test_quote_approval_system()  # NEW: Test the complete quote approval system
+        self.test_twilio_sms_integration()  # NEW: Test Twilio SMS integration with live credentials
         
         # Print summary
         print("\n" + "="*60)
