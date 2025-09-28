@@ -277,16 +277,53 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchSmsMessages = async () => {
+    setSmsLoading(true);
+    try {
+      const response = await axios.get(`${API}/admin/sms-messages`);
+      setSmsMessages(response.data.messages || []);
+    } catch (error) {
+      toast.error("Failed to load SMS messages");
+      console.error('SMS fetch error:', error);
+    }
+    setSmsLoading(false);
+  };
+
+  const sendSmsMessage = async () => {
+    if (!selectedCustomerPhone || !newSmsMessage.trim()) {
+      toast.error("Please select a customer and enter a message");
+      return;
+    }
+
+    try {
+      const response = await axios.post(`${API}/admin/send-sms`, {
+        phone: selectedCustomerPhone,
+        message: newSmsMessage.trim()
+      });
+      
+      if (response.data.success) {
+        toast.success("SMS sent successfully!");
+        setNewSmsMessage('');
+        fetchSmsMessages(); // Refresh messages
+      } else {
+        toast.error("Failed to send SMS");
+      }
+    } catch (error) {
+      toast.error("SMS sending failed");
+      console.error('SMS send error:', error);
+    }
+  };
+
   const testSmsSetup = async () => {
     try {
       const response = await axios.post(`${API}/admin/test-sms`);
       if (response.data.configured) {
         toast.success("SMS is configured and ready!");
       } else {
-        toast.error("SMS not configured - check Twilio credentials");
+        toast.error("SMS setup incomplete. Check Twilio credentials.");
       }
     } catch (error) {
-      toast.error("Failed to test SMS setup");
+      toast.error("SMS test failed. Check configuration.");
     }
   };
 
