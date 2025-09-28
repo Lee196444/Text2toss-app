@@ -241,6 +241,25 @@ class BookingCreate(BaseModel):
     phone: str
     special_instructions: Optional[str] = None
     curbside_confirmed: bool = False
+    
+    @validator('phone')
+    def validate_phone(cls, v):
+        # Clean and validate phone number
+        phone = re.sub(r'[^\d+]', '', v)  # Remove non-digit chars except +
+        
+        # Add +1 if missing country code for US numbers
+        if phone.startswith('1') and len(phone) == 11:
+            phone = '+' + phone
+        elif not phone.startswith('+') and len(phone) == 10:
+            phone = '+1' + phone
+        elif not phone.startswith('+'):
+            raise ValueError('Phone number must include country code or be a valid US number')
+        
+        # Basic validation for US numbers
+        if phone.startswith('+1') and len(phone) != 12:
+            raise ValueError('US phone numbers must be 10 digits plus country code')
+        
+        return phone
 
 class BookingCompletion(BaseModel):
     completion_note: Optional[str] = None
