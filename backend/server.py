@@ -40,7 +40,9 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 # Stripe configuration
-STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY', 'your_stripe_api_key_here')
+STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY')
+if not STRIPE_API_KEY:
+    logger.warning("STRIPE_API_KEY not configured - payment processing will be disabled")
 
 # Create the main app without a prefix
 app = FastAPI()
