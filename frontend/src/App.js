@@ -1164,8 +1164,6 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/admin" element={<ProtectedAdmin />} />
-          <Route path="/payment-success" element={<PaymentSuccess />} />
-          <Route path="/payment-cancelled" element={<PaymentCancelled />} />
         </Routes>
       </BrowserRouter>
     </div>
