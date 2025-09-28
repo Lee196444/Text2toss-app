@@ -225,6 +225,7 @@ class Booking(BaseModel):
     phone: str
     special_instructions: Optional[str] = None
     curbside_confirmed: bool = False
+    sms_notifications: bool = False
     status: str = "scheduled"  # scheduled, in_progress, completed, cancelled
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     quote_details: Optional[PriceQuote] = None
