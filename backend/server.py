@@ -16,6 +16,7 @@ import jwt
 from passlib.context import CryptContext
 from emergentintegrations.llm.chat import LlmChat, UserMessage, FileContentWithMimeType
 import json
+import secrets
 import re
 import base64
 from fastapi import UploadFile, File, Form
