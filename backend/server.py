@@ -787,8 +787,8 @@ async def create_quote_from_image(
         # Analyze image with AI
         items, total_price, ai_explanation, scale_level, breakdown = await analyze_image_for_quote(str(file_path), description)
         
-        # Determine if quote requires approval (Scale 4-10)
-        requires_approval = scale_level and scale_level >= 4
+        # Determine if quote requires approval (Scale 9-20)
+        requires_approval = scale_level and scale_level >= 9
         approval_status = "pending_approval" if requires_approval else "auto_approved"
         
         # Create quote with temporary image path
