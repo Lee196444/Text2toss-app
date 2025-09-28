@@ -54,7 +54,10 @@ api_router = APIRouter(prefix="/api")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # JWT settings
-SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'your_jwt_secret_key_change_in_production')
+SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
+if not SECRET_KEY:
+    logger.error("JWT_SECRET_KEY not configured - using secure random key")
+    SECRET_KEY = secrets.token_urlsafe(32)
 ALGORITHM = "HS256"
 
 # Twilio SMS setup
