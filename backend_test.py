@@ -1927,7 +1927,7 @@ class TEXT2TOSSAPITester:
                 print(f"   ✅ TWILIO SMS CONFIGURED: Live credentials detected")
                 
                 # Verify Account SID matches expected
-                expected_sid = "AC[REDACTED]"
+                expected_sid = "AC" + "x" * 32  # Hidden for security
                 if account_sid.startswith(expected_sid[:8]):
                     print(f"   ✅ Account SID matches expected: {expected_sid[:8]}...")
                 else:
