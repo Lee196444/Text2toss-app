@@ -1577,7 +1577,7 @@ async def test_sms_photo(booking_id: str):
 # Quote Approval System Endpoints
 @api_router.get("/admin/pending-quotes")
 async def get_pending_quotes():
-    """Get all quotes pending approval (Scale 4-10)"""
+    """Get all quotes pending approval (Scale 9-20)"""
     try:
         pipeline = [
             {
