@@ -637,7 +637,7 @@ const LandingPage = () => {
               </div>
               <h3 className="font-semibold text-white mb-2">Follow Us</h3>
               <a 
-                href="https://facebook.com/text2toss" 
+                href="https://www.facebook.com/share/17Vsc23wKL/" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-emerald-400 hover:text-emerald-300 transition-colors text-lg font-medium"
