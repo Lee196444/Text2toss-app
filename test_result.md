@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-## user_problem_statement: "Fix any buttons that are cut off and overlapping make sure user can see all buttons when in scheduling page and make it more modern and easy to use"
+## user_problem_statement: "Complete Venmo-only payment integration with QR code functionality and remove all Stripe payment elements from the application"
 
 ## backend:
   - task: "NEW QUOTE APPROVAL SYSTEM - High-value quote approval requirement"
