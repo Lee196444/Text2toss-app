@@ -718,6 +718,116 @@ const LandingPage = () => {
   );
 };
 
+// Venmo Payment Modal Component
+const VenmoPaymentModal = ({ quote, bookingId, qrCode, onClose }) => {
+  const venmoUrl = `https://venmo.com/code?user_id=Text2toss&amount=${quote.total_price}&note=Text2toss%20Booking%20${bookingId.substring(0, 8)}`;
+  
+  const copyBookingId = () => {
+    navigator.clipboard.writeText(bookingId.substring(0, 8));
+    toast.success("Booking ID copied to clipboard!");
+  };
+
+  const openVenmoApp = () => {
+    window.open(venmoUrl, '_blank');
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg max-w-md w-full max-h-[95vh] overflow-y-auto">
+        <div className="p-6">
+          {/* Header */}
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-green-600">🎉 Booking Confirmed!</h2>
+            <button 
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+            >
+              ×
+            </button>
+          </div>
+
+          {/* Booking Details */}
+          <div className="bg-gray-50 rounded-lg p-4 mb-6">
+            <h3 className="font-semibold mb-2">Booking Details:</h3>
+            <p><strong>Booking ID:</strong> {bookingId.substring(0, 8)}</p>
+            <p><strong>Total Amount:</strong> ${quote.total_price}</p>
+            <p><strong>Service:</strong> Junk Removal</p>
+          </div>
+
+          {/* Payment Instructions */}
+          <div className="mb-6">
+            <h3 className="font-semibold mb-3 text-lg">📱 Complete Payment via Venmo:</h3>
+            
+            {/* QR Code */}
+            <div className="text-center mb-4">
+              <div className="inline-block p-4 bg-white border-2 border-gray-300 rounded-lg">
+                <img 
+                  src={qrCode} 
+                  alt="Venmo Payment QR Code" 
+                  className="w-48 h-48 mx-auto"
+                />
+              </div>
+              <p className="text-sm text-gray-600 mt-2">Scan with Venmo app</p>
+            </div>
+
+            {/* OR Divider */}
+            <div className="flex items-center my-4">
+              <hr className="flex-1 border-gray-300" />
+              <span className="px-3 text-gray-500 text-sm">OR</span>
+              <hr className="flex-1 border-gray-300" />
+            </div>
+
+            {/* Manual Payment Instructions */}
+            <div className="space-y-3">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-semibold text-blue-800 mb-2">Manual Payment:</h4>
+                <ul className="space-y-2 text-sm">
+                  <li>• Send <strong>${quote.total_price}</strong> to <strong>@Text2toss</strong></li>
+                  <li>• Include booking ID: <strong>{bookingId.substring(0, 8)}</strong> 
+                    <button 
+                      onClick={copyBookingId}
+                      className="ml-2 text-blue-600 hover:text-blue-800 underline text-xs"
+                    >
+                      (Copy)
+                    </button>
+                  </li>
+                  <li>• We'll confirm payment and send pickup details</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="space-y-3">
+            <Button 
+              onClick={openVenmoApp}
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3"
+            >
+              📱 Open Venmo App
+            </Button>
+            
+            <Button 
+              onClick={onClose}
+              variant="outline"
+              className="w-full py-3"
+            >
+              I'll Pay Later
+            </Button>
+          </div>
+
+          {/* Important Note */}
+          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800">
+              <strong>Note:</strong> Your pickup is scheduled but payment is required to confirm the service. 
+              We'll send SMS confirmation once payment is received.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Booking Modal Component
 const BookingModal = ({ quote, onClose, onSuccess }) => {
   const [bookingData, setBookingData] = useState({
