@@ -349,8 +349,8 @@ Please consider these factors in your pricing:
 VOLUME-BASED PRICING SCALE (Ground Level Only):
 **CRITICAL**: Base pricing on TOTAL ESTIMATED CUBIC FEET, not just item count
 
-SCALE 1: $25-35 - 15-gallon trash bag or smaller
-SCALE 2: $35-45 - Small box, single small item
+SCALE 1: $15 - 15-gallon trash bag or smaller
+SCALE 2: $20 - Small box, single small item
 SCALE 3: $45-55 - Large trash bag, small electronics
 SCALE 4: $55-70 - Multiple bags, small appliances
 SCALE 5: $70-85 - Microwave, toaster oven sized items
@@ -526,8 +526,8 @@ CRITICAL VOLUME ASSESSMENT INSTRUCTIONS:
 VOLUME-BASED PRICING SCALE (Ground Level Only):
 **CRITICAL**: Base pricing on TOTAL ESTIMATED CUBIC FEET, not item count
 
-SCALE 1: $25-35 - 15-gallon trash bag or smaller
-SCALE 2: $35-45 - Small box, single small item
+SCALE 1: $15 - 15-gallon trash bag or smaller
+SCALE 2: $20 - Small box, single small item
 SCALE 3: $45-55 - Large trash bag, small electronics
 SCALE 4: $55-70 - Multiple bags, small appliances
 SCALE 5: $70-85 - Microwave, toaster oven sized items
