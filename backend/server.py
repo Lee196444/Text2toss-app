@@ -189,9 +189,9 @@ class PriceQuote(BaseModel):
     description: str
     ai_explanation: Optional[str] = None
     temp_image_path: Optional[str] = None  # Temporary image path (deleted if not booked)
-    # Quote approval system for high-value jobs (Scale 4-10)
+    # Quote approval system for high-value jobs (Scale 9-20)
     approval_status: str = "auto_approved"  # auto_approved, pending_approval, approved, rejected
-    requires_approval: bool = False  # True for Scale 4-10 quotes
+    requires_approval: bool = False  # True for Scale 9-20 quotes
     admin_notes: Optional[str] = None  # Admin notes for approval/rejection
     approved_price: Optional[float] = None  # Admin can adjust price
     approved_by: Optional[str] = None  # Admin who approved/rejected
