@@ -954,6 +954,26 @@ const BookingModal = ({ quote, onClose, onSuccess }) => {
             </p>
           </div>
 
+          {/* SMS Notifications Opt-in */}
+          <div className="space-y-2 sm:space-y-3 p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-start space-x-2 sm:space-x-3">
+              <input
+                type="checkbox"
+                id="sms-notifications"
+                checked={bookingData.sms_notifications || false}
+                onChange={(e) => setBookingData({...bookingData, sms_notifications: e.target.checked})}
+                className="mt-0.5 sm:mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded flex-shrink-0"
+                data-testid="sms-checkbox"
+              />
+              <Label htmlFor="sms-notifications" className="text-xs sm:text-sm font-medium text-blue-800 cursor-pointer leading-tight">
+                📱 Send me SMS updates (job start, progress, completion)
+              </Label>
+            </div>
+            <p className="text-xs text-blue-700 ml-6 sm:ml-7 leading-tight">
+              💬 <strong>Optional:</strong> Get real-time text notifications about your junk removal job status. Standard messaging rates may apply.
+            </p>
+          </div>
+
           <div className="space-y-2">
             <Label>Special Instructions</Label>
             <Textarea
