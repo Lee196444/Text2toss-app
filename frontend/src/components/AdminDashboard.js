@@ -828,11 +828,11 @@ const AdminDashboard = () => {
                   {binBookings
                     .sort((a, b) => new Date(b.pickup_date) - new Date(a.pickup_date))
                     .map((booking, index) => (
-                    <div key={booking.id} className="border rounded-lg p-3 sm:p-4 space-y-3 bg-white shadow-sm">
+                    <div key={booking.id} className="border rounded-lg p-3 sm:p-4 space-y-3 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
+                      {/* Header Row */}
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                         <div className="flex flex-wrap items-center gap-1 sm:gap-2">
                           <Badge variant="secondary" className="text-xs">#{index + 1}</Badge>
-                          <Badge variant="secondary" className="text-xs">{formatTime(booking.pickup_time)}</Badge>
                           <Badge 
                             variant={
                               booking.status === 'completed' ? 'success' : 
@@ -841,8 +841,21 @@ const AdminDashboard = () => {
                             }
                             className="text-xs"
                           >
-                            {booking.status}
+                            {booking.status.replace('_', ' ').toUpperCase()}
                           </Badge>
+                          {/* Date Badge */}
+                          <Badge variant="outline" className="bg-gray-100 text-gray-700 text-xs">
+                            📅 {new Date(booking.pickup_date).toLocaleDateString('en-US', { 
+                              month: 'short', 
+                              day: 'numeric',
+                              year: 'numeric'
+                            })}
+                          </Badge>
+                          {booking.pickup_time && (
+                            <Badge variant="outline" className="bg-indigo-100 text-indigo-700 text-xs">
+                              🕐 {formatTime(booking.pickup_time)}
+                            </Badge>
+                          )}
                           {booking.image_path && (
                             <Badge variant="outline" className="text-blue-600 text-xs hidden sm:inline-flex">
                               📸 Has Photo
