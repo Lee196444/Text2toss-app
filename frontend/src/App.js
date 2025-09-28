@@ -587,6 +587,12 @@ const LandingPage = () => {
             setShowQuote(false);
             toast.success("Pickup scheduled successfully!");
           }}
+          onVenmoPayment={(bookingId, qrCode) => {
+            setVenmoBookingId(bookingId);
+            setVenmoQRCode(qrCode);
+            setShowBooking(false);
+            setShowVenmoPayment(true);
+          }}
         />
       )}
 
