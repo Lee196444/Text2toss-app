@@ -349,33 +349,30 @@ Please consider these factors in your pricing:
 VOLUME-BASED PRICING SCALE (Ground Level Only):
 **CRITICAL**: Base pricing on TOTAL ESTIMATED CUBIC FEET, not just item count
 
-SCALE 1 (3×3×3 = 27 cubic feet): $35-45
-- Small single item or small pile
-- Examples: microwave, small chair, few boxes
-
-SCALE 2-3 (6×6×6 = 216 cubic feet): $65-85  
-- Small to medium pile or several items
-- Examples: desk chair, small dresser, multiple boxes
-
-SCALE 4-5 (9×9×9 = 729 cubic feet): $125-165
-- Medium-sized pile or furniture collection
-- Examples: mattress, dining table, moderate debris pile
-
-SCALE 6-7 (12×12×12 = 1,728 cubic feet): $195-245
-- Large pile or substantial furniture load
-- Examples: couch, refrigerator, large debris pile, stacked logs
-
-SCALE 8-9 (15×15×15 = 3,375 cubic feet): $275-325
-- Very large pile or significant volume
-- Examples: massive log piles, construction debris, large furniture collection
-
-SCALE 10 (18×18×18+ = 5,832+ cubic feet): $350-450
-- Huge pile requiring full truck capacity
-- Examples: enormous log stacks, entire room contents, major cleanouts
+SCALE 1: $25-35 - 15-gallon trash bag or smaller
+SCALE 2: $35-45 - Small box, single small item
+SCALE 3: $45-55 - Large trash bag, small electronics
+SCALE 4: $55-70 - Multiple bags, small appliances
+SCALE 5: $70-85 - Microwave, toaster oven sized items
+SCALE 6: $85-105 - Small chair, end table
+SCALE 7: $105-125 - Multiple small furniture pieces
+SCALE 8: $125-150 - Office chair, small dresser
+SCALE 9: $150-175 - Large chair, coffee table
+SCALE 10: $175-205 - Love seat, medium dresser
+SCALE 11: $205-235 - Dining table, bookshelf
+SCALE 12: $235-270 - Sofa, large dresser
+SCALE 13: $270-310 - Sectional sofa, wardrobe
+SCALE 14: $310-355 - Bedroom set, multiple large items
+SCALE 15: $355-405 - Living room set
+SCALE 16: $405-460 - Multiple room furniture
+SCALE 17: $460-520 - Small apartment cleanout
+SCALE 18: $520-585 - Large apartment cleanout
+SCALE 19: $585-655 - Small house cleanout
+SCALE 20: $655-750 - Large house cleanout, estate sale items
 
 **VOLUME ESTIMATION GUIDANCE:**
 - For PILES/STACKS: Estimate length × width × height in feet
-- Large outdoor materials (logs, debris) typically Scale 6-10
+- Large outdoor materials (logs, debris) typically Scale 15-20
 - Use descriptive terms like "large pile", "massive stack" to indicate high volume
 
 Additional charges may apply for:
