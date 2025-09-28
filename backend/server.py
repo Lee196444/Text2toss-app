@@ -1550,6 +1550,31 @@ async def admin_login(login_data: AdminLogin):
         logger.error(f"Admin login error: {str(e)}")
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
+@api_router.post("/admin/init")
+async def initialize_admin():
+    """Initialize the admin user - run once to set up the admin account"""
+    # Check if admin user already exists
+    existing_admin = await db.admin_users.find_one({"username": "lrobe"})
+    if existing_admin:
+        return {"message": "Admin user already exists"}
+    
+    # Hash the password securely
+    password_hash = pwd_context.hash("L1964c10$")
+    
+    # Create admin user
+    admin_user = AdminUser(
+        username="lrobe",
+        password_hash=password_hash,
+        display_name="Lee Robertson"
+    )
+    
+    # Store in database
+    admin_dict = prepare_for_mongo(admin_user.dict())
+    await db.admin_users.insert_one(admin_dict)
+    
+    logger.info("Admin user 'lrobe' created successfully")
+    return {"message": "Admin user created successfully", "username": "lrobe"}
+
 @api_router.get("/admin/verify")
 async def verify_admin_token(token: str = None):
     """Verify admin token"""
