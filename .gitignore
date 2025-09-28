@@ -94,3 +94,7 @@ frontend/node_modules/.cache/default-development/0.pack
 *key*.json
 *token*.txt
 *auth*.json
+-e 
+# Environment files
+*.env
+*.env.*
