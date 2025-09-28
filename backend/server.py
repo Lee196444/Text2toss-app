@@ -512,7 +512,7 @@ IMPORTANT SERVICE LIMITATIONS:
 CRITICAL VOLUME ASSESSMENT INSTRUCTIONS:
 1. CAREFULLY estimate the total cubic footage of ALL materials in the image
 2. For PILES, STACKS, or OUTDOOR MATERIALS: Measure length × width × height to estimate total volume
-3. For LARGE PILES (like logs, debris, construction materials): These often represent Scale 6-10 loads
+3. For LARGE PILES (like logs, debris, construction materials): These often represent Scale 15-20 loads
 4. Use REFERENCE OBJECTS (people, cars, houses, tools) in the image to gauge true scale
 5. Consider that outdoor piles often appear smaller than they actually are
 
