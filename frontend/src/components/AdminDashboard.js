@@ -42,6 +42,11 @@ const AdminDashboard = () => {
   const [pendingQuotes, setPendingQuotes] = useState([]);
   const [showQuoteApproval, setShowQuoteApproval] = useState(false);
   const [approvalStats, setApprovalStats] = useState({});
+  const [showSmsCenter, setShowSmsCenter] = useState(false);
+  const [smsMessages, setSmsMessages] = useState([]);
+  const [smsLoading, setSmsLoading] = useState(false);
+  const [newSmsMessage, setNewSmsMessage] = useState('');
+  const [selectedCustomerPhone, setSelectedCustomerPhone] = useState('');
 
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
