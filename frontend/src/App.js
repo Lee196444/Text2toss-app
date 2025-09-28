@@ -487,6 +487,49 @@ const LandingPage = () => {
                           )}
                         </h3>
                         <p className="text-emerald-600 text-sm mb-2">Quote ID: {quote.id}</p>
+                        
+                        {/* Price Breakdown Section */}
+                        {quote.breakdown && (
+                          <div className="bg-white/80 rounded-lg p-4 mb-4 text-left">
+                            <h4 className="font-semibold text-emerald-800 mb-3 text-center">💰 Price Breakdown</h4>
+                            <div className="space-y-2">
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm text-gray-600">Volume Scale:</span>
+                                <span className="font-medium text-emerald-700">
+                                  {quote.scale_level}/10 ({quote.scale_level <= 3 ? 'Small' : quote.scale_level <= 6 ? 'Medium' : 'Large'})
+                                </span>
+                              </div>
+                              {quote.breakdown.base_price && (
+                                <div className="flex justify-between items-center">
+                                  <span className="text-sm text-gray-600">Base Price Range:</span>
+                                  <span className="font-medium">${quote.breakdown.base_price}</span>
+                                </div>
+                              )}
+                              {quote.breakdown.items && quote.breakdown.items.length > 0 && (
+                                <div className="border-t pt-2 mt-2">
+                                  <p className="text-sm text-gray-600 mb-2">Items:</p>
+                                  {quote.breakdown.items.map((item, index) => (
+                                    <div key={index} className="flex justify-between items-center ml-4">
+                                      <span className="text-xs text-gray-500">{item.name} ({item.size})</span>
+                                      <span className="text-xs font-medium">${item.estimated_cost || 'Included'}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              {quote.breakdown.factors && (
+                                <div className="border-t pt-2 mt-2">
+                                  <p className="text-sm text-gray-600 mb-2">Pricing Factors:</p>
+                                  {quote.breakdown.factors.map((factor, index) => (
+                                    <div key={index} className="ml-4">
+                                      <span className="text-xs text-gray-500">• {factor}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        
                         {quote.ai_explanation && (
                           <div className="bg-white/50 rounded-lg p-3 mb-4">
                             <p className="text-xs text-gray-600 mb-1">🤖 AI Pricing Analysis</p>
