@@ -9,7 +9,7 @@ import sys
 
 def test_image_pricing():
     """Test image-based quote generation"""
-    base_url = "https://text2toss-1.preview.emergentagent.com/api"
+    base_url = "https://text2toss-venmo.preview.emergentagent.com/api"
     
     print("🖼️  TESTING IMAGE-BASED PRICING")
     print("="*50)
