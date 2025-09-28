@@ -495,7 +495,7 @@ const LandingPage = () => {
                               <div className="flex justify-between items-center">
                                 <span className="text-sm text-gray-600">Volume Scale:</span>
                                 <span className="font-medium text-emerald-700">
-                                  {quote.scale_level}/10 ({quote.scale_level <= 3 ? 'Small' : quote.scale_level <= 6 ? 'Medium' : 'Large'})
+                                  {quote.scale_level}/20 ({quote.scale_level <= 4 ? 'Small' : quote.scale_level <= 8 ? 'Medium' : quote.scale_level <= 14 ? 'Large' : 'XL'})
                                 </span>
                               </div>
                               {quote.breakdown.base_price && (
