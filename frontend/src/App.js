@@ -984,31 +984,27 @@ const BookingModal = ({ quote, onClose, onSuccess }) => {
             />
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-2 sm:space-y-3 p-3 sm:p-6 bg-white border-t">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 w-full">
-            <Button 
-              onClick={handleBooking} 
-              data-testid="confirm-booking-btn" 
-              className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white py-2 sm:py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium text-sm sm:text-base"
-            >
-              💳 Pay with Card
-            </Button>
-            <Button 
-              onClick={() => {
-                // For Venmo, we still create the booking but show QR code instead of redirecting to Stripe
-                alert("Venmo payment: After booking confirmation, you'll see a QR code to complete payment via Venmo app.");
-                handleBooking();
-              }}
-              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-2 sm:py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium text-sm sm:text-base"
-            >
-              📱 Pay with Venmo
-            </Button>
+        <CardFooter className="flex flex-col space-y-4 p-4 sm:p-6">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+            <h3 className="font-semibold text-blue-800 mb-2">💳 Payment Method</h3>
+            <p className="text-blue-700 text-sm mb-3">
+              We accept Venmo payments only. After booking, you'll receive payment instructions.
+            </p>
           </div>
+          
+          <Button 
+            onClick={handleVenmoBooking}
+            data-testid="venmo-booking-btn" 
+            className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 font-medium text-lg"
+          >
+            📱 Book Job - Pay with Venmo (@Text2toss)
+          </Button>
+          
           <Button 
             variant="outline" 
             onClick={onClose} 
             data-testid="cancel-booking-btn" 
-            className="w-full bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300 text-gray-600 hover:text-gray-800 py-2 sm:py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium text-sm sm:text-base"
+            className="w-full bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300 text-gray-600 hover:text-gray-800 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium"
           >
             Cancel
           </Button>
