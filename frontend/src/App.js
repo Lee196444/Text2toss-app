@@ -851,9 +851,6 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
   const [bookedTimeSlots, setBookedTimeSlots] = useState([]);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
-  const [showVenmoPayment, setShowVenmoPayment] = useState(false);
-  const [venmoBookingId, setVenmoBookingId] = useState('');
-  const [venmoQRCode, setVenmoQRCode] = useState('');
 
   // Check if date is allowed (no Fridays, Saturdays, Sundays)
   const isDateAllowed = (dateString) => {
