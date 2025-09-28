@@ -1690,7 +1690,8 @@ async def get_payment_status(session_id: str):
         
         # Initialize Stripe checkout
         stripe_api_key = os.environ.get('STRIPE_API_KEY', 'sk_test_emergent')
-        webhook_url = f"http://localhost:8001/api/webhook/stripe"  # Placeholder URL
+        # Use production webhook URL based on deployment environment
+        webhook_url = f"{host_url.replace('http://localhost:8001', host_url)}/api/webhook/stripe"
         stripe_checkout = StripeCheckout(api_key=stripe_api_key, webhook_url=webhook_url)
         
         # Get checkout status
