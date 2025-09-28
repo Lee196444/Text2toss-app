@@ -288,6 +288,29 @@ class QuoteApprovalAction(BaseModel):
     admin_notes: Optional[str] = None
     approved_price: Optional[float] = None  # Admin can adjust price
 
+# Volume-based pricing scale (1-20)
+PRICING_SCALE = {
+    1: {"range": (25, 35), "description": "15-gallon trash bag or smaller"},
+    2: {"range": (35, 45), "description": "Small box, single small item"},
+    3: {"range": (45, 55), "description": "Large trash bag, small electronics"},
+    4: {"range": (55, 70), "description": "Multiple bags, small appliances"},
+    5: {"range": (70, 85), "description": "Microwave, toaster oven sized items"},
+    6: {"range": (85, 105), "description": "Small chair, end table"},
+    7: {"range": (105, 125), "description": "Multiple small furniture pieces"},
+    8: {"range": (125, 150), "description": "Office chair, small dresser"},
+    9: {"range": (150, 175), "description": "Large chair, coffee table"},
+    10: {"range": (175, 205), "description": "Love seat, medium dresser"},
+    11: {"range": (205, 235), "description": "Dining table, bookshelf"},
+    12: {"range": (235, 270), "description": "Sofa, large dresser"},
+    13: {"range": (270, 310), "description": "Sectional sofa, wardrobe"},
+    14: {"range": (310, 355), "description": "Bedroom set, multiple large items"},
+    15: {"range": (355, 405), "description": "Living room set"},
+    16: {"range": (405, 460), "description": "Multiple room furniture"},
+    17: {"range": (460, 520), "description": "Small apartment cleanout"},
+    18: {"range": (520, 585), "description": "Large apartment cleanout"},
+    19: {"range": (585, 655), "description": "Small house cleanout"},
+    20: {"range": (655, 750), "description": "Large house cleanout, estate sale items"}
+}
 # AI-powered pricing logic for ground level and curbside pickup only
 async def calculate_ai_price(items: List[JunkItem], description: str) -> tuple[float, str, Optional[int], Optional[dict]]:
     """Use AI to analyze junk description and provide intelligent pricing for ground level/curbside pickup only"""
