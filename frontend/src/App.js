@@ -316,8 +316,8 @@ const LandingPage = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 leading-relaxed">
-                  Choose a convenient time for pickup and pay via Venmo. 
-                  We accept Venmo payments (@Text2toss) for your convenience.
+                  Choose a convenient time for pickup and pay via Venmo only. 
+                  Send payment to @Text2toss with your booking ID for confirmation.
                 </p>
               </CardContent>
             </Card>
