@@ -553,7 +553,7 @@ Additional charges may apply for:
 
 PRICING PROCESS:
 1. Identify all items in the image
-2. Estimate combined volume using the 1-10 scale above  
+2. Estimate combined volume using the 1-20 scale above  
 3. Select appropriate price range for that scale
 4. Adjust within range based on item condition, weight, disposal complexity
 5. Add any applicable additional charges
