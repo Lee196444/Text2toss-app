@@ -290,8 +290,8 @@ class QuoteApprovalAction(BaseModel):
 
 # Volume-based pricing scale (1-20)
 PRICING_SCALE = {
-    1: {"range": (25, 35), "description": "15-gallon trash bag or smaller"},
-    2: {"range": (35, 45), "description": "Small box, single small item"},
+    1: {"range": (15, 15), "description": "15-gallon trash bag or smaller"},
+    2: {"range": (20, 20), "description": "Small box, single small item"},
     3: {"range": (45, 55), "description": "Large trash bag, small electronics"},
     4: {"range": (55, 70), "description": "Multiple bags, small appliances"},
     5: {"range": (70, 85), "description": "Microwave, toaster oven sized items"},
