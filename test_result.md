@@ -466,7 +466,9 @@
   run_ui: false
 
 ## test_plan:
-  current_focus: []
+  current_focus:
+    - "Venmo Payment Integration with QR Code"
+    - "Stripe Element Removal Verification"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
