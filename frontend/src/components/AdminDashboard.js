@@ -1311,12 +1311,16 @@ const AdminDashboard = () => {
                             {dayJobs.slice(0, window.innerWidth < 640 ? 2 : 3).map((job, index) => (
                               <div 
                                 key={job.id}
-                                className={`text-xs p-0.5 sm:p-1 rounded truncate ${
-                                  job.status === 'completed' ? 'bg-green-100 text-green-800' :
-                                  job.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
-                                  'bg-blue-100 text-blue-800'
+                                className={`text-xs p-0.5 sm:p-1 rounded truncate cursor-pointer hover:opacity-80 transition-all duration-200 ${
+                                  job.status === 'completed' ? 'bg-green-100 text-green-800 hover:bg-green-200' :
+                                  job.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' :
+                                  'bg-blue-100 text-blue-800 hover:bg-blue-200'
                                 }`}
-                                title={`${job.pickup_time} - ${job.address} - $${job.quote_details?.total_price || 0}`}
+                                title={`Click to view details: ${job.pickup_time} - ${job.address} - $${job.quote_details?.total_price || 0}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openJobDetails(job);
+                                }}
                               >
                                 <span className="hidden sm:inline">{job.pickup_time.split('-')[0]} </span>${job.quote_details?.total_price || 0}
                               </div>
