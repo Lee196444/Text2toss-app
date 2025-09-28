@@ -802,21 +802,24 @@ const BookingModal = ({ quote, onClose, onSuccess }) => {
       
       const bookingId = bookingResponse.data.id;
       
-      // Show success message with Venmo payment instructions
-      toast.success("Booking confirmed! Please complete payment via Venmo to @Text2toss");
+      // Generate Venmo payment URL and QR code
+      const venmoUrl = `https://venmo.com/code?user_id=Text2toss&amount=${quote.total_price}&note=Text2toss%20Booking%20${bookingId.substring(0, 8)}`;
       
-      // Show Venmo payment instructions
-      alert(`🎉 Booking Confirmed! 
-
-📱 Complete Payment via Venmo:
-• Send $${quote.total_price} to @Text2toss
-• Include booking ID: ${bookingId.substring(0, 8)}
-• We'll confirm payment and send pickup details
-
-Thank you for choosing Text2toss!`);
+      // Generate QR code for Venmo payment
+      const qrCodeDataUrl = await QRCode.toDataURL(venmoUrl, {
+        width: 256,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      });
       
-      // Call onSuccess to close modals and show success
-      onSuccess();
+      // Set booking data and show Venmo payment modal
+      setVenmoBookingId(bookingId);
+      setVenmoQRCode(qrCodeDataUrl);
+      setShowBooking(false);  // Close booking modal
+      setShowVenmoPayment(true);  // Show Venmo payment modal
       
     } catch (error) {
       toast.error("Failed to create booking");
