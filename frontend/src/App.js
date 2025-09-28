@@ -946,10 +946,7 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
       });
       
       // Set booking data and show Venmo payment modal
-      setVenmoBookingId(bookingId);
-      setVenmoQRCode(qrCodeDataUrl);
-      setShowBooking(false);  // Close booking modal
-      setShowVenmoPayment(true);  // Show Venmo payment modal
+      onVenmoPayment(bookingId, qrCodeDataUrl);
       
     } catch (error) {
       toast.error("Failed to create booking");
