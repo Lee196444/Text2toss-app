@@ -883,21 +883,14 @@ Thank you for choosing Text2toss!`);
         </CardHeader>
         <CardContent className="space-y-3 sm:space-y-4 max-h-[50vh] sm:max-h-none overflow-y-auto">
           {/* Payment Options */}
-          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
-            <h3 className="font-semibold text-emerald-800 mb-3">Payment Options</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center">
-                <div className="mb-2">
-                  <span className="text-sm font-medium text-gray-700">💳 Card Payment</span>
-                </div>
-                <p className="text-xs text-gray-600">Secure online payment</p>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h3 className="font-semibold text-blue-800 mb-3">💳 Payment Method</h3>
+            <div className="text-center">
+              <div className="mb-2">
+                <span className="text-lg font-medium text-blue-700">📱 Venmo Only</span>
               </div>
-              <div className="text-center border-l border-emerald-200 pl-4">
-                <div className="mb-2">
-                  <span className="text-sm font-medium text-gray-700">📱 Venmo</span>
-                </div>
-                <p className="text-xs text-gray-600">Scan QR after booking</p>
-              </div>
+              <p className="text-sm text-blue-600 mb-2">Send payment to @Text2toss</p>
+              <p className="text-xs text-blue-600">After booking, you'll receive payment instructions with your booking ID</p>
             </div>
           </div>
 
