@@ -869,59 +869,6 @@ Thank you for choosing Text2toss!`);
     }
   };
 
-  const handleVenmoBooking = async () => {
-    if (!bookingData.pickup_date || !bookingData.pickup_time || !bookingData.address || !bookingData.phone) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
-    if (!bookingData.curbside_confirmed) {
-      toast.error("Please confirm that all items are placed on the ground by the curb");
-      return;
-    }
-
-    if (!isDateAllowed(bookingData.pickup_date)) {
-      toast.error("Selected date is not available for pickup");
-      return;
-    }
-
-    if (bookedTimeSlots.includes(bookingData.pickup_time)) {
-      toast.error("Selected time slot is already booked. Please choose another time.");
-      return;
-    }
-
-    try {
-      // Create the booking with Venmo payment method
-      const bookingResponse = await axios.post(`${API}/bookings`, {
-        quote_id: quote.id,
-        ...bookingData,
-        payment_method: 'venmo'
-      });
-      
-      const bookingId = bookingResponse.data.id;
-      
-      // Show success message with Venmo payment instructions
-      toast.success("Booking confirmed! Please complete payment via Venmo to @Text2toss");
-      
-      // Show Venmo payment instructions
-      alert(`🎉 Booking Confirmed! 
-
-📱 Complete Payment via Venmo:
-• Send $${quote.total_price} to @Text2toss
-• Include booking ID: ${bookingId}
-• We'll confirm payment and send pickup details
-
-Thank you for choosing Text2toss!`);
-      
-      // Call onSuccess to close modals and show success
-      onSuccess();
-      
-    } catch (error) {
-      toast.error("Failed to create booking");
-      console.error(error);
-    }
-  };
-
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start sm:items-center justify-center p-2 sm:p-4 pt-2 sm:pt-4 pb-2 sm:pb-4 overflow-y-auto">
       <Card className="w-full max-w-md mx-2 sm:mx-0 my-2 sm:my-4 max-h-[95vh] sm:max-h-none overflow-y-auto">
