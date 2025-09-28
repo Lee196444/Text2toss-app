@@ -385,6 +385,12 @@ const AdminDashboard = () => {
     setBinBookings([]);
   };
 
+  const openJobDetails = (job) => {
+    // Open the job in a bin modal with just this single job
+    setBinBookings([job]);
+    setSelectedBin('details');
+  };
+
   const startRoute = async (booking) => {
     setSelectedRouteBooking(booking);
     setShowRouteModal(true);
