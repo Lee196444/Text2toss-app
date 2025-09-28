@@ -510,25 +510,54 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-gradient-to-br from-black/40 to-emerald-900/50 p-2 sm:p-4">
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="text-center sm:text-left">
-            <h1 className="text-2xl sm:text-3xl font-bold text-white">Admin Dashboard</h1>
-            <p className="text-gray-200 text-sm sm:text-base">Manage daily pickups and optimize routes</p>
-          </div>
-          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
-            <Input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-full sm:w-auto text-sm"
-            />
-            <Button 
-              onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
-              size="sm"
-              className="w-full sm:w-auto"
-            >
-              Today
-            </Button>
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/20">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="text-center lg:text-left">
+              <div className="flex items-center justify-center lg:justify-start gap-3 mb-2">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-lg sm:text-xl font-bold">🏠</span>
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-white">Text2toss Admin</h1>
+              </div>
+              <p className="text-emerald-100 text-sm sm:text-base">
+                Welcome back, {(() => {
+                  try {
+                    const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
+                    return adminUser.display_name || 'Admin';
+                  } catch {
+                    return 'Admin';
+                  }
+                })()}! Manage daily pickups and optimize routes
+              </p>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
+              <Input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="w-full sm:w-auto text-sm bg-white/90"
+              />
+              <Button 
+                onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
+                size="sm"
+                className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700"
+              >
+                Today
+              </Button>
+              <Button 
+                onClick={() => {
+                  localStorage.removeItem('admin_token');
+                  localStorage.removeItem('admin_user');
+                  window.location.reload();
+                }}
+                size="sm"
+                variant="outline"
+                className="w-full sm:w-auto bg-white/10 border-white/30 text-white hover:bg-white/20"
+              >
+                🚪 Logout
+              </Button>
+            </div>
           </div>
         </div>
 
