@@ -63,6 +63,12 @@ const AdminDashboard = () => {
     fetchApprovalStats();
   }, [selectedDate]);
 
+  useEffect(() => {
+    if (showSmsCenter) {
+      fetchSmsMessages();
+    }
+  }, [showSmsCenter]);
+
   const fetchDailySchedule = async () => {
     setLoading(true);
     try {
