@@ -457,41 +457,48 @@ Respond ONLY with a JSON object in this exact format:
         }
         return fallback_price, "Basic pricing applied (AI temporarily unavailable)", 3, fallback_breakdown
 
-# Fallback basic pricing function using new 1-10 scale
+# Fallback basic pricing function using new 1-20 scale
 def calculate_basic_price(items: List[JunkItem]) -> float:
     # Estimate scale based on items using new pricing system
     total_volume_estimate = 0
     
     # Volume estimation factors
     volume_factors = {
-        "small": 1,    # Scale 1 equivalent
-        "medium": 3,   # Scale 3 equivalent  
-        "large": 6     # Scale 6 equivalent
+        "small": 1,    # Scale 1-3 equivalent
+        "medium": 5,   # Scale 5-8 equivalent  
+        "large": 12    # Scale 12-15 equivalent
     }
     
     for item in items:
-        factor = volume_factors.get(item.size, 3)
+        factor = volume_factors.get(item.size, 5)
         total_volume_estimate += factor * item.quantity
     
-    # Determine scale level (1-10)
+    # Determine scale level (1-20) using PRICING_SCALE
     if total_volume_estimate <= 1:
         scale = 1
-        price_range = (35, 45)
+    elif total_volume_estimate <= 2:
+        scale = 2
     elif total_volume_estimate <= 3:
         scale = 3
-        price_range = (65, 85)
-    elif total_volume_estimate <= 6:
+    elif total_volume_estimate <= 4:
+        scale = 4
+    elif total_volume_estimate <= 5:
         scale = 5
-        price_range = (125, 165)
-    elif total_volume_estimate <= 9:
+    elif total_volume_estimate <= 7:
         scale = 7
-        price_range = (195, 245)
-    elif total_volume_estimate <= 12:
-        scale = 9
-        price_range = (275, 325)
-    else:
+    elif total_volume_estimate <= 10:
         scale = 10
-        price_range = (350, 450)
+    elif total_volume_estimate <= 15:
+        scale = 12
+    elif total_volume_estimate <= 20:
+        scale = 15
+    elif total_volume_estimate <= 30:
+        scale = 17
+    else:
+        scale = 20
+    
+    # Get price range from PRICING_SCALE
+    price_range = PRICING_SCALE[scale]["range"]
     
     # Use middle of price range for fallback
     return round((price_range[0] + price_range[1]) / 2, 2)
