@@ -801,6 +801,7 @@ const AdminDashboard = () => {
                   {selectedBin === 'upcoming' && '📅 Upcoming Jobs'}
                   {selectedBin === 'inProgress' && '🚛 Jobs In Progress'}
                   {selectedBin === 'completed' && '✅ Completed Jobs'}
+                  {selectedBin === 'details' && '📋 Job Details'}
                   <span className="text-sm font-normal">({binBookings.length})</span>
                 </CardTitle>
                 <CardDescription className="text-sm">
