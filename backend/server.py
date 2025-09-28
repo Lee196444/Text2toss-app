@@ -1308,8 +1308,12 @@ async def upload_completion_photo(
                 completion_message += f"Note: {completion_note} "
             completion_message += "See attached photo of the cleaned area!"
             
-            sms_result = await send_sms(phone, completion_message, photo_url)
-            logging.info(f"Completion SMS sent for booking {booking_id}: {sms_result}")
+            # Only send SMS if customer opted in for notifications
+            if booking.get('sms_notifications', False):
+                sms_result = await send_sms(phone, completion_message, photo_url)
+                logging.info(f"Completion SMS sent for booking {booking_id}: {sms_result}")
+            else:
+                logging.info(f"Completion SMS not sent for booking {booking_id}: Customer opted out of notifications")
         
         return {
             "message": "Completion photo uploaded and customer notified with photo",
