@@ -10,11 +10,11 @@ body {
   font-family: 'Inter', sans-serif;
   line-height: 1.6;
   color: #ffffff;
-  background-image: url('https://customer-assets.emergentagent.com/job_text2toss-1/artifacts/5dpvvvxv_image.png');
-  background-size: cover;
+  background-image: url('https://customer-assets.emergentagent.com/job_text2toss-venmo/artifacts/x9ylj5p1_file_000000009f1c622f8fa39a4fa28b3561.png');
+  background-size: auto;
   background-attachment: fixed;
   background-position: center;
-  background-repeat: no-repeat;
+  background-repeat: repeat;
   min-height: 100vh;
 }
 
