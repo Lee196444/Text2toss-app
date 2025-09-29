@@ -77,6 +77,19 @@ const AdminDashboard = () => {
     }
   }, [showSmsCenter]);
 
+  useEffect(() => {
+    if (showPhotoGallery) {
+      fetchGalleryPhotos();
+      fetchReelPhotos();
+    }
+  }, [showPhotoGallery]);
+
+  useEffect(() => {
+    if (showCustomerPhotos) {
+      fetchCustomerPhotos();
+    }
+  }, [showCustomerPhotos]);
+
   // Photo Management Functions
   const fetchGalleryPhotos = async () => {
     try {
