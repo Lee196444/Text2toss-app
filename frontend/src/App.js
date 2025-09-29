@@ -188,22 +188,11 @@ const LandingPage = () => {
                 <span className="text-xs sm:text-sm text-emerald-300 font-medium tracking-wide">Professional Junk Removal</span>
               </div>
             </div>
-            <div className="hidden md:flex items-center space-x-8">
-              <a href="#how-it-works" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors">How It Works</a>
-              <a href="#contact" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors">Contact</a>
-            </div>
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <Link to="/admin">
-                <Button 
-                  variant="outline"
-                  size="sm"
-                  className="border-emerald-400 text-emerald-400 hover:bg-emerald-400 hover:text-white text-xs sm:text-sm px-3 sm:px-4 py-2 min-w-0"
-                  data-testid="admin-login-nav-btn"
-                >
-                  <span className="hidden sm:inline">🔐 Admin Login</span>
-                  <span className="sm:hidden">Admin</span>
-                </Button>
-              </Link>
+            <div className="flex items-center space-x-4">
+              <div className="hidden md:flex items-center space-x-8">
+                <a href="#how-it-works" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors">How It Works</a>
+                <a href="#contact" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors">Contact</a>
+              </div>
               <Button 
                 onClick={() => setShowQuote(true)}
                 size="sm"
@@ -213,6 +202,15 @@ const LandingPage = () => {
                 <span className="hidden sm:inline">📸 Upload & Quote</span>
                 <span className="sm:hidden">Get Quote</span>
               </Button>
+              <Link to="/admin">
+                <Button 
+                  variant="outline"
+                  className="border-emerald-400 text-emerald-400 hover:bg-emerald-400 hover:text-white w-10 h-10 p-0 rounded-lg flex items-center justify-center"
+                  data-testid="admin-login-nav-btn"
+                >
+                  🔐
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
