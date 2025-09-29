@@ -1541,7 +1541,8 @@ async def test_sms_photo(booking_id: str):
         raise HTTPException(status_code=400, detail="No completion photo available")
     
     # Create fully accessible URL for the completion photo
-    completion_photo_url = f"https://text2toss-junk.preview.emergentagent.com/api/public/completion-photo/{booking_id}"
+    backend_url = os.environ.get('REACT_APP_BACKEND_URL')
+    completion_photo_url = f"{backend_url}/api/public/completion-photo/{booking_id}"
     
     result = await send_sms(
         booking["phone"],
