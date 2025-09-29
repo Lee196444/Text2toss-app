@@ -1902,8 +1902,8 @@ async def upload_gallery_photo(photo: UploadFile = File(...)):
         with open(file_path, "wb") as f:
             f.write(contents)
         
-        # Create URL for the photo
-        photo_url = f"/static/gallery/{filename}"
+        # Create URL for the photo  
+        photo_url = f"{os.environ.get('REACT_APP_BACKEND_URL', '')}/static/gallery/{filename}"
         
         # Save to database
         photo_doc = {
