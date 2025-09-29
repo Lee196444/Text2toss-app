@@ -180,16 +180,39 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4 sm:py-5">
             
-            {/* Enhanced Left Branding */}
+            {/* Professional Logo Design */}
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
-                <span className="text-white font-bold text-lg sm:text-2xl tracking-tight">T2T</span>
+              <div className="relative w-12 h-12 sm:w-16 sm:h-16">
+                {/* Logo Icon - Stylized Truck/Recycling Design */}
+                <div className="w-full h-full bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-xl shadow-emerald-500/40 transform rotate-3 hover:rotate-0 transition-all duration-300">
+                  <div className="relative">
+                    {/* Truck Icon */}
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-white drop-shadow-lg">
+                      <path d="M17 5H9V3C9 2.45 9.45 2 10 2H16C16.55 2 17 2.45 17 3V5Z" fill="currentColor"/>
+                      <path d="M4 7V19C4 19.55 4.45 20 5 20H6.5C6.78 18.85 7.8 18 9 18C10.2 18 11.22 18.85 11.5 20H15.5C15.78 18.85 16.8 18 18 18C19.2 18 20.22 18.85 20.5 20H22C22.55 20 23 19.55 23 19V12L20 9H17V7H4Z" fill="currentColor"/>
+                      <circle cx="9" cy="19" r="1" fill="currentColor"/>
+                      <circle cx="18" cy="19" r="1" fill="currentColor"/>
+                      {/* Recycling arrows */}
+                      <path d="M8 8L10 6L8 4" stroke="rgba(255,255,255,0.7)" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+                      <path d="M12 6L14 8L16 6" stroke="rgba(255,255,255,0.7)" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+                    </svg>
+                  </div>
+                </div>
+                {/* Accent dot */}
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-orange-400 to-red-500 rounded-full shadow-lg animate-pulse"></div>
               </div>
               <div className="flex flex-col">
-                <span className="text-2xl sm:text-4xl font-extrabold bg-gradient-to-r from-emerald-400 via-emerald-300 to-teal-400 bg-clip-text text-transparent tracking-wide">
-                  Text2toss
-                </span>
-                <span className="text-emerald-300/80 text-xs sm:text-sm font-medium tracking-wider">
+                <div className="flex items-center space-x-2">
+                  <span className="text-2xl sm:text-4xl font-black bg-gradient-to-r from-emerald-400 via-emerald-300 to-teal-400 bg-clip-text text-transparent tracking-tight">
+                    Text2toss
+                  </span>
+                  <div className="hidden sm:flex items-center space-x-1">
+                    <div className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                    <div className="w-2 h-2 bg-emerald-300 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                  </div>
+                </div>
+                <span className="text-emerald-300/90 text-xs sm:text-sm font-semibold tracking-wider uppercase">
                   Professional Junk Removal
                 </span>
               </div>
