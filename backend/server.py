@@ -1852,6 +1852,10 @@ async def get_gallery_photos():
         for photo in photos:
             url = photo["url"]
             if url.startswith('/static/'):
+                # Convert old /static/ URLs to new /files/ URLs
+                url = url.replace('/static/', '/files/')
+                url = f"https://text2toss-venmo.preview.emergentagent.com{url}"
+            elif url.startswith('/files/'):
                 url = f"https://text2toss-venmo.preview.emergentagent.com{url}"
             full_urls.append(url)
         return full_urls
