@@ -105,8 +105,8 @@ const LandingPage = () => {
   
   const addItem = () => {
     if (!currentItem.name) return;
-    setItems([...items, { ...currentItem }]);
-    setCurrentItem({ name: "", quantity: 1, size: "medium", description: "" });
+    setItems([...items, { ...currentItem, quantity: 1 }]); // Add default quantity for backend compatibility
+    setCurrentItem({ name: "", size: "medium", description: "" });
   };
 
   const removeItem = (index) => {
