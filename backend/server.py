@@ -1889,6 +1889,11 @@ async def get_reel_photos():
         logger.error(f"Failed to get reel photos: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to retrieve reel photos")
 
+@api_router.get("/admin/reel-photos")
+async def get_admin_reel_photos():
+    """Get photo reel configuration for admin (same as public but with admin auth)"""
+    return await get_reel_photos()
+
 @api_router.post("/admin/upload-gallery-photo")
 async def upload_gallery_photo(photo: UploadFile = File(...)):
     """Upload a photo to the gallery"""
