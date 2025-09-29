@@ -330,46 +330,25 @@ const LandingPage = () => {
                 </Link>
               </div>
               
-              <div className="hidden lg:flex flex-col gap-4 max-w-sm">
-                <Button 
-                  variant="outline" 
-                  size="lg"
-                  className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 text-base px-6 py-4 w-full"
-                  data-testid="learn-more-btn"
-                  onClick={() => {
-                <Button 
-                  variant="outline" 
-                  size="lg"
-                  className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 text-sm sm:text-base lg:text-lg px-3 sm:px-6 lg:px-8 py-4 lg:py-6 w-full max-w-full text-center"
-                  data-testid="learn-more-btn"
-                  onClick={() => {
-                    document.getElementById('how-it-works').scrollIntoView({ 
-                      behavior: 'smooth' 
-                    });
-                  }}
-                >
-                  Learn More
-                </Button>
-              </div>
-
-              <div className="flex items-center space-x-8">
-                <div className="flex items-center space-x-2">
-                  <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
+              {/* Mobile-Responsive Feature Highlights */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mt-4 px-2 lg:px-0">
+                <div className="flex items-center justify-center sm:justify-start space-x-2">
+                  <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
                     <span className="text-white text-xs">✓</span>
                   </div>
-                  <span className="text-gray-200">No Callbacks Required</span>
+                  <span className="text-gray-200 text-sm sm:text-base">No Callbacks Required</span>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
+                <div className="flex items-center justify-center sm:justify-start space-x-2">
+                  <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
                     <span className="text-white text-xs">✓</span>
                   </div>
-                  <span className="text-gray-200">Instant Photo Quotes</span>
+                  <span className="text-gray-200 text-sm sm:text-base">Instant Photo Quotes</span>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
+                <div className="flex items-center justify-center sm:justify-start space-x-2">
+                  <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
                     <span className="text-white text-xs">✓</span>
                   </div>
-                  <span className="text-gray-200">Same Day Pickup</span>
+                  <span className="text-gray-200 text-sm sm:text-base">Professional Service</span>
                 </div>
               </div>
             </div>
