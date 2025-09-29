@@ -10,7 +10,7 @@ import sys
 
 def test_pricing_system():
     """Test the new 1-10 scale pricing system in detail"""
-    base_url = "https://text2toss-venmo.preview.emergentagent.com/api"
+    base_url = "https://text2toss-junk.preview.emergentagent.com/api"
     
     print("🔍 DETAILED NEW PRICING SYSTEM TEST")
     print("="*60)

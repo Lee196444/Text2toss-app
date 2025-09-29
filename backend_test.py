@@ -7,7 +7,7 @@ import tempfile
 from pathlib import Path
 
 class TEXT2TOSSAPITester:
-    def __init__(self, base_url="https://text2toss-venmo.preview.emergentagent.com"):
+    def __init__(self, base_url="https://text2toss-junk.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.admin_token = None
@@ -1000,7 +1000,7 @@ class TEXT2TOSSAPITester:
         print("\n💳 Testing Create Stripe Checkout Session...")
         payment_request = {
             "booking_id": self.test_booking_id,
-            "origin_url": "https://text2toss-venmo.preview.emergentagent.com"
+            "origin_url": "https://text2toss-junk.preview.emergentagent.com"
         }
         
         success, response = self.run_test("Create Stripe Checkout Session", "POST", 
@@ -1117,7 +1117,7 @@ class TEXT2TOSSAPITester:
         # Test with invalid booking ID
         invalid_payment_request = {
             "booking_id": "invalid_booking_id",
-            "origin_url": "https://text2toss-venmo.preview.emergentagent.com"
+            "origin_url": "https://text2toss-junk.preview.emergentagent.com"
         }
         
         success, response = self.run_test("Create Session with Invalid Booking", "POST", 
@@ -1915,7 +1915,7 @@ class TEXT2TOSSAPITester:
                 # Try to create payment for unapproved quote - should fail
                 payment_request = {
                     "booking_id": test_booking_id,
-                    "origin_url": "https://text2toss-venmo.preview.emergentagent.com"
+                    "origin_url": "https://text2toss-junk.preview.emergentagent.com"
                 }
                 
                 success, response = self.run_test("Create Payment for Unapproved Quote (Should Fail)", "POST", 
@@ -1951,7 +1951,7 @@ class TEXT2TOSSAPITester:
                 # Try to create payment for approved quote - should succeed
                 payment_request = {
                     "booking_id": approved_booking_id,
-                    "origin_url": "https://text2toss-venmo.preview.emergentagent.com"
+                    "origin_url": "https://text2toss-junk.preview.emergentagent.com"
                 }
                 
                 success, response = self.run_test("Create Payment for Approved Quote (Should Succeed)", "POST", 
@@ -1989,7 +1989,7 @@ class TEXT2TOSSAPITester:
                 # Try to create payment for auto-approved quote - should succeed
                 payment_request = {
                     "booking_id": auto_booking_id,
-                    "origin_url": "https://text2toss-venmo.preview.emergentagent.com"
+                    "origin_url": "https://text2toss-junk.preview.emergentagent.com"
                 }
                 
                 success, response = self.run_test("Create Payment for Auto-Approved Quote (Should Succeed)", "POST", 

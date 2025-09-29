@@ -10,7 +10,7 @@ import re
 
 def test_ai_response_parsing():
     """Test to see if AI is generating correct format but backend isn't parsing it"""
-    base_url = "https://text2toss-venmo.preview.emergentagent.com/api"
+    base_url = "https://text2toss-junk.preview.emergentagent.com/api"
     
     print("🔍 TESTING AI RESPONSE PARSING")
     print("="*60)
