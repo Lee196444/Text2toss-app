@@ -1284,6 +1284,7 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/admin" element={<ProtectedAdmin />} />
+          <Route path="/customer-approval/:token" element={<CustomerApproval />} />
         </Routes>
       </BrowserRouter>
     </div>
