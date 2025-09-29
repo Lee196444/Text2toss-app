@@ -1919,8 +1919,8 @@ async def upload_gallery_photo(photo: UploadFile = File(...)):
         with open(file_path, "wb") as f:
             f.write(contents)
         
-        # Create URL for the photo - use full URL for frontend display
-        photo_url = f"https://text2toss-venmo.preview.emergentagent.com/files/gallery/{filename}"
+        # Create URL for the photo - use API endpoint for reliable serving
+        photo_url = f"https://text2toss-venmo.preview.emergentagent.com/api/images/gallery/{filename}"
         
         # Save to database
         photo_doc = {
