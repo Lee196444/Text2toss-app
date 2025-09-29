@@ -2003,7 +2003,24 @@ async def remove_gallery_photo(request: dict):
         logger.error(f"Failed to remove photo: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to remove photo")
 
-# Simplified photo management - Admin upload only
+# Image serving endpoint (due to Kubernetes routing all non-/api requests to frontend)
+@api_router.get("/images/{folder}/{filename}")
+async def serve_image(folder: str, filename: str):
+    """Serve images through API endpoint due to Kubernetes routing"""
+    from fastapi.responses import FileResponse
+    import mimetypes
+    
+    file_path = f"/app/static/{folder}/{filename}"
+    
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Image not found")
+    
+    # Determine content type
+    content_type, _ = mimetypes.guess_type(file_path)
+    if not content_type:
+        content_type = "application/octet-stream"
+    
+    return FileResponse(file_path, media_type=content_type, filename=filename)
 
 # Include the router in the main app
 app.include_router(api_router)
