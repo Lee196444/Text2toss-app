@@ -1851,10 +1851,14 @@ async def get_gallery_photos():
         for photo in photos:
             url = photo["url"]
             if url.startswith('/static/'):
-                # Convert old /static/ URLs to new /files/ URLs
-                url = url.replace('/static/', '/files/')
+                # Convert old /static/ URLs to new API endpoint URLs
+                url = url.replace('/static/', '/api/images/')
                 url = f"https://text2toss-venmo.preview.emergentagent.com{url}"
             elif url.startswith('/files/'):
+                # Convert /files/ URLs to API endpoint URLs
+                url = url.replace('/files/', '/api/images/')
+                url = f"https://text2toss-venmo.preview.emergentagent.com{url}"
+            elif url.startswith('/api/images/'):
                 url = f"https://text2toss-venmo.preview.emergentagent.com{url}"
             full_urls.append(url)
         return full_urls
