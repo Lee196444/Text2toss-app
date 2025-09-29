@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, useNavigate, Link } from "react-router-do
 import axios from "axios";
 import QRCode from 'qrcode';
 import ProtectedAdmin from "./components/ProtectedAdmin";
+import CustomerApproval from "./components/CustomerApproval";
 import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 import { Textarea } from "./components/ui/textarea";
