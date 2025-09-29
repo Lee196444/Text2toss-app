@@ -279,12 +279,25 @@ const LandingPage = () => {
                 <Button 
                   onClick={() => setShowQuote(true)}
                   size="lg"
-                  className="w-full sm:flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-base sm:text-lg font-bold px-4 sm:px-6 py-4 sm:py-5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  className="w-full sm:flex-1 bg-black border-4 border-white hover:bg-black/80 text-xl sm:text-2xl font-black px-6 sm:px-8 py-6 sm:py-7 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                   data-testid="hero-get-quote-btn"
+                  style={{
+                    color: '#10b981',
+                    textShadow: `
+                      -3px -3px 0 white, -3px -2px 0 white, -3px -1px 0 white, -3px 0 0 white, -3px 1px 0 white, -3px 2px 0 white, -3px 3px 0 white,
+                      -2px -3px 0 white, -2px 3px 0 white,
+                      -1px -3px 0 white, -1px 3px 0 white,
+                      0px -3px 0 white, 0px 3px 0 white,
+                      1px -3px 0 white, 1px 3px 0 white,
+                      2px -3px 0 white, 2px 3px 0 white,
+                      3px -3px 0 white, 3px -2px 0 white, 3px -1px 0 white, 3px 0 0 white, 3px 1px 0 white, 3px 2px 0 white, 3px 3px 0 white,
+                      0 0 8px #00ff88, 0 0 15px #00ff88, 0 0 25px #00ff88
+                    `
+                  }}
                 >
-                  <span className="flex items-center justify-center space-x-2">
-                    <span className="text-lg sm:text-xl">📸</span>
-                    <span className="whitespace-nowrap">Upload & Quote</span>
+                  <span className="flex items-center justify-center space-x-3">
+                    <span className="text-2xl sm:text-3xl">📸</span>
+                    <span className="whitespace-nowrap">UPLOAD & QUOTE</span>
                   </span>
                 </Button>
                 
