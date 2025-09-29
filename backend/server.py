@@ -1852,16 +1852,17 @@ async def get_gallery_photos():
         full_urls = []
         for photo in photos:
             url = photo["url"]
+            backend_url = os.environ.get('REACT_APP_BACKEND_URL')
             if url.startswith('/static/'):
                 # Convert old /static/ URLs to new API endpoint URLs
                 url = url.replace('/static/', '/api/images/')
-                url = f"https://text2toss-junk.preview.emergentagent.com{url}"
+                url = f"{backend_url}{url}"
             elif url.startswith('/files/'):
                 # Convert /files/ URLs to API endpoint URLs
                 url = url.replace('/files/', '/api/images/')
-                url = f"https://text2toss-junk.preview.emergentagent.com{url}"
+                url = f"{backend_url}{url}"
             elif url.startswith('/api/images/'):
-                url = f"https://text2toss-junk.preview.emergentagent.com{url}"
+                url = f"{backend_url}{url}"
             full_urls.append(url)
         return full_urls
     except Exception as e:
