@@ -180,41 +180,74 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4 sm:py-5">
             
-            {/* Professional Logo Design */}
-            <div className="flex items-center space-x-3">
-              <div className="relative w-12 h-12 sm:w-16 sm:h-16">
-                {/* Logo Icon - Stylized Truck/Recycling Design */}
-                <div className="w-full h-full bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-xl shadow-emerald-500/40 transform rotate-3 hover:rotate-0 transition-all duration-300">
+            {/* Premium Corner Logo Design */}
+            <div className="flex items-center space-x-3 sm:space-x-4">
+              {/* Enhanced Logo Badge */}
+              <div className="relative group">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-emerald-500/50 ring-2 ring-emerald-300/30 hover:ring-emerald-300/60 transition-all duration-500 transform hover:scale-105 hover:rotate-2">
+                  {/* Premium Truck & Recycling Icon */}
                   <div className="relative">
-                    {/* Truck Icon */}
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-white drop-shadow-lg">
-                      <path d="M17 5H9V3C9 2.45 9.45 2 10 2H16C16.55 2 17 2.45 17 3V5Z" fill="currentColor"/>
-                      <path d="M4 7V19C4 19.55 4.45 20 5 20H6.5C6.78 18.85 7.8 18 9 18C10.2 18 11.22 18.85 11.5 20H15.5C15.78 18.85 16.8 18 18 18C19.2 18 20.22 18.85 20.5 20H22C22.55 20 23 19.55 23 19V12L20 9H17V7H4Z" fill="currentColor"/>
-                      <circle cx="9" cy="19" r="1" fill="currentColor"/>
-                      <circle cx="18" cy="19" r="1" fill="currentColor"/>
-                      {/* Recycling arrows */}
-                      <path d="M8 8L10 6L8 4" stroke="rgba(255,255,255,0.7)" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
-                      <path d="M12 6L14 8L16 6" stroke="rgba(255,255,255,0.7)" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+                    <svg width="28" height="28" viewBox="0 0 32 32" fill="none" className="text-white filter drop-shadow-lg">
+                      {/* Truck Body */}
+                      <path d="M22 6H12V4C12 3.45 12.45 3 13 3H21C21.55 3 22 3.45 22 4V6Z" fill="currentColor"/>
+                      <path d="M6 9V25C6 25.55 6.45 26 7 26H8.5C8.78 24.85 9.8 24 11 24C12.2 24 13.22 24.85 13.5 26H19.5C19.78 24.85 20.8 24 22 24C23.2 24 24.22 24.85 24.5 26H27C27.55 26 28 25.55 28 25V16L25 12H22V9H6Z" fill="currentColor"/>
+                      <circle cx="11" cy="25" r="2" fill="currentColor"/>
+                      <circle cx="22" cy="25" r="2" fill="currentColor"/>
+                      
+                      {/* Recycling Symbol Overlay */}
+                      <g transform="translate(10, 10)" opacity="0.8">
+                        <path d="M6 2L8 0L6 -2" stroke="rgba(255,255,255,0.9)" strokeWidth="1.2" strokeLinecap="round" fill="none"/>
+                        <path d="M8 0L10 2L12 0" stroke="rgba(255,255,255,0.9)" strokeWidth="1.2" strokeLinecap="round" fill="none"/>
+                        <path d="M10 2L8 4L6 2" stroke="rgba(255,255,255,0.9)" strokeWidth="1.2" strokeLinecap="round" fill="none"/>
+                      </g>
+                      
+                      {/* Sparkle Effects */}
+                      <circle cx="8" cy="8" r="0.8" fill="rgba(255,255,255,0.8)" opacity="0.7"/>
+                      <circle cx="24" cy="12" r="1" fill="rgba(255,255,255,0.6)" opacity="0.5"/>
                     </svg>
                   </div>
                 </div>
-                {/* Accent dot */}
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-orange-400 to-red-500 rounded-full shadow-lg animate-pulse"></div>
+                
+                {/* Status Indicator */}
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-orange-400 to-red-500 rounded-full shadow-lg flex items-center justify-center">
+                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                </div>
+                
+                {/* Subtle Glow Effect */}
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/20 to-teal-600/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
               </div>
+              
+              {/* Enhanced Typography */}
               <div className="flex flex-col">
                 <div className="flex items-center space-x-2">
-                  <span className="text-2xl sm:text-4xl font-black bg-gradient-to-r from-emerald-400 via-emerald-300 to-teal-400 bg-clip-text text-transparent tracking-tight">
-                    Text2toss
-                  </span>
-                  <div className="hidden sm:flex items-center space-x-1">
-                    <div className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                    <div className="w-2 h-2 bg-emerald-300 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                  {/* Main Brand Name */}
+                  <div className="relative">
+                    <span className="text-2xl sm:text-4xl font-black bg-gradient-to-r from-emerald-300 via-emerald-200 to-teal-300 bg-clip-text text-transparent tracking-tight filter drop-shadow-sm">
+                      Text2toss
+                    </span>
+                    {/* Subtle underline accent */}
+                    <div className="absolute -bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-emerald-400/60 via-transparent to-teal-400/60"></div>
+                  </div>
+                  
+                  {/* Animated Status Dots */}
+                  <div className="hidden sm:flex items-center space-x-1 ml-2">
+                    <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-lg shadow-emerald-400/50"></div>
+                    <div className="w-2 h-2 bg-teal-400 rounded-full animate-pulse shadow-lg shadow-teal-400/50" style={{animationDelay: '0.2s'}}></div>
+                    <div className="w-2 h-2 bg-emerald-300 rounded-full animate-pulse shadow-lg shadow-emerald-300/50" style={{animationDelay: '0.4s'}}></div>
                   </div>
                 </div>
-                <span className="text-emerald-300/90 text-xs sm:text-sm font-semibold tracking-wider uppercase">
-                  Professional Junk Removal
-                </span>
+                
+                {/* Enhanced Tagline */}
+                <div className="flex items-center space-x-2 mt-0.5">
+                  <span className="text-emerald-300/95 text-xs sm:text-sm font-bold tracking-wider uppercase bg-emerald-900/20 px-2 py-0.5 rounded-full border border-emerald-400/30">
+                    Professional Junk Removal
+                  </span>
+                  {/* Service Status Badge */}
+                  <div className="hidden sm:flex items-center space-x-1 text-xs text-emerald-400">
+                    <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>
+                    <span className="font-medium">Online</span>
+                  </div>
+                </div>
               </div>
             </div>
 
