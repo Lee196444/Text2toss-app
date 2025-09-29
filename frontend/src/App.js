@@ -1113,7 +1113,7 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
             <Button
               variant="outline"
               onClick={() => setShowCalendar(true)}
-              className="w-full justify-start text-left h-10"
+              className="w-full justify-start text-left h-12 bg-white border-2 border-emerald-400 text-emerald-800 hover:bg-emerald-50 hover:text-emerald-900 font-semibold shadow-sm"
               data-testid="pickup-date-button"
             >
               {bookingData.pickup_date ? 
