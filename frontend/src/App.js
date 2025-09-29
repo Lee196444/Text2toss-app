@@ -182,51 +182,52 @@ const LandingPage = () => {
             
             {/* Text2toss Brand Logo - Based on Professional Design */}
             <div className="flex items-center space-x-3 sm:space-x-4">
-              {/* Professional Logo Icon */}
+              {/* Large, Clear Logo Icon */}
               <div className="relative group">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-gray-500/30 ring-2 ring-emerald-300/40 hover:ring-emerald-300/70 transition-all duration-500 transform hover:scale-105">
-                  {/* Smartphone with Text2toss Icon */}
+                <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-gray-500/40 ring-2 ring-emerald-300/50 hover:ring-emerald-300/80 transition-all duration-500 transform hover:scale-105">
+                  {/* Large Smartphone with Text2toss Icon */}
                   <div className="relative">
-                    <svg width="32" height="32" viewBox="0 0 40 40" fill="none" className="filter drop-shadow-lg">
-                      {/* Smartphone Outline */}
-                      <rect x="8" y="4" width="24" height="32" rx="4" ry="4" stroke="#9CA3AF" strokeWidth="1.5" fill="none"/>
+                    <svg width="48" height="48" viewBox="0 0 60 60" fill="none" className="filter drop-shadow-xl">
+                      {/* Smartphone Outline - Larger and Thicker */}
+                      <rect x="12" y="6" width="36" height="48" rx="6" ry="6" stroke="#D1D5DB" strokeWidth="2.5" fill="none"/>
                       
-                      {/* Screen Area */}
-                      <rect x="10" y="8" width="20" height="24" rx="2" ry="2" fill="rgba(16, 185, 129, 0.1)" stroke="rgba(16, 185, 129, 0.3)" strokeWidth="0.5"/>
+                      {/* Screen Area - More Visible */}
+                      <rect x="15" y="12" width="30" height="36" rx="3" ry="3" fill="rgba(16, 185, 129, 0.15)" stroke="rgba(16, 185, 129, 0.4)" strokeWidth="1"/>
                       
-                      {/* Person Throwing Icon - Green Silhouette */}
-                      <g transform="translate(12, 12)">
-                        {/* Person Body */}
-                        <circle cx="4" cy="3" r="1.5" fill="#10B981"/>
-                        <path d="M1 8L2 10L3 12H5L6 10L7 8C7 7 6 6 4 6C2 6 1 7 1 8Z" fill="#10B981"/>
-                        {/* Throwing Arm */}
-                        <path d="M5 7L8 5" stroke="#10B981" strokeWidth="1.2" strokeLinecap="round"/>
-                        {/* Object Being Thrown */}
-                        <circle cx="9" cy="4" r="0.8" fill="#10B981"/>
+                      {/* Person Throwing Icon - Much Larger and Bolder */}
+                      <g transform="translate(18, 18)">
+                        {/* Person Head - Bigger */}
+                        <circle cx="6" cy="4" r="2.5" fill="#10B981"/>
+                        {/* Person Body - More Defined */}
+                        <path d="M2 12L3 16L4 20H8L9 16L10 12C10 10 9 8 6 8C3 8 2 10 2 12Z" fill="#10B981"/>
+                        {/* Throwing Arm - Thicker and More Visible */}
+                        <path d="M7 10L12 6" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round"/>
+                        {/* Object Being Thrown - Larger */}
+                        <circle cx="14" cy="5" r="1.5" fill="#10B981"/>
                         
-                        {/* Trash Bin */}
-                        <rect x="11" y="8" width="4" height="5" rx="0.5" fill="#10B981"/>
-                        <path d="M11 8L15 8" stroke="#10B981" strokeWidth="1"/>
-                        <rect x="11.5" y="7" width="3" height="1" fill="#10B981"/>
-                        {/* Trash Lines */}
-                        <line x1="12.5" y1="9" x2="12.5" y2="11.5" stroke="rgba(255,255,255,0.8)" strokeWidth="0.5"/>
-                        <line x1="14" y1="9" x2="14" y2="11.5" stroke="rgba(255,255,255,0.8)" strokeWidth="0.5"/>
+                        {/* Trash Bin - Much Larger and Clearer */}
+                        <rect x="16" y="12" width="6" height="8" rx="1" fill="#10B981"/>
+                        <path d="M16 12L22 12" stroke="#10B981" strokeWidth="1.5"/>
+                        <rect x="17" y="10" width="4" height="2" fill="#10B981"/>
+                        {/* Trash Lines - Thicker */}
+                        <line x1="18.5" y1="14" x2="18.5" y2="18" stroke="rgba(255,255,255,0.9)" strokeWidth="1"/>
+                        <line x1="20.5" y1="14" x2="20.5" y2="18" stroke="rgba(255,255,255,0.9)" strokeWidth="1"/>
                       </g>
                       
-                      {/* Smartphone Details */}
-                      <circle cx="20" cy="6" r="0.8" fill="#9CA3AF"/>
-                      <rect x="18" y="34" width="4" height="1" rx="0.5" fill="#9CA3AF"/>
+                      {/* Smartphone Details - More Visible */}
+                      <circle cx="30" cy="9" r="1.2" fill="#D1D5DB"/>
+                      <rect x="27" y="51" width="6" height="2" rx="1" fill="#D1D5DB"/>
                     </svg>
                   </div>
                 </div>
                 
-                {/* Status Indicator */}
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-emerald-400 to-emerald-600 rounded-full shadow-lg flex items-center justify-center">
-                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                {/* Status Indicator - Larger */}
+                <div className="absolute -top-2 -right-2 w-5 h-5 bg-gradient-to-r from-emerald-400 to-emerald-600 rounded-full shadow-lg flex items-center justify-center">
+                  <div className="w-2.5 h-2.5 bg-white rounded-full animate-pulse"></div>
                 </div>
                 
-                {/* Subtle Glow Effect */}
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/20 to-emerald-600/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+                {/* Enhanced Glow Effect */}
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/25 to-emerald-600/25 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
               </div>
               
               {/* Brand Typography */}
