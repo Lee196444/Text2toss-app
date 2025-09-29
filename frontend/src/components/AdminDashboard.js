@@ -679,7 +679,7 @@ const AdminDashboard = () => {
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-full sm:w-auto text-sm bg-white/90"
+                className="w-full sm:w-auto text-lg font-semibold bg-white border-2 border-emerald-400 text-emerald-900 p-3 rounded-lg shadow-md hover:bg-emerald-50 focus:ring-2 focus:ring-emerald-500"
               />
               <Button 
                 onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
