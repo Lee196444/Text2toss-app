@@ -2104,6 +2104,106 @@ async def serve_image(folder: str, filename: str):
     
     return FileResponse(file_path, media_type=content_type, filename=filename)
 
+# Customer Price Approval Endpoints
+@api_router.get("/customer-approval/{token}")
+async def get_customer_approval_details(token: str):
+    """Get details for customer price approval"""
+    try:
+        booking = await db.bookings.find_one({"customer_approval_token": token})
+        
+        if not booking:
+            raise HTTPException(status_code=404, detail="Approval request not found or expired")
+        
+        if not booking.get("requires_customer_approval"):
+            raise HTTPException(status_code=400, detail="No approval required for this booking")
+        
+        # Get quote details
+        quote = await db.quotes.find_one({"id": booking["quote_id"]})
+        
+        return {
+            "booking_id": booking["id"],
+            "original_price": booking.get("original_price", 0),
+            "adjusted_price": booking.get("adjusted_price", 0),
+            "price_increase": booking.get("adjusted_price", 0) - booking.get("original_price", 0),
+            "adjustment_reason": booking.get("price_adjustment_reason", ""),
+            "pickup_date": booking["pickup_date"],
+            "pickup_time": booking["pickup_time"],
+            "address": booking["address"],
+            "quote_details": quote,
+            "business_name": "Text2toss Professional Junk Removal"
+        }
+    except Exception as e:
+        logger.error(f"Error getting approval details: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to get approval details")
+
+@api_router.post("/customer-approval/{token}")
+async def submit_customer_approval(token: str, approval: CustomerPriceApproval):
+    """Submit customer approval for price adjustment"""
+    try:
+        booking = await db.bookings.find_one({"customer_approval_token": token})
+        
+        if not booking:
+            raise HTTPException(status_code=404, detail="Approval request not found or expired")
+        
+        if not booking.get("requires_customer_approval"):
+            raise HTTPException(status_code=400, detail="No approval required for this booking")
+        
+        # Update booking based on customer decision
+        update_data = {
+            "customer_approved_at": datetime.now(timezone.utc),
+            "requires_customer_approval": False,
+            "customer_approval_token": None  # Clear token after use
+        }
+        
+        if approval.approved:
+            # Customer approved the price increase
+            update_data["status"] = "scheduled"
+            
+            # Send confirmation SMS
+            message = f"""✅ Text2toss: Price Approved
+            
+Thank you for approving the updated price of ${booking.get('adjusted_price', 0):.2f}.
+
+Your junk removal is confirmed for {booking['pickup_date']} during {booking['pickup_time']}.
+
+Payment instructions will be sent shortly. Job ID: {booking['id'][:8]}"""
+            
+        else:
+            # Customer declined the price increase
+            update_data["status"] = "cancelled"
+            
+            # Send cancellation SMS
+            message = f"""❌ Text2toss: Booking Cancelled
+            
+Your booking has been cancelled due to price adjustment decline.
+
+If you'd like to reschedule with the original pricing, please contact us at (928) 853-9619.
+
+We appreciate your understanding."""
+        
+        # Update booking
+        await db.bookings.update_one(
+            {"customer_approval_token": token},
+            {"$set": update_data}
+        )
+        
+        # Send SMS notification
+        try:
+            await send_sms(booking["phone"], message)
+        except Exception as sms_error:
+            logger.error(f"Failed to send approval confirmation SMS: {str(sms_error)}")
+        
+        return {
+            "success": True,
+            "approved": approval.approved,
+            "message": "Thank you for your response. You will receive an SMS confirmation shortly." if approval.approved 
+                      else "Your booking has been cancelled. Thank you for your time."
+        }
+        
+    except Exception as e:
+        logger.error(f"Error processing customer approval: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to process approval")
+
 # Include the router in the main app
 app.include_router(api_router)
 
