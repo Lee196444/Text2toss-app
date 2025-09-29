@@ -449,6 +449,8 @@ const AdminDashboard = () => {
         bins.completed.push(booking);
       } else if (booking.status === 'in_progress') {
         bins.inProgress.push(booking);
+      } else if (booking.status === 'pending_customer_approval') {
+        bins.new.push(booking); // Show approval pending jobs as priority
       } else if (booking.status === 'scheduled') {
         if (bookingDate === today) {
           bins.new.push(booking);
