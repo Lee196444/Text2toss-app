@@ -189,26 +189,24 @@ const LandingPage = () => {
               <a href="#how-it-works" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors">How It Works</a>
               <a href="#contact" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors">Contact</a>
             </div>
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <Link to="/admin">
-                <Button 
-                  variant="outline"
-                  size="sm"
-                  className="border-emerald-400 text-emerald-400 hover:bg-emerald-400 hover:text-white text-xs sm:text-sm px-3 sm:px-4 py-2 min-w-0"
-                  data-testid="admin-login-nav-btn"
-                >
-                  <span className="hidden sm:inline">🔐 Admin Login</span>
-                  <span className="sm:hidden">Admin</span>
-                </Button>
-              </Link>
+            <div className="flex justify-center items-center">
               <Button 
                 onClick={() => setShowQuote(true)}
-                size="sm"
-                className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-2 min-w-0 font-medium"
+                className="bg-black border-4 border-white hover:bg-black/80 text-lg sm:text-xl font-black px-8 py-4 min-w-0 rounded-lg"
                 data-testid="get-quote-btn"
+                style={{
+                  color: '#10b981',
+                  textShadow: `
+                    -2px -2px 0 white, -2px -1px 0 white, -2px 0 0 white, -2px 1px 0 white, -2px 2px 0 white,
+                    -1px -2px 0 white, -1px 2px 0 white,
+                    0px -2px 0 white, 0px 2px 0 white,
+                    1px -2px 0 white, 1px 2px 0 white,
+                    2px -2px 0 white, 2px -1px 0 white, 2px 0 0 white, 2px 1px 0 white, 2px 2px 0 white,
+                    0 0 5px #00ff88, 0 0 10px #00ff88
+                  `
+                }}
               >
-                <span className="hidden sm:inline">📸 Upload & Quote</span>
-                <span className="sm:hidden">Get Quote</span>
+                📸 UPLOAD & QUOTE
               </Button>
             </div>
           </div>
