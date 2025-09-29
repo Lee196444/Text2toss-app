@@ -229,8 +229,9 @@ const LandingPage = () => {
                     </span>
                   </Badge>
                 </div>
-                <h1 className="text-8xl sm:text-9xl lg:text-[10rem] xl:text-[12rem] font-black text-white leading-tight text-center lg:text-left">
-                  <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent" style={{
+                <h1 className="text-8xl sm:text-9xl lg:text-[10rem] xl:text-[12rem] font-black leading-tight text-center lg:text-left">
+                  <span className="text-emerald-400" style={{
+                    color: '#10b981',
                     WebkitTextStroke: '4px white',
                     textShadow: '0 0 10px #00ff88, 0 0 20px #00ff88, 0 0 30px #00ff88, 0 0 40px #00ff88'
                   }}>Text2toss</span>
