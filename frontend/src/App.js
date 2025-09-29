@@ -185,6 +185,10 @@ const LandingPage = () => {
               </div>
               <span className="text-3xl sm:text-5xl font-black text-white tracking-tight">TEXT2TOSS</span>
             </div>
+            <div className="hidden md:flex items-center space-x-8">
+              <a href="#how-it-works" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors">How It Works</a>
+              <a href="#contact" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors">Contact</a>
+            </div>
             <div className="flex items-center space-x-2 sm:space-x-3">
               <Link to="/admin">
                 <Button 
