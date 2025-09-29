@@ -167,18 +167,7 @@ const AdminDashboard = () => {
     }
   };
 
-  const fetchCustomerPhotos = async () => {
-    try {
-      const token = localStorage.getItem('admin_token');
-      const response = await axios.get(`${API}/admin/customer-photos`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setCustomerPhotos(response.data);
-    } catch (error) {
-      console.error('Failed to fetch customer photos:', error);
-      toast.error('Failed to load customer photos');
-    }
-  };
+  // Load data on component mount and when date changes
 
   const fetchDailySchedule = async () => {
     setLoading(true);
