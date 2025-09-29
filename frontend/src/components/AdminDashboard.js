@@ -47,6 +47,14 @@ const AdminDashboard = () => {
   const [smsLoading, setSmsLoading] = useState(false);
   const [newSmsMessage, setNewSmsMessage] = useState('');
   const [selectedCustomerPhone, setSelectedCustomerPhone] = useState('');
+  
+  // Photo Management States
+  const [showPhotoGallery, setShowPhotoGallery] = useState(false);
+  const [galleryPhotos, setGalleryPhotos] = useState([]);
+  const [reelPhotos, setReelPhotos] = useState(Array(6).fill(null));
+  const [uploadingGalleryPhoto, setUploadingGalleryPhoto] = useState(false);
+  const [customerPhotos, setCustomerPhotos] = useState([]);
+  const [showCustomerPhotos, setShowCustomerPhotos] = useState(false);
 
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
