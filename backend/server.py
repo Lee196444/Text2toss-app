@@ -1414,7 +1414,7 @@ async def notify_customer_completion(booking_id: str):
     # Send SMS with or without photo
     if booking.get("completion_photo_path"):
         # Send with photo
-        backend_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://text2toss-junk.preview.emergentagent.com')
+        backend_url = os.environ.get('REACT_APP_BACKEND_URL')
         photo_url = f"{backend_url}/api/public/completion-photo/{booking_id}"
         
         message = f"📸 Text2toss Complete: Your junk removal is finished at {booking['address']}. "
