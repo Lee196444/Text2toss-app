@@ -162,7 +162,7 @@ const AvailabilityCalendar = ({ selectedDate, onDateSelect, onClose }) => {
     // Empty cells for days before the first day of the month
     for (let i = 0; i < firstDayOfWeek; i++) {
       cells.push(
-        <div key={`empty-${i}`} className="h-12 sm:h-16 bg-gray-50 rounded border"></div>
+        <div key={`empty-${i}`} className="h-16 sm:h-20 lg:h-24 bg-gray-50 rounded border"></div>
       );
     }
     
