@@ -182,56 +182,56 @@ const LandingPage = () => {
             
             {/* Complete Text2toss Square Logo */}
             <div className="flex items-center space-x-3 sm:space-x-4">
-              {/* Full Square Logo Badge with Icon + Text */}
+              {/* Full Square Logo Badge with Enhanced Green */}
               <div className="relative group">
-                <div className="w-24 h-24 sm:w-28 sm:h-28 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 rounded-3xl flex flex-col items-center justify-center shadow-2xl shadow-gray-500/50 ring-2 ring-emerald-300/60 hover:ring-emerald-300/90 transition-all duration-500 transform hover:scale-105 p-2">
+                <div className="w-24 h-24 sm:w-28 sm:h-28 bg-gradient-to-br from-emerald-900 via-emerald-800 to-gray-800 rounded-3xl flex flex-col items-center justify-center shadow-2xl shadow-emerald-500/40 ring-2 ring-emerald-400/70 hover:ring-emerald-400/90 transition-all duration-500 transform hover:scale-105 p-2">
                   
-                  {/* Smartphone Icon at Top */}
+                  {/* Smartphone Icon at Top with Green Accent */}
                   <div className="relative mb-1">
                     <svg width="32" height="32" viewBox="0 0 40 40" fill="none" className="filter drop-shadow-lg">
-                      {/* Smartphone Outline */}
-                      <rect x="8" y="4" width="24" height="32" rx="4" ry="4" stroke="#D1D5DB" strokeWidth="2" fill="none"/>
+                      {/* Smartphone Outline - Enhanced Green */}
+                      <rect x="8" y="4" width="24" height="32" rx="4" ry="4" stroke="#10B981" strokeWidth="2" fill="none"/>
                       
-                      {/* Screen Area */}
-                      <rect x="10" y="8" width="20" height="24" rx="2" ry="2" fill="rgba(16, 185, 129, 0.2)" stroke="rgba(16, 185, 129, 0.5)" strokeWidth="0.8"/>
+                      {/* Screen Area - More Green */}
+                      <rect x="10" y="8" width="20" height="24" rx="2" ry="2" fill="rgba(16, 185, 129, 0.3)" stroke="rgba(16, 185, 129, 0.8)" strokeWidth="1"/>
                       
-                      {/* Person Throwing Icon */}
+                      {/* Person Throwing Icon - Bright Green */}
                       <g transform="translate(12, 12)">
                         {/* Person Head */}
-                        <circle cx="4" cy="3" r="1.5" fill="#10B981"/>
+                        <circle cx="4" cy="3" r="1.5" fill="#22C55E"/>
                         {/* Person Body */}
-                        <path d="M1 8L2 10L3 12H5L6 10L7 8C7 7 6 6 4 6C2 6 1 7 1 8Z" fill="#10B981"/>
+                        <path d="M1 8L2 10L3 12H5L6 10L7 8C7 7 6 6 4 6C2 6 1 7 1 8Z" fill="#22C55E"/>
                         {/* Throwing Arm */}
-                        <path d="M5 7L8 5" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round"/>
+                        <path d="M5 7L8 5" stroke="#22C55E" strokeWidth="1.5" strokeLinecap="round"/>
                         {/* Object Being Thrown */}
-                        <circle cx="9" cy="4" r="0.8" fill="#10B981"/>
+                        <circle cx="9" cy="4" r="0.8" fill="#22C55E"/>
                         
-                        {/* Trash Bin */}
-                        <rect x="11" y="8" width="4" height="5" rx="0.5" fill="#10B981"/>
-                        <path d="M11 8L15 8" stroke="#10B981" strokeWidth="1"/>
-                        <rect x="11.5" y="7" width="3" height="1" fill="#10B981"/>
+                        {/* Trash Bin - Enhanced Green */}
+                        <rect x="11" y="8" width="4" height="5" rx="0.5" fill="#16A34A"/>
+                        <path d="M11 8L15 8" stroke="#22C55E" strokeWidth="1"/>
+                        <rect x="11.5" y="7" width="3" height="1" fill="#22C55E"/>
                         {/* Trash Lines */}
-                        <line x1="12.5" y1="9" x2="12.5" y2="11.5" stroke="rgba(255,255,255,0.8)" strokeWidth="0.6"/>
-                        <line x1="14" y1="9" x2="14" y2="11.5" stroke="rgba(255,255,255,0.8)" strokeWidth="0.6"/>
+                        <line x1="12.5" y1="9" x2="12.5" y2="11.5" stroke="rgba(255,255,255,0.9)" strokeWidth="0.6"/>
+                        <line x1="14" y1="9" x2="14" y2="11.5" stroke="rgba(255,255,255,0.9)" strokeWidth="0.6"/>
                       </g>
                     </svg>
                   </div>
                   
-                  {/* Text2toss Text Inside Square */}
+                  {/* Text2toss Text Inside Square - Brighter Green */}
                   <div className="text-center">
-                    <div className="text-emerald-400 font-black text-sm sm:text-base tracking-tight leading-tight">
+                    <div className="text-emerald-300 font-black text-sm sm:text-base tracking-tight leading-tight filter drop-shadow-sm">
                       Text2toss
                     </div>
                   </div>
                 </div>
                 
-                {/* Status Indicator */}
-                <div className="absolute -top-2 -right-2 w-5 h-5 bg-gradient-to-r from-emerald-400 to-emerald-600 rounded-full shadow-lg flex items-center justify-center">
-                  <div className="w-2.5 h-2.5 bg-white rounded-full animate-pulse"></div>
+                {/* Status Indicator - Green Theme */}
+                <div className="absolute -top-2 -right-2 w-5 h-5 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full shadow-lg shadow-emerald-400/60 flex items-center justify-center">
+                  <div className="w-2.5 h-2.5 bg-emerald-100 rounded-full animate-pulse"></div>
                 </div>
                 
-                {/* Enhanced Glow Effect */}
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/30 to-emerald-600/30 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+                {/* Enhanced Green Glow Effect */}
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/40 to-emerald-600/40 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
               </div>
               
               {/* Minimal Additional Branding */}
