@@ -2001,7 +2001,8 @@ async def remove_gallery_photo(request: dict):
                 elif photo_url.startswith("/files/gallery/"):
                     file_path = f"/app/static{photo_url.replace('/files', '')}"
                 else:
-                    file_path = photo_url.replace("https://text2toss-junk.preview.emergentagent.com/files", "/app/static")
+                    backend_url = os.environ.get('REACT_APP_BACKEND_URL')
+                    file_path = photo_url.replace(f"{backend_url}/files", "/app/static")
                 
                 if os.path.exists(file_path):
                     os.remove(file_path)
