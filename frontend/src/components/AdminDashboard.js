@@ -123,7 +123,10 @@ const AdminDashboard = () => {
     
     setUploadingGalleryPhoto(true);
     try {
-      const response = await axios.post(`${API}/admin/upload-gallery-photo`, formData);
+      const token = localStorage.getItem('admin_token');
+      const response = await axios.post(`${API}/admin/upload-gallery-photo`, formData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       toast.success('Photo uploaded successfully');
       fetchGalleryPhotos();
     } catch (error) {
@@ -136,9 +139,12 @@ const AdminDashboard = () => {
 
   const updateReelPhoto = async (slotIndex, photoUrl) => {
     try {
+      const token = localStorage.getItem('admin_token');
       await axios.post(`${API}/admin/update-reel-photo`, {
         slot_index: slotIndex,
         photo_url: photoUrl
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
       });
       toast.success(`Photo updated in slot ${slotIndex + 1}`);
       fetchReelPhotos();
@@ -150,8 +156,10 @@ const AdminDashboard = () => {
 
   const removeGalleryPhoto = async (photoUrl) => {
     try {
+      const token = localStorage.getItem('admin_token');
       await axios.delete(`${API}/admin/gallery-photo`, {
-        data: { photo_url: photoUrl }
+        data: { photo_url: photoUrl },
+        headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Photo removed from gallery');
       fetchGalleryPhotos();
@@ -163,10 +171,14 @@ const AdminDashboard = () => {
 
   const fetchCustomerPhotos = async () => {
     try {
-      const response = await axios.get(`${API}/admin/customer-photos`);
+      const token = localStorage.getItem('admin_token');
+      const response = await axios.get(`${API}/admin/customer-photos`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setCustomerPhotos(response.data);
     } catch (error) {
       console.error('Failed to fetch customer photos:', error);
+      toast.error('Failed to load customer photos');
     }
   };
 
