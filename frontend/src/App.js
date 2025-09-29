@@ -76,7 +76,7 @@ const LandingPage = () => {
   useEffect(() => {
     const fetchPhotoReel = async () => {
       try {
-        const response = await axios.get(`${API}/admin/reel-photos`);
+        const response = await axios.get(`${API}/reel-photos`);
         
         // Convert relative URLs to full URLs for display
         const photosWithFullUrls = (response.data.photos || []).map(photo => {
