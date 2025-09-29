@@ -274,7 +274,18 @@ class BookingCompletion(BaseModel):
 class QuoteApprovalAction(BaseModel):
     action: str  # "approve" or "reject"
     admin_notes: Optional[str] = None
-    approved_price: Optional[float] = None  # Admin can adjust price
+    approved_price: Optional[float] = None
+
+class CustomerPriceApproval(BaseModel):
+    booking_id: str
+    approved: bool
+    customer_notes: Optional[str] = None
+
+class PriceAdjustmentRequest(BaseModel):
+    booking_id: str
+    new_price: float
+    adjustment_reason: str
+    admin_notes: Optional[str] = None  # Admin can adjust price
 
 # Volume-based pricing scale (1-20)
 PRICING_SCALE = {
