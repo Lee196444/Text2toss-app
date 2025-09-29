@@ -242,6 +242,8 @@ const AvailabilityCalendar = ({ selectedDate, onDateSelect, onClose }) => {
           </div>
         </CardHeader>
         <CardContent>
+          {/* Digital Clock */}
+          <DigitalClock />
           {/* Calendar Header */}
           <div className="grid grid-cols-7 gap-1 mb-2">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
