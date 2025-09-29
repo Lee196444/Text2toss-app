@@ -77,6 +77,78 @@ const AdminDashboard = () => {
     }
   }, [showSmsCenter]);
 
+  // Photo Management Functions
+  const fetchGalleryPhotos = async () => {
+    try {
+      const response = await axios.get(`${API}/admin/gallery-photos`);
+      setGalleryPhotos(response.data);
+    } catch (error) {
+      console.error('Failed to fetch gallery photos:', error);
+    }
+  };
+
+  const fetchReelPhotos = async () => {
+    try {
+      const response = await axios.get(`${API}/admin/reel-photos`);
+      setReelPhotos(response.data.photos || Array(6).fill(null));
+    } catch (error) {
+      console.error('Failed to fetch reel photos:', error);
+    }
+  };
+
+  const uploadGalleryPhoto = async (file) => {
+    const formData = new FormData();
+    formData.append('photo', file);
+    
+    setUploadingGalleryPhoto(true);
+    try {
+      const response = await axios.post(`${API}/admin/upload-gallery-photo`, formData);
+      toast.success('Photo uploaded successfully');
+      fetchGalleryPhotos();
+    } catch (error) {
+      toast.error('Failed to upload photo');
+      console.error(error);
+    } finally {
+      setUploadingGalleryPhoto(false);
+    }
+  };
+
+  const updateReelPhoto = async (slotIndex, photoUrl) => {
+    try {
+      await axios.post(`${API}/admin/update-reel-photo`, {
+        slot_index: slotIndex,
+        photo_url: photoUrl
+      });
+      toast.success(`Photo updated in slot ${slotIndex + 1}`);
+      fetchReelPhotos();
+    } catch (error) {
+      toast.error('Failed to update photo reel');
+      console.error(error);
+    }
+  };
+
+  const removeGalleryPhoto = async (photoUrl) => {
+    try {
+      await axios.delete(`${API}/admin/gallery-photo`, {
+        data: { photo_url: photoUrl }
+      });
+      toast.success('Photo removed from gallery');
+      fetchGalleryPhotos();
+    } catch (error) {
+      toast.error('Failed to remove photo');
+      console.error(error);
+    }
+  };
+
+  const fetchCustomerPhotos = async () => {
+    try {
+      const response = await axios.get(`${API}/admin/customer-photos`);
+      setCustomerPhotos(response.data);
+    } catch (error) {
+      console.error('Failed to fetch customer photos:', error);
+    }
+  };
+
   const fetchDailySchedule = async () => {
     setLoading(true);
     try {
