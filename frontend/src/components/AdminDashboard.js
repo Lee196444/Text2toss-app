@@ -90,15 +90,8 @@ const AdminDashboard = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      // Convert relative URLs to full URLs for display
-      const photosWithFullUrls = response.data.map(photo => {
-        if (photo.startsWith('/static/')) {
-          return `${BACKEND_URL}${photo}`;
-        }
-        return photo;
-      });
-      
-      setGalleryPhotos(photosWithFullUrls);
+      // Backend now returns full URLs
+      setGalleryPhotos(response.data);
     } catch (error) {
       console.error('Failed to fetch gallery photos:', error);
       toast.error('Failed to load gallery photos');
