@@ -835,15 +835,7 @@ const AdminDashboard = () => {
                 className="bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
               >
                 <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">📸</span>
-                <span className="text-xs sm:text-sm font-medium leading-tight">Photo Reel</span>
-              </Button>
-
-              <Button 
-                onClick={() => setShowCustomerPhotos(true)} 
-                className="bg-gradient-to-br from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
-              >
-                <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">🖼️</span>
-                <span className="text-xs sm:text-sm font-medium leading-tight">Customer Photos</span>
+                <span className="text-xs sm:text-sm font-medium leading-tight">Upload Photos</span>
               </Button>
               
               <Button 
