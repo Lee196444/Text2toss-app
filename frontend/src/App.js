@@ -302,17 +302,11 @@ const LandingPage = () => {
               </div>
             </div>
 
-            <div className="relative">
-              <div className="relative z-10">
-                <img 
-                  src="https://customer-assets.emergentagent.com/job_clutterclear-1/artifacts/j1lldodm_20250618_102613.jpg"
-                  alt="Text2toss truck loaded with junk from actual job in Flagstaff AZ"
-                  className="rounded-2xl shadow-2xl w-full h-auto object-cover"
-                />
-              </div>
-              <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full opacity-20 blur-xl"></div>
-              <div className="absolute -top-4 -left-4 w-32 h-32 bg-gradient-to-br from-teal-400 to-emerald-500 rounded-full opacity-15 blur-2xl"></div>
-            </div>
+            <PhotoCarousel 
+              photos={photoReel}
+              currentIndex={currentPhotoIndex}
+              onIndexChange={setCurrentPhotoIndex}
+            />
           </div>
         </div>
       </section>
