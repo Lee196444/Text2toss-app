@@ -82,12 +82,6 @@ const AdminDashboard = () => {
     }
   }, [showPhotoGallery]);
 
-  useEffect(() => {
-    if (showCustomerPhotos) {
-      fetchCustomerPhotos();
-    }
-  }, [showCustomerPhotos]);
-
   // Photo Management Functions
   const fetchGalleryPhotos = async () => {
     try {
