@@ -281,11 +281,17 @@ const LandingPage = () => {
                     Locally owned and operated business
                   </p>
                 </div>
-                <p className="text-lg lg:text-xl text-gray-200 leading-relaxed text-center lg:text-left px-2 lg:px-0">
-                  Upload photo of junk and quick description, get a quote in seconds! 
-                  No more waiting on callbacks and no more hassles. 
-                  <strong>Junk removal made seamless.</strong>
-                </p>
+                <div className="text-base sm:text-lg lg:text-xl text-gray-200 leading-relaxed text-center lg:text-left px-2 lg:px-0">
+                  <p className="mb-2">
+                    Upload photo of junk and quick description, get a quote in seconds!
+                  </p>
+                  <p className="mb-2">
+                    No more waiting on callbacks and no more hassles.
+                  </p>
+                  <p className="font-semibold text-emerald-200">
+                    Junk removal made seamless.
+                  </p>
+                </div>
                 <div className="bg-emerald-900/30 border border-emerald-400/30 rounded-lg p-3 lg:p-4 mt-4">
                   <p className="text-emerald-200 text-sm font-medium text-center lg:text-left">
                     📍 Ground Level & Curbside Pickup Only
