@@ -1703,8 +1703,9 @@ async def initialize_admin():
     if existing_admin:
         return {"message": "Admin user already exists"}
     
-    # Hash the password securely
-    password_hash = pwd_context.hash("L1964c10$")
+    # Hash the password securely - get from environment variable
+    admin_password = os.environ.get("ADMIN_PASSWORD", "L1964c10$")
+    password_hash = pwd_context.hash(admin_password)
     
     # Create admin user
     admin_user = AdminUser(
