@@ -1894,8 +1894,9 @@ async def upload_gallery_photo(photo: UploadFile = File(...)):
         with open(file_path, "wb") as f:
             f.write(contents)
         
-        # Create URL for the photo - use relative path that FastAPI will serve
-        photo_url = f"/static/gallery/{filename}"
+        # Create URL for the photo - use full URL for frontend display
+        backend_url = os.environ.get('BACKEND_URL', 'https://text2toss-venmo.preview.emergentagent.com')
+        photo_url = f"{backend_url}/static/gallery/{filename}"
         
         # Save to database
         photo_doc = {
