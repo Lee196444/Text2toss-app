@@ -742,7 +742,7 @@ const LandingPage = () => {
                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-lg flex items-center justify-center">
                   <span className="text-white text-lg sm:text-xl font-bold">🏠</span>
                 </div>
-                <span className="text-lg sm:text-2xl font-bold text-white">Text2toss</span>
+                <span className="text-2xl sm:text-4xl font-black text-white tracking-tight">TEXT2TOSS</span>
               </div>
               <p className="text-gray-400 text-sm sm:text-base leading-relaxed">
                 Fast, reliable junk removal with instant AI-powered quotes. Easy Venmo payments (@Text2toss). Ground level & curbside pickup only.
