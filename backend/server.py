@@ -44,8 +44,6 @@ app = FastAPI()
 
 # Mount static files for photo serving
 app.mount("/static", StaticFiles(directory="/app/static"), name="static")
-app.mount("/static/booking_images", StaticFiles(directory="/app/backend/static/booking_images"), name="booking_images")
-app.mount("/static/completion_photos", StaticFiles(directory="/app/backend/static/completion_photos"), name="completion_photos")
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
