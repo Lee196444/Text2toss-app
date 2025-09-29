@@ -53,6 +53,10 @@ const AdminDashboard = () => {
   const [galleryPhotos, setGalleryPhotos] = useState([]);
   const [reelPhotos, setReelPhotos] = useState(Array(6).fill(null));
   const [uploadingGalleryPhoto, setUploadingGalleryPhoto] = useState(false);
+  
+  // Customer Photo Viewing States
+  const [showCustomerPhoto, setShowCustomerPhoto] = useState(false);
+  const [currentCustomerPhoto, setCurrentCustomerPhoto] = useState(null);
 
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
