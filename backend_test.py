@@ -838,10 +838,10 @@ class TEXT2TOSSAPITester:
             # 404 is expected if no image was uploaded with the booking
             print("   ℹ️  Booking image not found (expected for text-based quotes)")
 
-    def test_payment_system(self):
-        """Test NEW PAYMENT SYSTEM with Stripe integration"""
+    def test_stripe_removal_and_venmo_only_system(self):
+        """Test STRIPE REMOVAL and VENMO-ONLY PAYMENT SYSTEM"""
         print("\n" + "="*50)
-        print("TESTING NEW PAYMENT SYSTEM - STRIPE INTEGRATION")
+        print("TESTING STRIPE REMOVAL AND VENMO-ONLY PAYMENT SYSTEM")
         print("="*50)
         
         if not self.test_booking_id:
