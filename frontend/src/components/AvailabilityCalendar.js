@@ -209,7 +209,7 @@ const AvailabilityCalendar = ({ selectedDate, onDateSelect, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md sm:max-w-lg">
+      <Card className="w-full max-w-2xl sm:max-w-4xl">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle className="text-lg sm:text-xl">
