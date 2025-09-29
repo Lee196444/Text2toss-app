@@ -1888,18 +1888,19 @@ async def get_reel_photos():
             return {"photos": default_reel["photos"]}
         
         # Ensure all URLs are full URLs for consistent display
+        backend_url = os.environ.get('REACT_APP_BACKEND_URL')
         photos_with_full_urls = []
         for photo in reel["photos"]:
             if photo and photo.startswith('/static/'):
                 # Convert old /static/ URLs to new API endpoint URLs
                 photo = photo.replace('/static/', '/api/images/')
-                photo = f"https://text2toss-junk.preview.emergentagent.com{photo}"
+                photo = f"{backend_url}{photo}"
             elif photo and photo.startswith('/files/'):
                 # Convert /files/ URLs to API endpoint URLs
                 photo = photo.replace('/files/', '/api/images/')
-                photo = f"https://text2toss-junk.preview.emergentagent.com{photo}"
+                photo = f"{backend_url}{photo}"
             elif photo and photo.startswith('/api/images/'):
-                photo = f"https://text2toss-junk.preview.emergentagent.com{photo}"
+                photo = f"{backend_url}{photo}"
             photos_with_full_urls.append(photo)
         
         return {"photos": photos_with_full_urls}
