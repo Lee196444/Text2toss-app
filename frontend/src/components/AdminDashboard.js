@@ -1970,6 +1970,88 @@ const AdminDashboard = () => {
           </Card>
         </div>
       )}
+
+      {/* Customer Photo Viewing Modal */}
+      {showCustomerPhoto && currentCustomerPhoto && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
+          <Card className="w-full max-w-2xl mx-2 sm:mx-0 max-h-[90vh] overflow-y-auto">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+                <span className="text-xl">📷</span>
+                Customer Uploaded Photo
+              </CardTitle>
+              <CardDescription className="text-sm space-y-1">
+                <div className="font-medium text-gray-700">Booking ID: {currentCustomerPhoto.booking_id?.slice(0, 8)}...</div>
+                <div className="text-gray-600">📍 {currentCustomerPhoto.address}</div>
+                <div className="text-gray-600">📅 {new Date(currentCustomerPhoto.pickup_date).toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric', 
+                  month: 'long',
+                  day: 'numeric'
+                })}</div>
+                <div className="text-gray-600">📱 {currentCustomerPhoto.customer_phone}</div>
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Photo Display */}
+              <div className="relative">
+                <img 
+                  src={currentCustomerPhoto.url} 
+                  alt="Customer uploaded photo" 
+                  className="w-full max-h-[400px] object-contain rounded-lg border-2 border-gray-200 bg-gray-50"
+                  onError={(e) => {
+                    e.target.src = '/placeholder-image.png';
+                    e.target.alt = 'Photo could not be loaded';
+                  }}
+                />
+                <div className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                  Original Size
+                </div>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
+                <Button
+                  onClick={() => {
+                    const link = document.createElement('a');
+                    link.href = currentCustomerPhoto.url;
+                    link.download = `customer-photo-${currentCustomerPhoto.booking_id?.slice(0, 8)}.jpg`;
+                    link.target = '_blank';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }}
+                  className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
+                >
+                  <span className="mr-2">⬇️</span>
+                  Download Photo
+                </Button>
+                <Button
+                  onClick={() => {
+                    window.open(currentCustomerPhoto.url, '_blank');
+                  }}
+                  variant="outline"
+                  className="flex-1 border-green-400 text-green-700 hover:bg-green-50"
+                >
+                  <span className="mr-2">🔍</span>
+                  Open Full Size
+                </Button>
+                <Button
+                  onClick={() => {
+                    setShowCustomerPhoto(false);
+                    setCurrentCustomerPhoto(null);
+                  }}
+                  variant="outline"
+                  className="flex-1 border-gray-400 text-gray-700 hover:bg-gray-50"
+                >
+                  <span className="mr-2">✕</span>
+                  Close
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };
