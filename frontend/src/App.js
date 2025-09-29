@@ -503,7 +503,7 @@ const LandingPage = () => {
                   <h3 className="font-semibold">Items to Remove</h3>
                   {items.map((item, index) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-white border rounded-lg">
-                      <span className="font-medium">{item.quantity}x {item.name} ({item.size})</span>
+                      <span className="font-medium">{item.name} ({item.size})</span>
                       <Button 
                         variant="destructive" 
                         size="sm" 
