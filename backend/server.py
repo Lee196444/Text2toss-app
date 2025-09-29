@@ -1885,6 +1885,10 @@ async def get_reel_photos():
         photos_with_full_urls = []
         for photo in reel["photos"]:
             if photo and photo.startswith('/static/'):
+                # Convert old /static/ URLs to new /files/ URLs
+                photo = photo.replace('/static/', '/files/')
+                photo = f"https://text2toss-venmo.preview.emergentagent.com{photo}"
+            elif photo and photo.startswith('/files/'):
                 photo = f"https://text2toss-venmo.preview.emergentagent.com{photo}"
             photos_with_full_urls.append(photo)
         
