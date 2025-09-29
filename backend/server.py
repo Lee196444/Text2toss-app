@@ -1854,7 +1854,7 @@ async def get_gallery_photos():
         logger.error(f"Failed to get gallery photos: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to retrieve gallery photos")
 
-@api_router.get("/admin/reel-photos")
+@api_router.get("/reel-photos")
 async def get_reel_photos():
     """Get photo reel configuration"""
     try:
