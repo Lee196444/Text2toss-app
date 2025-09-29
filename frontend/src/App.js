@@ -61,6 +61,17 @@ const LandingPage = () => {
   const [venmoBookingId, setVenmoBookingId] = useState('');
   const [venmoQRCode, setVenmoQRCode] = useState('');
   
+  // Photo Reel States
+  const [photoReel, setPhotoReel] = useState([
+    'https://customer-assets.emergentagent.com/job_clutterclear-1/artifacts/j1lldodm_20250618_102613.jpg',
+    'https://customer-assets.emergentagent.com/job_text2toss/artifacts/mjas9jtq_image000000%2819%29.jpg',
+    null, // Empty slots for admin to fill
+    null,
+    null,
+    null
+  ]);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  
   const addItem = () => {
     if (!currentItem.name) return;
     setItems([...items, { ...currentItem }]);
