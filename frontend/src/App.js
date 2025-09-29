@@ -263,8 +263,11 @@ const LandingPage = () => {
             <div className="space-y-6 lg:space-y-8 px-2 lg:px-0">
               <div className="space-y-4 lg:space-y-6">
                 <div className="text-center lg:text-left">
-                  <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-200">
-                    📸 AI-Powered Photo Quotes • No Callbacks Required
+                  <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-200 text-xs sm:text-sm">
+                    <span className="flex items-center justify-center flex-wrap">
+                      <span>📸 AI-Powered Photo Quotes</span>
+                      <span className="hidden sm:inline"> • No Callbacks Required</span>
+                    </span>
                   </Badge>
                 </div>
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight text-center lg:text-left">
