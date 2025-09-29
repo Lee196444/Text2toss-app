@@ -42,8 +42,8 @@ db = client[os.environ['DB_NAME']]
 # Create the main app without a prefix
 app = FastAPI()
 
-# Mount static files for photo serving
-app.mount("/static", StaticFiles(directory="/app/static"), name="static")
+# Mount static files for photo serving - use /files/ to avoid frontend routing conflicts
+app.mount("/files", StaticFiles(directory="/app/static"), name="static")
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
