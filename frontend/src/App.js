@@ -279,10 +279,10 @@ const LandingPage = () => {
                 <Button 
                   onClick={() => setShowQuote(true)}
                   size="lg"
-                  className="w-full sm:flex-1 bg-black border-4 border-white hover:bg-black/80 text-xl sm:text-2xl font-black px-6 sm:px-8 py-6 sm:py-7 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  className="w-full sm:flex-1 bg-black border-4 border-white hover:bg-black/80 text-xl sm:text-2xl font-black px-6 sm:px-8 py-8 sm:py-10 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                   data-testid="hero-get-quote-btn"
                   style={{
-                    color: '#10b981',
+                    color: '#059669',
                     textShadow: `
                       -3px -3px 0 white, -3px -2px 0 white, -3px -1px 0 white, -3px 0 0 white, -3px 1px 0 white, -3px 2px 0 white, -3px 3px 0 white,
                       -2px -3px 0 white, -2px 3px 0 white,
@@ -291,7 +291,7 @@ const LandingPage = () => {
                       1px -3px 0 white, 1px 3px 0 white,
                       2px -3px 0 white, 2px 3px 0 white,
                       3px -3px 0 white, 3px -2px 0 white, 3px -1px 0 white, 3px 0 0 white, 3px 1px 0 white, 3px 2px 0 white, 3px 3px 0 white,
-                      0 0 8px #00ff88, 0 0 15px #00ff88, 0 0 25px #00ff88
+                      0 0 5px #10b981, 0 0 10px #10b981
                     `
                   }}
                 >
