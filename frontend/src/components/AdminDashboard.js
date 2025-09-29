@@ -1942,60 +1942,6 @@ const AdminDashboard = () => {
           </Card>
         </div>
       )}
-
-      {/* Customer Photos Modal */}
-      {showCustomerPhotos && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-          <Card className="w-full max-w-4xl max-h-[95vh] overflow-hidden">
-            <CardHeader className="bg-gradient-to-r from-pink-500 to-pink-600 text-white">
-              <div className="flex justify-between items-center">
-                <div>
-                  <CardTitle className="text-xl font-bold flex items-center gap-2">
-                    🖼️ Customer Uploaded Photos
-                  </CardTitle>
-                  <CardDescription className="text-pink-100">
-                    View photos uploaded by customers for quotes
-                  </CardDescription>
-                </div>
-                <Button 
-                  variant="ghost" 
-                  onClick={() => setShowCustomerPhotos(false)}
-                  className="text-white hover:bg-white/20 h-8 w-8 p-0 rounded-full"
-                >
-                  ×
-                </Button>
-              </div>
-            </CardHeader>
-            
-            <CardContent className="p-6 overflow-y-auto max-h-[calc(95vh-120px)]">
-              {customerPhotos.length === 0 ? (
-                <div className="text-center text-gray-500 py-12">
-                  <div className="text-6xl mb-4">📷</div>
-                  <h3 className="text-xl font-semibold mb-2">No Customer Photos</h3>
-                  <p>Customer uploaded photos will appear here</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {customerPhotos.map((photo, index) => (
-                    <div key={index} className="border rounded-lg p-4 bg-white shadow-sm">
-                      <img 
-                        src={photo.url} 
-                        alt={`Customer photo ${index + 1}`}
-                        className="w-full h-48 object-cover rounded mb-3"
-                      />
-                      <div className="text-sm">
-                        <p><strong>Quote ID:</strong> {photo.quote_id?.substring(0, 8)}...</p>
-                        <p><strong>Uploaded:</strong> {new Date(photo.uploaded_at).toLocaleDateString()}</p>
-                        {photo.description && <p><strong>Description:</strong> {photo.description}</p>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      )}
     </div>
   );
 };
