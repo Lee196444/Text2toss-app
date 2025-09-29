@@ -222,13 +222,20 @@ class Booking(BaseModel):
     special_instructions: Optional[str] = None
     curbside_confirmed: bool = False
     sms_notifications: bool = False
-    status: str = "scheduled"  # scheduled, in_progress, completed, cancelled
+    status: str = "scheduled"  # scheduled, in_progress, completed, cancelled, pending_customer_approval
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     quote_details: Optional[PriceQuote] = None
     image_path: Optional[str] = None  # Path to customer's uploaded image
     completion_photo_path: Optional[str] = None  # Path to completion photo
     completion_note: Optional[str] = None  # Admin note for completion
     completed_at: Optional[datetime] = None  # When job was completed
+    # Customer approval fields for price adjustments
+    original_price: Optional[float] = None  # Original quoted price
+    adjusted_price: Optional[float] = None  # Admin-adjusted price
+    price_adjustment_reason: Optional[str] = None  # Admin reason for adjustment
+    customer_approval_token: Optional[str] = None  # Token for customer approval
+    customer_approved_at: Optional[datetime] = None  # When customer approved price change
+    requires_customer_approval: bool = False  # Whether customer approval is needed
 
 class BookingCreate(BaseModel):
     quote_id: str
