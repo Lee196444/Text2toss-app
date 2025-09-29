@@ -1982,8 +1982,15 @@ async def remove_gallery_photo(request: dict):
         
         # Try to remove file from filesystem
         try:
-            if photo_url.startswith("/static/gallery/"):
-                file_path = f"/app{photo_url}"
+            if photo_url.startswith("/static/gallery/") or photo_url.startswith("/files/gallery/"):
+                # Convert to actual file path
+                if photo_url.startswith("/static/gallery/"):
+                    file_path = f"/app{photo_url}"
+                elif photo_url.startswith("/files/gallery/"):
+                    file_path = f"/app/static{photo_url.replace('/files', '')}"
+                else:
+                    file_path = photo_url.replace("https://text2toss-venmo.preview.emergentagent.com/files", "/app/static")
+                
                 if os.path.exists(file_path):
                     os.remove(file_path)
         except Exception as file_error:
