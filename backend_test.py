@@ -2511,12 +2511,16 @@ class TEXT2TOSSAPITester:
         
         # Run test suites
         self.test_basic_endpoints()
+        self.test_admin_authentication()
+        
+        # PRIORITY: Test photo upload system as requested in review
+        self.test_photo_upload_system()
+        
         self.test_quote_system()
         self.test_new_pricing_system()  # NEW: Test the new 1-10 scale pricing system
         self.test_improved_ai_image_analysis()  # NEW: Test IMPROVED AI IMAGE ANALYSIS for review request
         self.test_booking_system()
         self.test_payment_system()  # NEW: Test the Stripe payment integration
-        self.test_admin_authentication()
         self.test_admin_schedule_endpoints()
         self.test_calendar_functionality()  # NEW: Test the calendar functionality
         self.test_availability_calendar_functionality()  # NEW: Test the availability calendar functionality
