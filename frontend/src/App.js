@@ -183,7 +183,10 @@ const LandingPage = () => {
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
                 <span className="text-white font-bold text-base sm:text-xl">T2T</span>
               </div>
-              <span className="text-3xl sm:text-5xl font-black text-white tracking-tight">TEXT2TOSS</span>
+              <div className="flex flex-col">
+                <span className="text-2xl sm:text-3xl font-black text-white tracking-tight">TEXT2TOSS</span>
+                <span className="text-xs sm:text-sm text-emerald-300 font-medium tracking-wide">Professional Junk Removal</span>
+              </div>
             </div>
             <div className="hidden md:flex items-center space-x-8">
               <a href="#how-it-works" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors">How It Works</a>
