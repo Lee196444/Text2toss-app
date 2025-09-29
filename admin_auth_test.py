@@ -9,7 +9,7 @@ import json
 import sys
 
 class AdminAuthTester:
-    def __init__(self, base_url="https://text2toss-venmo.preview.emergentagent.com"):
+    def __init__(self, base_url="https://text2toss-junk.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.admin_token = None

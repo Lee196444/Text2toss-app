@@ -1305,7 +1305,7 @@ async def upload_completion_photo(
         
         if phone:
             # Create public URL for the image accessible by SMS
-            backend_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://text2toss-venmo.preview.emergentagent.com')
+            backend_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://text2toss-junk.preview.emergentagent.com')
             photo_url = f"{backend_url}/api/public/completion-photo/{booking_id}"
             
             completion_message = f"📸 Text2toss Complete: Your junk has been removed from {booking['address']}. "
@@ -1414,7 +1414,7 @@ async def notify_customer_completion(booking_id: str):
     # Send SMS with or without photo
     if booking.get("completion_photo_path"):
         # Send with photo
-        backend_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://text2toss-venmo.preview.emergentagent.com')
+        backend_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://text2toss-junk.preview.emergentagent.com')
         photo_url = f"{backend_url}/api/public/completion-photo/{booking_id}"
         
         message = f"📸 Text2toss Complete: Your junk removal is finished at {booking['address']}. "
@@ -1541,7 +1541,7 @@ async def test_sms_photo(booking_id: str):
         raise HTTPException(status_code=400, detail="No completion photo available")
     
     # Create fully accessible URL for the completion photo
-    completion_photo_url = f"https://text2toss-venmo.preview.emergentagent.com/api/public/completion-photo/{booking_id}"
+    completion_photo_url = f"https://text2toss-junk.preview.emergentagent.com/api/public/completion-photo/{booking_id}"
     
     result = await send_sms(
         booking["phone"],
@@ -1853,13 +1853,13 @@ async def get_gallery_photos():
             if url.startswith('/static/'):
                 # Convert old /static/ URLs to new API endpoint URLs
                 url = url.replace('/static/', '/api/images/')
-                url = f"https://text2toss-venmo.preview.emergentagent.com{url}"
+                url = f"https://text2toss-junk.preview.emergentagent.com{url}"
             elif url.startswith('/files/'):
                 # Convert /files/ URLs to API endpoint URLs
                 url = url.replace('/files/', '/api/images/')
-                url = f"https://text2toss-venmo.preview.emergentagent.com{url}"
+                url = f"https://text2toss-junk.preview.emergentagent.com{url}"
             elif url.startswith('/api/images/'):
-                url = f"https://text2toss-venmo.preview.emergentagent.com{url}"
+                url = f"https://text2toss-junk.preview.emergentagent.com{url}"
             full_urls.append(url)
         return full_urls
     except Exception as e:
@@ -1890,13 +1890,13 @@ async def get_reel_photos():
             if photo and photo.startswith('/static/'):
                 # Convert old /static/ URLs to new API endpoint URLs
                 photo = photo.replace('/static/', '/api/images/')
-                photo = f"https://text2toss-venmo.preview.emergentagent.com{photo}"
+                photo = f"https://text2toss-junk.preview.emergentagent.com{photo}"
             elif photo and photo.startswith('/files/'):
                 # Convert /files/ URLs to API endpoint URLs
                 photo = photo.replace('/files/', '/api/images/')
-                photo = f"https://text2toss-venmo.preview.emergentagent.com{photo}"
+                photo = f"https://text2toss-junk.preview.emergentagent.com{photo}"
             elif photo and photo.startswith('/api/images/'):
-                photo = f"https://text2toss-venmo.preview.emergentagent.com{photo}"
+                photo = f"https://text2toss-junk.preview.emergentagent.com{photo}"
             photos_with_full_urls.append(photo)
         
         return {"photos": photos_with_full_urls}
@@ -1928,7 +1928,7 @@ async def upload_gallery_photo(photo: UploadFile = File(...)):
             f.write(contents)
         
         # Create URL for the photo - use API endpoint for reliable serving
-        photo_url = f"https://text2toss-venmo.preview.emergentagent.com/api/images/gallery/{filename}"
+        photo_url = f"https://text2toss-junk.preview.emergentagent.com/api/images/gallery/{filename}"
         
         # Save to database
         photo_doc = {
@@ -1996,7 +1996,7 @@ async def remove_gallery_photo(request: dict):
                 elif photo_url.startswith("/files/gallery/"):
                     file_path = f"/app/static{photo_url.replace('/files', '')}"
                 else:
-                    file_path = photo_url.replace("https://text2toss-venmo.preview.emergentagent.com/files", "/app/static")
+                    file_path = photo_url.replace("https://text2toss-junk.preview.emergentagent.com/files", "/app/static")
                 
                 if os.path.exists(file_path):
                     os.remove(file_path)
