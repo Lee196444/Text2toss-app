@@ -1878,7 +1878,15 @@ async def get_reel_photos():
             }
             await db.photo_reel.insert_one(default_reel)
             return {"photos": default_reel["photos"]}
-        return {"photos": reel["photos"]}
+        
+        # Ensure all URLs are full URLs for consistent display
+        photos_with_full_urls = []
+        for photo in reel["photos"]:
+            if photo and photo.startswith('/static/'):
+                photo = f"https://text2toss-venmo.preview.emergentagent.com{photo}"
+            photos_with_full_urls.append(photo)
+        
+        return {"photos": photos_with_full_urls}
     except Exception as e:
         logger.error(f"Failed to get reel photos: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to retrieve reel photos")
