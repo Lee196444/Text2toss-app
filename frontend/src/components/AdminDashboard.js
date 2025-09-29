@@ -89,7 +89,16 @@ const AdminDashboard = () => {
       const response = await axios.get(`${API}/admin/gallery-photos`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setGalleryPhotos(response.data);
+      
+      // Convert relative URLs to full URLs for display
+      const photosWithFullUrls = response.data.map(photo => {
+        if (photo.startsWith('/static/')) {
+          return `${BACKEND_URL}${photo}`;
+        }
+        return photo;
+      });
+      
+      setGalleryPhotos(photosWithFullUrls);
     } catch (error) {
       console.error('Failed to fetch gallery photos:', error);
       toast.error('Failed to load gallery photos');
