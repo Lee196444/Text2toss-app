@@ -832,14 +832,6 @@ const AdminDashboard = () => {
               </Button>
               
               <Button 
-                onClick={cleanupTempImages} 
-                className="bg-gradient-to-br from-gray-50 to-white hover:from-white hover:to-gray-50 text-gray-700 border-2 border-gray-200 hover:border-gray-300 shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl group transform hover:scale-105 min-h-[64px]"
-              >
-                <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">🗑️</span>
-                <span className="text-xs sm:text-sm font-medium leading-tight">Cleanup</span>
-              </Button>
-              
-              <Button 
                 onClick={calculateOptimalRoute} 
                 className="bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
               >
