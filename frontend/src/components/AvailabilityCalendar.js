@@ -34,12 +34,31 @@ const DigitalClock = () => {
   };
 
   return (
-    <div className="text-center mb-4 p-3 bg-gradient-to-r from-green-50 to-white rounded-lg border-2 border-green-200">
-      <div className="text-2xl font-bold text-green-700 font-mono tracking-wider" 
-           style={{ textShadow: '1px 1px 2px rgba(255,255,255,0.8)' }}>
+    <div className="text-center mb-6 p-4 bg-black rounded-lg border-4 border-white">
+      <div className="text-3xl sm:text-4xl lg:text-5xl font-black font-mono tracking-wider mb-2" 
+           style={{
+             color: '#059669',
+             textShadow: `
+               -2px -2px 0 white, -2px -1px 0 white, -2px 0 0 white, -2px 1px 0 white, -2px 2px 0 white,
+               -1px -2px 0 white, -1px 2px 0 white,
+               0px -2px 0 white, 0px 2px 0 white,
+               1px -2px 0 white, 1px 2px 0 white,
+               2px -2px 0 white, 2px -1px 0 white, 2px 0 0 white, 2px 1px 0 white, 2px 2px 0 white,
+               0 0 5px #10b981, 0 0 10px #10b981
+             `
+           }}>
         {formatTime(time)}
       </div>
-      <div className="text-sm text-green-600 mt-1">
+      <div className="text-lg sm:text-xl font-semibold"
+           style={{
+             color: '#059669',
+             textShadow: `
+               -1px -1px 0 white, -1px 0 0 white, -1px 1px 0 white,
+               0px -1px 0 white, 0px 1px 0 white,
+               1px -1px 0 white, 1px 0 0 white, 1px 1px 0 white,
+               0 0 3px #10b981
+             `
+           }}>
         {formatDate(time)}
       </div>
     </div>
