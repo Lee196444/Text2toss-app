@@ -218,8 +218,8 @@ const LandingPage = () => {
               </div>
             </div>
 
-            {/* Centered Upload Button */}
-            <div className="absolute left-1/2 transform -translate-x-1/2">
+            {/* Centered Upload Button - Hidden on mobile, shown in hero section instead */}
+            <div className="hidden lg:block absolute left-1/2 transform -translate-x-1/2">
               <Button 
                 onClick={() => setShowQuote(true)}
                 className="bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-600 hover:from-emerald-600 hover:via-emerald-700 hover:to-teal-700 text-white px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold rounded-xl shadow-lg shadow-emerald-500/40 hover:shadow-xl hover:shadow-emerald-500/50 transition-all duration-300 transform hover:scale-105"
