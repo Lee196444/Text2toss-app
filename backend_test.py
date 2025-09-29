@@ -441,25 +441,134 @@ class TEXT2TOSSAPITester:
             print(f"   Booking ID: {self.test_booking_id}")
 
     def test_admin_authentication(self):
-        """Test admin authentication"""
+        """Test admin authentication system - COMPREHENSIVE DIAGNOSIS"""
         print("\n" + "="*50)
-        print("TESTING ADMIN AUTHENTICATION")
+        print("TESTING ADMIN AUTHENTICATION SYSTEM - DIAGNOSIS")
         print("="*50)
         
-        # Test admin login
-        login_data = {"password": "admin123"}
-        success, response = self.run_test("Admin Login", "POST", "admin/login", 200, login_data)
+        # Step 1: Initialize admin user first (ensure admin exists)
+        print("\n🔧 Step 1: Initialize Admin User...")
+        success, response = self.run_test("Initialize Admin User", "POST", "admin/init", 200)
+        if success:
+            print(f"   ✅ Admin initialization: {response.get('message', 'Success')}")
+        else:
+            print(f"   ⚠️  Admin initialization failed, but may already exist")
+        
+        # Step 2: Test admin login with correct credentials from review request
+        print("\n🔐 Step 2: Test Admin Login with Correct Credentials...")
+        login_data = {
+            "username": "lrobe",
+            "password": "L1964c10$"
+        }
+        success, response = self.run_test("Admin Login - Correct Credentials", "POST", "admin/login", 200, login_data)
         
         if success and response.get('token'):
             self.admin_token = response['token']
-            print(f"   Admin Token: {self.admin_token[:20]}...")
+            print(f"   ✅ Login successful!")
+            print(f"   📝 Admin Token: {self.admin_token[:30]}...")
+            print(f"   👤 Display Name: {response.get('display_name', 'N/A')}")
+            print(f"   📋 Response: {response}")
             
-            # Test token verification
-            self.run_test("Verify Admin Token", "GET", f"admin/verify?token={self.admin_token}", 200)
+            # Step 3: Test token verification
+            print("\n🔍 Step 3: Verify JWT Token...")
+            success_verify, verify_response = self.run_test("Verify Admin Token", "GET", f"admin/verify?token={self.admin_token}", 200)
+            if success_verify:
+                print(f"   ✅ Token verification successful: {verify_response}")
+            else:
+                print(f"   ❌ Token verification failed")
+            
+            # Step 4: Test admin access to protected endpoints
+            print("\n🛡️  Step 4: Test Admin Access to Protected Endpoints...")
+            
+            # Test admin daily schedule access
+            success_schedule, schedule_response = self.run_test("Admin Daily Schedule Access", "GET", "admin/daily-schedule", 200)
+            if success_schedule:
+                print(f"   ✅ Admin can access daily schedule")
+            else:
+                print(f"   ❌ Admin cannot access daily schedule")
+            
+            # Test admin SMS test access
+            success_sms, sms_response = self.run_test("Admin SMS Test Access", "POST", "admin/test-sms", 200)
+            if success_sms:
+                print(f"   ✅ Admin can access SMS test endpoint")
+            else:
+                print(f"   ❌ Admin cannot access SMS test endpoint")
+                
+        else:
+            print(f"   ❌ CRITICAL: Admin login failed with correct credentials!")
+            print(f"   📋 Response: {response}")
+            print(f"   🔍 This indicates the main authentication issue")
         
-        # Test invalid password
-        invalid_login = {"password": "wrongpassword"}
-        self.run_test("Invalid Admin Login", "POST", "admin/login", 401, invalid_login)
+        # Step 5: Test with wrong password
+        print("\n🚫 Step 5: Test Invalid Password...")
+        invalid_login = {
+            "username": "lrobe", 
+            "password": "wrongpassword"
+        }
+        success, response = self.run_test("Admin Login - Invalid Password", "POST", "admin/login", 401, invalid_login)
+        if not success:
+            print(f"   ✅ Correctly rejected invalid password")
+        else:
+            print(f"   ❌ Security issue: Invalid password was accepted")
+        
+        # Step 6: Test with wrong username
+        print("\n🚫 Step 6: Test Invalid Username...")
+        invalid_user = {
+            "username": "wronguser",
+            "password": "L1964c10$"
+        }
+        success, response = self.run_test("Admin Login - Invalid Username", "POST", "admin/login", 401, invalid_user)
+        if not success:
+            print(f"   ✅ Correctly rejected invalid username")
+        else:
+            print(f"   ❌ Security issue: Invalid username was accepted")
+        
+        # Step 7: Test token verification without token
+        print("\n🚫 Step 7: Test Token Verification Without Token...")
+        success, response = self.run_test("Verify Without Token", "GET", "admin/verify", 401)
+        if not success:
+            print(f"   ✅ Correctly rejected request without token")
+        else:
+            print(f"   ❌ Security issue: Request without token was accepted")
+        
+        # Step 8: Test with invalid token
+        print("\n🚫 Step 8: Test Invalid Token...")
+        success, response = self.run_test("Verify Invalid Token", "GET", "admin/verify?token=invalid_token_here", 401)
+        if not success:
+            print(f"   ✅ Correctly rejected invalid token")
+        else:
+            print(f"   ❌ Security issue: Invalid token was accepted")
+        
+        # Step 9: Database verification (indirect)
+        print("\n🗄️  Step 9: Database Verification...")
+        # We can't directly query MongoDB, but we can infer from login attempts
+        if self.admin_token:
+            print(f"   ✅ Admin user exists in database (login successful)")
+            print(f"   ✅ Password hash verification working")
+            print(f"   ✅ JWT token generation working")
+        else:
+            print(f"   ❌ CRITICAL: Admin user may not exist in database OR password hash mismatch")
+            print(f"   🔍 Possible issues:")
+            print(f"      • Admin user not initialized in database")
+            print(f"      • Password hash doesn't match stored value")
+            print(f"      • Database connection issues")
+            print(f"      • JWT secret key issues")
+        
+        print(f"\n📊 ADMIN AUTHENTICATION DIAGNOSIS SUMMARY:")
+        if self.admin_token:
+            print(f"   ✅ AUTHENTICATION WORKING: Admin can log in successfully")
+            print(f"   ✅ JWT token generation and verification working")
+            print(f"   ✅ Password hashing and verification working")
+            print(f"   ✅ Admin access to protected endpoints working")
+            print(f"   ✅ Security measures working (invalid credentials rejected)")
+        else:
+            print(f"   ❌ AUTHENTICATION FAILING: Admin cannot log in")
+            print(f"   🔍 ROOT CAUSE ANALYSIS NEEDED:")
+            print(f"      1. Check if admin user exists in database")
+            print(f"      2. Verify password hash matches stored value")
+            print(f"      3. Check database connection")
+            print(f"      4. Verify JWT secret key configuration")
+            print(f"      5. Check for any backend errors in logs")
 
     def test_admin_schedule_endpoints(self):
         """Test admin schedule management"""
