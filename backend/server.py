@@ -1849,7 +1849,14 @@ async def get_gallery_photos():
     """Get all gallery photos"""
     try:
         photos = await db.gallery_photos.find({}).to_list(length=None)
-        return [photo["url"] for photo in photos]
+        # Ensure all URLs are full URLs for consistent display
+        full_urls = []
+        for photo in photos:
+            url = photo["url"]
+            if url.startswith('/static/'):
+                url = f"https://text2toss-venmo.preview.emergentagent.com{url}"
+            full_urls.append(url)
+        return full_urls
     except Exception as e:
         logger.error(f"Failed to get gallery photos: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to retrieve gallery photos")
