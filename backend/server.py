@@ -1932,7 +1932,8 @@ async def upload_gallery_photo(photo: UploadFile = File(...)):
             f.write(contents)
         
         # Create URL for the photo - use API endpoint for reliable serving
-        photo_url = f"https://text2toss-junk.preview.emergentagent.com/api/images/gallery/{filename}"
+        backend_url = os.environ.get('REACT_APP_BACKEND_URL')
+        photo_url = f"{backend_url}/api/images/gallery/{filename}"
         
         # Save to database
         photo_doc = {
