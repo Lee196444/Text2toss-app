@@ -93,19 +93,27 @@ const AdminDashboard = () => {
   // Photo Management Functions
   const fetchGalleryPhotos = async () => {
     try {
-      const response = await axios.get(`${API}/admin/gallery-photos`);
+      const token = localStorage.getItem('admin_token');
+      const response = await axios.get(`${API}/admin/gallery-photos`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setGalleryPhotos(response.data);
     } catch (error) {
       console.error('Failed to fetch gallery photos:', error);
+      toast.error('Failed to load gallery photos');
     }
   };
 
   const fetchReelPhotos = async () => {
     try {
-      const response = await axios.get(`${API}/admin/reel-photos`);
+      const token = localStorage.getItem('admin_token');
+      const response = await axios.get(`${API}/admin/reel-photos`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setReelPhotos(response.data.photos || Array(6).fill(null));
     } catch (error) {
       console.error('Failed to fetch reel photos:', error);
+      toast.error('Failed to load photo reel');
     }
   };
 
