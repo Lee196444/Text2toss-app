@@ -2117,8 +2117,14 @@ async def get_customer_approval_details(token: str):
         if not booking.get("requires_customer_approval"):
             raise HTTPException(status_code=400, detail="No approval required for this booking")
         
-        # Get quote details
+        # Get quote details and clean ObjectIds
         quote = await db.quotes.find_one({"id": booking["quote_id"]})
+        if quote and "_id" in quote:
+            del quote["_id"]
+        
+        # Clean booking ObjectId
+        if "_id" in booking:
+            del booking["_id"]
         
         return {
             "booking_id": booking["id"],
