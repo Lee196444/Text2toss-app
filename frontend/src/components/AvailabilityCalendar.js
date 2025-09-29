@@ -3,6 +3,49 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import axios from 'axios';
 
+// Digital Clock Component
+const DigitalClock = () => {
+  const [time, setTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatTime = (date) => {
+    return date.toLocaleTimeString('en-US', {
+      hour12: true,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  };
+
+  const formatDate = (date) => {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  return (
+    <div className="text-center mb-4 p-3 bg-gradient-to-r from-green-50 to-white rounded-lg border-2 border-green-200">
+      <div className="text-2xl font-bold text-green-700 font-mono tracking-wider" 
+           style={{ textShadow: '1px 1px 2px rgba(255,255,255,0.8)' }}>
+        {formatTime(time)}
+      </div>
+      <div className="text-sm text-green-600 mt-1">
+        {formatDate(time)}
+      </div>
+    </div>
+  );
+};
+
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
