@@ -1848,6 +1848,162 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Photo Management Endpoints
+@api_router.get("/admin/gallery-photos")
+async def get_gallery_photos():
+    """Get all gallery photos"""
+    try:
+        photos = await db.gallery_photos.find({}).to_list(length=None)
+        return [photo["url"] for photo in photos]
+    except Exception as e:
+        logger.error(f"Failed to get gallery photos: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve gallery photos")
+
+@api_router.get("/admin/reel-photos")
+async def get_reel_photos():
+    """Get photo reel configuration"""
+    try:
+        reel = await db.photo_reel.find_one({"type": "main_reel"})
+        if not reel:
+            # Initialize with default photos if none exist
+            default_reel = {
+                "type": "main_reel",
+                "photos": [
+                    "https://customer-assets.emergentagent.com/job_clutterclear-1/artifacts/j1lldodm_20250618_102613.jpg",
+                    "https://customer-assets.emergentagent.com/job_text2toss/artifacts/mjas9jtq_image000000%2819%29.jpg",
+                    None, None, None, None
+                ]
+            }
+            await db.photo_reel.insert_one(default_reel)
+            return {"photos": default_reel["photos"]}
+        return {"photos": reel["photos"]}
+    except Exception as e:
+        logger.error(f"Failed to get reel photos: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve reel photos")
+
+@api_router.post("/admin/upload-gallery-photo")
+async def upload_gallery_photo(photo: UploadFile = File(...)):
+    """Upload a photo to the gallery"""
+    try:
+        # Read and save the uploaded file
+        contents = await photo.read()
+        
+        # Create unique filename
+        file_extension = photo.filename.split('.')[-1] if '.' in photo.filename else 'jpg'
+        filename = f"gallery_{uuid.uuid4()}.{file_extension}"
+        
+        # Save to static directory
+        file_path = f"/app/static/gallery/{filename}"
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        
+        with open(file_path, "wb") as f:
+            f.write(contents)
+        
+        # Create URL for the photo
+        photo_url = f"/static/gallery/{filename}"
+        
+        # Save to database
+        photo_doc = {
+            "url": photo_url,
+            "filename": filename,
+            "uploaded_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.gallery_photos.insert_one(photo_doc)
+        
+        return {"message": "Photo uploaded successfully", "url": photo_url}
+        
+    except Exception as e:
+        logger.error(f"Failed to upload photo: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to upload photo")
+
+@api_router.post("/admin/update-reel-photo")
+async def update_reel_photo(request: dict):
+    """Update a photo in the reel"""
+    try:
+        slot_index = request.get("slot_index")
+        photo_url = request.get("photo_url")
+        
+        if slot_index < 0 or slot_index >= 6:
+            raise HTTPException(status_code=400, detail="Invalid slot index")
+        
+        # Get current reel
+        reel = await db.photo_reel.find_one({"type": "main_reel"})
+        if not reel:
+            reel = {"type": "main_reel", "photos": [None] * 6}
+        
+        # Update the specific slot
+        reel["photos"][slot_index] = photo_url
+        
+        # Update in database
+        await db.photo_reel.update_one(
+            {"type": "main_reel"},
+            {"$set": {"photos": reel["photos"]}},
+            upsert=True
+        )
+        
+        return {"message": f"Photo reel slot {slot_index + 1} updated successfully"}
+        
+    except Exception as e:
+        logger.error(f"Failed to update reel photo: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to update photo reel")
+
+@api_router.delete("/admin/gallery-photo")
+async def remove_gallery_photo(request: dict):
+    """Remove a photo from the gallery"""
+    try:
+        photo_url = request.get("photo_url")
+        
+        # Remove from database
+        result = await db.gallery_photos.delete_one({"url": photo_url})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Photo not found")
+        
+        # Try to remove file from filesystem
+        try:
+            if photo_url.startswith("/static/gallery/"):
+                file_path = f"/app{photo_url}"
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+        except Exception as file_error:
+            logger.warning(f"Failed to remove file {photo_url}: {str(file_error)}")
+        
+        return {"message": "Photo removed successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to remove photo: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to remove photo")
+
+@api_router.get("/admin/customer-photos")
+async def get_customer_photos():
+    """Get photos uploaded by customers for quotes"""
+    try:
+        # Get quotes with uploaded images
+        quotes = await db.quotes.find({
+            "image_file": {"$exists": True, "$ne": None}
+        }).to_list(length=None)
+        
+        customer_photos = []
+        for quote in quotes:
+            if quote.get("image_file"):
+                customer_photos.append({
+                    "url": quote["image_file"],
+                    "quote_id": quote["id"],
+                    "uploaded_at": quote.get("created_at"),
+                    "description": quote.get("image_description", "")
+                })
+        
+        # Sort by upload date (newest first)
+        customer_photos.sort(key=lambda x: x["uploaded_at"] or "", reverse=True)
+        
+        return customer_photos
+        
+    except Exception as e:
+        logger.error(f"Failed to get customer photos: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve customer photos")
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
