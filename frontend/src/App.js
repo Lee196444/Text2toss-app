@@ -175,121 +175,41 @@ const LandingPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-black/40 to-emerald-900/50">
       {/* Toast notifications handled by global function */}
       
-      {/* Enhanced Navigation */}
-      <nav className="bg-black/80 backdrop-blur-lg border-b border-emerald-400/40 sticky top-0 z-50 shadow-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4 sm:py-5">
-            
-            {/* Complete Text2toss Square Logo */}
-            <div className="flex items-center space-x-3 sm:space-x-4">
-              {/* Full Square Logo Badge with Enhanced Green */}
-              <div className="relative group">
-                <div className="w-24 h-24 sm:w-28 sm:h-28 bg-gradient-to-br from-emerald-900 via-emerald-800 to-gray-800 rounded-3xl flex flex-col items-center justify-center shadow-2xl shadow-emerald-500/40 ring-2 ring-emerald-400/70 hover:ring-emerald-400/90 transition-all duration-500 transform hover:scale-105 p-2">
-                  
-                  {/* Smartphone Icon at Top with Green Accent */}
-                  <div className="relative mb-1">
-                    <svg width="32" height="32" viewBox="0 0 40 40" fill="none" className="filter drop-shadow-lg">
-                      {/* Smartphone Outline - Enhanced Green */}
-                      <rect x="8" y="4" width="24" height="32" rx="4" ry="4" stroke="#10B981" strokeWidth="2" fill="none"/>
-                      
-                      {/* Screen Area - More Green */}
-                      <rect x="10" y="8" width="20" height="24" rx="2" ry="2" fill="rgba(16, 185, 129, 0.3)" stroke="rgba(16, 185, 129, 0.8)" strokeWidth="1"/>
-                      
-                      {/* Person Throwing Icon - Bright Green */}
-                      <g transform="translate(12, 12)">
-                        {/* Person Head */}
-                        <circle cx="4" cy="3" r="1.5" fill="#22C55E"/>
-                        {/* Person Body */}
-                        <path d="M1 8L2 10L3 12H5L6 10L7 8C7 7 6 6 4 6C2 6 1 7 1 8Z" fill="#22C55E"/>
-                        {/* Throwing Arm */}
-                        <path d="M5 7L8 5" stroke="#22C55E" strokeWidth="1.5" strokeLinecap="round"/>
-                        {/* Object Being Thrown */}
-                        <circle cx="9" cy="4" r="0.8" fill="#22C55E"/>
-                        
-                        {/* Trash Bin - Enhanced Green */}
-                        <rect x="11" y="8" width="4" height="5" rx="0.5" fill="#16A34A"/>
-                        <path d="M11 8L15 8" stroke="#22C55E" strokeWidth="1"/>
-                        <rect x="11.5" y="7" width="3" height="1" fill="#22C55E"/>
-                        {/* Trash Lines */}
-                        <line x1="12.5" y1="9" x2="12.5" y2="11.5" stroke="rgba(255,255,255,0.9)" strokeWidth="0.6"/>
-                        <line x1="14" y1="9" x2="14" y2="11.5" stroke="rgba(255,255,255,0.9)" strokeWidth="0.6"/>
-                      </g>
-                    </svg>
-                  </div>
-                  
-                  {/* Text2toss Text Inside Square - Brighter Green */}
-                  <div className="text-center">
-                    <div className="text-emerald-300 font-black text-sm sm:text-base tracking-tight leading-tight filter drop-shadow-sm">
-                      Text2toss
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Status Indicator - Green Theme */}
-                <div className="absolute -top-2 -right-2 w-5 h-5 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full shadow-lg shadow-emerald-400/60 flex items-center justify-center">
-                  <div className="w-2.5 h-2.5 bg-emerald-100 rounded-full animate-pulse"></div>
-                </div>
-                
-                {/* Enhanced Green Glow Effect */}
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/40 to-emerald-600/40 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+      {/* Navigation */}
+      <nav className="bg-black/70 backdrop-blur-md border-b border-emerald-400/30 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-3 sm:py-4">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
+                <span className="text-white font-bold text-sm sm:text-lg">T2T</span>
               </div>
-              
-              {/* Minimal Additional Branding */}
-              <div className="flex flex-col">
-                {/* Professional Tagline */}
-                <div className="flex items-center space-x-2">
-                  <span className="text-emerald-300/95 text-xs sm:text-sm font-bold tracking-wider uppercase bg-emerald-900/20 px-2 py-0.5 rounded-full border border-emerald-400/30">
-                    Junk Removal Service
-                  </span>
-                  {/* Service Status Badge */}
-                  <div className="hidden sm:flex items-center space-x-1 text-xs text-emerald-400">
-                    <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>
-                    <span className="font-medium">Active</span>
-                  </div>
-                </div>
-                
-                {/* Animated Status Dots */}
-                <div className="hidden sm:flex items-center space-x-1 mt-1">
-                  <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-lg shadow-emerald-400/50"></div>
-                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-lg shadow-emerald-500/50" style={{animationDelay: '0.2s'}}></div>
-                  <div className="w-2 h-2 bg-emerald-300 rounded-full animate-pulse shadow-lg shadow-emerald-300/50" style={{animationDelay: '0.4s'}}></div>
-                </div>
-              </div>
+              <span className="text-lg sm:text-2xl font-bold text-white">Text2toss</span>
             </div>
-
-            {/* Centered Upload Button - Hidden on mobile, shown in hero section instead */}
-            <div className="hidden lg:block absolute left-1/2 transform -translate-x-1/2">
-              <Button 
-                onClick={() => setShowQuote(true)}
-                className="bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-600 hover:from-emerald-600 hover:via-emerald-700 hover:to-teal-700 text-white px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold rounded-xl shadow-lg shadow-emerald-500/40 hover:shadow-xl hover:shadow-emerald-500/50 transition-all duration-300 transform hover:scale-105"
-                data-testid="get-quote-btn"
-              >
-                <span className="flex items-center space-x-2">
-                  <span className="text-lg sm:text-xl">📸</span>
-                  <span>Upload & Quote</span>
-                </span>
-              </Button>
+            <div className="hidden md:flex items-center space-x-8">
+              <a href="#how-it-works" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors">How It Works</a>
+              <a href="#contact" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors">Contact</a>
             </div>
-
-            {/* Right Navigation Links + Admin Button */}
-            <div className="flex items-center space-x-4 sm:space-x-6">
-              <div className="hidden md:flex items-center space-x-6">
-                <a href="#how-it-works" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors text-sm">How It Works</a>
-                <a href="#contact" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors text-sm">Contact</a>
-              </div>
+            <div className="flex items-center space-x-2 sm:space-x-3">
               <Link to="/admin">
                 <Button 
                   variant="outline"
-                  className="border-2 border-emerald-400 text-emerald-400 hover:bg-emerald-400 hover:text-white text-sm px-4 py-2 font-medium rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-emerald-400/30"
+                  size="sm"
+                  className="border-emerald-400 text-emerald-400 hover:bg-emerald-400 hover:text-white text-xs sm:text-sm px-3 sm:px-4 py-2 min-w-0"
                   data-testid="admin-login-nav-btn"
                 >
-                  <span className="flex items-center space-x-1">
-                    <span>🔐</span>
-                    <span className="hidden sm:inline">Admin Login</span>
-                    <span className="sm:hidden">Admin</span>
-                  </span>
+                  <span className="hidden sm:inline">🔐 Admin Login</span>
+                  <span className="sm:hidden">Admin</span>
                 </Button>
               </Link>
+              <Button 
+                onClick={() => setShowQuote(true)}
+                size="sm"
+                className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-2 min-w-0 font-medium"
+                data-testid="get-quote-btn"
+              >
+                <span className="hidden sm:inline">📸 Upload & Quote</span>
+                <span className="sm:hidden">Get Quote</span>
+              </Button>
             </div>
           </div>
         </div>
