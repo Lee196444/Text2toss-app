@@ -1628,9 +1628,59 @@ async def approve_quote(quote_id: str, approval_action: QuoteApprovalAction):
             "approved_at": datetime.now(timezone.utc).isoformat()
         }
         
-        # If price is adjusted
+        # Handle price adjustments and customer approval requirements
+        original_price = quote.get("total_price", 0)
+        
         if approval_action.approved_price is not None:
             update_data["approved_price"] = approval_action.approved_price
+            
+            # If price is increased, require customer approval
+            if approval_action.approved_price > original_price:
+                # Find any existing booking for this quote
+                existing_booking = await db.bookings.find_one({"quote_id": quote_id})
+                
+                if existing_booking:
+                    # Generate approval token for customer
+                    approval_token = str(uuid.uuid4())
+                    
+                    # Update booking to require customer approval
+                    booking_update = {
+                        "status": "pending_customer_approval",
+                        "original_price": original_price,
+                        "adjusted_price": approval_action.approved_price,
+                        "price_adjustment_reason": approval_action.admin_notes or "Price adjustment by admin",
+                        "customer_approval_token": approval_token,
+                        "requires_customer_approval": True
+                    }
+                    
+                    await db.bookings.update_one(
+                        {"id": existing_booking["id"]},
+                        {"$set": booking_update}
+                    )
+                    
+                    # Send SMS notification to customer about price change
+                    try:
+                        price_increase = approval_action.approved_price - original_price
+                        backend_url = os.environ.get('REACT_APP_BACKEND_URL')
+                        approval_url = f"{backend_url}/customer-approval/{approval_token}"
+                        
+                        message = f"""🔔 Text2toss Price Update
+                        
+Your quote has been updated from ${original_price:.2f} to ${approval_action.approved_price:.2f} (+${price_increase:.2f}).
+
+Reason: {approval_action.admin_notes or 'Price adjustment after review'}
+
+Please review and approve: {approval_url}
+
+Your job is on hold until you approve the new price."""
+                        
+                        await send_sms(existing_booking["phone"], message)
+                        
+                        # Update status to reflect customer notification sent
+                        update_data["approval_status"] = "approved_pending_customer"
+                        
+                    except Exception as sms_error:
+                        logger.error(f"Failed to send price change notification: {str(sms_error)}")
         
         # Update quote
         await db.quotes.update_one(
