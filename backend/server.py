@@ -25,7 +25,6 @@ import os
 from pathlib import Path
 from twilio.rest import Client
 import logging
-from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
 from fastapi import Request
 
 # Set up logging
@@ -39,11 +38,6 @@ load_dotenv(ROOT_DIR / '.env')
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
-
-# Stripe configuration
-STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY')
-if not STRIPE_API_KEY:
-    logger.warning("STRIPE_API_KEY not configured - payment processing will be disabled")
 
 # Create the main app without a prefix
 app = FastAPI()
