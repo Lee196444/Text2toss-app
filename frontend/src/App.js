@@ -302,16 +302,41 @@ const LandingPage = () => {
                 </div>
               </div>
               
-              <div className="flex flex-col gap-3 lg:gap-4 justify-center px-4 sm:px-6 lg:px-0 max-w-full mx-auto">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 lg:gap-4 justify-center px-2 sm:px-4 lg:px-0 max-w-full mx-auto">
                 <Button 
                   onClick={() => setShowQuote(true)}
                   size="lg"
-                  className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-sm sm:text-base lg:text-lg px-4 sm:px-6 lg:px-8 py-4 lg:py-6 w-full max-w-full text-center font-semibold"
+                  className="w-full sm:flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-base sm:text-lg font-bold px-4 sm:px-6 py-4 sm:py-5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                   data-testid="hero-get-quote-btn"
                 >
-                  <span className="block sm:hidden">📸 Upload & Quote</span>
-                  <span className="hidden sm:block">📸 Upload Photo & Get Quote</span>
+                  <span className="flex items-center justify-center space-x-2">
+                    <span className="text-lg sm:text-xl">📸</span>
+                    <span className="whitespace-nowrap">Upload & Quote</span>
+                  </span>
                 </Button>
+                
+                <Link to="/admin" className="w-full sm:w-auto">
+                  <Button 
+                    variant="outline"
+                    size="lg"
+                    className="w-full border-2 border-emerald-400 text-emerald-400 hover:bg-emerald-400 hover:text-white text-base sm:text-lg font-semibold px-4 sm:px-6 py-4 sm:py-5 rounded-xl transition-all duration-300 hover:shadow-lg"
+                    data-testid="hero-admin-btn"
+                  >
+                    <span className="flex items-center justify-center space-x-2">
+                      <span>🔐</span>
+                      <span className="whitespace-nowrap">Admin Login</span>
+                    </span>
+                  </Button>
+                </Link>
+              </div>
+              
+              <div className="hidden lg:flex flex-col gap-4 max-w-sm">
+                <Button 
+                  variant="outline" 
+                  size="lg"
+                  className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 text-base px-6 py-4 w-full"
+                  data-testid="learn-more-btn"
+                  onClick={() => {
                 <Button 
                   variant="outline" 
                   size="lg"
