@@ -1825,10 +1825,10 @@ const AdminDashboard = () => {
               <div className="flex justify-between items-center">
                 <div>
                   <CardTitle className="text-xl font-bold flex items-center gap-2">
-                    📸 Photo Reel Management
+                    📸 Photo Upload & Management
                   </CardTitle>
                   <CardDescription className="text-purple-100">
-                    Manage gallery photos and customer page photo reel (6 slots)
+                    Upload photos and manage customer page photo reel (6 slots)
                   </CardDescription>
                 </div>
                 <Button 
