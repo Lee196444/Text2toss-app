@@ -300,20 +300,6 @@ const LandingPage = () => {
                     <span className="whitespace-nowrap">UPLOAD & QUOTE</span>
                   </span>
                 </Button>
-                
-                <Link to="/admin" className="w-full sm:w-auto">
-                  <Button 
-                    variant="outline"
-                    size="lg"
-                    className="w-full border-2 border-emerald-400 text-emerald-400 hover:bg-emerald-400 hover:text-white text-base sm:text-lg font-semibold px-4 sm:px-6 py-4 sm:py-5 rounded-xl transition-all duration-300 hover:shadow-lg"
-                    data-testid="hero-admin-btn"
-                  >
-                    <span className="flex items-center justify-center space-x-2">
-                      <span>🔐</span>
-                      <span className="whitespace-nowrap">Admin Login</span>
-                    </span>
-                  </Button>
-                </Link>
               </div>
               
               {/* Mobile-Responsive Feature Highlights */}
