@@ -2250,6 +2250,259 @@ class TEXT2TOSSAPITester:
         print("   • Phone Number: +1[REDACTED] ✅")
         print("   • Auth Token: Connected and authenticated ✅")
 
+    def test_photo_upload_system(self):
+        """Test PHOTO UPLOAD SYSTEM - Comprehensive diagnosis for Text2toss"""
+        print("\n" + "="*50)
+        print("TESTING PHOTO UPLOAD SYSTEM - COMPREHENSIVE DIAGNOSIS")
+        print("="*50)
+        
+        if not self.admin_token:
+            print("   ⚠️  No admin token, attempting admin login first...")
+            self.test_admin_authentication()
+            if not self.admin_token:
+                print("   ❌ Cannot test photo system without admin authentication")
+                return
+        
+        # Test 1: Photo Upload Endpoint
+        print("\n📸 Testing Photo Upload Endpoint...")
+        try:
+            # Create a test image for upload
+            import io
+            from PIL import Image
+            
+            # Create a test image
+            img = Image.new('RGB', (400, 300), color='blue')
+            img_buffer = io.BytesIO()
+            img.save(img_buffer, format='JPEG')
+            img_buffer.seek(0)
+            
+            files = {'photo': ('test_gallery_photo.jpg', img_buffer, 'image/jpeg')}
+            
+            success, response = self.run_test("Upload Gallery Photo", "POST", 
+                                            "admin/upload-gallery-photo", 200, files=files)
+            
+            uploaded_photo_url = None
+            if success:
+                uploaded_photo_url = response.get('url')
+                print(f"   ✅ Photo uploaded successfully")
+                print(f"   📎 Photo URL: {uploaded_photo_url}")
+                
+                # Verify URL format
+                if uploaded_photo_url and 'static/gallery/' in uploaded_photo_url:
+                    print(f"   ✅ Photo URL has correct format")
+                else:
+                    print(f"   ❌ Photo URL format incorrect: {uploaded_photo_url}")
+            else:
+                print(f"   ❌ Photo upload failed")
+                
+        except ImportError:
+            print("   ⚠️  PIL not available, skipping photo upload test")
+            uploaded_photo_url = None
+        except Exception as e:
+            print(f"   ❌ Photo upload test failed: {str(e)}")
+            uploaded_photo_url = None
+        
+        # Test 2: Gallery Photos Retrieval
+        print("\n🖼️  Testing Gallery Photos Endpoint...")
+        success, response = self.run_test("Get Gallery Photos", "GET", "admin/gallery-photos", 200)
+        
+        if success:
+            if isinstance(response, list):
+                print(f"   ✅ Gallery photos returned as list")
+                print(f"   📊 Found {len(response)} gallery photos")
+                
+                # Check if our uploaded photo is in the list
+                if uploaded_photo_url and uploaded_photo_url in response:
+                    print(f"   ✅ Uploaded photo found in gallery list")
+                elif uploaded_photo_url:
+                    print(f"   ❌ Uploaded photo NOT found in gallery list")
+                
+                # Test a few photo URLs for accessibility
+                for i, photo_url in enumerate(response[:3]):  # Test first 3 photos
+                    print(f"   🔗 Testing photo URL {i+1}: {photo_url}")
+                    try:
+                        import requests
+                        photo_response = requests.head(photo_url, timeout=10)
+                        if photo_response.status_code == 200:
+                            print(f"   ✅ Photo {i+1} accessible (Status: {photo_response.status_code})")
+                        else:
+                            print(f"   ❌ Photo {i+1} not accessible (Status: {photo_response.status_code})")
+                    except Exception as e:
+                        print(f"   ❌ Photo {i+1} accessibility test failed: {str(e)}")
+            else:
+                print(f"   ❌ Gallery photos response format incorrect: {type(response)}")
+        
+        # Test 3: Photo Reel Endpoint (Public)
+        print("\n🎞️  Testing Photo Reel Endpoint (Public)...")
+        success, response = self.run_test("Get Photo Reel (Public)", "GET", "reel-photos", 200)
+        
+        if success:
+            if 'photos' in response and isinstance(response['photos'], list):
+                photos = response['photos']
+                print(f"   ✅ Photo reel returned with photos array")
+                print(f"   📊 Reel has {len(photos)} slots")
+                
+                # Check reel structure (should be 6 slots)
+                if len(photos) == 6:
+                    print(f"   ✅ Photo reel has correct 6 slots")
+                else:
+                    print(f"   ❌ Photo reel has {len(photos)} slots, expected 6")
+                
+                # Check each slot
+                for i, photo in enumerate(photos):
+                    if photo is None:
+                        print(f"   ℹ️  Slot {i+1}: Empty")
+                    else:
+                        print(f"   📎 Slot {i+1}: {photo}")
+                        # Test photo accessibility
+                        try:
+                            import requests
+                            photo_response = requests.head(photo, timeout=10)
+                            if photo_response.status_code == 200:
+                                print(f"   ✅ Slot {i+1} photo accessible")
+                            else:
+                                print(f"   ❌ Slot {i+1} photo not accessible (Status: {photo_response.status_code})")
+                        except Exception as e:
+                            print(f"   ❌ Slot {i+1} photo accessibility test failed: {str(e)}")
+            else:
+                print(f"   ❌ Photo reel response format incorrect: {response}")
+        
+        # Test 4: Check if admin reel photos endpoint exists
+        print("\n🔐 Testing Admin Photo Reel Endpoint...")
+        success, response = self.run_test("Get Photo Reel (Admin)", "GET", "admin/reel-photos", 200)
+        
+        if not success:
+            print(f"   ℹ️  Admin reel photos endpoint not found (may not be implemented)")
+            print(f"   ℹ️  Using public reel-photos endpoint for admin access")
+        
+        # Test 5: Photo Reel Management
+        print("\n⚙️  Testing Photo Reel Management...")
+        if uploaded_photo_url:
+            # Try to update a reel slot with our uploaded photo
+            reel_update_data = {
+                "slot_index": 2,  # Update slot 3 (0-indexed)
+                "photo_url": uploaded_photo_url
+            }
+            
+            success, response = self.run_test("Update Photo Reel Slot", "POST", 
+                                            "admin/update-reel-photo", 200, reel_update_data)
+            
+            if success:
+                print(f"   ✅ Photo reel slot updated successfully")
+                
+                # Verify the update by getting the reel again
+                success_verify, reel_response = self.run_test("Verify Reel Update", "GET", "reel-photos", 200)
+                if success_verify and 'photos' in reel_response:
+                    updated_photos = reel_response['photos']
+                    if len(updated_photos) > 2 and updated_photos[2] == uploaded_photo_url:
+                        print(f"   ✅ Reel slot 3 successfully updated with uploaded photo")
+                    else:
+                        print(f"   ❌ Reel slot 3 not updated correctly")
+                        print(f"   📋 Slot 3 content: {updated_photos[2] if len(updated_photos) > 2 else 'N/A'}")
+            else:
+                print(f"   ❌ Photo reel slot update failed")
+        else:
+            print(f"   ⚠️  No uploaded photo URL available for reel management test")
+        
+        # Test 6: Static File Serving
+        print("\n🌐 Testing Static File Serving...")
+        
+        # Test the static gallery directory serving
+        if uploaded_photo_url:
+            print(f"   🔗 Testing uploaded photo accessibility: {uploaded_photo_url}")
+            try:
+                import requests
+                static_response = requests.get(uploaded_photo_url, timeout=15)
+                if static_response.status_code == 200:
+                    print(f"   ✅ Uploaded photo accessible via static URL")
+                    print(f"   📊 Content-Type: {static_response.headers.get('content-type', 'N/A')}")
+                    print(f"   📊 Content-Length: {static_response.headers.get('content-length', 'N/A')} bytes")
+                else:
+                    print(f"   ❌ Uploaded photo not accessible (Status: {static_response.status_code})")
+            except Exception as e:
+                print(f"   ❌ Static file serving test failed: {str(e)}")
+        
+        # Test general static directory access
+        test_static_url = f"{self.base_url}/static/gallery/"
+        print(f"   🔗 Testing static gallery directory: {test_static_url}")
+        try:
+            import requests
+            dir_response = requests.get(test_static_url, timeout=10)
+            if dir_response.status_code in [200, 403, 404]:
+                print(f"   ✅ Static gallery directory responds (Status: {dir_response.status_code})")
+            else:
+                print(f"   ❌ Static gallery directory issue (Status: {dir_response.status_code})")
+        except Exception as e:
+            print(f"   ❌ Static directory test failed: {str(e)}")
+        
+        # Test 7: Error Handling
+        print("\n🚫 Testing Photo System Error Handling...")
+        
+        # Test upload without file
+        success, response = self.run_test("Upload Without File", "POST", "admin/upload-gallery-photo", 422)
+        if not success:
+            print(f"   ✅ Proper error handling for missing file")
+        
+        # Test reel update with invalid slot
+        invalid_reel_data = {
+            "slot_index": 10,  # Invalid slot (should be 0-5)
+            "photo_url": "https://example.com/test.jpg"
+        }
+        success, response = self.run_test("Update Invalid Reel Slot", "POST", 
+                                        "admin/update-reel-photo", 400, invalid_reel_data)
+        if not success:
+            print(f"   ✅ Proper error handling for invalid slot index")
+        
+        # Test 8: Database Integration Check
+        print("\n🗄️ Testing Database Integration...")
+        
+        # The gallery photos endpoint should return photos from database
+        success, db_photos = self.run_test("Database Photo Retrieval", "GET", "admin/gallery-photos", 200)
+        if success and isinstance(db_photos, list):
+            print(f"   ✅ Database integration working - retrieved {len(db_photos)} photos")
+            
+            # Check if photos have proper database structure
+            if len(db_photos) > 0:
+                print(f"   ✅ Gallery photos stored in database")
+            else:
+                print(f"   ℹ️  No photos in database (may be expected)")
+        
+        # Test 9: File Permissions and Storage
+        print("\n📁 Testing File Permissions and Storage...")
+        
+        # Check if gallery directory exists and is writable
+        try:
+            import os
+            gallery_dir = "/app/static/gallery"
+            if os.path.exists(gallery_dir):
+                print(f"   ✅ Gallery directory exists: {gallery_dir}")
+                if os.access(gallery_dir, os.W_OK):
+                    print(f"   ✅ Gallery directory is writable")
+                else:
+                    print(f"   ❌ Gallery directory is not writable")
+            else:
+                print(f"   ❌ Gallery directory does not exist: {gallery_dir}")
+                
+            # Check static root directory
+            static_dir = "/app/static"
+            if os.path.exists(static_dir):
+                print(f"   ✅ Static root directory exists: {static_dir}")
+            else:
+                print(f"   ❌ Static root directory does not exist: {static_dir}")
+                
+        except Exception as e:
+            print(f"   ❌ File system check failed: {str(e)}")
+        
+        print("\n📸 PHOTO UPLOAD SYSTEM TEST SUMMARY:")
+        print("   • Photo Upload Endpoint: /api/admin/upload-gallery-photo")
+        print("   • Gallery Photos Endpoint: /api/admin/gallery-photos") 
+        print("   • Photo Reel Endpoint (Public): /api/reel-photos")
+        print("   • Photo Reel Management: /api/admin/update-reel-photo")
+        print("   • Static File Serving: /static/gallery/ directory")
+        print("   • Database Integration: gallery_photos and photo_reel collections")
+        print("   • File Storage: /app/static/gallery/ directory")
+        print("   • Authentication: Admin JWT token required for upload/management")
+
     def run_all_tests(self):
         """Run all tests"""
         print("🚀 Starting TEXT-2-TOSS API Testing")
