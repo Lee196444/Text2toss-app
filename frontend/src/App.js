@@ -772,6 +772,72 @@ const LandingPage = () => {
   );
 };
 
+// Photo Carousel Component
+const PhotoCarousel = ({ photos, currentIndex, onIndexChange }) => {
+  const validPhotos = photos.filter(photo => photo !== null);
+  
+  if (validPhotos.length === 0) {
+    return (
+      <div className="relative">
+        <div className="bg-gradient-to-br from-emerald-100 to-teal-100 rounded-2xl shadow-2xl w-full h-80 flex items-center justify-center">
+          <div className="text-center text-gray-600">
+            <span className="text-4xl mb-2 block">📷</span>
+            <p className="text-lg font-medium">Photo Gallery Coming Soon</p>
+            <p className="text-sm">Admin can upload photos here</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const handleDotClick = (index) => {
+    const validIndices = photos.map((photo, idx) => photo !== null ? idx : -1).filter(idx => idx !== -1);
+    onIndexChange(validIndices[index]);
+  };
+
+  return (
+    <div className="relative">
+      <div className="relative z-10 overflow-hidden rounded-2xl shadow-2xl">
+        <img 
+          src={photos[currentIndex]}
+          alt={`Text2toss job photo ${currentIndex + 1}`}
+          className="w-full h-80 object-cover transition-opacity duration-500"
+        />
+        
+        {/* Photo Counter Overlay */}
+        <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-medium">
+          {photos.findIndex((_, idx) => idx === currentIndex && photos[idx] !== null) + 1} / {validPhotos.length}
+        </div>
+        
+        {/* Navigation Dots */}
+        {validPhotos.length > 1 && (
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+            {validPhotos.map((_, index) => {
+              const validIndices = photos.map((photo, idx) => photo !== null ? idx : -1).filter(idx => idx !== -1);
+              const isActive = validIndices[index] === currentIndex;
+              return (
+                <button
+                  key={index}
+                  onClick={() => handleDotClick(index)}
+                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                    isActive 
+                      ? 'bg-emerald-400 shadow-lg shadow-emerald-400/50' 
+                      : 'bg-white/50 hover:bg-white/80'
+                  }`}
+                />
+              );
+            })}
+          </div>
+        )}
+      </div>
+      
+      {/* Decorative Elements */}
+      <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full opacity-20 blur-xl"></div>
+      <div className="absolute -top-4 -left-4 w-32 h-32 bg-gradient-to-br from-teal-400 to-emerald-500 rounded-full opacity-15 blur-2xl"></div>
+    </div>
+  );
+};
+
 // Venmo Payment Modal Component
 const VenmoPaymentModal = ({ quote, bookingId, qrCode, onClose }) => {
   const venmoUrl = `https://venmo.com/code?user_id=Text2toss&amount=${quote.total_price}&note=Text2toss%20Booking%20${bookingId.substring(0, 8)}`;
