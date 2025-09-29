@@ -1305,7 +1305,7 @@ async def upload_completion_photo(
         
         if phone:
             # Create public URL for the image accessible by SMS
-            backend_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://text2toss-junk.preview.emergentagent.com')
+            backend_url = os.environ.get('REACT_APP_BACKEND_URL')
             photo_url = f"{backend_url}/api/public/completion-photo/{booking_id}"
             
             completion_message = f"📸 Text2toss Complete: Your junk has been removed from {booking['address']}. "
