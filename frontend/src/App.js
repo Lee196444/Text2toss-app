@@ -72,6 +72,19 @@ const LandingPage = () => {
   ]);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
+  // Fetch photo reel data from backend
+  useEffect(() => {
+    const fetchPhotoReel = async () => {
+      try {
+        const response = await axios.get(`${API}/admin/reel-photos`);
+        setPhotoReel(response.data.photos);
+      } catch (error) {
+        console.error('Failed to fetch photo reel:', error);
+      }
+    };
+    fetchPhotoReel();
+  }, []);
+
   // Auto-cycle photos every 4 seconds
   useEffect(() => {
     const validPhotos = photoReel.filter(photo => photo !== null);
