@@ -466,7 +466,7 @@ const LandingPage = () => {
               {/* Add Item Form */}
               <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
                 <h3 className="font-semibold">Add Items</h3>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label>Item Name</Label>
                     <Input
@@ -474,16 +474,6 @@ const LandingPage = () => {
                       value={currentItem.name}
                       onChange={(e) => setCurrentItem({...currentItem, name: e.target.value})}
                       data-testid="item-name-input"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Quantity</Label>
-                    <Input
-                      type="number"
-                      min="1"
-                      value={currentItem.quantity}
-                      onChange={(e) => setCurrentItem({...currentItem, quantity: parseInt(e.target.value)})}
-                      data-testid="item-quantity-input"
                     />
                   </div>
                   <div className="space-y-2">
