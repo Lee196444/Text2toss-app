@@ -1895,8 +1895,7 @@ async def upload_gallery_photo(photo: UploadFile = File(...)):
             f.write(contents)
         
         # Create URL for the photo - use full URL for frontend display
-        backend_url = os.environ.get('BACKEND_URL', 'https://text2toss-venmo.preview.emergentagent.com')
-        photo_url = f"{backend_url}/static/gallery/{filename}"
+        photo_url = f"https://text2toss-venmo.preview.emergentagent.com/static/gallery/{filename}"
         
         # Save to database
         photo_doc = {
