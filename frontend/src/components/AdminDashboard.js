@@ -775,7 +775,7 @@ const AdminDashboard = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4">
               <Button 
                 onClick={openCalendar} 
                 className="bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
@@ -796,6 +796,22 @@ const AdminDashboard = () => {
                   </div>
                 )}
               </Button>
+
+              <Button 
+                onClick={() => setShowPhotoGallery(true)} 
+                className="bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
+              >
+                <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">📸</span>
+                <span className="text-xs sm:text-sm font-medium leading-tight">Photo Reel</span>
+              </Button>
+
+              <Button 
+                onClick={() => setShowCustomerPhotos(true)} 
+                className="bg-gradient-to-br from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
+              >
+                <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">🖼️</span>
+                <span className="text-xs sm:text-sm font-medium leading-tight">Customer Photos</span>
+              </Button>
               
               <Button 
                 onClick={() => setShowSmsCenter(true)} 
@@ -815,7 +831,7 @@ const AdminDashboard = () => {
               
               <Button 
                 onClick={calculateOptimalRoute} 
-                className="bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 col-span-2 sm:col-span-1 min-h-[64px]"
+                className="bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
               >
                 <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">🗺️</span>
                 <span className="text-xs sm:text-sm font-medium leading-tight">Route</span>
