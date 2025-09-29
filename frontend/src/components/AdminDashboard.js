@@ -926,11 +926,15 @@ const AdminDashboard = () => {
                             variant={
                               booking.status === 'completed' ? 'success' : 
                               booking.status === 'in_progress' ? 'warning' : 
+                              booking.status === 'pending_customer_approval' ? 'destructive' :
                               'default'
                             }
-                            className="text-xs"
+                            className={`text-xs ${
+                              booking.status === 'pending_customer_approval' ? 'bg-orange-500 text-white' : ''
+                            }`}
                           >
-                            {booking.status.replace('_', ' ').toUpperCase()}
+                            {booking.status === 'pending_customer_approval' ? 'AWAITING CUSTOMER APPROVAL' : 
+                             booking.status.replace('_', ' ').toUpperCase()}
                           </Badge>
                           {/* Date Badge */}
                           <Badge variant="outline" className="bg-gray-100 text-gray-700 text-xs">
