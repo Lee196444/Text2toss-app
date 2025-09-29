@@ -176,13 +176,13 @@ const AvailabilityCalendar = ({ selectedDate, onDateSelect, onClose }) => {
       cells.push(
         <div 
           key={day}
-          className={`h-12 sm:h-16 p-1 border rounded transition-all relative ${dateStatus.className} ${
+          className={`h-16 sm:h-20 lg:h-24 p-2 border rounded transition-all relative ${dateStatus.className} ${
             isSelected ? 'ring-2 ring-blue-500' : ''
           } ${isToday ? 'ring-1 ring-blue-300' : ''}`}
           onClick={() => handleDateClick(dateStr)}
           title={dateStatus.tooltip}
         >
-          <div className={`text-sm sm:text-base font-semibold ${isToday ? 'underline' : ''}`}>
+          <div className={`text-base sm:text-lg lg:text-xl font-semibold ${isToday ? 'underline' : ''}`}>
             {day}
           </div>
           
