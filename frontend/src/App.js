@@ -133,41 +133,59 @@ const LandingPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-black/40 to-emerald-900/50">
       {/* Toast notifications handled by global function */}
       
-      {/* Navigation */}
-      <nav className="bg-black/70 backdrop-blur-md border-b border-emerald-400/30 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-3 sm:py-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold text-sm sm:text-lg">T2T</span>
+      {/* Enhanced Navigation */}
+      <nav className="bg-black/80 backdrop-blur-lg border-b border-emerald-400/40 sticky top-0 z-50 shadow-xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4 sm:py-5">
+            
+            {/* Enhanced Left Branding */}
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                <span className="text-white font-bold text-lg sm:text-2xl tracking-tight">T2T</span>
               </div>
-              <span className="text-lg sm:text-2xl font-bold text-white">Text2toss</span>
+              <div className="flex flex-col">
+                <span className="text-2xl sm:text-4xl font-extrabold bg-gradient-to-r from-emerald-400 via-emerald-300 to-teal-400 bg-clip-text text-transparent tracking-wide">
+                  Text2toss
+                </span>
+                <span className="text-emerald-300/80 text-xs sm:text-sm font-medium tracking-wider">
+                  Professional Junk Removal
+                </span>
+              </div>
             </div>
-            <div className="hidden md:flex items-center space-x-8">
-              <a href="#how-it-works" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors">How It Works</a>
-              <a href="#contact" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors">Contact</a>
+
+            {/* Centered Upload Button */}
+            <div className="absolute left-1/2 transform -translate-x-1/2">
+              <Button 
+                onClick={() => setShowQuote(true)}
+                className="bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-600 hover:from-emerald-600 hover:via-emerald-700 hover:to-teal-700 text-white px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold rounded-xl shadow-lg shadow-emerald-500/40 hover:shadow-xl hover:shadow-emerald-500/50 transition-all duration-300 transform hover:scale-105"
+                data-testid="get-quote-btn"
+              >
+                <span className="flex items-center space-x-2">
+                  <span className="text-lg sm:text-xl">📸</span>
+                  <span>Upload & Quote</span>
+                </span>
+              </Button>
             </div>
-            <div className="flex items-center space-x-2 sm:space-x-3">
+
+            {/* Right Navigation Links + Admin Button */}
+            <div className="flex items-center space-x-4 sm:space-x-6">
+              <div className="hidden md:flex items-center space-x-6">
+                <a href="#how-it-works" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors text-sm">How It Works</a>
+                <a href="#contact" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors text-sm">Contact</a>
+              </div>
               <Link to="/admin">
                 <Button 
                   variant="outline"
-                  size="sm"
-                  className="border-emerald-400 text-emerald-400 hover:bg-emerald-400 hover:text-white text-xs sm:text-sm px-3 sm:px-4 py-2 min-w-0"
+                  className="border-2 border-emerald-400 text-emerald-400 hover:bg-emerald-400 hover:text-white text-sm px-4 py-2 font-medium rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-emerald-400/30"
                   data-testid="admin-login-nav-btn"
                 >
-                  <span className="hidden sm:inline">🔐 Admin Login</span>
-                  <span className="sm:hidden">Admin</span>
+                  <span className="flex items-center space-x-1">
+                    <span>🔐</span>
+                    <span className="hidden sm:inline">Admin Login</span>
+                    <span className="sm:hidden">Admin</span>
+                  </span>
                 </Button>
               </Link>
-              <Button 
-                onClick={() => setShowQuote(true)}
-                size="sm"
-                className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-2 min-w-0 font-medium"
-                data-testid="get-quote-btn"
-              >
-                <span className="hidden sm:inline">📸 Upload & Quote</span>
-                <span className="sm:hidden">Get Quote</span>
-              </Button>
             </div>
           </div>
         </div>
