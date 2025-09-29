@@ -50,7 +50,7 @@ const LandingPage = () => {
   const [showQuote, setShowQuote] = useState(false);
   const [items, setItems] = useState([]);
   const [description, setDescription] = useState("");
-  const [currentItem, setCurrentItem] = useState({ name: "", quantity: 1, size: "medium", description: "" });
+  const [currentItem, setCurrentItem] = useState({ name: "", size: "medium", description: "" });
   const [quote, setQuote] = useState(null);
   const [showBooking, setShowBooking] = useState(false);
   const [uploadedImage, setUploadedImage] = useState(null);
