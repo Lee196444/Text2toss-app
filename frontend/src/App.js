@@ -77,7 +77,16 @@ const LandingPage = () => {
     const fetchPhotoReel = async () => {
       try {
         const response = await axios.get(`${API}/admin/reel-photos`);
-        setPhotoReel(response.data.photos);
+        
+        // Convert relative URLs to full URLs for display
+        const photosWithFullUrls = (response.data.photos || []).map(photo => {
+          if (photo && photo.startsWith('/static/')) {
+            return `${API.replace('/api', '')}${photo}`;
+          }
+          return photo;
+        });
+        
+        setPhotoReel(photosWithFullUrls);
       } catch (error) {
         console.error('Failed to fetch photo reel:', error);
       }
