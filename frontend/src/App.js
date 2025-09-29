@@ -230,10 +230,20 @@ const LandingPage = () => {
                   </Badge>
                 </div>
                 <h1 className="text-8xl sm:text-9xl lg:text-[10rem] xl:text-[12rem] font-black leading-tight text-center lg:text-left">
-                  <span className="text-emerald-400" style={{
+                  <span style={{
                     color: '#10b981',
-                    WebkitTextStroke: '4px white',
-                    textShadow: '0 0 10px #00ff88, 0 0 20px #00ff88, 0 0 30px #00ff88, 0 0 40px #00ff88'
+                    textShadow: `
+                      -4px -4px 0 white, -4px -3px 0 white, -4px -2px 0 white, -4px -1px 0 white, -4px 0 0 white, -4px 1px 0 white, -4px 2px 0 white, -4px 3px 0 white, -4px 4px 0 white,
+                      -3px -4px 0 white, -3px 4px 0 white,
+                      -2px -4px 0 white, -2px 4px 0 white,
+                      -1px -4px 0 white, -1px 4px 0 white,
+                      0px -4px 0 white, 0px 4px 0 white,
+                      1px -4px 0 white, 1px 4px 0 white,
+                      2px -4px 0 white, 2px 4px 0 white,
+                      3px -4px 0 white, 3px 4px 0 white,
+                      4px -4px 0 white, 4px -3px 0 white, 4px -2px 0 white, 4px -1px 0 white, 4px 0 0 white, 4px 1px 0 white, 4px 2px 0 white, 4px 3px 0 white, 4px 4px 0 white,
+                      0 0 10px #00ff88, 0 0 20px #00ff88, 0 0 30px #00ff88, 0 0 40px #00ff88
+                    `
                   }}>Text2toss</span>
                 </h1>
                 <div className="bg-emerald-900/40 border border-emerald-400/40 rounded-lg p-3 lg:p-4 mb-4">
