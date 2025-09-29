@@ -1055,6 +1055,18 @@ const AdminDashboard = () => {
                             Route
                           </Button>
                           
+                          {/* Customer Photo View Button */}
+                          {booking.image_path && (
+                            <Button 
+                              size="sm" 
+                              onClick={() => handleViewCustomerPhoto(booking)}
+                              className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 flex-shrink-0"
+                            >
+                              <span className="mr-1">📷</span>
+                              View Photo
+                            </Button>
+                          )}
+                          
                           {/* Status-specific Action Buttons */}
                           <div className="flex flex-wrap gap-2 flex-1">
                             {booking.status === 'scheduled' && (
