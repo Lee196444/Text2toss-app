@@ -71,6 +71,22 @@ const LandingPage = () => {
     null
   ]);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+
+  // Auto-cycle photos every 4 seconds
+  useEffect(() => {
+    const validPhotos = photoReel.filter(photo => photo !== null);
+    if (validPhotos.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentPhotoIndex(prev => {
+          const validIndices = photoReel.map((photo, index) => photo !== null ? index : -1).filter(index => index !== -1);
+          const currentValidIndex = validIndices.indexOf(prev);
+          const nextValidIndex = (currentValidIndex + 1) % validIndices.length;
+          return validIndices[nextValidIndex];
+        });
+      }, 4000);
+      return () => clearInterval(interval);
+    }
+  }, [photoReel]);
   
   const addItem = () => {
     if (!currentItem.name) return;
