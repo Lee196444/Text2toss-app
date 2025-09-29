@@ -254,7 +254,7 @@ const AvailabilityCalendar = ({ selectedDate, onDateSelect, onClose }) => {
           </div>
 
           {/* Calendar Days */}
-          <div className="grid grid-cols-7 gap-1">
+          <div className="grid grid-cols-7 gap-2">
             {loading ? (
               <div className="col-span-7 text-center py-8 text-gray-500">
                 Loading availability...
