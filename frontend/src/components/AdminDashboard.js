@@ -323,6 +323,25 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleViewCustomerPhoto = (booking) => {
+    if (booking.image_path) {
+      // Construct the full URL for the customer photo
+      const backend_url = process.env.REACT_APP_BACKEND_URL;
+      const photoUrl = booking.image_path.startsWith('http') 
+        ? booking.image_path 
+        : `${backend_url}/api/images/booking_images/${booking.image_path.split('/').pop()}`;
+      
+      setCurrentCustomerPhoto({
+        url: photoUrl,
+        booking_id: booking.id,
+        customer_phone: booking.phone,
+        pickup_date: booking.pickup_date,
+        address: booking.address
+      });
+      setShowCustomerPhoto(true);
+    }
+  };
+
   const submitCompletion = async () => {
     if (!completionPhoto) {
       toast.error("Please select a completion photo");
