@@ -125,7 +125,7 @@ const LandingPage = () => {
           formData.append('image', imageFile);
         }
 
-        const response = await axios.post(`${API}/get-quote`, formData, {
+        const response = await axios.post(`${API}/quotes`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         
@@ -169,7 +169,7 @@ const LandingPage = () => {
           formData.append('image', imageFile);
         }
 
-        const response = await axios.post(`${API}/get-quote`, formData, {
+        const response = await axios.post(`${API}/quotes`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         
