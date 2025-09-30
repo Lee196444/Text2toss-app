@@ -656,14 +656,16 @@ const LandingPage = () => {
                             </p>
                           </div>
                         )}
-                      </div>
-                      <Button 
-                        onClick={() => setShowBooking(true)}
-                        className="bg-emerald-600 hover:bg-emerald-700"
-                        data-testid="book-pickup-btn"
-                      >
-                        {quote.scale_level && quote.scale_level >= 4 ? 'Schedule Pickup (Pending Approval)' : 'Book Pickup'}
-                      </Button>
+                          
+                          <Button 
+                            onClick={() => setShowBooking(true)}
+                            className="bg-emerald-600 hover:bg-emerald-700"
+                            data-testid="book-pickup-btn"
+                          >
+                            {quote.scale_level && quote.scale_level >= 4 ? 'Schedule Pickup (Pending Approval)' : 'Book Pickup'}
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
