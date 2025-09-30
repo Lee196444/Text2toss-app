@@ -827,6 +827,10 @@ async def login(login_data: UserLogin):
 
 @api_router.post("/quotes", response_model=PriceQuote)
 async def create_quote(quote_data: PriceQuoteCreate):
+    # Validate that items exist
+    if not quote_data.items or len(quote_data.items) == 0:
+        raise HTTPException(status_code=400, detail="At least one item is required for a quote")
+    
     # Use AI to calculate intelligent pricing
     total_price, ai_explanation, scale_level, breakdown = await calculate_ai_price(quote_data.items, quote_data.description)
     
