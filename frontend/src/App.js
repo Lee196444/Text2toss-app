@@ -105,10 +105,51 @@ const LandingPage = () => {
     }
   }, [photoReel]);
   
-  const addItem = () => {
+  const addItem = async () => {
     if (!currentItem.name) return;
-    setItems([...items, { ...currentItem, quantity: 1 }]); // Add default quantity for backend compatibility
+    
+    const newItem = { ...currentItem, quantity: 1 }; // Add default quantity for backend compatibility
+    const updatedItems = [...items, newItem];
+    setItems(updatedItems);
     setCurrentItem({ name: "", size: "medium", description: "" });
+    
+    // If there was already a quote, automatically recalculate with the new item
+    if (quote) {
+      setQuoteRecalculating(true);
+      try {
+        const formData = new FormData();
+        formData.append('items', JSON.stringify(updatedItems));
+        formData.append('description', description);
+        if (imageFile) {
+          formData.append('image', imageFile);
+        }
+
+        const response = await axios.post(`${API}/get-quote`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        
+        setQuote(response.data);
+        
+        // Show success message with updated price
+        const priceIncrease = response.data.total_price - quote.total_price;
+        if (priceIncrease > 0) {
+          toast.success(`Item "${newItem.name}" added. Quote updated to $${response.data.total_price} (+$${priceIncrease.toFixed(2)})`);
+        } else {
+          toast.success(`Item "${newItem.name}" added. Quote updated to $${response.data.total_price}`);
+        }
+        
+      } catch (error) {
+        console.error('Error recalculating quote after item addition:', error);
+        // Clear quote on error - user will need to manually get new quote
+        setQuote(null);
+        toast.error("Quote recalculation failed. Please get a new quote.");
+      } finally {
+        setQuoteRecalculating(false);
+      }
+    } else {
+      // No existing quote, just show success message for item addition
+      toast.success(`Item "${newItem.name}" added. Click "Get Quote from Items" to see pricing.`);
+    }
   };
 
   const removeItem = async (index) => {
