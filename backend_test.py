@@ -2951,6 +2951,9 @@ class TEXT2TOSSAPITester:
         self.test_basic_endpoints()
         self.test_admin_authentication()
         
+        # PRIORITY: Test quote recalculation functionality as requested in review
+        self.test_quote_recalculation_functionality()
+        
         # PRIORITY: Test photo upload system as requested in review
         self.test_photo_upload_system()
         
