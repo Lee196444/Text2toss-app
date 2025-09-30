@@ -3,68 +3,6 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import axios from 'axios';
 
-// Digital Clock Component
-const DigitalClock = () => {
-  const [time, setTime] = useState(new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  const formatTime = (date) => {
-    return date.toLocaleTimeString('en-US', {
-      hour12: true,
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    });
-  };
-
-  const formatDate = (date) => {
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  return (
-    <div className="text-center mb-6 p-4 bg-black rounded-lg border-4 border-white">
-      <div className="text-3xl sm:text-4xl lg:text-5xl font-black font-mono tracking-wider mb-2" 
-           style={{
-             color: '#059669',
-             textShadow: `
-               -2px -2px 0 white, -2px -1px 0 white, -2px 0 0 white, -2px 1px 0 white, -2px 2px 0 white,
-               -1px -2px 0 white, -1px 2px 0 white,
-               0px -2px 0 white, 0px 2px 0 white,
-               1px -2px 0 white, 1px 2px 0 white,
-               2px -2px 0 white, 2px -1px 0 white, 2px 0 0 white, 2px 1px 0 white, 2px 2px 0 white,
-               0 0 5px #10b981, 0 0 10px #10b981
-             `
-           }}>
-        {formatTime(time)}
-      </div>
-      <div className="text-lg sm:text-xl font-semibold"
-           style={{
-             color: '#059669',
-             textShadow: `
-               -1px -1px 0 white, -1px 0 0 white, -1px 1px 0 white,
-               0px -1px 0 white, 0px 1px 0 white,
-               1px -1px 0 white, 1px 0 0 white, 1px 1px 0 white,
-               0 0 3px #10b981
-             `
-           }}>
-        {formatDate(time)}
-      </div>
-    </div>
-  );
-};
-
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
