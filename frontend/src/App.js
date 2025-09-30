@@ -614,14 +614,16 @@ const LandingPage = () => {
               </div>
 
               {/* Quote Result */}
-              {(quote || quoteRecalculating) && (
-                <Card className={`${quoteRecalculating ? 'bg-blue-50 border-blue-200' : 'bg-emerald-50 border-emerald-200'}`} data-testid="quote-result">
+              {(quote || quoteRecalculating || quoteLoading) && (
+                <Card className={`${(quoteRecalculating || quoteLoading) ? 'bg-blue-50 border-blue-200' : 'bg-emerald-50 border-emerald-200'}`} data-testid="quote-result">
                   <CardContent className="pt-6">
                     <div className="text-center space-y-4">
-                      {quoteRecalculating ? (
+                      {(quoteRecalculating || quoteLoading) ? (
                         <div className="flex items-center justify-center space-x-2">
                           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                          <span className="text-blue-800 font-semibold">Recalculating quote...</span>
+                          <span className="text-blue-800 font-semibold">
+                            {quoteLoading ? 'Generating quote...' : 'Recalculating quote...'}
+                          </span>
                         </div>
                       ) : (
                         <div>
