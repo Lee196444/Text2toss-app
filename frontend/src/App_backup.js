@@ -118,10 +118,15 @@ const LandingPage = () => {
     if (quote) {
       setQuoteRecalculating(true);
       try {
-        // For automatic recalculation, use the same format as manual quote generation
-        const response = await axios.post(`${API}/quotes`, {
-          items: updatedItems,
-          description
+        const formData = new FormData();
+        formData.append('items', JSON.stringify(updatedItems));
+        formData.append('description', description);
+        if (imageFile) {
+          formData.append('image', imageFile);
+        }
+
+        const response = await axios.post(`${API}/quotes`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
         });
         
         setQuote(response.data);
@@ -157,10 +162,15 @@ const LandingPage = () => {
     if (quote && updatedItems.length > 0) {
       setQuoteRecalculating(true);
       try {
-        // For automatic recalculation, use the same format as manual quote generation
-        const response = await axios.post(`${API}/quotes`, {
-          items: updatedItems,
-          description
+        const formData = new FormData();
+        formData.append('items', JSON.stringify(updatedItems));
+        formData.append('description', description);
+        if (imageFile) {
+          formData.append('image', imageFile);
+        }
+
+        const response = await axios.post(`${API}/quotes`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
         });
         
         setQuote(response.data);
