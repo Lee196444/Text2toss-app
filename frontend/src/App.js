@@ -722,8 +722,19 @@ const LandingPage = () => {
               <Button variant="outline" onClick={() => setShowQuote(false)} data-testid="cancel-quote-btn">
                 Cancel
               </Button>
-              <Button onClick={getQuote} disabled={items.length === 0} data-testid="get-quote-submit-btn">
-                Get Quote from Items
+              <Button 
+                onClick={getQuote} 
+                disabled={items.length === 0 || quoteLoading || quoteRecalculating} 
+                data-testid="get-quote-submit-btn"
+              >
+                {(quoteLoading || quoteRecalculating) ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>{quoteLoading ? 'Generating...' : 'Recalculating...'}</span>
+                  </div>
+                ) : (
+                  'Get Quote from Items'
+                )}
               </Button>
             </CardFooter>
           </Card>
