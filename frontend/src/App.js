@@ -240,16 +240,19 @@ const LandingPage = () => {
       return;
     }
 
+    setQuoteLoading(true);
     try {
       const response = await axios.post(`${API}/quotes`, {
         items,
         description
       });
       setQuote(response.data);
-      toast.success("Quote generated successfully!");
+      toast.success(`Quote generated successfully! Total: $${response.data.total_price}`);
     } catch (error) {
       toast.error("Failed to generate quote");
       console.error(error);
+    } finally {
+      setQuoteLoading(false);
     }
   };
 
