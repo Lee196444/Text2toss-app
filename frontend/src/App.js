@@ -58,6 +58,7 @@ const LandingPage = () => {
   const [imageFile, setImageFile] = useState(null);
   const [imageDescription, setImageDescription] = useState("");
   const [imageAnalyzing, setImageAnalyzing] = useState(false);
+  const [quoteRecalculating, setQuoteRecalculating] = useState(false);
   const [showVenmoPayment, setShowVenmoPayment] = useState(false);
   const [venmoBookingId, setVenmoBookingId] = useState('');
   const [venmoQRCode, setVenmoQRCode] = useState('');
