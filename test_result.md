@@ -477,10 +477,24 @@
           agent: "testing"
           comment: "🔍 COMPREHENSIVE PHOTO UPLOAD SYSTEM TESTING COMPLETED - CRITICAL ISSUES FOUND! ✅ PHOTO UPLOAD ENDPOINT: /api/admin/upload-gallery-photo working correctly - successfully uploads photos and returns proper URLs with format https://text2toss-junk.preview.emergentagent.com/static/gallery/gallery_[uuid].jpg ✅ GALLERY PHOTOS ENDPOINT: /api/admin/gallery-photos working - returns list of 7 photos from database ✅ PHOTO REEL ENDPOINT: /api/reel-photos working - returns 6-slot photo reel structure ✅ PHOTO REEL MANAGEMENT: /api/admin/update-reel-photo working - successfully updates reel slots ✅ STATIC FILE SERVING: /static/gallery/ directory accessible and serving files ✅ DATABASE INTEGRATION: gallery_photos and photo_reel collections working correctly ✅ FILE PERMISSIONS: /app/static/gallery directory exists and is writable ✅ AUTHENTICATION: Admin JWT token required and working for protected endpoints ❌ CRITICAL ISSUE 1: Gallery photos endpoint returns relative URLs (/static/gallery/...) instead of full URLs, causing accessibility failures when testing photo URLs ❌ CRITICAL ISSUE 2: Photo reel contains mix of full URLs and relative URLs - inconsistent URL format across slots ❌ CRITICAL ISSUE 3: Static file serving returns HTML content-type instead of image content-type for uploaded photos ❌ ISSUE 4: Admin reel photos endpoint (/api/admin/reel-photos) not implemented - returns 404 ❌ ISSUE 5: Error handling for invalid reel slot returns 500 instead of 400 status code ✅ UPLOAD FUNCTIONALITY: Photo upload, database storage, and file system operations all working correctly ✅ REEL MANAGEMENT: Can successfully update reel slots and verify changes"
 
+  - task: "QUOTE RECALCULATION FUNCTIONALITY - Price adjustment when items are removed"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "🔍 COMPREHENSIVE QUOTE RECALCULATION TESTING COMPLETED - CRITICAL BUSINESS LOGIC ISSUES FOUND! ✅ API ENDPOINTS WORKING: POST /api/quotes endpoint accessible and functional, returns proper JSON format with scale_level and breakdown fields ✅ INITIAL QUOTE CREATION: Successfully creates quotes with multiple items (3 items: $220, Scale 11) ✅ SOME PRICE REDUCTION: Partial price reduction observed (3 items: $220 → 2 items: $215) ❌ CRITICAL ISSUE 1: INCONSISTENT PRICE REDUCTION - Single item quote costs MORE than multi-item quotes (1 item: $245 vs 2 items: $215) ❌ CRITICAL ISSUE 2: PROGRESSIVE REDUCTION BROKEN - Incremental removal shows price INCREASES: 2 items ($210) → 1 item ($235) ❌ CRITICAL ISSUE 3: SCALE LEVEL INCONSISTENCY - Scale levels increase when items are removed (11 → 12 when removing dining table) ❌ CRITICAL ISSUE 4: EDGE CASE HANDLING - Empty quotes accepted with $0 instead of proper 400 error rejection ❌ BUSINESS LOGIC FAILURE: Core requirement that customers pay less for fewer items is not consistently met ✅ JSON FORMAT CORRECT: All responses include required fields (total_price, scale_level, breakdown) ✅ BREAKDOWN ACCURACY: Item counts in breakdown match actual items ⚠️ ROOT CAUSE: AI pricing system not consistently applying volume-based discounts - single items sometimes priced higher than multi-item loads due to AI variability"
+
 ## test_plan:
   current_focus: 
+    - "QUOTE RECALCULATION FUNCTIONALITY - Price adjustment when items are removed"
     - "CUSTOMER PRICE APPROVAL SYSTEM - Quote approval with price increases and customer approval workflow"
-  stuck_tasks: []
+  stuck_tasks: 
+    - "QUOTE RECALCULATION FUNCTIONALITY - Price adjustment when items are removed"
   test_all: false
   test_priority: "high_first"
 
