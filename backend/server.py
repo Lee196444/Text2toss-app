@@ -541,15 +541,19 @@ Respond ONLY with a JSON object in this exact format:
         print(f"AI pricing error: {str(e)}")
         # Fallback to basic pricing if AI fails
         fallback_price = calculate_basic_price(items)
+        
+        # Apply business logic validation to fallback pricing too
+        validated_price, validated_scale = validate_pricing_logic(items, fallback_price, None)
+        
         fallback_breakdown = {
-            "base_price": f"{fallback_price:.2f}",
+            "base_price": f"{validated_price:.2f}",
             "volume_assessment": f"Estimated {len(items)} items",
-            "items": [{"name": item.name, "size": item.size, "estimated_cost": fallback_price / len(items)} for item in items],
-            "factors": ["Ground level pickup included", "Standard rates applied", "AI analysis unavailable"],
+            "items": [{"name": item.name, "size": item.size, "estimated_cost": validated_price / len(items)} for item in items],
+            "factors": ["Ground level pickup included", "Business logic validated", "AI analysis unavailable"],
             "additional_charges": 0,
-            "total": fallback_price
+            "total": validated_price
         }
-        return fallback_price, "Basic pricing applied (AI temporarily unavailable)", 3, fallback_breakdown
+        return validated_price, "Basic pricing applied with business logic validation (AI temporarily unavailable)", validated_scale, fallback_breakdown
 
 # Fallback basic pricing function using new 1-20 scale
 def calculate_basic_price(items: List[JunkItem]) -> float:
