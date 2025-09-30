@@ -494,10 +494,8 @@
 
 ## test_plan:
   current_focus: 
-    - "QUOTE RECALCULATION FUNCTIONALITY - Price adjustment when items are removed"
     - "CUSTOMER PRICE APPROVAL SYSTEM - Quote approval with price increases and customer approval workflow"
-  stuck_tasks: 
-    - "QUOTE RECALCULATION FUNCTIONALITY - Price adjustment when items are removed"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
