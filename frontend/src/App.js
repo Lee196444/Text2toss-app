@@ -112,11 +112,13 @@ const LandingPage = () => {
   };
 
   const removeItem = async (index) => {
+    const removedItem = items[index];
     const updatedItems = items.filter((_, i) => i !== index);
     setItems(updatedItems);
     
     // If there was a quote and items remain, automatically recalculate
     if (quote && updatedItems.length > 0) {
+      setQuoteRecalculating(true);
       try {
         const formData = new FormData();
         formData.append('items', JSON.stringify(updatedItems));
@@ -130,14 +132,24 @@ const LandingPage = () => {
         });
         
         setQuote(response.data);
+        
+        // Show success message with updated price
+        toast.success(`Item "${removedItem.name}" removed. Quote updated to $${response.data.total_price}`);
+        
       } catch (error) {
         console.error('Error recalculating quote after item removal:', error);
         // Clear quote on error - user will need to manually get new quote
         setQuote(null);
+        toast.error("Quote recalculation failed. Please get a new quote.");
+      } finally {
+        setQuoteRecalculating(false);
       }
     } else {
       // No items left or no existing quote, clear the quote
       setQuote(null);
+      if (updatedItems.length === 0) {
+        toast.info(`Item "${removedItem.name}" removed. Please add items to get a new quote.`);
+      }
     }
   };
 
