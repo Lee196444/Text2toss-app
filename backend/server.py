@@ -440,7 +440,14 @@ Respond ONLY with a JSON object in this exact format:
         scale_level = pricing_data.get("scale_level")
         breakdown = pricing_data.get("breakdown")
         
-        return total_price, explanation, scale_level, breakdown
+        # Apply business logic validation to ensure consistent pricing
+        validated_price, validated_scale = validate_pricing_logic(items, total_price, scale_level)
+        
+        # Update explanation if price was adjusted
+        if validated_price != total_price:
+            explanation += f" (Price adjusted from ${total_price:.2f} to ${validated_price:.2f} for business logic compliance)"
+        
+        return validated_price, explanation, validated_scale, breakdown
         
     except Exception as e:
         print(f"AI pricing error: {str(e)}")
