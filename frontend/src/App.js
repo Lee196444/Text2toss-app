@@ -247,7 +247,7 @@ const LandingPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black/40 to-emerald-900/50">
+    <div className="min-h-screen min-w-full w-full bg-gradient-to-br from-black/40 to-emerald-900/50">
       {/* Toast notifications handled by global function */}
       
       {/* Navigation */}
