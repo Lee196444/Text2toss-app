@@ -110,8 +110,34 @@ const LandingPage = () => {
     setCurrentItem({ name: "", size: "medium", description: "" });
   };
 
-  const removeItem = (index) => {
-    setItems(items.filter((_, i) => i !== index));
+  const removeItem = async (index) => {
+    const updatedItems = items.filter((_, i) => i !== index);
+    setItems(updatedItems);
+    
+    // If there was a quote and items remain, automatically recalculate
+    if (quote && updatedItems.length > 0) {
+      try {
+        const formData = new FormData();
+        formData.append('items', JSON.stringify(updatedItems));
+        formData.append('description', description);
+        if (imageFile) {
+          formData.append('image', imageFile);
+        }
+
+        const response = await axios.post(`${API}/get-quote`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        
+        setQuote(response.data);
+      } catch (error) {
+        console.error('Error recalculating quote after item removal:', error);
+        // Clear quote on error - user will need to manually get new quote
+        setQuote(null);
+      }
+    } else {
+      // No items left or no existing quote, clear the quote
+      setQuote(null);
+    }
   };
 
   const handleImageUpload = (event) => {
