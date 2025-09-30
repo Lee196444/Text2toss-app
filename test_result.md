@@ -494,7 +494,7 @@
 
 ## test_plan:
   current_focus: 
-    - "CUSTOMER PRICE APPROVAL SYSTEM - Quote approval with price increases and customer approval workflow"
+    - "ENHANCED QUOTE RECALCULATION FUNCTIONALITY - Automatic quote updates when adding/removing items"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
