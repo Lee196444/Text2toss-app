@@ -590,7 +590,10 @@ const LandingPage = () => {
                           </h3>
                         </div>
                       )}
-                        <p className="text-emerald-600 text-sm mb-2">Quote ID: {quote.id}</p>
+                      
+                      {!quoteRecalculating && quote && (
+                        <>
+                          <p className="text-emerald-600 text-sm mb-2">Quote ID: {quote.id}</p>
                         
                         {/* Price Breakdown Section */}
                         {quote.breakdown && (
