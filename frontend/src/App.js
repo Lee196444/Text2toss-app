@@ -638,7 +638,7 @@ const LandingPage = () => {
                         </div>
                       )}
                       
-                      {!quoteRecalculating && quote && (
+                      {!quoteRecalculating && !quoteLoading && quote && (
                         <>
                           <p className="text-emerald-600 text-sm mb-2">Quote ID: {quote.id}</p>
                         
