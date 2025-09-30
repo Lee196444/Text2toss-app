@@ -311,6 +311,94 @@ PRICING_SCALE = {
     20: {"range": (655, 750), "description": "Large house cleanout, estate sale items"}
 }
 # AI-powered pricing logic for ground level and curbside pickup only
+def validate_pricing_logic(items: List[JunkItem], ai_price: float, ai_scale: Optional[int]) -> tuple[float, Optional[int]]:
+    """
+    Validate pricing logic to ensure business consistency:
+    1. Minimum pricing based on item count
+    2. Price ceiling validation (single items shouldn't exceed multi-item rates)
+    3. Scale level consistency with item count
+    """
+    item_count = len(items)
+    
+    # Business Rule 1: Minimum pricing based on scale levels
+    min_price_by_count = {
+        1: 45.0,  # Single item minimum (Scale 3)
+        2: 55.0,  # Two items minimum (Scale 4) 
+        3: 70.0,  # Three items minimum (Scale 5)
+        4: 85.0,  # Four items minimum (Scale 6)
+        5: 105.0  # Five+ items minimum (Scale 7+)
+    }
+    
+    min_price = min_price_by_count.get(item_count, min_price_by_count[5])
+    
+    # Business Rule 2: Maximum pricing caps to prevent AI pricing inconsistencies
+    max_price_by_count = {
+        1: 175.0,  # Single item maximum (Scale 9)
+        2: 205.0,  # Two items maximum (Scale 10)
+        3: 235.0,  # Three items maximum (Scale 11)
+        4: 270.0,  # Four items maximum (Scale 12)
+        5: 310.0   # Five+ items maximum (Scale 13+)
+    }
+    
+    max_price = max_price_by_count.get(item_count, 750.0)  # Scale 20 maximum
+    
+    # Business Rule 3: Scale level should correlate with item count
+    min_scale_by_count = {
+        1: 3,   # Single item: minimum Scale 3
+        2: 4,   # Two items: minimum Scale 4  
+        3: 5,   # Three items: minimum Scale 5
+        4: 6,   # Four items: minimum Scale 6
+        5: 7    # Five+ items: minimum Scale 7+
+    }
+    
+    max_scale_by_count = {
+        1: 9,   # Single item: maximum Scale 9
+        2: 10,  # Two items: maximum Scale 10
+        3: 11,  # Three items: maximum Scale 11
+        4: 12,  # Four items: maximum Scale 12
+        5: 20   # Five+ items: maximum Scale 20
+    }
+    
+    # Validate and adjust price
+    validated_price = max(min_price, min(ai_price, max_price))
+    
+    # Validate and adjust scale level
+    min_scale = min_scale_by_count.get(item_count, min_scale_by_count[5])
+    max_scale = max_scale_by_count.get(item_count, max_scale_by_count[5])
+    
+    if ai_scale is not None:
+        validated_scale = max(min_scale, min(ai_scale, max_scale))
+    else:
+        # Estimate scale based on validated price
+        if validated_price <= 20:
+            validated_scale = 1
+        elif validated_price <= 45:
+            validated_scale = 2
+        elif validated_price <= 70:
+            validated_scale = 3
+        elif validated_price <= 85:
+            validated_scale = 4
+        elif validated_price <= 105:
+            validated_scale = 5
+        elif validated_price <= 125:
+            validated_scale = 6
+        elif validated_price <= 150:
+            validated_scale = 7
+        elif validated_price <= 175:
+            validated_scale = 8
+        elif validated_price <= 205:
+            validated_scale = 9
+        elif validated_price <= 235:
+            validated_scale = 10
+        elif validated_price <= 270:
+            validated_scale = 11
+        elif validated_price <= 310:
+            validated_scale = 12
+        else:
+            validated_scale = min(20, max(13, int(validated_price / 40)))
+    
+    return validated_price, validated_scale
+
 async def calculate_ai_price(items: List[JunkItem], description: str) -> tuple[float, str, Optional[int], Optional[dict]]:
     """Use AI to analyze junk description and provide intelligent pricing for ground level/curbside pickup only"""
     
