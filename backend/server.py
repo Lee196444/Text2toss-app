@@ -465,10 +465,18 @@ SCALE 18: $520-585 - Large apartment cleanout
 SCALE 19: $585-655 - Small house cleanout
 SCALE 20: $655-750 - Large house cleanout, estate sale items
 
-**VOLUME ESTIMATION GUIDANCE:**
-- For PILES/STACKS: Estimate length × width × height in feet
-- Large outdoor materials (logs, debris) typically Scale 15-20
-- Use descriptive terms like "large pile", "massive stack" to indicate high volume
+**CRITICAL VOLUME ESTIMATION RULES:**
+- Always calculate TOTAL COMBINED VOLUME of all items
+- Use actual dimensions: Length × Width × Height in feet
+- Common item volume references:
+  * Sofa: ~8ft × 3ft × 3ft = 72 cubic feet (Scale 12-13)  
+  * Dining table: ~6ft × 3ft × 3ft = 54 cubic feet (Scale 10-11)
+  * Mattress: ~6ft × 4ft × 1ft = 24 cubic feet (Scale 8-9)
+  * Refrigerator: ~3ft × 3ft × 6ft = 54 cubic feet (Scale 11-12)
+  * Office chair: ~2ft × 2ft × 4ft = 16 cubic feet (Scale 6-7)
+- For multiple similar items: multiply volume by quantity
+- Add 20% buffer for irregular shapes and packing space
+- NEVER underestimate - round UP to next scale level if uncertain
 
 Additional charges may apply for:
 - Hazardous materials disposal: +$25-50
