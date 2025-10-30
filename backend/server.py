@@ -689,14 +689,6 @@ SERVICE LIMITATIONS (CRITICAL):
 CUSTOMER DESCRIPTION (use to identify additional items not clearly visible):
 {description}
 
-ENHANCED VOLUME-BASED PRICING SCALE (1-20) - CONSERVATIVE ESTIMATES:
-1. CAREFULLY estimate the total cubic footage of ALL materials in the image
-2. For PILES, STACKS, or OUTDOOR MATERIALS: Measure length × width × height to estimate total volume
-3. For LARGE PILES (like logs, debris, construction materials): These often represent Scale 15-20 loads
-4. Use REFERENCE OBJECTS (people, cars, houses, tools) in the image to gauge true scale
-5. Consider that outdoor piles often appear smaller than they actually are
-
-VOLUME-BASED PRICING SCALE (Ground Level Only):
 **CRITICAL**: Base pricing on TOTAL ESTIMATED CUBIC FEET, not item count
 
 SCALE 1: $15 - 15-gallon trash bag or smaller
