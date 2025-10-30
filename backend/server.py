@@ -664,16 +664,32 @@ def calculate_basic_price(items: List[JunkItem]) -> float:
 async def analyze_image_for_quote(image_path: str, description: str) -> tuple[List[JunkItem], float, str, Optional[int], Optional[dict]]:
     """Use AI vision to analyze uploaded image and identify junk items for pricing"""
     
-    ai_prompt = f"""You are a professional junk removal expert analyzing an image to provide accurate quotes. Analyze this image and identify all removable items.
+    ai_prompt = f"""You are a professional junk removal expert with 10+ years experience analyzing customer photos for accurate pricing. This is for Text2toss - a GROUND LEVEL and CURBSIDE PICKUP ONLY service in Flagstaff, AZ.
 
-ADDITIONAL CONTEXT FROM USER:
+CRITICAL ACCURACY REQUIREMENTS FOR 100% PRICING ACCURACY:
+- Examine the image with extreme care and identify ALL visible items
+- Count every single item you can see, including partially visible ones
+- Use reference objects for scale (doors=7ft, people=6ft, cars=12-15ft long)
+- Be CONSERVATIVE with pricing - overestimate rather than underestimate by 15-20%
+- If unsure between two scale levels, always choose the HIGHER scale
+- Look for items hidden behind others or in shadows
+- Consider that piles are often deeper than they appear
+
+BUSINESS PROTECTION RULES:
+- NEVER underestimate volume - this causes customer disputes
+- Add safety margin to all estimates
+- If items look heavy (metal, stone, appliances), increase pricing by 20%
+- Multiple trips = higher pricing (anything over truck capacity)
+
+SERVICE LIMITATIONS (CRITICAL):
+- Ground level pickup only (no stairs, no upper floors) 
+- Items must be accessible at ground level or placed curbside
+- Customer must move items from upper floors/basements themselves
+
+CUSTOMER DESCRIPTION (use to identify additional items not clearly visible):
 {description}
 
-IMPORTANT SERVICE LIMITATIONS:
-- We ONLY provide ground level pickup (no stairs, no upper floors)
-- Items must be accessible at ground level or placed curbside
-
-CRITICAL VOLUME ASSESSMENT INSTRUCTIONS:
+ENHANCED VOLUME-BASED PRICING SCALE (1-20) - CONSERVATIVE ESTIMATES:
 1. CAREFULLY estimate the total cubic footage of ALL materials in the image
 2. For PILES, STACKS, or OUTDOOR MATERIALS: Measure length × width × height to estimate total volume
 3. For LARGE PILES (like logs, debris, construction materials): These often represent Scale 15-20 loads
