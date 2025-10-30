@@ -372,7 +372,7 @@ const LandingPage = () => {
                   }}
                 >
                   <span className="flex items-center justify-center space-x-3">
-                    <span className="text-2xl sm:text-3xl">📸</span>
+                    <span className="text-lg sm:text-2xl lg:text-3xl">📸</span>
                     <span className="whitespace-nowrap">UPLOAD & QUOTE</span>
                   </span>
                 </Button>
