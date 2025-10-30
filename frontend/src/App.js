@@ -355,7 +355,7 @@ const LandingPage = () => {
                 <Button 
                   onClick={() => setShowQuote(true)}
                   size="lg"
-                  className="w-full sm:flex-1 bg-black border-4 border-white hover:bg-black/80 text-xl sm:text-2xl font-black px-6 sm:px-8 py-8 sm:py-10 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  className="w-full sm:flex-1 bg-black border-4 border-white hover:bg-black/80 text-lg sm:text-xl lg:text-2xl font-black px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                   data-testid="hero-get-quote-btn"
                   style={{
                     color: '#059669',
