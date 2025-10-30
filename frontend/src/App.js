@@ -322,15 +322,15 @@ const LandingPage = () => {
                     `
                   }}>Text2toss</span>
                 </h1>
-                <div className="bg-emerald-900/40 border border-emerald-400/40 rounded-lg p-3 lg:p-4 mb-4">
-                  <p className="text-emerald-200 text-base lg:text-lg font-semibold text-center">
+                <div className="bg-emerald-900/40 border border-emerald-400/40 rounded-lg p-3 sm:p-4 mb-3 sm:mb-4">
+                  <p className="text-emerald-200 text-sm sm:text-base lg:text-lg font-semibold text-center">
                     📍 Servicing Flagstaff AZ and surrounding areas
                   </p>
-                  <p className="text-emerald-300 text-sm text-center mt-1">
+                  <p className="text-emerald-300 text-xs sm:text-sm text-center mt-1">
                     Locally owned and operated business
                   </p>
                 </div>
-                <div className="text-base sm:text-lg lg:text-xl text-gray-200 leading-relaxed text-center lg:text-left px-2 lg:px-0">
+                <div className="text-sm sm:text-base lg:text-xl text-gray-200 leading-relaxed text-center lg:text-left px-2 lg:px-0 mb-3 sm:mb-4">
                   <p className="mb-2">
                     Upload photo of junk and quick description, get a quote in seconds!
                   </p>
@@ -341,11 +341,11 @@ const LandingPage = () => {
                     Junk removal made seamless.
                   </p>
                 </div>
-                <div className="bg-emerald-900/30 border border-emerald-400/30 rounded-lg p-3 lg:p-4 mt-4">
-                  <p className="text-emerald-200 text-sm font-medium text-center lg:text-left">
+                <div className="bg-emerald-900/30 border border-emerald-400/30 rounded-lg p-3 sm:p-4 mt-3 sm:mt-4 mb-20">
+                  <p className="text-emerald-200 text-xs sm:text-sm font-medium text-center lg:text-left">
                     📍 Ground Level & Curbside Pickup Only
                   </p>
-                  <p className="text-emerald-300 text-sm mt-1 text-center lg:text-left">
+                  <p className="text-emerald-300 text-xs sm:text-sm mt-1 text-center lg:text-left">
                     We pickup items from ground level locations and curbside. Items must be accessible without stairs.
                   </p>
                 </div>
