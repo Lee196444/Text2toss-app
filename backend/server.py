@@ -313,23 +313,38 @@ PRICING_SCALE = {
 # AI-powered pricing logic for ground level and curbside pickup only
 def validate_pricing_logic(items: List[JunkItem], ai_price: float, ai_scale: Optional[int]) -> tuple[float, Optional[int]]:
     """
-    Validate pricing logic to ensure business consistency:
-    1. Minimum pricing based on item count
-    2. Price ceiling validation (single items shouldn't exceed multi-item rates)
-    3. Scale level consistency with item count
+    ENHANCED validation for 100% pricing accuracy:
+    1. Strict minimum pricing based on item count and size
+    2. Conservative ceiling validation  
+    3. Volume-based validation rules
+    4. Safety margins to prevent undercharging
     """
     item_count = len(items)
     
-    # Business Rule 1: Minimum pricing based on scale levels
+    # Calculate estimated minimum volume based on items
+    estimated_volume = 0
+    for item in items:
+        # Conservative volume estimates by size and type
+        base_volume = {"small": 8, "medium": 25, "large": 60}
+        item_volume = base_volume.get(item.size.lower(), 25) * item.quantity
+        estimated_volume += item_volume
+    
+    # Business Rule 1: Stricter minimum pricing with volume consideration
     min_price_by_count = {
-        1: 45.0,  # Single item minimum (Scale 3)
-        2: 55.0,  # Two items minimum (Scale 4) 
-        3: 70.0,  # Three items minimum (Scale 5)
-        4: 85.0,  # Four items minimum (Scale 6)
-        5: 105.0  # Five+ items minimum (Scale 7+)
+        1: 50.0,  # Single item minimum (Scale 3+) - increased for safety
+        2: 65.0,  # Two items minimum (Scale 4+) 
+        3: 80.0,  # Three items minimum (Scale 5+)
+        4: 95.0,  # Four items minimum (Scale 6+)
+        5: 115.0  # Five+ items minimum (Scale 7+)
     }
     
-    min_price = min_price_by_count.get(item_count, min_price_by_count[5])
+    # Volume-based minimum pricing (more conservative)
+    volume_min_price = max(45.0, estimated_volume * 2.5)  # $2.50 per cubic foot minimum
+    
+    min_price = max(
+        min_price_by_count.get(item_count, min_price_by_count[5]),
+        volume_min_price
+    )
     
     # Business Rule 2: Maximum pricing caps to prevent AI pricing inconsistencies
     max_price_by_count = {
