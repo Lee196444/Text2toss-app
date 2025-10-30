@@ -489,11 +489,22 @@ Since this is ground level/curbside service only, there are NO charges for stair
 
 If the description mentions stairs, upper floors, basements, or difficult access, note in explanation that customer needs to move items to ground level/curbside first.
 
-PRICING PROCESS:
-1. Estimate total volume using the 1-20 scale above
-2. Select appropriate price range for that scale
-3. Adjust within range based on item condition, weight, disposal complexity
-4. Add any applicable additional charges
+MANDATORY PRICING PROCESS:
+1. Calculate EXACT total volume in cubic feet for ALL items combined
+2. Match volume to appropriate scale level (use higher scale if between levels)
+3. Start with MID-RANGE price for that scale level
+4. Adjust UP (never down) based on:
+   - Heavy items (+10-20%)
+   - Difficult disposal materials (+15-25%)
+   - Multiple trip requirements (+20-30%)
+   - Electronic waste (+$15-35 per item)
+5. Add mandatory additional charges when applicable
+6. FINAL RULE: If total seems low, move up one scale level
+
+CONSISTENCY REQUIREMENTS:
+- Same items should always get similar pricing (±$10)
+- Similar volumes should always use same scale level
+- Never price below minimum for calculated volume
 
 Respond ONLY with a JSON object in this exact format:
 {{
