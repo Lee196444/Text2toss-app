@@ -3244,6 +3244,9 @@ class TEXT2TOSSAPITester:
         # PRIORITY: Test photo upload system as requested in review
         self.test_photo_upload_system()
         
+        # PRIORITY: Test photo reel functionality as requested in review
+        self.test_photo_reel_functionality()
+        
         self.test_quote_system()
         self.test_new_pricing_system()  # NEW: Test the new 1-10 scale pricing system
         self.test_improved_ai_image_analysis()  # NEW: Test IMPROVED AI IMAGE ANALYSIS for review request
