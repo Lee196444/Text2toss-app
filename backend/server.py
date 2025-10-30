@@ -570,12 +570,29 @@ Respond ONLY with a JSON object in this exact format:
         scale_level = pricing_data.get("scale_level")
         breakdown = pricing_data.get("breakdown")
         
-        # Apply business logic validation to ensure consistent pricing
+        # CRITICAL: Validate AI pricing for accuracy and consistency
         validated_price, validated_scale = validate_pricing_logic(items, total_price, scale_level)
         
-        # Update explanation if price was adjusted
-        if validated_price != total_price:
-            explanation += f" (Price adjusted from ${total_price:.2f} to ${validated_price:.2f} for business logic compliance)"
+        # Additional safety checks for pricing accuracy
+        price_per_item = validated_price / len(items) if items else 0
+        if price_per_item < 25:  # Each item should cost at least $25 on average
+            safety_price = len(items) * 30  # $30 minimum per item
+            if safety_price > validated_price:
+                validated_price = safety_price
+                explanation += f" (Safety adjustment applied - minimum $30 per item for business sustainability)"
+        
+        # Scale consistency check
+        if validated_scale != scale_level and scale_level:
+            explanation += f" (Scale adjusted from {scale_level} to {validated_scale} for pricing consistency)"
+        elif validated_price != total_price:
+            explanation += f" (Price adjusted from ${total_price:.2f} to ${validated_price:.2f} for business accuracy)"
+        
+        # Final safety check - never go below absolute minimum
+        absolute_minimum = 45.0
+        if validated_price < absolute_minimum:
+            validated_price = absolute_minimum
+            validated_scale = 3
+            explanation += f" (Applied minimum service charge of ${absolute_minimum})"
         
         return validated_price, explanation, validated_scale, breakdown
         
