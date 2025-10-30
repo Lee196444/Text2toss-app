@@ -305,7 +305,7 @@ const LandingPage = () => {
                     </span>
                   </Badge>
                 </div>
-                <h1 className="text-8xl sm:text-9xl lg:text-[10rem] xl:text-[12rem] font-black leading-tight text-center lg:text-left">
+                <h1 className="text-4xl sm:text-6xl md:text-8xl lg:text-[10rem] xl:text-[12rem] font-black leading-tight text-center lg:text-left">
                   <span style={{
                     color: '#10b981',
                     textShadow: `
