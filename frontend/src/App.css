@@ -212,6 +212,18 @@ p {
     margin: 1rem !important;
   }
   
+  /* Prevent content overlap with Emergent badge */
+  section {
+    padding-bottom: 80px !important;
+  }
+  
+  /* Ensure main content doesn't get cut off */
+  main, 
+  .hero-section,
+  [data-testid*="hero"] {
+    margin-bottom: 80px !important;
+  }
+  
   /* Fix button overflow on mobile */
   [data-testid="hero-get-quote-btn"],
   [data-testid="learn-more-btn"] {
