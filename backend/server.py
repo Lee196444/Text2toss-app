@@ -412,13 +412,20 @@ async def calculate_ai_price(items: List[JunkItem], description: str) -> tuple[f
     items_summary = "\n".join(items_text)
     
     # Create AI prompt for pricing analysis
-    ai_prompt = f"""You are a professional junk removal pricing expert for a GROUND LEVEL and CURBSIDE PICKUP ONLY service. Analyze the following junk removal request and provide an accurate price estimate.
+    ai_prompt = f"""You are a professional junk removal pricing expert for Text2toss - a GROUND LEVEL and CURBSIDE PICKUP ONLY service in Flagstaff, AZ. 
 
-IMPORTANT SERVICE LIMITATIONS:
+CRITICAL ACCURACY REQUIREMENTS:
+- You MUST provide consistent, accurate pricing
+- NEVER underestimate - better to slightly overestimate than undercharge
+- Consider ALL items in the list when calculating volume
+- Use conservative volume estimates to avoid disputes
+
+SERVICE LIMITATIONS (IMPORTANT):
 - We ONLY provide ground level pickup (no stairs, no upper floors)
 - Items must be accessible at ground level or placed curbside
 - No basement, attic, or upper floor removals
 - No carrying items up or down stairs
+- If customer mentions stairs/upper floors, note they must move items first
 
 JUNK ITEMS TO REMOVE:
 {items_summary}
@@ -426,12 +433,13 @@ JUNK ITEMS TO REMOVE:
 ADDITIONAL DETAILS:
 {description}
 
-Please consider these factors in your pricing:
-- Item size and weight (for ground level handling)
-- Material type (furniture, appliances, electronics, etc.)
-- Basic disassembly if needed (simple removal)
-- Disposal and recycling costs
-- Transportation needs
+PRICING FACTORS TO CONSIDER:
+- Total volume calculation (most important factor)
+- Item weight and bulkiness for ground level handling
+- Material type (furniture, appliances, electronics, metal, etc.)
+- Disposal costs (landfill vs recycling vs hazardous)
+- Loading difficulty and time requirements
+- Transportation space needed
 
 VOLUME-BASED PRICING SCALE (Ground Level Only):
 **CRITICAL**: Base pricing on TOTAL ESTIMATED CUBIC FEET, not just item count
