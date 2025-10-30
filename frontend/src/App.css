@@ -131,6 +131,7 @@ p {
   body {
     font-size: 14px;
     background-attachment: scroll; /* Better performance on mobile */
+    padding-bottom: 60px; /* Space for Emergent badge */
   }
   
   .text-5xl {
