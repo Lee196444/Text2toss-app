@@ -469,13 +469,16 @@
     implemented: true
     working: false
     file: "/app/backend/server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
         - working: false
           agent: "testing"
           comment: "🔍 COMPREHENSIVE PHOTO UPLOAD SYSTEM TESTING COMPLETED - CRITICAL ISSUES FOUND! ✅ PHOTO UPLOAD ENDPOINT: /api/admin/upload-gallery-photo working correctly - successfully uploads photos and returns proper URLs with format https://text2toss-junk.preview.emergentagent.com/static/gallery/gallery_[uuid].jpg ✅ GALLERY PHOTOS ENDPOINT: /api/admin/gallery-photos working - returns list of 7 photos from database ✅ PHOTO REEL ENDPOINT: /api/reel-photos working - returns 6-slot photo reel structure ✅ PHOTO REEL MANAGEMENT: /api/admin/update-reel-photo working - successfully updates reel slots ✅ STATIC FILE SERVING: /static/gallery/ directory accessible and serving files ✅ DATABASE INTEGRATION: gallery_photos and photo_reel collections working correctly ✅ FILE PERMISSIONS: /app/static/gallery directory exists and is writable ✅ AUTHENTICATION: Admin JWT token required and working for protected endpoints ❌ CRITICAL ISSUE 1: Gallery photos endpoint returns relative URLs (/static/gallery/...) instead of full URLs, causing accessibility failures when testing photo URLs ❌ CRITICAL ISSUE 2: Photo reel contains mix of full URLs and relative URLs - inconsistent URL format across slots ❌ CRITICAL ISSUE 3: Static file serving returns HTML content-type instead of image content-type for uploaded photos ❌ ISSUE 4: Admin reel photos endpoint (/api/admin/reel-photos) not implemented - returns 404 ❌ ISSUE 5: Error handling for invalid reel slot returns 500 instead of 400 status code ✅ UPLOAD FUNCTIONALITY: Photo upload, database storage, and file system operations all working correctly ✅ REEL MANAGEMENT: Can successfully update reel slots and verify changes"
+        - working: false
+          agent: "testing"
+          comment: "🚨 CRITICAL PHOTO REEL DISPLAY ISSUES DIAGNOSED - ROOT CAUSE IDENTIFIED! ❌ CRITICAL ISSUE 1: BACKEND_URL ENVIRONMENT VARIABLE IS NULL - Photo upload returns 'None/api/images/gallery/...' URLs instead of full URLs, causing frontend display failures ❌ CRITICAL ISSUE 2: INCONSISTENT URL FORMATS IN REEL - Mix of full URLs (https://text2toss-venmo.preview.emergentagent.com/...) and malformed URLs (None/api/images/...) ❌ CRITICAL ISSUE 3: 404 ERRORS FOR EXISTING PHOTOS - Photos with correct domain (text2toss-venmo.preview.emergentagent.com) return 404 errors, indicating wrong domain or missing files ❌ CRITICAL ISSUE 4: FRONTEND CAROUSEL CANNOT DISPLAY IMAGES - All 6 photo slots have accessibility issues preventing image display ✅ IMAGE SERVING ENDPOINT WORKING: /api/images/gallery/{filename} correctly serves images with proper content-type ✅ STATIC FILE SYSTEM WORKING: 15 photos exist in /app/static/gallery/ directory with correct permissions ✅ DATABASE INTEGRATION WORKING: Photo reel and gallery data properly stored and retrieved ✅ UPLOAD FUNCTIONALITY WORKING: Can upload photos and update reel slots successfully 🔍 ROOT CAUSE: os.environ.get('REACT_APP_BACKEND_URL') returns None instead of https://text2toss-junk.preview.emergentagent.com, causing malformed URLs in photo upload and gallery endpoints. This prevents the frontend carousel from loading any images."
 
   - task: "QUOTE RECALCULATION FUNCTIONALITY - Price adjustment when items are removed"
     implemented: true
