@@ -682,6 +682,32 @@ const LandingPage = () => {
                     )}
                   </Button>
                 </div>
+
+                {/* BOTTOM Progress Indicator - Step 1 */}
+                <div className="bg-emerald-50 border-t border-emerald-200 p-3">
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-sm ring-2 ring-emerald-200">
+                        1
+                      </div>
+                      <span className="text-sm font-semibold text-emerald-700">Upload Photo</span>
+                    </div>
+                    <div className="w-8 h-0.5 bg-emerald-300"></div>
+                    <div className="flex items-center gap-2 opacity-50">
+                      <div className="w-8 h-8 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-bold text-sm">
+                        2
+                      </div>
+                      <span className="text-sm text-gray-500">View Quote</span>
+                    </div>
+                    <div className="w-8 h-0.5 bg-gray-300"></div>
+                    <div className="flex items-center gap-2 opacity-50">
+                      <div className="w-8 h-8 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-bold text-sm">
+                        3
+                      </div>
+                      <span className="text-sm text-gray-500">Book & Pay</span>
+                    </div>
+                  </div>
+                </div>
               </>
             )}
 
