@@ -1400,12 +1400,17 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
               >
                 <span>
                   {bookingData.pickup_date ? 
-                    new Date(bookingData.pickup_date).toLocaleDateString('en-US', { 
-                      weekday: 'short', 
-                      month: 'short', 
-                      day: 'numeric',
-                      year: 'numeric'
-                    }) : 
+                    (() => {
+                      // Parse date as local time to avoid timezone shift
+                      const [year, month, day] = bookingData.pickup_date.split('-').map(Number);
+                      const date = new Date(year, month - 1, day);
+                      return date.toLocaleDateString('en-US', { 
+                        weekday: 'short', 
+                        month: 'short', 
+                        day: 'numeric',
+                        year: 'numeric'
+                      });
+                    })() :
                     "Choose your pickup date"
                   }
                 </span>
