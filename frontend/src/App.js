@@ -1286,22 +1286,47 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <Card className="w-full max-w-2xl shadow-2xl border-0 my-8">
-        {/* Header with Price */}
-        <div className="bg-gradient-to-r from-emerald-500 to-teal-600 p-6 text-center">
-          <div className="text-white">
-            <h2 className="text-3xl font-bold mb-2">Complete Your Booking</h2>
-            <div className="flex items-center justify-center gap-3">
-              <span className="text-5xl font-black">${quote.total_price}</span>
-              <Badge className="bg-white/20 text-white border-0 text-sm px-3 py-1">
-                💳 Pay with Venmo
-              </Badge>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-start justify-center p-4 overflow-y-auto pt-8">
+      <Card className="w-full max-w-2xl shadow-2xl border-0 mb-8 max-h-[calc(100vh-4rem)]">
+        {/* Sticky Header with Price & Progress */}
+        <div className="sticky top-0 z-10 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-t-lg">
+          {/* Progress Indicator */}
+          <div className="bg-emerald-600/30 px-4 py-3 border-b border-white/20">
+            <div className="flex items-center justify-center space-x-2">
+              <div className="flex items-center gap-1 opacity-70">
+                <div className="w-6 h-6 rounded-full bg-white/30 text-white flex items-center justify-center text-xs font-bold">✓</div>
+                <span className="text-xs text-white/80 hidden sm:inline">Photo</span>
+              </div>
+              <div className="w-8 h-0.5 bg-white/30"></div>
+              <div className="flex items-center gap-1 opacity-70">
+                <div className="w-6 h-6 rounded-full bg-white/30 text-white flex items-center justify-center text-xs font-bold">✓</div>
+                <span className="text-xs text-white/80 hidden sm:inline">Quote</span>
+              </div>
+              <div className="w-8 h-0.5 bg-white/40"></div>
+              <div className="flex items-center gap-1">
+                <div className="w-6 h-6 rounded-full bg-white text-emerald-600 flex items-center justify-center text-xs font-bold ring-2 ring-white/50">3</div>
+                <span className="text-xs text-white font-semibold">Book & Pay</span>
+              </div>
+            </div>
+          </div>
+          
+          {/* Price Header */}
+          <div className="p-4 text-center">
+            <div className="text-white">
+              <h2 className="text-2xl font-bold mb-2">Complete Your Booking</h2>
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-4xl font-black">${quote.total_price}</span>
+                <Badge className="bg-white/20 text-white border-0 text-xs px-2 py-1">
+                  💳 Venmo
+                </Badge>
+              </div>
             </div>
           </div>
         </div>
 
-        <CardContent className="p-6 space-y-6">
+        {/* Scrollable Content */}
+        <div className="overflow-y-auto max-h-[calc(100vh-16rem)]">
+          <CardContent className="p-4 sm:p-6 space-y-5">
           {/* Schedule Section */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b-2 border-emerald-500">
