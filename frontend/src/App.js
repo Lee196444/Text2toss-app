@@ -487,297 +487,304 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Quote Modal */}
+      {/* NEW: Improved Quote Modal - Step-by-Step Wizard */}
       {showQuote && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <CardHeader>
-              <CardTitle className="text-3xl font-black">TEXT2TOSS Instant Quote</CardTitle>
-              <CardDescription>Upload photo or add items - get quote in seconds!</CardDescription>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">
-                <p className="text-blue-800 text-sm font-medium">ℹ️ Service Area</p>
-                <p className="text-blue-700 text-sm">Ground level & curbside pickup only. No stairs or upper floors.</p>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Image Upload Section */}
-              <div className="space-y-4 p-4 bg-blue-50 rounded-lg">
-                <h3 className="font-semibold flex items-center gap-2">
-                  📸 Upload Image for AI Analysis
-                  <Badge variant="secondary" className="text-xs">New!</Badge>
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Select Image</Label>
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      data-testid="image-upload-input"
-                    />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+            
+            {/* Progress Indicator */}
+            <div className="bg-emerald-50 border-b border-emerald-200 p-4">
+              <div className="flex items-center justify-center space-x-2">
+                {/* Step 1 Indicator */}
+                <div className="flex flex-col items-center">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
+                    quoteStep > 1 ? "bg-emerald-600 text-white" :
+                    quoteStep === 1 ? "bg-emerald-500 text-white ring-4 ring-emerald-200" :
+                    "bg-gray-200 text-gray-500"
+                  }`}>
+                    {quoteStep > 1 ? "✓" : "1"}
                   </div>
-                  <div className="space-y-2">
-                    <Label>Image Description (Optional)</Label>
-                    <Input
-                      placeholder="e.g., Items in my garage"
-                      value={imageDescription}
-                      onChange={(e) => setImageDescription(e.target.value)}
-                      data-testid="image-description-input"
-                    />
-                  </div>
+                  <p className={`text-xs mt-1 font-medium ${quoteStep === 1 ? "text-emerald-700" : "text-gray-500"}`}>
+                    Upload
+                  </p>
                 </div>
                 
-                {uploadedImage && (
-                  <div className="space-y-2">
-                    <Label>Uploaded Image</Label>
-                    <div className="flex items-start gap-4">
-                      <img 
-                        src={uploadedImage} 
-                        alt="Uploaded junk items" 
-                        className="w-32 h-32 object-cover rounded-lg border"
-                      />
-                      <div className="flex-1">
-                        <Button 
-                          onClick={analyzeImage}
-                          disabled={imageAnalyzing || imageAnalyzed}
-                          className="bg-blue-600 hover:bg-blue-700 disabled:bg-green-600"
-                          data-testid="analyze-image-btn"
+                <div className="w-12 h-1 bg-emerald-200"></div>
+                
+                {/* Step 2 Indicator */}
+                <div className="flex flex-col items-center">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
+                    quoteStep > 2 ? "bg-emerald-600 text-white" :
+                    quoteStep === 2 ? "bg-emerald-500 text-white ring-4 ring-emerald-200" :
+                    "bg-gray-200 text-gray-500"
+                  }`}>
+                    {quoteStep > 2 ? "✓" : "2"}
+                  </div>
+                  <p className={`text-xs mt-1 font-medium ${quoteStep === 2 ? "text-emerald-700" : "text-gray-500"}`}>
+                    Quote
+                  </p>
+                </div>
+                
+                <div className="w-12 h-1 bg-emerald-200"></div>
+                
+                {/* Step 3 Indicator */}
+                <div className="flex flex-col items-center">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
+                    quoteStep === 3 ? "bg-emerald-500 text-white ring-4 ring-emerald-200" :
+                    "bg-gray-200 text-gray-500"
+                  }`}>
+                    3
+                  </div>
+                  <p className={`text-xs mt-1 font-medium ${quoteStep === 3 ? "text-emerald-700" : "text-gray-500"}`}>
+                    Book
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* STEP 1: Upload Photo */}
+            {quoteStep === 1 && (
+              <>
+                <CardHeader className="text-center pb-4">
+                  <CardTitle className="text-3xl font-bold text-emerald-800">
+                    📸 Upload Your Junk Photo
+                  </CardTitle>
+                  <CardDescription className="text-base">
+                    Take a clear photo of the items you want removed
+                  </CardDescription>
+                </CardHeader>
+
+                <CardContent className="space-y-6">
+                  {/* Error Message */}
+                  {quoteError && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+                      <p className="text-red-700 text-sm font-medium">⚠️ {quoteError}</p>
+                    </div>
+                  )}
+
+                  {/* Image Upload Area */}
+                  <div className="space-y-4">
+                    {!uploadedImage ? (
+                      <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-emerald-300 rounded-lg cursor-pointer bg-emerald-50 hover:bg-emerald-100 transition-colors">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                          <span className="text-6xl mb-4">📷</span>
+                          <p className="mb-2 text-sm font-semibold text-emerald-700">
+                            Click to upload photo
+                          </p>
+                          <p className="text-xs text-emerald-600">
+                            PNG, JPG or HEIC (max 10MB)
+                          </p>
+                        </div>
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                          data-testid="image-upload-input"
+                        />
+                      </label>
+                    ) : (
+                      <div className="relative">
+                        <img
+                          src={uploadedImage}
+                          alt="Uploaded items"
+                          className="w-full h-64 object-cover rounded-lg border-2 border-emerald-300"
+                        />
+                        <Button
+                          onClick={() => {
+                            setImageFile(null);
+                            setUploadedImage(null);
+                            setQuoteError('');
+                          }}
+                          variant="destructive"
+                          size="sm"
+                          className="absolute top-2 right-2"
                         >
-                          {imageAnalyzing ? "🤖 Analyzing..." : 
-                           imageAnalyzed ? "✅ Analysis Complete" : "🔍 Analyze with AI"}
+                          ✕ Remove
                         </Button>
-                        
-                        {imageAnalyzed && (
-                          <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                            <div className="flex items-center gap-2">
-                              <Badge className="bg-green-500 text-white">
-                                <span className="mr-1">✅</span>
-                                Photo Successfully Analyzed
-                              </Badge>
-                              <Badge variant="outline" className="border-green-400 text-green-700">
-                                AI Powered
-                              </Badge>
-                            </div>
-                            <p className="text-sm text-green-700 mt-2 font-medium">
-                              🤖 Your photo has been analyzed and items identified for accurate pricing!
-                            </p>
+                        <Badge className="absolute bottom-2 left-2 bg-green-600 text-white">
+                          ✓ Photo Ready
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Description (Optional) */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">
+                      Brief Description (Optional)
+                    </label>
+                    <Textarea
+                      placeholder="e.g., Old furniture in garage, mattress, boxes..."
+                      value={imageDescription}
+                      onChange={(e) => setImageDescription(e.target.value)}
+                      className="min-h-[80px]"
+                      maxLength={200}
+                      data-testid="image-description-input"
+                    />
+                    <p className="text-xs text-gray-500 text-right">
+                      {imageDescription.length}/200 characters
+                    </p>
+                  </div>
+
+                  {/* Important Notice */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p className="text-sm text-blue-800 font-medium mb-2">
+                      📋 Photo Tips for Accurate Quotes:
+                    </p>
+                    <ul className="text-xs text-blue-700 space-y-1 list-disc list-inside">
+                      <li>Include all items in one photo if possible</li>
+                      <li>Ensure good lighting for clear visibility</li>
+                      <li>Show items from a distance to capture full size</li>
+                    </ul>
+                  </div>
+                  
+                  {/* Service Area Notice */}
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <p className="text-yellow-800 text-xs font-medium">
+                      📍 <strong>Service Area:</strong> Ground level & curbside pickup only. No stairs or upper floors.
+                    </p>
+                  </div>
+                </CardContent>
+
+                {/* Actions */}
+                <div className="p-6 bg-gray-50 border-t flex justify-between">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowQuote(false);
+                      setQuoteStep(1);
+                      setImageFile(null);
+                      setUploadedImage(null);
+                      setQuoteError('');
+                      setImageDescription('');
+                    }}
+                    disabled={imageAnalyzing}
+                    data-testid="cancel-quote-btn"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={analyzeImageAndGetQuote}
+                    disabled={!imageFile || imageAnalyzing}
+                    className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 px-8"
+                    data-testid="get-instant-quote-btn"
+                  >
+                    {imageAnalyzing ? (
+                      <span className="flex items-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Analyzing Photo...
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-2">
+                        Get Instant Quote →
+                      </span>
+                    )}
+                  </Button>
+                </div>
+              </>
+            )}
+
+            {/* STEP 2: Quote Display */}
+            {quoteStep === 2 && quote && (
+              <>
+                <CardHeader className="text-center pb-4 bg-emerald-50">
+                  <div className="flex justify-center mb-4">
+                    <span className="text-6xl">💰</span>
+                  </div>
+                  <CardTitle className="text-4xl font-bold text-emerald-800">
+                    ${quote.total_price}
+                  </CardTitle>
+                  <CardDescription className="text-lg font-medium text-emerald-700">
+                    Your Instant Quote
+                  </CardDescription>
+                </CardHeader>
+
+                <CardContent className="space-y-6 pt-6">
+                  {/* Quote ID */}
+                  <div className="text-center">
+                    <Badge variant="outline" className="border-emerald-300 text-emerald-700">
+                      Quote ID: {quote.id?.substring(0, 8)}
+                    </Badge>
+                  </div>
+
+                  {/* Items Identified */}
+                  {quote.breakdown && quote.breakdown.items && quote.breakdown.items.length > 0 && (
+                    <div className="bg-white border border-emerald-200 rounded-lg p-4">
+                      <h4 className="font-semibold text-emerald-800 mb-3 text-center">
+                        📋 Items Identified
+                      </h4>
+                      <div className="space-y-2">
+                        {quote.breakdown.items.map((item, index) => (
+                          <div key={index} className="flex justify-between items-center py-2 border-b last:border-b-0">
+                            <span className="text-sm font-medium text-gray-700">
+                              {item.name} <span className="text-xs text-gray-500">({item.size})</span>
+                            </span>
+                            <span className="text-sm font-semibold text-emerald-600">
+                              ${item.estimated_cost || 'Included'}
+                            </span>
                           </div>
-                        )}
-                        
-                        <p className="text-sm text-gray-600 mt-2">
-                          {imageAnalyzed ? 
-                            "Analysis complete! Items have been identified and added to your quote." :
-                            "AI will identify items and provide pricing automatically"
-                          }
-                        </p>
+                        ))}
                       </div>
                     </div>
-                  </div>
-                )}
-              </div>
+                  )}
 
-              <div className="text-center text-gray-500 text-sm">
-                ── OR ──
-              </div>
-
-              {/* Add Item Form */}
-              <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-                <h3 className="font-semibold">Add Items</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label>Item Name</Label>
-                    <Input
-                      placeholder="e.g., Sofa, Mattress"
-                      value={currentItem.name}
-                      onChange={(e) => setCurrentItem({...currentItem, name: e.target.value})}
-                      data-testid="item-name-input"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Size</Label>
-                    <Select value={currentItem.size} onValueChange={(value) => setCurrentItem({...currentItem, size: value})}>
-                      <SelectTrigger data-testid="item-size-select">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="small">Small</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="large">Large</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex items-end">
-                    <Button onClick={addItem} className="w-full" data-testid="add-item-btn">
-                      Add Item
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Items List */}
-              {items.length > 0 && (
-                <div className="space-y-2" data-testid="items-list">
-                  <h3 className="font-semibold">Items to Remove</h3>
-                  {items.map((item, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-white border rounded-lg">
-                      <span className="font-medium">{item.name} ({item.size})</span>
-                      <Button 
-                        variant="destructive" 
-                        size="sm" 
-                        onClick={() => removeItem(index)}
-                        data-testid={`remove-item-${index}`}
-                      >
-                        Remove
-                      </Button>
+                  {/* AI Explanation */}
+                  {quote.ai_explanation && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <p className="text-xs font-semibold text-blue-800 mb-2">🤖 AI Analysis:</p>
+                      <p className="text-sm text-blue-700">{quote.ai_explanation}</p>
                     </div>
-                  ))}
-                </div>
-              )}
+                  )}
 
-              {/* Description */}
-              <div className="space-y-2">
-                <Label>Additional Details</Label>
-                <Textarea
-                  placeholder="Any special instructions or additional details about your junk..."
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  data-testid="description-textarea"
-                />
-              </div>
-
-              {/* Quote Result */}
-              {(quote || quoteRecalculating || quoteLoading) && (
-                <Card className={`${(quoteRecalculating || quoteLoading) ? 'bg-blue-50 border-blue-200' : 'bg-emerald-50 border-emerald-200'}`} data-testid="quote-result">
-                  <CardContent className="pt-6">
-                    <div className="text-center space-y-4">
-                      {(quoteRecalculating || quoteLoading) ? (
-                        <div className="flex items-center justify-center space-x-2">
-                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                          <span className="text-blue-800 font-semibold">
-                            {quoteLoading ? 'Generating quote...' : 'Recalculating quote...'}
-                          </span>
-                        </div>
-                      ) : (
-                        <div>
-                          <h3 className="text-2xl font-bold text-emerald-800 mb-2">
-                            Total: ${quote.total_price}
-                            {quote.scale_level && quote.scale_level >= 9 && (
-                              <span className="ml-2 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-                                Requires Approval
-                              </span>
-                            )}
-                          </h3>
-                        </div>
-                      )}
-                      
-                      {!quoteRecalculating && !quoteLoading && quote && (
-                        <>
-                          <p className="text-emerald-600 text-sm mb-2">Quote ID: {quote.id}</p>
-                        
-                        {/* Price Breakdown Section */}
-                        {quote.breakdown && (
-                          <div className="bg-white/80 rounded-lg p-4 mb-4 text-left">
-                            <h4 className="font-semibold text-emerald-800 mb-3 text-center">💰 Price Breakdown</h4>
-                            <div className="space-y-2">
-                              <div className="flex justify-between items-center">
-                                <span className="text-sm text-gray-600">Volume Scale:</span>
-                                <span className="font-medium text-emerald-700">
-                                  {quote.scale_level}/20 ({quote.scale_level <= 4 ? 'Small' : quote.scale_level <= 8 ? 'Medium' : quote.scale_level <= 14 ? 'Large' : 'XL'})
-                                </span>
-                              </div>
-                              {quote.breakdown.base_price && (
-                                <div className="flex justify-between items-center">
-                                  <span className="text-sm text-gray-600">Base Price Range:</span>
-                                  <span className="font-medium">${quote.breakdown.base_price}</span>
-                                </div>
-                              )}
-                              {quote.breakdown.items && quote.breakdown.items.length > 0 && (
-                                <div className="border-t pt-2 mt-2">
-                                  <p className="text-sm text-gray-600 mb-2">Items:</p>
-                                  {quote.breakdown.items.map((item, index) => (
-                                    <div key={index} className="flex justify-between items-center ml-4">
-                                      <span className="text-xs text-gray-500">{item.name} ({item.size})</span>
-                                      <span className="text-xs font-medium">${item.estimated_cost || 'Included'}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                              {quote.breakdown.factors && (
-                                <div className="border-t pt-2 mt-2">
-                                  <p className="text-sm text-gray-600 mb-2">Pricing Factors:</p>
-                                  {quote.breakdown.factors.map((factor, index) => (
-                                    <div key={index} className="ml-4">
-                                      <span className="text-xs text-gray-500">• {factor}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                        
-                        {quote.ai_explanation && (
-                          <div className="bg-white/50 rounded-lg p-3 mb-4">
-                            <p className="text-xs text-gray-600 mb-1">🤖 AI Pricing Analysis</p>
-                            <p className="text-sm text-gray-700">{quote.ai_explanation}</p>
-                          </div>
-                        )}
-                        
-                        {/* Fine print for high-value quotes */}
-                        {quote.scale_level && quote.scale_level >= 4 && (
-                          <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
-                            <p className="text-xs text-yellow-800 font-medium">
-                              📋 <strong>Important Notice:</strong> This quote requires admin approval before payment processing.
-                            </p>
-                            <p className="text-xs text-yellow-700 mt-1">
-                              Large jobs (Scale 4-10) are reviewed for accuracy. You will be contacted within 24 hours 
-                              with final pricing confirmation before any charges are processed.
-                            </p>
-                          </div>
-                        )}
-                          
-                          <Button 
-                            onClick={() => setShowBooking(true)}
-                            className="bg-emerald-600 hover:bg-emerald-700"
-                            data-testid="book-pickup-btn"
-                          >
-                            {quote.scale_level && quote.scale_level >= 4 ? 'Schedule Pickup (Pending Approval)' : 'Book Pickup'}
-                          </Button>
-                        </>
-                      )}
+                  {/* Approval Notice for Large Jobs */}
+                  {quote.scale_level && quote.scale_level >= 4 && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <p className="text-sm font-medium text-yellow-800 mb-2">
+                        ⏳ Admin Approval Required
+                      </p>
+                      <p className="text-xs text-yellow-700">
+                        Large jobs require admin review for accuracy. You'll be contacted within 24 hours with final pricing before any payment is processed.
+                      </p>
                     </div>
-                  </CardContent>
-                </Card>
-              )}
-            </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setShowQuote(false);
-                  setImageAnalyzed(false);
-                  setImageFile(null);
-                  setUploadedImage(null);
-                }} 
-                data-testid="cancel-quote-btn"
-              >
-                Cancel
-              </Button>
-              <Button 
-                onClick={getQuote} 
-                disabled={items.length === 0 || quoteLoading || quoteRecalculating} 
-                data-testid="get-quote-submit-btn"
-              >
-                {(quoteLoading || quoteRecalculating) ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    <span>{quoteLoading ? 'Generating...' : 'Recalculating...'}</span>
+                  )}
+
+                  {/* Service Note */}
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <p className="text-xs text-gray-600 text-center">
+                      ℹ️ Ground level & curbside pickup only. Items must be accessible without stairs.
+                    </p>
                   </div>
-                ) : (
-                  'Get Quote from Items'
-                )}
-              </Button>
-            </CardFooter>
+                </CardContent>
+
+                {/* Actions */}
+                <div className="p-6 bg-gray-50 border-t flex justify-between">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setQuoteStep(1);
+                      setQuote(null);
+                      setImageFile(null);
+                      setUploadedImage(null);
+                      setImageDescription('');
+                    }}
+                  >
+                    ← New Quote
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setShowBooking(true);
+                      setShowQuote(false);
+                    }}
+                    className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 px-8"
+                    data-testid="book-pickup-btn"
+                  >
+                    Continue to Booking →
+                  </Button>
+                </div>
+              </>
+            )}
+
           </Card>
         </div>
       )}
