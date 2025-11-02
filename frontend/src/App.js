@@ -192,21 +192,31 @@ const LandingPage = () => {
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        setQuoteError("Image must be less than 10MB");
+        toast.error("Image must be less than 10MB");
+        return;
+      }
       setImageFile(file);
       setImageAnalyzed(false); // Reset analysis state when new image uploaded
+      setQuoteError(''); // Clear any previous errors
       const reader = new FileReader();
       reader.onload = (e) => setUploadedImage(e.target.result);
       reader.readAsDataURL(file);
     }
   };
 
-  const analyzeImage = async () => {
+  const analyzeImageAndGetQuote = async () => {
     if (!imageFile) {
-      toast.error("Please upload an image first");
+      setQuoteError("Please upload a photo of your items");
+      toast.error("Please upload a photo of your items");
       return;
     }
 
     setImageAnalyzing(true);
+    setQuoteError('');
+    
     try {
       const formData = new FormData();
       formData.append('file', imageFile);
@@ -222,12 +232,16 @@ const LandingPage = () => {
       // Also populate the items list from AI analysis
       setItems(response.data.items);
       setImageAnalyzed(true);
-      toast.success("Image analyzed successfully!");
+      setQuoteStep(2); // Move to quote display step
+      toast.success("Quote generated successfully!");
     } catch (error) {
-      toast.error("Failed to analyze image");
+      const errorMsg = error.response?.data?.detail || "Failed to analyze image. Please try again.";
+      setQuoteError(errorMsg);
+      toast.error(errorMsg);
       console.error(error);
+    } finally {
+      setImageAnalyzing(false);
     }
-    setImageAnalyzing(false);
   };
 
   const getQuote = async () => {
