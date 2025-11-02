@@ -50,6 +50,7 @@ const API = `${BACKEND_URL}/api`;
 // Landing Page Component
 const LandingPage = () => {
   const [showQuote, setShowQuote] = useState(false);
+  const [quoteStep, setQuoteStep] = useState(1); // NEW: Wizard step tracker
   const [items, setItems] = useState([]);
   const [description, setDescription] = useState("");
   const [currentItem, setCurrentItem] = useState({ name: "", size: "medium", description: "" });
@@ -65,6 +66,7 @@ const LandingPage = () => {
   const [showVenmoPayment, setShowVenmoPayment] = useState(false);
   const [venmoBookingId, setVenmoBookingId] = useState('');
   const [venmoQRCode, setVenmoQRCode] = useState('');
+  const [quoteError, setQuoteError] = useState(''); // NEW: Error handling
   
   // Photo Reel States
   const [photoReel, setPhotoReel] = useState([
