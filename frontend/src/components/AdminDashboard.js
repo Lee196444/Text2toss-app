@@ -1758,8 +1758,34 @@ const AdminDashboard = () => {
                             )}
                             
                             {quote.temp_image_path && (
-                              <div className="mt-3">
-                                <Badge className="bg-blue-100 text-blue-800">📸 Has Image</Badge>
+                              <div className="mt-4">
+                                <h4 className="font-semibold mb-2 flex items-center gap-2">
+                                  Customer Photo:
+                                  <Badge className="bg-blue-100 text-blue-800">📸 Uploaded</Badge>
+                                </h4>
+                                <div className="bg-white border-2 border-gray-200 rounded-lg p-3">
+                                  <img 
+                                    src={quote.temp_image_path.startsWith('http') ? 
+                                      quote.temp_image_path : 
+                                      `${process.env.REACT_APP_BACKEND_URL}/api/images/booking_images/${quote.temp_image_path.split('/').pop()}`
+                                    }
+                                    alt="Customer uploaded photo for quote" 
+                                    className="max-w-full h-auto max-h-64 rounded-lg border border-gray-300 cursor-pointer hover:opacity-90 transition-opacity"
+                                    onClick={() => {
+                                      const imageUrl = quote.temp_image_path.startsWith('http') ? 
+                                        quote.temp_image_path : 
+                                        `${process.env.REACT_APP_BACKEND_URL}/api/images/booking_images/${quote.temp_image_path.split('/').pop()}`;
+                                      window.open(imageUrl, '_blank');
+                                    }}
+                                    onError={(e) => {
+                                      e.target.src = '/placeholder-image.png';
+                                      e.target.alt = 'Photo could not be loaded';
+                                    }}
+                                  />
+                                  <div className="mt-2 text-xs text-gray-500 text-center">
+                                    Click image to view full size • Used for AI pricing analysis
+                                  </div>
+                                </div>
                               </div>
                             )}
                           </div>
