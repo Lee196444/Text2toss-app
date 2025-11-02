@@ -1177,6 +1177,7 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
     
     setBookingData({...bookingData, pickup_date: selectedDate, pickup_time: ""}); // Reset time selection
     checkAvailableTimeSlots(selectedDate);
+    setShowCalendar(false); // Close calendar after selection
   };
 
   const handleVenmoBooking = async () => {
