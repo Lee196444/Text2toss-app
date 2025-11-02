@@ -1418,6 +1418,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/preview" element={<PreviewPage />} />
           <Route path="/admin" element={<ProtectedAdmin />} />
           <Route path="/customer-approval/:token" element={<CustomerApproval />} />
         </Routes>
