@@ -1199,11 +1199,11 @@ const VenmoPaymentModal = ({ quote, bookingId, qrCode, onClose }) => {
             </Button>
             
             <Button 
-              onClick={onClose}
+              onClick={handlePayLater}
               variant="outline"
               className="w-full py-4 border-2 border-gray-300 text-gray-700 font-semibold text-base hover:bg-gray-50"
             >
-              I'll Pay Later
+              📲 Text Me Payment Details
             </Button>
           </div>
 
