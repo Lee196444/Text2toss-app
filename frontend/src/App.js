@@ -734,7 +734,16 @@ const LandingPage = () => {
               )}
             </CardContent>
             <CardFooter className="flex justify-between">
-              <Button variant="outline" onClick={() => setShowQuote(false)} data-testid="cancel-quote-btn">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowQuote(false);
+                  setImageAnalyzed(false);
+                  setImageFile(null);
+                  setUploadedImage(null);
+                }} 
+                data-testid="cancel-quote-btn"
+              >
                 Cancel
               </Button>
               <Button 
