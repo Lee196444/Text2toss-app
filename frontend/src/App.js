@@ -1077,6 +1077,19 @@ const VenmoPaymentModal = ({ quote, bookingId, qrCode, onClose }) => {
     }, 1000);
   };
 
+  const handlePayLater = async () => {
+    try {
+      // Send payment reminder SMS
+      await axios.post(`${API}/bookings/${bookingId}/payment-reminder`);
+      toast.success("Payment reminder sent! Check your phone for details.");
+      onClose();
+    } catch (error) {
+      console.error("Failed to send payment reminder:", error);
+      toast.error("Could not send reminder, but your booking is confirmed!");
+      onClose();
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <Card className="max-w-md w-full max-h-[95vh] overflow-y-auto shadow-2xl">
