@@ -3228,6 +3228,260 @@ class TEXT2TOSSAPITester:
         print("   • Frontend Simulation: Image accessibility for carousel ✓")
         print("   • Database Integration: Photo storage and retrieval ✓")
 
+    def test_photo_url_diagnosis(self):
+        """COMPREHENSIVE PHOTO URL DIAGNOSIS - Debug 'Image not found' issue"""
+        print("\n" + "="*50)
+        print("PHOTO URL DIAGNOSIS - DEBUG IMAGE NOT FOUND ISSUE")
+        print("="*50)
+        
+        # Step 1: Check Quote Data Structure with temp_image_path
+        print("\n📋 Step 1: Examining Quote Data Structure...")
+        
+        # First, create a quote with image to get temp_image_path
+        try:
+            import io
+            from PIL import Image
+            
+            # Create a test image for quote
+            img = Image.new('RGB', (200, 200), color='blue')
+            img_buffer = io.BytesIO()
+            img.save(img_buffer, format='JPEG')
+            img_buffer.seek(0)
+            
+            files = {'file': ('customer_junk.jpg', img_buffer, 'image/jpeg')}
+            data = {'description': 'Customer uploaded photo for junk removal quote'}
+            
+            success, response = self.run_test("Create Image Quote for URL Diagnosis", "POST", "quotes/image", 200, 
+                                            data=data, files=files)
+            
+            if success and response.get('id'):
+                quote_id = response['id']
+                temp_image_path = response.get('temp_image_path')
+                
+                print(f"   ✅ Created test quote with image: {quote_id}")
+                print(f"   📸 temp_image_path value: {temp_image_path}")
+                
+                if temp_image_path:
+                    print(f"   📂 Image path format: {temp_image_path}")
+                    
+                    # Extract filename from path
+                    import os
+                    filename = os.path.basename(temp_image_path)
+                    print(f"   📄 Extracted filename: {filename}")
+                    
+                    # Check file system directly
+                    try:
+                        import os
+                        if os.path.exists(temp_image_path):
+                            print(f"   ✅ File exists on filesystem")
+                            file_size = os.path.getsize(temp_image_path)
+                            print(f"   📊 File size: {file_size} bytes")
+                        else:
+                            print(f"   ❌ File does NOT exist on filesystem")
+                    except Exception as e:
+                        print(f"   ⚠️  Cannot check filesystem: {str(e)}")
+                    
+                else:
+                    print(f"   ❌ CRITICAL: temp_image_path is None or missing!")
+                
+                # Get the full quote details to see complete structure
+                success_get, quote_details = self.run_test("Get Quote Details for URL Analysis", "GET", f"quotes/{quote_id}", 200)
+                if success_get:
+                    print(f"   📋 Full quote structure:")
+                    print(f"      • ID: {quote_details.get('id')}")
+                    print(f"      • temp_image_path: {quote_details.get('temp_image_path')}")
+                    print(f"      • total_price: ${quote_details.get('total_price')}")
+                    print(f"      • ai_explanation: {quote_details.get('ai_explanation', 'N/A')[:50]}...")
+                
+            else:
+                print(f"   ❌ Failed to create image quote for testing")
+                return
+                
+        except ImportError:
+            print("   ⚠️  PIL not available, using existing quotes for diagnosis")
+            quote_id = None
+            temp_image_path = None
+        except Exception as e:
+            print(f"   ⚠️  Image quote creation failed: {str(e)}")
+            quote_id = None
+            temp_image_path = None
+        
+        # Step 2: Test Image Serving Endpoints
+        print("\n🖼️  Step 2: Testing Image Serving Endpoints...")
+        
+        # Test different folder variations
+        test_folders = ['booking_images', 'gallery', 'customer_photos', 'temp_uploads']
+        test_filename = 'test_image.jpg'
+        
+        for folder in test_folders:
+            endpoint = f"images/{folder}/{test_filename}"
+            success, response = self.run_test(f"Test Image Endpoint - {folder}", "GET", endpoint, 404)
+            
+            if success:
+                print(f"   ✅ Endpoint /api/images/{folder}/ is accessible")
+            else:
+                print(f"   ❌ Endpoint /api/images/{folder}/ returned error (expected for non-existent file)")
+        
+        # Step 3: Check File System Structure
+        print("\n📁 Step 3: Checking File System Structure...")
+        
+        # We can't directly access filesystem, but we can infer from backend responses
+        # Check if static directory endpoints exist
+        static_endpoints = [
+            "images/gallery/test.jpg",
+            "images/booking_images/test.jpg", 
+            "static/gallery/test.jpg",
+            "static/booking_images/test.jpg"
+        ]
+        
+        for endpoint in static_endpoints:
+            success, response = self.run_test(f"Check Static Endpoint - {endpoint}", "GET", endpoint, 404)
+            # 404 is expected, we're just checking if the endpoint structure exists
+        
+        # Step 4: Test URL Construction with Real Backend URL
+        print("\n🔗 Step 4: Testing URL Construction...")
+        
+        backend_url = "https://text2toss-junk.preview.emergentagent.com"
+        print(f"   🌐 Backend URL: {backend_url}")
+        
+        # Test different URL construction patterns
+        url_patterns = [
+            f"{backend_url}/api/images/booking_images/test_image.jpg",
+            f"{backend_url}/api/images/gallery/test_image.jpg", 
+            f"{backend_url}/static/gallery/test_image.jpg",
+            f"{backend_url}/static/booking_images/test_image.jpg"
+        ]
+        
+        for url_pattern in url_patterns:
+            print(f"   🔍 Testing URL pattern: {url_pattern}")
+            try:
+                import requests
+                response = requests.head(url_pattern, timeout=5)
+                print(f"      Status: {response.status_code}")
+                if response.status_code == 404:
+                    print(f"      ✅ Endpoint exists (404 expected for non-existent file)")
+                elif response.status_code == 200:
+                    print(f"      ✅ File found!")
+                else:
+                    print(f"      ⚠️  Unexpected status: {response.status_code}")
+            except Exception as e:
+                print(f"      ❌ Request failed: {str(e)}")
+        
+        # Step 5: Test Admin Photo Viewing (if we have admin token)
+        print("\n👨‍💼 Step 5: Testing Admin Photo Viewing...")
+        
+        if not self.admin_token:
+            print("   🔐 Getting admin token for photo viewing test...")
+            login_data = {"username": "lrobe", "password": "L1964c10$"}
+            success, response = self.run_test("Admin Login for Photo Test", "POST", "admin/login", 200, login_data)
+            if success and response.get('token'):
+                self.admin_token = response['token']
+                print(f"   ✅ Admin login successful")
+            else:
+                print(f"   ❌ Admin login failed, skipping admin photo tests")
+        
+        if self.admin_token:
+            # Test admin quote approval interface (where photo viewing happens)
+            success, quotes = self.run_test("Get Pending Quotes for Photo Test", "GET", "admin/pending-quotes", 200)
+            
+            if success and isinstance(quotes, list):
+                print(f"   📋 Found {len(quotes)} pending quotes")
+                
+                # Look for quotes with temp_image_path
+                quotes_with_photos = [q for q in quotes if q.get('temp_image_path')]
+                print(f"   📸 Quotes with photos: {len(quotes_with_photos)}")
+                
+                if quotes_with_photos:
+                    test_quote = quotes_with_photos[0]
+                    photo_path = test_quote.get('temp_image_path')
+                    quote_id = test_quote.get('id')
+                    
+                    print(f"   🔍 Testing quote {quote_id} with photo: {photo_path}")
+                    
+                    # Extract filename and test different URL constructions
+                    if photo_path:
+                        import os
+                        filename = os.path.basename(photo_path)
+                        
+                        # Test the URL that admin dashboard would construct
+                        admin_photo_urls = [
+                            f"{backend_url}/api/images/booking_images/{filename}",
+                            f"{backend_url}/api/images/gallery/{filename}",
+                            f"{backend_url}/static/booking_images/{filename}",
+                            f"{backend_url}/static/gallery/{filename}"
+                        ]
+                        
+                        for url in admin_photo_urls:
+                            print(f"   🔗 Testing admin photo URL: {url}")
+                            try:
+                                import requests
+                                response = requests.head(url, timeout=5)
+                                print(f"      Status: {response.status_code}")
+                                if response.status_code == 200:
+                                    print(f"      ✅ WORKING URL FOUND: {url}")
+                                    content_type = response.headers.get('content-type', '')
+                                    print(f"      📄 Content-Type: {content_type}")
+                                elif response.status_code == 404:
+                                    print(f"      ❌ Image not found at this URL")
+                                else:
+                                    print(f"      ⚠️  Status: {response.status_code}")
+                            except Exception as e:
+                                print(f"      ❌ Request failed: {str(e)}")
+                else:
+                    print(f"   ℹ️  No quotes with photos found for testing")
+            else:
+                print(f"   ❌ Failed to get pending quotes")
+        
+        # Step 6: Diagnose URL Construction Issue
+        print("\n🔧 Step 6: URL Construction Diagnosis...")
+        
+        # Check what the backend environment variables are set to
+        print(f"   🌐 Expected backend URL: https://text2toss-junk.preview.emergentagent.com")
+        print(f"   📂 Expected image serving pattern: /api/images/{'{folder}'}/{'{filename}'}")
+        
+        # Test if the issue is in the folder name
+        if temp_image_path:
+            print(f"   📁 Analyzing temp_image_path: {temp_image_path}")
+            
+            # Check if it's a full path or relative path
+            if temp_image_path.startswith('/'):
+                print(f"   📍 temp_image_path is absolute path")
+                # Extract the relevant parts
+                path_parts = temp_image_path.split('/')
+                print(f"   📂 Path parts: {path_parts}")
+                
+                # Look for folder indicators
+                if 'temp_uploads' in path_parts:
+                    print(f"   🔍 Image is in temp_uploads folder")
+                elif 'booking_images' in path_parts:
+                    print(f"   🔍 Image is in booking_images folder")
+                elif 'gallery' in path_parts:
+                    print(f"   🔍 Image is in gallery folder")
+                else:
+                    print(f"   ⚠️  Cannot determine folder from path")
+            else:
+                print(f"   📍 temp_image_path is relative path")
+        
+        # Step 7: Test Correct URL Format
+        print("\n✅ Step 7: Testing Correct URL Format...")
+        
+        # Based on the backend code analysis, the correct pattern should be:
+        # /api/images/{folder}/{filename}
+        
+        print(f"   📋 DIAGNOSIS SUMMARY:")
+        print(f"   • Backend URL: https://text2toss-junk.preview.emergentagent.com")
+        print(f"   • Image serving endpoint: /api/images/{{folder}}/{{filename}}")
+        print(f"   • Customer photos likely in: temp_uploads or booking_images folder")
+        print(f"   • Admin dashboard should construct: {{BACKEND_URL}}/api/images/booking_images/{{filename}}")
+        
+        # Final recommendation
+        print(f"\n💡 RECOMMENDATIONS:")
+        print(f"   1. Check if temp_image_path contains full file path or just filename")
+        print(f"   2. Verify which folder customer photos are moved to after booking")
+        print(f"   3. Ensure admin dashboard constructs URLs as: /api/images/booking_images/{{filename}}")
+        print(f"   4. Check if image files are actually moved from temp_uploads to booking_images")
+        print(f"   5. Verify REACT_APP_BACKEND_URL is correctly set in backend environment")
+
     def run_all_tests(self):
         """Run all tests"""
         print("🚀 Starting TEXT-2-TOSS API Testing")
