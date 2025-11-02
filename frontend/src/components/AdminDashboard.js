@@ -1767,7 +1767,7 @@ const AdminDashboard = () => {
                                   <img 
                                     src={quote.temp_image_path.startsWith('http') ? 
                                       quote.temp_image_path : 
-                                      `${process.env.REACT_APP_BACKEND_URL}/api/images/booking_images/${quote.temp_image_path.split('/').pop()}`
+                                      `${process.env.REACT_APP_BACKEND_URL}/api/images/temp_uploads/${quote.temp_image_path.split('/').pop()}`
                                     }
                                     alt="Customer uploaded photo for quote" 
                                     className="max-w-full h-auto max-h-64 rounded-lg border border-gray-300 cursor-pointer hover:opacity-90 transition-opacity"
