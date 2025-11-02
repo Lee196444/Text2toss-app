@@ -190,6 +190,7 @@ const LandingPage = () => {
     const file = event.target.files[0];
     if (file) {
       setImageFile(file);
+      setImageAnalyzed(false); // Reset analysis state when new image uploaded
       const reader = new FileReader();
       reader.onload = (e) => setUploadedImage(e.target.result);
       reader.readAsDataURL(file);
