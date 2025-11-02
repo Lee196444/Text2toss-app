@@ -1136,6 +1136,48 @@ async def get_bookings(token: str = None):
     bookings = await db.bookings.find({"user_id": user_id}).to_list(1000)
     return [Booking(**parse_from_mongo(booking)) for booking in bookings]
 
+@api_router.post("/bookings/{booking_id}/payment-reminder")
+async def send_payment_reminder(booking_id: str):
+    """Send SMS payment reminder to customer for pending payment"""
+    # Get booking
+    booking_doc = await db.bookings.find_one({"id": booking_id})
+    if not booking_doc:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    booking = Booking(**parse_from_mongo(booking_doc))
+    
+    # Get quote details for amount
+    quote_doc = await db.quotes.find_one({"id": booking.quote_id})
+    if not quote_doc:
+        raise HTTPException(status_code=404, detail="Quote not found")
+    
+    amount = quote_doc.get("total_price", 0)
+    pickup_date_str = booking.pickup_date.strftime('%B %d, %Y')
+    
+    # Format phone number
+    phone = booking.phone
+    if not phone.startswith('+'):
+        phone = '+1' + phone.replace('(', '').replace(')', '').replace(' ', '').replace('-', '')
+    
+    # Send payment reminder SMS
+    payment_message = (
+        f"💳 Text2toss Payment Reminder\n\n"
+        f"Pickup: {pickup_date_str} at {booking.pickup_time}\n"
+        f"Amount Due: ${amount}\n\n"
+        f"Pay via Venmo:\n"
+        f"• Send ${amount} to @Text2toss\n"
+        f"• Include Booking ID: {booking_id[:8]}\n\n"
+        f"Questions? Reply to this text or call us!"
+    )
+    
+    try:
+        sms_result = await send_sms(phone, payment_message)
+        logging.info(f"Payment reminder SMS sent for booking {booking_id}: {sms_result}")
+        return {"success": True, "message": "Payment reminder sent"}
+    except Exception as e:
+        logging.error(f"Failed to send payment reminder: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to send SMS: {str(e)}")
+
 @api_router.get("/admin/daily-schedule")
 async def get_daily_schedule(date: str = None):
     """Get all bookings for a specific date (YYYY-MM-DD format) or today if no date specified"""
