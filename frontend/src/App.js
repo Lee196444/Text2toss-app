@@ -1507,18 +1507,19 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
           </div>
 
           {/* Payment Info */}
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-300 rounded-xl p-5 text-center">
-            <p className="text-lg font-bold text-blue-900 mb-2">
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-300 rounded-xl p-4 text-center">
+            <p className="text-base font-bold text-blue-900 mb-1">
               💰 Payment via Venmo Only
             </p>
             <p className="text-sm text-blue-800">
               After booking, you'll receive payment instructions to complete via <strong>@Text2toss</strong>
             </p>
           </div>
-        </CardContent>
+          </CardContent>
+        </div>
 
-        {/* Footer Actions */}
-        <div className="p-6 bg-gray-50 border-t flex flex-col sm:flex-row gap-3">
+        {/* Sticky Footer Actions */}
+        <div className="sticky bottom-0 p-4 bg-white border-t border-gray-200 flex flex-col sm:flex-row gap-3 rounded-b-lg">
           <Button 
             variant="outline" 
             onClick={onClose} 
