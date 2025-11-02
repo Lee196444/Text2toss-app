@@ -1233,191 +1233,231 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start sm:items-center justify-center p-2 sm:p-4 pt-2 sm:pt-4 pb-2 sm:pb-4 overflow-y-auto">
-      <Card className="w-full max-w-md mx-2 sm:mx-0 my-2 sm:my-4 max-h-[95vh] sm:max-h-none overflow-y-auto">
-        <CardHeader>
-          <CardTitle>Schedule Pickup & Pay</CardTitle>
-          <CardDescription>
-            <div className="flex justify-between items-center">
-              <span>Total: ${quote.total_price}</span>
-              <Badge className="bg-green-100 text-green-800">Payment Required</Badge>
-            </div>
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3 sm:space-y-4 max-h-[50vh] sm:max-h-none overflow-y-auto">
-          {/* Payment Options */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="font-semibold text-blue-800 mb-3">💳 Payment Method</h3>
-            <div className="text-center">
-              <div className="mb-2">
-                <span className="text-lg font-medium text-blue-700">📱 Venmo Only</span>
-              </div>
-              <p className="text-sm text-blue-600 mb-2">Send payment to @Text2toss</p>
-              <p className="text-xs text-blue-600">After booking, you'll receive payment instructions with your booking ID</p>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
+      <Card className="w-full max-w-2xl shadow-2xl border-0 my-8">
+        {/* Header with Price */}
+        <div className="bg-gradient-to-r from-emerald-500 to-teal-600 p-6 text-center">
+          <div className="text-white">
+            <h2 className="text-3xl font-bold mb-2">Complete Your Booking</h2>
+            <div className="flex items-center justify-center gap-3">
+              <span className="text-5xl font-black">${quote.total_price}</span>
+              <Badge className="bg-white/20 text-white border-0 text-sm px-3 py-1">
+                💳 Pay with Venmo
+              </Badge>
             </div>
           </div>
+        </div>
 
-          <div className="space-y-2">
-            <Label>Pickup Date</Label>
-            <Button
-              variant="outline"
-              onClick={() => setShowCalendar(true)}
-              className="w-full justify-start text-left h-12 bg-white border-2 border-emerald-400 text-emerald-800 hover:bg-emerald-50 hover:text-emerald-900 font-semibold shadow-sm"
-              data-testid="pickup-date-button"
-            >
-              {bookingData.pickup_date ? 
-                new Date(bookingData.pickup_date).toLocaleDateString('en-US', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                }) : 
-                "📅 Select pickup date"
-              }
-            </Button>
-            <p className="text-xs text-gray-600">
-              🟢 Available dates • 🟡 Limited slots • 🔴 Fully booked • ❌ Weekends unavailable
-            </p>
-          </div>
-          <div className="space-y-2">
-            <Label>Pickup Time</Label>
-            <Select 
-              value={bookingData.pickup_time} 
-              onValueChange={(value) => setBookingData({...bookingData, pickup_time: value})}
-              disabled={!bookingData.pickup_date || checkingAvailability}
-            >
-              <SelectTrigger data-testid="pickup-time-select">
-                <SelectValue placeholder={
-                  checkingAvailability ? "Checking availability..." : 
-                  !bookingData.pickup_date ? "Select date first" : 
-                  "Select time"
-                } />
-              </SelectTrigger>
-              <SelectContent>
-                {[
-                  { value: "08:00-10:00", label: "8:00 AM - 10:00 AM" },
-                  { value: "10:00-12:00", label: "10:00 AM - 12:00 PM" },
-                  { value: "12:00-14:00", label: "12:00 PM - 2:00 PM" },
-                  { value: "14:00-16:00", label: "2:00 PM - 4:00 PM" },
-                  { value: "16:00-18:00", label: "4:00 PM - 6:00 PM" }
-                ].map(timeSlot => {
-                  const isBooked = bookedTimeSlots.includes(timeSlot.value);
-                  return (
-                    <SelectItem 
-                      key={timeSlot.value}
-                      value={timeSlot.value} 
-                      disabled={isBooked}
-                      className={isBooked ? "opacity-50 cursor-not-allowed" : ""}
-                    >
-                      {timeSlot.label} {isBooked && "🚫 Booked"}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-            {bookingData.pickup_date && (
-              <p className="text-xs text-gray-600">
-                {bookedTimeSlots.length > 0 
-                  ? `${bookedTimeSlots.length} time slot(s) already booked for this date` 
-                  : "✅ All time slots available"
-                }
+        <CardContent className="p-6 space-y-6">
+          {/* Schedule Section */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b-2 border-emerald-500">
+              <span className="text-2xl">📅</span>
+              <h3 className="text-xl font-bold text-gray-800">Schedule Pickup</h3>
+            </div>
+
+            {/* Date Picker */}
+            <div className="space-y-2">
+              <Label className="text-base font-semibold text-gray-700">Select Date</Label>
+              <Button
+                variant="outline"
+                onClick={() => setShowCalendar(true)}
+                className="w-full justify-between text-left h-14 border-2 border-gray-200 hover:border-emerald-400 text-gray-700 hover:bg-emerald-50 font-medium text-base"
+                data-testid="pickup-date-button"
+              >
+                <span>
+                  {bookingData.pickup_date ? 
+                    new Date(bookingData.pickup_date).toLocaleDateString('en-US', { 
+                      weekday: 'short', 
+                      month: 'short', 
+                      day: 'numeric',
+                      year: 'numeric'
+                    }) : 
+                    "Choose your pickup date"
+                  }
+                </span>
+                <span className="text-2xl">📅</span>
+              </Button>
+              <p className="text-xs text-gray-500 flex items-center gap-1">
+                <span className="w-2 h-2 bg-green-500 rounded-full"></span> Available
+                <span className="mx-2">•</span>
+                <span className="w-2 h-2 bg-red-500 rounded-full"></span> Booked
+                <span className="mx-2">•</span>
+                Mon-Thu only
               </p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label>Address</Label>
-            <Textarea
-              placeholder="Full pickup address"
-              value={bookingData.address}
-              onChange={(e) => setBookingData({...bookingData, address: e.target.value})}
-              data-testid="address-textarea"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Phone Number</Label>
-            <Input
-              type="tel"
-              placeholder="Your phone number"
-              value={bookingData.phone}
-              onChange={(e) => setBookingData({...bookingData, phone: e.target.value})}
-              data-testid="phone-input"
-            />
-          </div>
-          {/* Confirmation Checkbox */}
-          <div className="space-y-2 sm:space-y-3 p-3 sm:p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <div className="flex items-start space-x-2 sm:space-x-3">
-              <input
-                type="checkbox"
-                id="curbside-confirmation"
-                checked={bookingData.curbside_confirmed || false}
-                onChange={(e) => setBookingData({...bookingData, curbside_confirmed: e.target.checked})}
-                className="mt-0.5 sm:mt-1 h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded flex-shrink-0"
-                data-testid="curbside-checkbox"
-              />
-              <Label htmlFor="curbside-confirmation" className="text-xs sm:text-sm font-medium text-yellow-800 cursor-pointer leading-tight">
-                ✅ I confirm all removal items are placed on the ground by the curb for easy pickup
-              </Label>
             </div>
-            <p className="text-xs text-yellow-700 ml-6 sm:ml-7 leading-tight">
-              📋 <strong>Important:</strong> Items must be accessible from street level. No indoor/upper floor collection without arrangements.
-            </p>
+
+            {/* Time Picker */}
+            <div className="space-y-2">
+              <Label className="text-base font-semibold text-gray-700">Select Time Window</Label>
+              <Select 
+                value={bookingData.pickup_time} 
+                onValueChange={(value) => setBookingData({...bookingData, pickup_time: value})}
+                disabled={!bookingData.pickup_date || checkingAvailability}
+              >
+                <SelectTrigger className="h-14 border-2 text-base" data-testid="pickup-time-select">
+                  <SelectValue placeholder={
+                    checkingAvailability ? "⏳ Checking..." : 
+                    !bookingData.pickup_date ? "Select date first" : 
+                    "Choose time window"
+                  } />
+                </SelectTrigger>
+                <SelectContent>
+                  {[
+                    { value: "08:00-10:00", label: "Morning (8-10 AM)", icon: "🌅" },
+                    { value: "10:00-12:00", label: "Late Morning (10 AM-12 PM)", icon: "☀️" },
+                    { value: "12:00-14:00", label: "Afternoon (12-2 PM)", icon: "🕐" },
+                    { value: "14:00-16:00", label: "Mid Afternoon (2-4 PM)", icon: "☀️" },
+                    { value: "16:00-18:00", label: "Evening (4-6 PM)", icon: "🌆" }
+                  ].map(timeSlot => {
+                    const isBooked = bookedTimeSlots.includes(timeSlot.value);
+                    return (
+                      <SelectItem 
+                        key={timeSlot.value}
+                        value={timeSlot.value} 
+                        disabled={isBooked}
+                        className={`${isBooked ? "opacity-50 cursor-not-allowed" : ""} py-3`}
+                      >
+                        <span className="flex items-center gap-2">
+                          <span>{timeSlot.icon}</span>
+                          <span>{timeSlot.label}</span>
+                          {isBooked && <span className="text-red-600 font-semibold">• Booked</span>}
+                        </span>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          {/* SMS Notifications Opt-in */}
-          <div className="space-y-2 sm:space-y-3 p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-start space-x-2 sm:space-x-3">
-              <input
-                type="checkbox"
-                id="sms-notifications"
-                checked={bookingData.sms_notifications || false}
-                onChange={(e) => setBookingData({...bookingData, sms_notifications: e.target.checked})}
-                className="mt-0.5 sm:mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded flex-shrink-0"
-                data-testid="sms-checkbox"
-              />
-              <Label htmlFor="sms-notifications" className="text-xs sm:text-sm font-medium text-blue-800 cursor-pointer leading-tight">
-                📱 Send me SMS updates (job start, progress, completion)
-              </Label>
+          {/* Contact Information */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b-2 border-emerald-500">
+              <span className="text-2xl">📍</span>
+              <h3 className="text-xl font-bold text-gray-800">Contact Details</h3>
             </div>
-            <p className="text-xs text-blue-700 ml-6 sm:ml-7 leading-tight">
-              💬 <strong>Optional:</strong> Get real-time text notifications about your junk removal job status. Standard messaging rates may apply.
-            </p>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2 md:col-span-2">
+                <Label className="text-base font-semibold text-gray-700">Pickup Address</Label>
+                <Textarea
+                  placeholder="Enter your full address..."
+                  value={bookingData.address}
+                  onChange={(e) => setBookingData({...bookingData, address: e.target.value})}
+                  className="min-h-[80px] border-2 resize-none text-base"
+                  data-testid="address-textarea"
+                />
+              </div>
+              
+              <div className="space-y-2 md:col-span-2">
+                <Label className="text-base font-semibold text-gray-700">Phone Number</Label>
+                <Input
+                  type="tel"
+                  placeholder="(555) 123-4567"
+                  value={bookingData.phone}
+                  onChange={(e) => setBookingData({...bookingData, phone: e.target.value})}
+                  className="h-12 border-2 text-base"
+                  data-testid="phone-input"
+                />
+              </div>
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label>Special Instructions</Label>
-            <Textarea
-              placeholder="Any special instructions for pickup"
-              value={bookingData.special_instructions}
-              onChange={(e) => setBookingData({...bookingData, special_instructions: e.target.value})}
-              data-testid="special-instructions-textarea"
-            />
+          {/* Requirements */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 pb-2 border-b-2 border-emerald-500">
+              <span className="text-2xl">✓</span>
+              <h3 className="text-xl font-bold text-gray-800">Requirements</h3>
+            </div>
+
+            {/* Curbside Confirmation */}
+            <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  id="curbside-confirmation"
+                  checked={bookingData.curbside_confirmed || false}
+                  onChange={(e) => setBookingData({...bookingData, curbside_confirmed: e.target.checked})}
+                  className="mt-1 h-5 w-5 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
+                  data-testid="curbside-checkbox"
+                />
+                <div>
+                  <p className="font-semibold text-gray-800 text-base">
+                    Items are curbside & ground level
+                  </p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    All items must be accessible from street level without stairs
+                  </p>
+                </div>
+              </label>
+            </div>
+
+            {/* SMS Opt-in */}
+            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  id="sms-notifications"
+                  checked={bookingData.sms_notifications || false}
+                  onChange={(e) => setBookingData({...bookingData, sms_notifications: e.target.checked})}
+                  className="mt-1 h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  data-testid="sms-checkbox"
+                />
+                <div>
+                  <p className="font-semibold text-gray-800 text-base">
+                    📱 Get SMS updates (Optional)
+                  </p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Receive real-time updates on job progress
+                  </p>
+                </div>
+              </label>
+            </div>
+
+            {/* Special Instructions */}
+            <div className="space-y-2">
+              <Label className="text-base font-semibold text-gray-700">Special Instructions (Optional)</Label>
+              <Textarea
+                placeholder="Any additional details we should know..."
+                value={bookingData.special_instructions}
+                onChange={(e) => setBookingData({...bookingData, special_instructions: e.target.value})}
+                className="min-h-[80px] border-2 resize-none text-base"
+                data-testid="special-instructions-textarea"
+              />
+            </div>
+          </div>
+
+          {/* Payment Info */}
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-300 rounded-xl p-5 text-center">
+            <p className="text-lg font-bold text-blue-900 mb-2">
+              💰 Payment via Venmo Only
+            </p>
+            <p className="text-sm text-blue-800">
+              After booking, you'll receive payment instructions to complete via <strong>@Text2toss</strong>
+            </p>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-4 p-4 sm:p-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-            <h3 className="font-semibold text-blue-800 mb-2">💳 Payment Method</h3>
-            <p className="text-blue-700 text-sm mb-3">
-              We accept Venmo payments only. After booking, you'll receive payment instructions.
-            </p>
-          </div>
-          
-          <Button 
-            onClick={handleVenmoBooking}
-            data-testid="venmo-booking-btn" 
-            className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 font-medium text-lg"
-          >
-            📱 Book Job - Pay with Venmo (@Text2toss)
-          </Button>
-          
+
+        {/* Footer Actions */}
+        <div className="p-6 bg-gray-50 border-t flex flex-col sm:flex-row gap-3">
           <Button 
             variant="outline" 
             onClick={onClose} 
             data-testid="cancel-booking-btn" 
-            className="w-full bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300 text-gray-600 hover:text-gray-800 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium"
+            className="flex-1 h-12 border-2 text-base font-semibold"
           >
             Cancel
           </Button>
-        </CardFooter>
+          
+          <Button 
+            onClick={handleVenmoBooking}
+            data-testid="venmo-booking-btn" 
+            className="flex-1 h-12 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-base font-bold shadow-lg hover:shadow-xl transition-all"
+          >
+            📱 Confirm Booking
+          </Button>
+        </div>
       </Card>
       
       {/* Availability Calendar Modal */}
