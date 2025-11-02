@@ -939,11 +939,11 @@ async def create_quote_from_image(
     if not file.content_type.startswith('image/'):
         raise HTTPException(status_code=400, detail="Only image files are allowed")
     
-    # Create temporary and permanent directories
-    temp_uploads_dir = Path("/tmp/temp_uploads")
-    temp_uploads_dir.mkdir(exist_ok=True)
+    # Create uploads directory in static folder for persistent storage
+    temp_uploads_dir = Path("/app/static/temp_uploads")
+    temp_uploads_dir.mkdir(parents=True, exist_ok=True)
     
-    # Save uploaded file temporarily (will be moved to permanent storage only if booked)
+    # Save uploaded file to accessible location
     file_extension = Path(file.filename).suffix or '.jpg'
     temp_filename = f"temp_{uuid.uuid4()}{file_extension}"
     file_path = temp_uploads_dir / temp_filename
