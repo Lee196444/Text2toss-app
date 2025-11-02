@@ -789,12 +789,11 @@ Respond ONLY with a JSON object in this exact format:
         )
         
         # Initialize AI chat with vision capabilities - Use latest Gemini 2.5 Flash for image analysis
-        # CRITICAL: Set temperature=0 for consistent, deterministic responses
+        # CRITICAL: Use image hash in session_id for consistency
         chat = LlmChat(
             api_key=os.environ.get('EMERGENT_LLM_KEY'),
             session_id=f"vision_analysis_{image_hash}",  # Use image hash for session consistency
-            system_message="You are a professional junk removal expert with visual analysis capabilities. Always respond with valid JSON only. BE CONSISTENT - same image should always produce the same analysis and pricing.",
-            temperature=0.0  # CRITICAL: Zero temperature for deterministic responses
+            system_message="You are a professional junk removal expert with visual analysis capabilities. Always respond with valid JSON only. BE CONSISTENT - same image should always produce the same analysis and pricing."
         ).with_model("gemini", "gemini-2.5-flash")  # Use latest Gemini 2.5 Flash for enhanced image analysis
         
         # Send message with image
