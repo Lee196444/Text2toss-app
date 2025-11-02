@@ -3,7 +3,7 @@ import json
 
 def test_specific_scenarios():
     """Test specific scenarios from the review request"""
-    base_url = "https://text2toss-junk.preview.emergentagent.com"
+    base_url = "https://junkapp-pricing.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     print("🔍 FOCUSED PRICING ACCURACY TEST")

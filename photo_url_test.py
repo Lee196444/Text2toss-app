@@ -11,7 +11,7 @@ import tempfile
 from pathlib import Path
 
 class PhotoURLDiagnoser:
-    def __init__(self, base_url="https://text2toss-junk.preview.emergentagent.com"):
+    def __init__(self, base_url="https://junkapp-pricing.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.admin_token = None
@@ -258,7 +258,7 @@ class PhotoURLDiagnoser:
         print("=" * 60)
         
         print("🔍 FINDINGS:")
-        print("• Backend URL: https://text2toss-junk.preview.emergentagent.com")
+        print("• Backend URL: https://junkapp-pricing.preview.emergentagent.com")
         print("• Image serving should use: /api/images/{folder}/{filename}")
         print("• Customer photos stored with temp_image_path in quotes")
         print("• Photos may be in temp_uploads initially, moved to booking_images after booking")
