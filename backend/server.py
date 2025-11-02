@@ -690,6 +690,7 @@ CUSTOMER DESCRIPTION (use to identify additional items not clearly visible):
 {description}
 
 **CRITICAL**: Base pricing on TOTAL ESTIMATED CUBIC FEET, not item count
+**CONSISTENCY REQUIREMENT**: Always provide the exact same analysis and pricing for identical images
 
 SCALE 1: $15 - 15-gallon trash bag or smaller
 SCALE 2: $20 - Small box, single small item
@@ -729,6 +730,7 @@ PRICING PROCESS:
 3. Select appropriate price range for that scale
 4. Adjust within range based on item condition, weight, disposal complexity
 5. Add any applicable additional charges
+6. BE CONSISTENT - same image should always get same analysis
 
 Respond ONLY with a JSON object in this exact format:
 {{
@@ -761,6 +763,25 @@ Respond ONLY with a JSON object in this exact format:
 }}"""
 
     try:
+        # Calculate image hash for caching consistency
+        import hashlib
+        with open(image_path, 'rb') as f:
+            image_hash = hashlib.md5(f.read()).hexdigest()
+        
+        # Check cache for this image (stored in database)
+        cached_quote = await db.image_cache.find_one({"image_hash": image_hash})
+        if cached_quote:
+            print(f"🎯 Cache HIT for image {image_hash[:8]} - returning consistent pricing")
+            return (
+                [JunkItem(**item) for item in cached_quote["items"]],
+                cached_quote["total_price"],
+                cached_quote["explanation"],
+                cached_quote.get("scale_level"),
+                cached_quote.get("breakdown")
+            )
+        
+        print(f"📸 Cache MISS for image {image_hash[:8]} - generating new analysis")
+        
         # Create image file content
         image_file = FileContentWithMimeType(
             file_path=image_path,
@@ -768,10 +789,12 @@ Respond ONLY with a JSON object in this exact format:
         )
         
         # Initialize AI chat with vision capabilities - Use latest Gemini 2.5 Flash for image analysis
+        # CRITICAL: Set temperature=0 for consistent, deterministic responses
         chat = LlmChat(
             api_key=os.environ.get('EMERGENT_LLM_KEY'),
-            session_id=f"vision_analysis_{datetime.now().timestamp()}",
-            system_message="You are a professional junk removal expert with visual analysis capabilities. Always respond with valid JSON only."
+            session_id=f"vision_analysis_{image_hash}",  # Use image hash for session consistency
+            system_message="You are a professional junk removal expert with visual analysis capabilities. Always respond with valid JSON only. BE CONSISTENT - same image should always produce the same analysis and pricing.",
+            temperature=0.0  # CRITICAL: Zero temperature for deterministic responses
         ).with_model("gemini", "gemini-2.5-flash")  # Use latest Gemini 2.5 Flash for enhanced image analysis
         
         # Send message with image
@@ -806,6 +829,23 @@ Respond ONLY with a JSON object in this exact format:
         explanation = analysis_data.get("explanation", "AI vision analysis of uploaded image")
         scale_level = analysis_data.get("scale_level")
         breakdown = analysis_data.get("breakdown")
+        
+        # Cache the result for consistency
+        cache_data = {
+            "image_hash": image_hash,
+            "items": [item.dict() for item in items],
+            "total_price": total_price,
+            "explanation": explanation,
+            "scale_level": scale_level,
+            "breakdown": breakdown,
+            "cached_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        try:
+            await db.image_cache.insert_one(cache_data)
+            print(f"✅ Cached analysis for image {image_hash[:8]}")
+        except Exception as cache_error:
+            print(f"⚠️ Failed to cache analysis: {cache_error}")
         
         return items, total_price, explanation, scale_level, breakdown
         
