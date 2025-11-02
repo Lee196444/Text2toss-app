@@ -1813,6 +1813,21 @@ const AdminDashboard = () => {
                           </div>
                           
                           <div className="flex flex-col sm:flex-row gap-3">
+                            {quote.temp_image_path && (
+                              <Button 
+                                onClick={() => {
+                                  const imageUrl = quote.temp_image_path.startsWith('http') ? 
+                                    quote.temp_image_path : 
+                                    `${process.env.REACT_APP_BACKEND_URL}/api/images/booking_images/${quote.temp_image_path.split('/').pop()}`;
+                                  window.open(imageUrl, '_blank');
+                                }}
+                                variant="outline"
+                                className="border-blue-400 text-blue-700 hover:bg-blue-50 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium"
+                              >
+                                <span className="mr-2">🔍</span>
+                                View Full Photo
+                              </Button>
+                            )}
                             <Button 
                               onClick={() => {
                                 const adjustedPrice = document.getElementById(`price-${quote.id}`).value;
