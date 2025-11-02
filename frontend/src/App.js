@@ -1071,68 +1071,96 @@ const VenmoPaymentModal = ({ quote, bookingId, qrCode, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg max-w-md w-full max-h-[95vh] overflow-y-auto">
-        <div className="p-6">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-green-600">🎉 Booking Confirmed!</h2>
-            <button 
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
-            >
-              ×
-            </button>
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <Card className="max-w-md w-full max-h-[95vh] overflow-y-auto shadow-2xl">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-6 text-center relative">
+          <button 
+            onClick={onClose}
+            className="absolute top-4 right-4 text-white hover:text-gray-200 text-3xl font-bold leading-none"
+          >
+            ×
+          </button>
+          <div className="text-white">
+            <div className="text-5xl mb-3">🎉</div>
+            <h2 className="text-2xl font-bold mb-2">Booking Confirmed!</h2>
+            <p className="text-white/90 text-sm">Booking ID: {bookingId.substring(0, 8)}</p>
           </div>
+        </div>
 
-          {/* Booking Details */}
-          <div className="bg-gray-50 rounded-lg p-4 mb-6">
-            <h3 className="font-semibold mb-2">Booking Details:</h3>
-            <p><strong>Booking ID:</strong> {bookingId.substring(0, 8)}</p>
-            <p><strong>Total Amount:</strong> ${quote.total_price}</p>
-            <p><strong>Service:</strong> Junk Removal</p>
+        <CardContent className="p-6 space-y-6">
+          {/* Booking Summary */}
+          <div className="bg-emerald-50 border-2 border-emerald-200 rounded-xl p-4">
+            <h3 className="font-bold text-emerald-900 mb-3 text-lg">📋 Booking Summary</h3>
+            <div className="space-y-2 text-emerald-800">
+              <div className="flex justify-between">
+                <span className="font-medium">Amount Due:</span>
+                <span className="font-bold text-xl">${quote.total_price}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">Service:</span>
+                <span>Junk Removal</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">Payment Method:</span>
+                <span className="font-semibold">Venmo</span>
+              </div>
+            </div>
           </div>
 
           {/* Payment Instructions */}
-          <div className="mb-6">
-            <h3 className="font-semibold mb-3 text-lg">📱 Complete Payment via Venmo:</h3>
+          <div>
+            <h3 className="font-bold text-gray-900 mb-4 text-lg text-center">
+              💳 Complete Payment via Venmo
+            </h3>
             
             {/* QR Code */}
             <div className="text-center mb-4">
-              <div className="inline-block p-4 bg-white border-2 border-gray-300 rounded-lg">
+              <div className="inline-block p-4 bg-white border-4 border-gray-300 rounded-2xl shadow-lg">
                 <img 
                   src={qrCode} 
                   alt="Venmo Payment QR Code" 
                   className="w-48 h-48 mx-auto"
                 />
               </div>
-              <p className="text-sm text-gray-600 mt-2">Scan with Venmo app</p>
+              <p className="text-gray-700 font-semibold mt-3 text-base">Scan with Venmo app</p>
             </div>
 
             {/* OR Divider */}
-            <div className="flex items-center my-4">
-              <hr className="flex-1 border-gray-300" />
-              <span className="px-3 text-gray-500 text-sm">OR</span>
-              <hr className="flex-1 border-gray-300" />
+            <div className="flex items-center my-6">
+              <hr className="flex-1 border-gray-400" />
+              <span className="px-4 text-gray-600 font-semibold text-base">OR</span>
+              <hr className="flex-1 border-gray-400" />
             </div>
 
             {/* Manual Payment Instructions */}
-            <div className="space-y-3">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="font-semibold text-blue-800 mb-2">Manual Payment:</h4>
-                <ul className="space-y-2 text-sm">
-                  <li>• Send <strong>${quote.total_price}</strong> to <strong>@Text2toss</strong></li>
-                  <li>• Include booking ID: <strong>{bookingId.substring(0, 8)}</strong> 
+            <div className="bg-blue-50 border-2 border-blue-300 rounded-xl p-5">
+              <h4 className="font-bold text-blue-900 mb-3 text-base">📱 Manual Payment:</h4>
+              <ul className="space-y-3 text-blue-900">
+                <li className="flex items-start gap-2">
+                  <span className="font-bold text-lg">1.</span>
+                  <span className="font-medium">
+                    Send <span className="font-bold text-xl text-blue-600">${quote.total_price}</span> to <span className="font-bold">@Text2toss</span>
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="font-bold text-lg">2.</span>
+                  <div className="flex-1">
+                    <span className="font-medium">Include booking ID: </span>
+                    <span className="font-bold bg-blue-200 px-2 py-1 rounded">{bookingId.substring(0, 8)}</span>
                     <button 
                       onClick={copyBookingId}
-                      className="ml-2 text-blue-600 hover:text-blue-800 underline text-xs"
+                      className="ml-2 text-blue-700 hover:text-blue-900 underline font-semibold text-sm"
                     >
                       (Copy)
                     </button>
-                  </li>
-                  <li>• We'll confirm payment and send pickup details</li>
-                </ul>
-              </div>
+                  </div>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="font-bold text-lg">3.</span>
+                  <span className="font-medium">We'll confirm payment and send pickup details</span>
+                </li>
+              </ul>
             </div>
           </div>
 
@@ -1140,7 +1168,7 @@ const VenmoPaymentModal = ({ quote, bookingId, qrCode, onClose }) => {
           <div className="space-y-3">
             <Button 
               onClick={openVenmoApp}
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 text-lg font-bold shadow-lg"
             >
               📱 Open Venmo App
             </Button>
@@ -1148,21 +1176,21 @@ const VenmoPaymentModal = ({ quote, bookingId, qrCode, onClose }) => {
             <Button 
               onClick={onClose}
               variant="outline"
-              className="w-full py-3"
+              className="w-full py-4 border-2 border-gray-300 text-gray-700 font-semibold text-base hover:bg-gray-50"
             >
               I'll Pay Later
             </Button>
           </div>
 
           {/* Important Note */}
-          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-sm text-yellow-800">
-              <strong>Note:</strong> Your pickup is scheduled but payment is required to confirm the service. 
+          <div className="bg-yellow-50 border-2 border-yellow-400 rounded-xl p-4">
+            <p className="text-yellow-900 font-medium text-sm">
+              <span className="font-bold text-base">⚠️ Important:</span> Your pickup is scheduled but payment is required to confirm the service. 
               We'll send SMS confirmation once payment is received.
             </p>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
