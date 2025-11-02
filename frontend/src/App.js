@@ -1059,7 +1059,9 @@ const PhotoCarousel = ({ photos, currentIndex, onIndexChange }) => {
 
 // Venmo Payment Modal Component
 const VenmoPaymentModal = ({ quote, bookingId, qrCode, onClose }) => {
-  const venmoUrl = `https://venmo.com/code?user_id=Text2toss&amount=${quote.total_price}&note=Text2toss%20Booking%20${bookingId.substring(0, 8)}`;
+  // Use the real Text2toss Venmo QR code
+  const venmoQRCodeUrl = "https://www.paypal.com/qrcodes/venmocs/9f1f97dd-23ed-4676-82b5-3fc2126def65?created=1762118921";
+  const venmoUrl = `venmo://paycharge?txn=pay&recipients=Text2toss&amount=${quote.total_price}&note=Text2toss%20Booking%20${bookingId.substring(0, 8)}`;
   
   const copyBookingId = () => {
     navigator.clipboard.writeText(bookingId.substring(0, 8));
@@ -1067,7 +1069,12 @@ const VenmoPaymentModal = ({ quote, bookingId, qrCode, onClose }) => {
   };
 
   const openVenmoApp = () => {
-    window.open(venmoUrl, '_blank');
+    // Try to open Venmo app, fallback to web
+    window.location.href = venmoUrl;
+    // Fallback to web after 1 second if app doesn't open
+    setTimeout(() => {
+      window.open(`https://venmo.com/?txn=pay&recipients=Text2toss&amount=${quote.total_price}&note=Booking%20${bookingId.substring(0, 8)}`, '_blank');
+    }, 1000);
   };
 
   return (
@@ -1114,16 +1121,21 @@ const VenmoPaymentModal = ({ quote, bookingId, qrCode, onClose }) => {
               💳 Complete Payment via Venmo
             </h3>
             
-            {/* QR Code */}
+            {/* QR Code - Using Real Text2toss Venmo QR */}
             <div className="text-center mb-4">
               <div className="inline-block p-4 bg-white border-4 border-gray-300 rounded-2xl shadow-lg">
                 <img 
-                  src={qrCode} 
-                  alt="Venmo Payment QR Code" 
+                  src={venmoQRCodeUrl} 
+                  alt="Text2toss Venmo Payment QR Code" 
                   className="w-48 h-48 mx-auto"
+                  onError={(e) => {
+                    // Fallback to generated QR if static QR fails to load
+                    e.target.src = qrCode;
+                  }}
                 />
               </div>
-              <p className="text-gray-700 font-semibold mt-3 text-base">Scan with Venmo app</p>
+              <p className="text-gray-700 font-semibold mt-3 text-base">📱 Scan with Venmo app</p>
+              <p className="text-gray-600 text-sm mt-1">Opens directly to payment screen</p>
             </div>
 
             {/* OR Divider */}
@@ -1146,19 +1158,19 @@ const VenmoPaymentModal = ({ quote, bookingId, qrCode, onClose }) => {
                 <li className="flex items-start gap-2">
                   <span className="font-bold text-lg">2.</span>
                   <div className="flex-1">
-                    <span className="font-medium">Include booking ID: </span>
+                    <span className="font-medium">Include booking ID in note: </span>
                     <span className="font-bold bg-blue-200 px-2 py-1 rounded">{bookingId.substring(0, 8)}</span>
                     <button 
                       onClick={copyBookingId}
                       className="ml-2 text-blue-700 hover:text-blue-900 underline font-semibold text-sm"
                     >
-                      (Copy)
+                      (Copy ID)
                     </button>
                   </div>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="font-bold text-lg">3.</span>
-                  <span className="font-medium">We'll confirm payment and send pickup details</span>
+                  <span className="font-medium">We'll confirm payment and send pickup details via SMS</span>
                 </li>
               </ul>
             </div>
@@ -1186,7 +1198,7 @@ const VenmoPaymentModal = ({ quote, bookingId, qrCode, onClose }) => {
           <div className="bg-yellow-50 border-2 border-yellow-400 rounded-xl p-4">
             <p className="text-yellow-900 font-medium text-sm">
               <span className="font-bold text-base">⚠️ Important:</span> Your pickup is scheduled but payment is required to confirm the service. 
-              We'll send SMS confirmation once payment is received.
+              We'll send SMS confirmation once payment is received at <strong>@Text2toss</strong>.
             </p>
           </div>
         </CardContent>
