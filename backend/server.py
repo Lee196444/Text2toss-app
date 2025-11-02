@@ -1217,6 +1217,43 @@ async def get_daily_schedule(date: str = None):
     
     return result
 
+@api_router.get("/admin/pending-payments")
+async def get_pending_payments():
+    """Get all bookings with pending payments"""
+    bookings = await db.bookings.find({
+        "payment_status": "pending"
+    }).sort("created_at", -1).to_list(1000)
+    
+    result = []
+    for booking in bookings:
+        if "_id" in booking:
+            del booking["_id"]
+        booking_data = parse_from_mongo(booking)
+        
+        # Add quote details
+        quote = await db.quotes.find_one({"id": booking_data["quote_id"]})
+        if quote:
+            if "_id" in quote:
+                del quote["_id"]
+            booking_data["quote_details"] = parse_from_mongo(quote)
+        
+        result.append(booking_data)
+    
+    return result
+
+@api_router.post("/admin/bookings/{booking_id}/mark-paid")
+async def mark_booking_paid(booking_id: str):
+    """Mark a booking as paid"""
+    result = await db.bookings.update_one(
+        {"id": booking_id},
+        {"$set": {"payment_status": "paid"}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    return {"success": True, "message": "Booking marked as paid"}
+
 @api_router.get("/admin/weekly-schedule")
 async def get_weekly_schedule(start_date: str = None):
     """Get bookings for a week starting from start_date or current week"""
