@@ -217,6 +217,7 @@ const LandingPage = () => {
       setQuote(response.data);
       // Also populate the items list from AI analysis
       setItems(response.data.items);
+      setImageAnalyzed(true);
       toast.success("Image analyzed successfully!");
     } catch (error) {
       toast.error("Failed to analyze image");
