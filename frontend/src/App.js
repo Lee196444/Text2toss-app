@@ -1237,7 +1237,9 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
 
   // Check if date is allowed (no Fridays, Saturdays, Sundays)
   const isDateAllowed = (dateString) => {
-    const date = new Date(dateString);
+    // Parse date as local time to avoid timezone shift
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
     const dayOfWeek = date.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
     return dayOfWeek >= 1 && dayOfWeek <= 4; // Monday(1) to Thursday(4)
   };
