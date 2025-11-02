@@ -15,6 +15,7 @@ import AvailabilityCalendar from "./components/AvailabilityCalendar";
 import { Label } from "./components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select";
 import { toast } from "sonner";
+import PreviewPage from "./PreviewPage";
 // Toast notifications - using inline implementation until sonner is fixed
 const showToastNotification = (type, message) => {
   const toast = document.createElement('div');
