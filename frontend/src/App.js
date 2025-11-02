@@ -522,14 +522,36 @@ const LandingPage = () => {
                       <div className="flex-1">
                         <Button 
                           onClick={analyzeImage}
-                          disabled={imageAnalyzing}
-                          className="bg-blue-600 hover:bg-blue-700"
+                          disabled={imageAnalyzing || imageAnalyzed}
+                          className="bg-blue-600 hover:bg-blue-700 disabled:bg-green-600"
                           data-testid="analyze-image-btn"
                         >
-                          {imageAnalyzing ? "🤖 Analyzing..." : "🔍 Analyze with AI"}
+                          {imageAnalyzing ? "🤖 Analyzing..." : 
+                           imageAnalyzed ? "✅ Analysis Complete" : "🔍 Analyze with AI"}
                         </Button>
+                        
+                        {imageAnalyzed && (
+                          <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <div className="flex items-center gap-2">
+                              <Badge className="bg-green-500 text-white">
+                                <span className="mr-1">✅</span>
+                                Photo Successfully Analyzed
+                              </Badge>
+                              <Badge variant="outline" className="border-green-400 text-green-700">
+                                AI Powered
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-green-700 mt-2 font-medium">
+                              🤖 Your photo has been analyzed and items identified for accurate pricing!
+                            </p>
+                          </div>
+                        )}
+                        
                         <p className="text-sm text-gray-600 mt-2">
-                          AI will identify items and provide pricing automatically
+                          {imageAnalyzed ? 
+                            "Analysis complete! Items have been identified and added to your quote." :
+                            "AI will identify items and provide pricing automatically"
+                          }
                         </p>
                       </div>
                     </div>
