@@ -53,10 +53,14 @@ const AvailabilityCalendar = ({ selectedDate, onDateSelect, onClose }) => {
 
   const getDateStatus = (dateStr) => {
     const today = new Date();
-    const checkDate = new Date(dateStr);
+    today.setHours(0, 0, 0, 0);
+    
+    // Parse date as local time to avoid timezone shift
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const checkDate = new Date(year, month - 1, day);
     
     // Don't allow past dates
-    if (checkDate < today.setHours(0, 0, 0, 0)) {
+    if (checkDate < today) {
       return { status: 'past', available_count: 0, className: 'bg-gray-100 text-gray-400 cursor-not-allowed' };
     }
 
