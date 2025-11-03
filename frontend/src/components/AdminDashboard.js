@@ -977,10 +977,20 @@ const AdminDashboard = () => {
 
         {/* Summary Stats */}
         <Card>
-          <CardHeader>
-            <CardTitle>Daily Summary</CardTitle>
-            <CardDescription>Overview for {new Date(selectedDate).toLocaleDateString()}</CardDescription>
+          <CardHeader className="pb-3 cursor-pointer" onClick={() => toggleSection('dailySchedule')}>
+            <CardTitle className="text-lg font-semibold text-gray-800 flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                📊 Daily Summary
+              </span>
+              <span className="text-2xl transition-transform duration-200" style={{transform: collapsed.dailySchedule ? 'rotate(-90deg)' : 'rotate(0deg)'}}>
+                ▼
+              </span>
+            </CardTitle>
+            <CardDescription className="text-sm text-gray-600">
+              Overview for {new Date(selectedDate).toLocaleDateString()}
+            </CardDescription>
           </CardHeader>
+          {!collapsed.dailySchedule && (
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 text-center">
               <div className="p-3 sm:p-4 bg-gray-50 rounded-lg">
