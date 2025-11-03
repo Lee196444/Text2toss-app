@@ -1489,7 +1489,19 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
                 />
               </div>
               
-              <div className="space-y-2 md:col-span-2">
+              <div className="space-y-2">
+                <Label className="text-base font-semibold text-gray-700">Email Address</Label>
+                <Input
+                  type="email"
+                  placeholder="your.email@example.com"
+                  value={bookingData.email}
+                  onChange={(e) => setBookingData({...bookingData, email: e.target.value})}
+                  className="h-12 border-2 text-base"
+                  data-testid="email-input"
+                />
+              </div>
+              
+              <div className="space-y-2">
                 <Label className="text-base font-semibold text-gray-700">Phone Number</Label>
                 <Input
                   type="tel"
