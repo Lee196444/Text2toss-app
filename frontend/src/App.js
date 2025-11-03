@@ -1203,7 +1203,7 @@ const VenmoPaymentModal = ({ quote, bookingId, qrCode, onClose }) => {
               variant="outline"
               className="w-full py-4 border-2 border-gray-300 text-gray-700 font-semibold text-base hover:bg-gray-50"
             >
-              📲 Text Me Payment Details
+              📧 Email Me Payment Details
             </Button>
           </div>
 
