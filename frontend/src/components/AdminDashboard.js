@@ -1965,7 +1965,16 @@ const AdminDashboard = () => {
                                   const imageUrl = quote.temp_image_path.startsWith('http') ? 
                                     quote.temp_image_path : 
                                     `${process.env.REACT_APP_BACKEND_URL}/api/images/temp_uploads/${quote.temp_image_path.split('/').pop()}`;
-                                  window.open(imageUrl, '_blank');
+                                  
+                                  // Check if image exists before opening
+                                  const img = new Image();
+                                  img.onload = () => {
+                                    window.open(imageUrl, '_blank');
+                                  };
+                                  img.onerror = () => {
+                                    alert('⚠️ Image not available\n\nThe customer photo for this quote is no longer available. The image may have been deleted or moved.\n\nYou can still approve or reject the quote based on the items list and pricing information.');
+                                  };
+                                  img.src = imageUrl;
                                 }}
                                 variant="outline"
                                 className="border-blue-400 text-blue-700 hover:bg-blue-50 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium"
