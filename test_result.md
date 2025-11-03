@@ -312,6 +312,42 @@
           comment: "COMPREHENSIVE TESTING COMPLETED: ✅ GET /api/availability/{date} endpoint working perfectly ✅ Response includes all required fields: date, available_slots, booked_slots, is_restricted ✅ Weekend restriction logic working: Saturday 2025-09-27 correctly marked as restricted with proper reason message ✅ Weekday availability working: Wednesday 2025-09-24 correctly not restricted ✅ Time slot format correct: HH:MM-HH:MM format in available_slots and booked_slots arrays ✅ Integration with booking data: Availability counts match existing calendar bookings ✅ Error handling: Proper 500 response for invalid date formats ✅ Restriction reason messages provided for weekend dates"
 
 ## frontend:
+  - task: "EMAIL NOTIFICATION CENTER - Replace SMS Center with Email Center UI"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/AdminDashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Replaced SMS Center button with Email Center button (indigo gradient, 📧 icon). Updated modal from 'SMS Center' to 'Email Notification Center'. Replaced SMS message sending interface with email templates section showing Job Completion, Booking Confirmation, and Quote Approval templates. Added email statistics section with placeholder stats. Added Quick Actions section with 'Send Bulk Payment Reminders' button. Implemented sendBulkEmailReminder(), sendBookingConfirmationEmail(), and sendPaymentReminder() functions."
+
+  - task: "CSV EXPORT BUTTON - Export job contacts functionality"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/AdminDashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Added 'Export Contacts' button to Quick Actions section with teal gradient styling and 📥 icon. Implemented exportJobContacts() function that calls /api/admin/export-job-contacts endpoint, creates blob download link, triggers CSV download with timestamped filename, and shows success/error toast notifications."
+
+  - task: "COLLAPSIBLE SECTIONS - Make all admin sections collapsible"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/AdminDashboard.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Made Daily Summary section collapsible with expand/collapse arrow icon. Uses collapsed.dailySchedule state. Clicking header toggles visibility. Quick Actions section was already collapsible. Still need to make other sections (Weekly Overview, Job Bins) collapsible in future updates."
+
   - task: "Cleanup button functionality"
     implemented: true
     working: true
