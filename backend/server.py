@@ -429,9 +429,11 @@ class Booking(BaseModel):
     pickup_time: str
     address: str
     phone: str
+    email: Optional[str] = None  # Customer email for notifications
     special_instructions: Optional[str] = None
     curbside_confirmed: bool = False
-    sms_notifications: bool = False
+    sms_notifications: bool = False  # Kept for legacy/optional use
+    email_notifications: bool = True  # Default to email notifications
     status: str = "scheduled"  # scheduled, in_progress, completed, cancelled, pending_customer_approval
     payment_status: str = "pending"  # pending, paid, refunded
     payment_method: str = "venmo"  # venmo (only option currently)
