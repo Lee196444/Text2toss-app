@@ -1227,9 +1227,10 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
     pickup_time: "",
     address: "",
     phone: "",
+    email: "",
     special_instructions: "",
     curbside_confirmed: false,
-    sms_notifications: false
+    email_notifications: true
   });
   const [bookedTimeSlots, setBookedTimeSlots] = useState([]);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
