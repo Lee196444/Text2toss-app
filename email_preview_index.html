@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text2toss Email Previews</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1f2937;
+            color: white;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #9ca3af;
+            margin-bottom: 40px;
+        }
+        .previews {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        .preview-box {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .preview-header {
+            background: #10b981;
+            color: white;
+            padding: 15px 20px;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        .preview-header.payment {
+            background: #3b82f6;
+        }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: none;
+        }
+        .buttons {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            margin: 0 10px;
+            background: #10b981;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: #059669;
+        }
+        .btn.secondary {
+            background: #3b82f6;
+        }
+        .btn.secondary:hover {
+            background: #2563eb;
+        }
+        @media (max-width: 768px) {
+            .previews {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📧 Text2toss Email Templates</h1>
+        <p class="subtitle">Preview of customer email notifications</p>
+        
+        <div class="previews">
+            <div class="preview-box">
+                <div class="preview-header">
+                    🎉 Booking Confirmation Email
+                </div>
+                <iframe src="email_preview_booking.html"></iframe>
+            </div>
+            
+            <div class="preview-box">
+                <div class="preview-header payment">
+                    💳 Payment Reminder Email
+                </div>
+                <iframe src="email_preview_payment.html"></iframe>
+            </div>
+        </div>
+        
+        <div class="buttons">
+            <a href="email_preview_booking.html" target="_blank" class="btn">
+                Open Booking Email Full Screen
+            </a>
+            <a href="email_preview_payment.html" target="_blank" class="btn secondary">
+                Open Payment Email Full Screen
+            </a>
+        </div>
+        
+        <div style="text-align: center; margin-top: 40px; color: #9ca3af; font-size: 0.9rem;">
+            <p><strong>Note:</strong> These are the exact HTML templates sent to customers via Gmail SMTP</p>
+            <p>Real emails will include actual booking data (ID, date, time, address, amount)</p>
+        </div>
+    </div>
+</body>
+</html>
