@@ -102,9 +102,45 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-## user_problem_statement: "Complete Venmo-only payment integration with QR code functionality and remove all Stripe payment elements from the application"
+## user_problem_statement: "Replace SMS functionality with Email Notification Center and add CSV export for job contacts. Complete all pending admin UI tasks including collapsible sections and admin button placement."
 
 ## backend:
+  - task: "CSV EXPORT ENDPOINT - Job contacts export functionality"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Implemented GET /api/admin/export-job-contacts endpoint. Exports all bookings with customer details, job description, pricing, and status information to CSV file. Uses token authentication via query parameter. Generates timestamped filename. Includes all relevant fields: booking ID, name, email, phone, pickup date/time, address, job description, price, payment status, booking status, instructions, created date."
+
+  - task: "BULK EMAIL REMINDER ENDPOINT - Send payment reminders to all pending bookings"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Implemented POST /api/admin/send-bulk-email-reminder endpoint. Sends payment reminder emails to all bookings with pending payment status. Skips bookings without email addresses. Returns count of successful and failed sends with error details. Uses existing email template system."
+
+  - task: "BOOKING CONFIRMATION EMAIL ENDPOINT - Admin endpoint to resend booking confirmations"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Implemented POST /api/admin/send-booking-confirmation-email/{booking_id} endpoint. Allows admin to manually send or resend booking confirmation emails. Includes booking details, quote amount, and Venmo QR code. Validates booking and email existence before sending."
+
   - task: "NEW QUOTE APPROVAL SYSTEM - High-value quote approval requirement"
     implemented: true
     working: true
