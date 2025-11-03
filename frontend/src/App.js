@@ -1544,23 +1544,23 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
               </label>
             </div>
 
-            {/* SMS Opt-in */}
+            {/* Email Notifications Opt-in */}
             <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
               <label className="flex items-start gap-3 cursor-pointer">
                 <input
                   type="checkbox"
-                  id="sms-notifications"
-                  checked={bookingData.sms_notifications || false}
-                  onChange={(e) => setBookingData({...bookingData, sms_notifications: e.target.checked})}
+                  id="email-notifications"
+                  checked={bookingData.email_notifications || true}
+                  onChange={(e) => setBookingData({...bookingData, email_notifications: e.target.checked})}
                   className="mt-1 h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  data-testid="sms-checkbox"
+                  data-testid="email-checkbox"
                 />
                 <div>
                   <p className="font-semibold text-gray-800 text-base">
-                    📱 Get SMS updates (Optional)
+                    📧 Get Email Updates (Recommended)
                   </p>
                   <p className="text-sm text-gray-600 mt-1">
-                    Receive real-time updates on job progress
+                    Receive booking confirmation, payment reminders, and job updates via email
                   </p>
                 </div>
               </label>
