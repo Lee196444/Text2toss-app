@@ -465,6 +465,29 @@ const AdminDashboard = () => {
     }
   };
 
+  const exportJobContacts = async () => {
+    try {
+      const response = await axios.get(`${API}/admin/export-contacts`, {
+        responseType: 'blob'
+      });
+      
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `job-contacts-${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success("Contact list exported successfully!");
+    } catch (error) {
+      toast.error("Failed to export contacts");
+      console.error('Export error:', error);
+    }
+  };
+
   const formatTime = (timeRange) => {
     return timeRange;
   };
