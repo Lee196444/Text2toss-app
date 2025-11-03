@@ -1328,15 +1328,14 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
     await db.bookings.insert_one(booking_mongo)
     
     # Send confirmation email (primary notification method)
-    if is_email_enabled() and booking.address:  # Use address as email placeholder for now
-        # We'll extract email from booking later - for now send to default
+    if is_email_enabled() and booking.email:
         email_html = create_booking_confirmation_email(booking.dict(), quote.dict())
         email_result = await send_email(
-            to_email="text2toss@gmail.com",  # Will be updated to customer email
+            to_email=booking.email,
             subject=f"🎉 Booking Confirmed - {booking.pickup_date.strftime('%B %d, %Y')}",
             html_content=email_html
         )
-        logging.info(f"Booking confirmation email sent: {email_result}")
+        logging.info(f"Booking confirmation email sent to {booking.email}: {email_result}")
     
     # Optional: Send SMS if enabled
     if is_sms_enabled():
