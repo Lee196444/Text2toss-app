@@ -2771,6 +2771,118 @@ We appreciate your understanding."""
         logger.error(f"Error processing customer approval: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to process approval")
 
+@api_router.get("/admin/export-job-contacts")
+async def export_job_contacts(token: str = Depends(verify_admin_token)):
+    """
+    Export all job contacts to CSV file
+    Includes customer name, email, phone, job details, booking and payment status
+    """
+    try:
+        # Fetch all bookings with their quotes
+        bookings_cursor = db.bookings.find({})
+        bookings = await bookings_cursor.to_list(length=None)
+        
+        if not bookings:
+            raise HTTPException(status_code=404, detail="No bookings found")
+        
+        # Create CSV in memory
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # Write header
+        writer.writerow([
+            'Booking ID',
+            'Customer Name',
+            'Email',
+            'Phone',
+            'Pickup Date',
+            'Pickup Time',
+            'Address',
+            'Job Description',
+            'Total Price',
+            'Payment Status',
+            'Payment Method',
+            'Booking Status',
+            'Special Instructions',
+            'Created At'
+        ])
+        
+        # Write booking data
+        for booking in bookings:
+            # Fetch quote details if available
+            quote = None
+            if booking.get('quote_id'):
+                quote = await db.price_quotes.find_one({"id": booking['quote_id']})
+            
+            # Extract job description from quote
+            job_description = ""
+            if quote and quote.get('items'):
+                items_list = [f"{item.get('name', 'Unknown')} ({item.get('size', 'N/A')})" 
+                             for item in quote['items']]
+                job_description = ", ".join(items_list)
+            elif quote and quote.get('description'):
+                job_description = quote['description']
+            
+            # Extract customer name from special_instructions or use 'Customer'
+            customer_name = booking.get('special_instructions', 'Customer')
+            if len(customer_name) > 50:  # If too long, it's probably not a name
+                customer_name = "Customer"
+            
+            # Format pickup date
+            pickup_date = booking.get('pickup_date')
+            if isinstance(pickup_date, datetime):
+                pickup_date_str = pickup_date.strftime('%Y-%m-%d')
+            elif isinstance(pickup_date, str):
+                pickup_date_str = pickup_date
+            else:
+                pickup_date_str = "N/A"
+            
+            # Format created_at
+            created_at = booking.get('created_at')
+            if isinstance(created_at, datetime):
+                created_at_str = created_at.strftime('%Y-%m-%d %H:%M:%S')
+            elif isinstance(created_at, str):
+                created_at_str = created_at
+            else:
+                created_at_str = "N/A"
+            
+            # Get total price from quote
+            total_price = quote.get('total_price', 0) if quote else 0
+            
+            writer.writerow([
+                booking.get('id', ''),
+                customer_name,
+                booking.get('email', 'N/A'),
+                booking.get('phone', 'N/A'),
+                pickup_date_str,
+                booking.get('pickup_time', 'N/A'),
+                booking.get('address', 'N/A'),
+                job_description,
+                f"${total_price:.2f}",
+                booking.get('payment_status', 'pending'),
+                booking.get('payment_method', 'venmo'),
+                booking.get('status', 'scheduled'),
+                booking.get('special_instructions', 'N/A'),
+                created_at_str
+            ])
+        
+        # Prepare file response
+        output.seek(0)
+        
+        # Generate filename with timestamp
+        timestamp = datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')
+        filename = f"job_contacts_{timestamp}.csv"
+        
+        return StreamingResponse(
+            io.BytesIO(output.getvalue().encode('utf-8')),
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+        
+    except Exception as e:
+        logger.error(f"Error exporting job contacts: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to export job contacts: {str(e)}")
+
 # Include the router in the main app
 app.include_router(api_router)
 
