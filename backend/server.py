@@ -457,9 +457,16 @@ class BookingCreate(BaseModel):
     pickup_time: str
     address: str
     phone: str
+    email: Optional[str] = None
     special_instructions: Optional[str] = None
     curbside_confirmed: bool = False
-    sms_notifications: bool = False
+    email_notifications: bool = True
+    
+    @validator('email')
+    def validate_email(cls, v):
+        if v and '@' not in v:
+            raise ValueError('Invalid email address')
+        return v
     
     @validator('phone')
     def validate_phone(cls, v):
