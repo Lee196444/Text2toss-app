@@ -1836,6 +1836,20 @@ const AdminDashboard = () => {
                       </div>
                     </div>
                   </div>
+                  
+                  {/* Quick Actions */}
+                  <div className="mt-6 space-y-3">
+                    <h3 className="font-semibold text-lg flex items-center gap-2">
+                      ⚡ Quick Actions
+                    </h3>
+                    <Button
+                      onClick={sendBulkEmailReminder}
+                      className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium"
+                    >
+                      <span className="mr-2">📧</span>
+                      Send Bulk Payment Reminders
+                    </Button>
+                  </div>
                 </div>
                 
                 {/* Email Statistics */}
