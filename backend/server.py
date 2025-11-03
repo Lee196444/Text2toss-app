@@ -1325,17 +1325,29 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
     booking_mongo = prepare_for_mongo(booking.dict())
     await db.bookings.insert_one(booking_mongo)
     
-    # Send confirmation SMS
-    phone = booking.phone.replace('(', '').replace(')', '').replace(' ', '').replace('-', '')
-    if phone and not phone.startswith('+'):
-        phone = '+1' + phone  # Assume US number if no country code
+    # Send confirmation email (primary notification method)
+    if is_email_enabled() and booking.address:  # Use address as email placeholder for now
+        # We'll extract email from booking later - for now send to default
+        email_html = create_booking_confirmation_email(booking.dict(), quote.dict())
+        email_result = await send_email(
+            to_email="text2toss@gmail.com",  # Will be updated to customer email
+            subject=f"🎉 Booking Confirmed - {booking.pickup_date.strftime('%B %d, %Y')}",
+            html_content=email_html
+        )
+        logging.info(f"Booking confirmation email sent: {email_result}")
     
-    if phone:
-        pickup_date_str = booking.pickup_date.strftime('%B %d, %Y')
-        confirmation_message = f"✅ Text2toss Confirmed: Junk removal scheduled for {pickup_date_str} between {booking.pickup_time} at {booking.address}. We'll text you updates!"
+    # Optional: Send SMS if enabled
+    if is_sms_enabled():
+        phone = booking.phone.replace('(', '').replace(')', '').replace(' ', '').replace('-', '')
+        if phone and not phone.startswith('+'):
+            phone = '+1' + phone
         
-        sms_result = await send_sms(phone, confirmation_message)
-        logging.info(f"Booking confirmation SMS sent: {sms_result}")
+        if phone:
+            pickup_date_str = booking.pickup_date.strftime('%B %d, %Y')
+            confirmation_message = f"✅ Text2toss Confirmed: Junk removal scheduled for {pickup_date_str} between {booking.pickup_time} at {booking.address}. Check your email for details!"
+            
+            sms_result = await send_sms(phone, confirmation_message)
+            logging.info(f"Booking confirmation SMS sent: {sms_result}")
     
     return booking
 
