@@ -1337,7 +1337,7 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
     
     # Send confirmation email (primary notification method)
     if is_email_enabled() and booking.email:
-        email_html = create_booking_confirmation_email(booking.dict(), quote.dict())
+        email_html = create_booking_confirmation_email(booking.dict(), quote_doc)
         email_result = await send_email(
             to_email=booking.email,
             subject=f"🎉 Booking Confirmed - {booking.pickup_date.strftime('%B %d, %Y')}",
