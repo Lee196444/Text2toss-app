@@ -880,6 +880,7 @@ const AdminDashboard = () => {
               </Button>
             </div>
           </CardContent>
+          )}
         </Card>
 
         {/* Instructions */}
