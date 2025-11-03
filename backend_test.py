@@ -3932,6 +3932,9 @@ class TEXT2TOSSAPITester:
         self.test_basic_endpoints()
         self.test_admin_authentication()
         
+        # PRIORITY: Test email notification and CSV export system as requested in review
+        self.test_email_notification_and_csv_export_system()
+        
         # PRIORITY: Test quote recalculation functionality as requested in review
         self.test_quote_recalculation_functionality()
         
