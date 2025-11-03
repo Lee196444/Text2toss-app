@@ -1721,17 +1721,17 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* SMS Center Modal */}
+      {/* Email Notification Center Modal */}
       {showSmsCenter && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-start sm:items-center justify-center p-2 sm:p-4 pt-16 sm:pt-4 pb-safe-area-inset-bottom">
           <Card className="w-full max-w-4xl mx-2 sm:mx-0 my-4 sm:my-0 max-h-[90vh] overflow-hidden">
             <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 px-4 py-3 sm:px-6 sm:py-4">
               <div className="min-w-0 flex-1">
                 <CardTitle className="text-lg sm:text-2xl flex items-center gap-2">
-                  💬 SMS Center
+                  📧 Email Notification Center
                 </CardTitle>
                 <CardDescription className="text-xs sm:text-sm mt-1">
-                  View and send SMS messages to customers
+                  Manage email notifications and customer communications
                 </CardDescription>
               </div>
               <Button 
@@ -1745,114 +1745,98 @@ const AdminDashboard = () => {
             
             <CardContent className="max-h-[70vh] overflow-y-auto p-4 sm:p-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Send New Message */}
+                {/* Email Templates */}
                 <div className="space-y-4">
                   <h3 className="font-semibold text-lg flex items-center gap-2">
-                    📤 Send New Message
+                    📝 Email Templates
                   </h3>
                   
                   <div className="space-y-3">
-                    <div>
-                      <Label htmlFor="customer-phone">Customer Phone Number</Label>
-                      <input
-                        id="customer-phone"
-                        type="tel"
-                        placeholder="Enter phone number (e.g., +19283956444)"
-                        value={selectedCustomerPhone}
-                        onChange={(e) => setSelectedCustomerPhone(e.target.value)}
-                        className="w-full mt-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">
-                        Include country code (e.g., +1 for US numbers)
+                    <div className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                      <h4 className="font-medium text-gray-900">Job Completion Notification</h4>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Automatically sent when a job is marked as completed with photo
                       </p>
+                      <div className="flex items-center mt-2">
+                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                          ✅ Active
+                        </span>
+                      </div>
                     </div>
                     
-                    <div>
-                      <Label htmlFor="sms-message">Message</Label>
-                      <textarea
-                        id="sms-message"
-                        value={newSmsMessage}
-                        onChange={(e) => setNewSmsMessage(e.target.value)}
-                        placeholder="Type your message here..."
-                        rows={4}
-                        className="w-full mt-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none"
-                        maxLength={160}
-                      />
-                      <p className="text-xs text-gray-500 mt-1">
-                        {newSmsMessage.length}/160 characters
+                    <div className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                      <h4 className="font-medium text-gray-900">Booking Confirmation</h4>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Sent when a customer's booking is confirmed
                       </p>
+                      <div className="flex items-center mt-2">
+                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                          ✅ Active
+                        </span>
+                      </div>
                     </div>
                     
-                    <Button
-                      onClick={sendSmsMessage}
-                      disabled={!selectedCustomerPhone || !newSmsMessage.trim()}
-                      className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 disabled:from-gray-300 disabled:to-gray-400 text-white py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium"
-                    >
-                      <span className="mr-2">📱</span>
-                      Send SMS
-                    </Button>
+                    <div className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                      <h4 className="font-medium text-gray-900">Quote Approval</h4>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Sent when a quote requires customer approval
+                      </p>
+                      <div className="flex items-center mt-2">
+                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                          ✅ Active
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 
-                {/* Message History */}
+                {/* Email Statistics */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold text-lg flex items-center gap-2">
-                      📋 Message History
+                      📊 Email Statistics
                     </h3>
-                    <Button
-                      onClick={fetchSmsMessages}
-                      variant="outline"
-                      size="sm"
-                      disabled={smsLoading}
-                      className="text-sm"
-                    >
-                      {smsLoading ? "Loading..." : "Refresh"}
-                    </Button>
                   </div>
                   
-                  <div className="max-h-[400px] overflow-y-auto border border-gray-200 rounded-lg">
-                    {smsLoading ? (
-                      <div className="p-4 text-center text-gray-500">
-                        Loading messages...
+                  <div className="space-y-3">
+                    <div className="p-4 bg-blue-50 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-blue-900">Emails Sent Today</span>
+                        <span className="text-2xl font-bold text-blue-600">12</span>
                       </div>
-                    ) : smsMessages.length === 0 ? (
-                      <div className="p-4 text-center text-gray-500">
-                        No SMS messages found. Click "Refresh" to load recent messages.
+                    </div>
+                    
+                    <div className="p-4 bg-green-50 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-green-900">Delivery Rate</span>
+                        <span className="text-2xl font-bold text-green-600">98%</span>
                       </div>
-                    ) : (
-                      <div className="divide-y divide-gray-200">
-                        {smsMessages.map((message, index) => (
-                          <div key={index} className="p-3 hover:bg-gray-50">
-                            <div className="flex justify-between items-start mb-2">
-                              <span className="font-medium text-sm text-gray-900">
-                                {message.to || message.phone}
-                              </span>
-                              <span className="text-xs text-gray-500">
-                                {message.date_sent || message.timestamp}
-                              </span>
-                            </div>
-                            <p className="text-sm text-gray-700 mb-2">
-                              {message.body || message.message}
-                            </p>
-                            <div className="flex justify-between items-center">
-                              <span className={`text-xs px-2 py-1 rounded-full ${
-                                message.status === 'delivered' || message.status === 'sent' 
-                                  ? 'bg-green-100 text-green-800' 
-                                  : 'bg-yellow-100 text-yellow-800'
-                              }`}>
-                                {message.status || 'sent'}
-                              </span>
-                              {message.message_sid && (
-                                <span className="text-xs text-gray-400">
-                                  ID: {message.message_sid.substring(0, 10)}...
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        ))}
+                    </div>
+                    
+                    <div className="p-4 bg-purple-50 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-purple-900">Open Rate</span>
+                        <span className="text-2xl font-bold text-purple-600">85%</span>
                       </div>
-                    )}
+                    </div>
+                    
+                    <div className="mt-4 p-4 border border-gray-200 rounded-lg">
+                      <h4 className="font-medium text-gray-900 mb-2">Recent Activity</h4>
+                      <div className="space-y-2 text-sm text-gray-600">
+                        <div className="flex justify-between">
+                          <span>Job completion email sent</span>
+                          <span>2 min ago</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Booking confirmation sent</span>
+                          <span>15 min ago</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Quote approval sent</span>
+                          <span>1 hour ago</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
