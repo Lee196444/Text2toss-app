@@ -52,7 +52,7 @@ def test_booking_confirmation_with_real_booking():
         "pickup_date": f"{next_monday}T14:00:00",
         "pickup_time": "14:00-16:00",
         "address": "123 Email Test Street, Test City, TC 12345",
-        "phone": "+1234567890",
+        "phone": "+12345678901",
         "email": "test@example.com",  # Include email for testing
         "special_instructions": "Test booking for email confirmation",
         "curbside_confirmed": True,
