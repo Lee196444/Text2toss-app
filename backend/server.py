@@ -1374,31 +1374,57 @@ async def send_payment_reminder(booking_id: str):
         raise HTTPException(status_code=404, detail="Quote not found")
     
     amount = quote_doc.get("total_price", 0)
-    pickup_date_str = booking.pickup_date.strftime('%B %d, %Y')
     
-    # Format phone number
-    phone = booking.phone
-    if not phone.startswith('+'):
-        phone = '+1' + phone.replace('(', '').replace(')', '').replace(' ', '').replace('-', '')
+    # Venmo QR code URL
+    venmo_qr_url = "https://www.paypal.com/qrcodes/venmocs/9f1f97dd-23ed-4676-82b5-3fc2126def65?created=1762118921"
     
-    # Send payment reminder SMS
-    payment_message = (
-        f"💳 Text2toss Payment Reminder\n\n"
-        f"Pickup: {pickup_date_str} at {booking.pickup_time}\n"
-        f"Amount Due: ${amount}\n\n"
-        f"Pay via Venmo:\n"
-        f"• Send ${amount} to @Text2toss\n"
-        f"• Include Booking ID: {booking_id[:8]}\n\n"
-        f"Questions? Reply to this text or call us!"
-    )
+    # Send payment reminder email (primary method)
+    if is_email_enabled():
+        email_html = create_payment_reminder_email(
+            booking.dict(), 
+            amount, 
+            booking_id,
+            venmo_qr_url
+        )
+        
+        try:
+            email_result = await send_email(
+                to_email="text2toss@gmail.com",  # Will be customer email
+                subject=f"💳 Payment Reminder - Booking {booking_id[:8]}",
+                html_content=email_html
+            )
+            logging.info(f"Payment reminder email sent for booking {booking_id}: {email_result}")
+            return {"success": True, "message": "Payment reminder sent via email"}
+        except Exception as e:
+            logging.error(f"Failed to send payment reminder email: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
     
-    try:
-        sms_result = await send_sms(phone, payment_message)
-        logging.info(f"Payment reminder SMS sent for booking {booking_id}: {sms_result}")
-        return {"success": True, "message": "Payment reminder sent"}
-    except Exception as e:
-        logging.error(f"Failed to send payment reminder: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to send SMS: {str(e)}")
+    # Fallback to SMS if email disabled
+    elif is_sms_enabled():
+        phone = booking.phone
+        if not phone.startswith('+'):
+            phone = '+1' + phone.replace('(', '').replace(')', '').replace(' ', '').replace('-', '')
+        
+        pickup_date_str = booking.pickup_date.strftime('%B %d, %Y')
+        payment_message = (
+            f"💳 Text2toss Payment Reminder\n\n"
+            f"Pickup: {pickup_date_str} at {booking.pickup_time}\n"
+            f"Amount Due: ${amount}\n\n"
+            f"Pay via Venmo:\n"
+            f"• Send ${amount} to @Text2toss\n"
+            f"• Include Booking ID: {booking_id[:8]}\n\n"
+            f"Questions? Reply to this text or call us!"
+        )
+        
+        try:
+            sms_result = await send_sms(phone, payment_message)
+            logging.info(f"Payment reminder SMS sent for booking {booking_id}: {sms_result}")
+            return {"success": True, "message": "Payment reminder sent via SMS"}
+        except Exception as e:
+            logging.error(f"Failed to send payment reminder: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Failed to send SMS: {str(e)}")
+    else:
+        return {"success": False, "message": "No notification method enabled"}
 
 @api_router.get("/admin/daily-schedule")
 async def get_daily_schedule(date: str = None):
