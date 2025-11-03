@@ -48,6 +48,24 @@ const AdminDashboard = () => {
   const [newSmsMessage, setNewSmsMessage] = useState('');
   const [selectedCustomerPhone, setSelectedCustomerPhone] = useState('');
   
+  // Collapse states for all sections
+  const [collapsed, setCollapsed] = useState({
+    quickActions: false,
+    dailySchedule: false,
+    weeklyOverview: false,
+    quotesApproval: false,
+    calendar: false,
+    smsCenter: false,
+    gallery: false
+  });
+  
+  const toggleSection = (section) => {
+    setCollapsed(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+  
   // Photo Management States
   const [showPhotoGallery, setShowPhotoGallery] = useState(false);
   const [galleryPhotos, setGalleryPhotos] = useState([]);
