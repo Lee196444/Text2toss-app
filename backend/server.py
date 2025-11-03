@@ -1325,9 +1325,10 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
         pickup_time=booking_data.pickup_time,
         address=booking_data.address,
         phone=booking_data.phone,
+        email=booking_data.email,
         special_instructions=booking_data.special_instructions,
         curbside_confirmed=booking_data.curbside_confirmed,
-        sms_notifications=booking_data.sms_notifications,
+        email_notifications=booking_data.email_notifications,
         image_path=permanent_image_path
     )
     
