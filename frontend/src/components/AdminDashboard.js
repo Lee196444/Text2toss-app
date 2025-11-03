@@ -818,14 +818,20 @@ const AdminDashboard = () => {
 
         {/* Modern Quick Actions Grid - Improved Layout */}
         <Card className="bg-white/95 backdrop-blur-sm border-gray-200 shadow-lg">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-              ⚡ Quick Actions
+          <CardHeader className="pb-3 cursor-pointer" onClick={() => toggleSection('quickActions')}>
+            <CardTitle className="text-lg font-semibold text-gray-800 flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                ⚡ Quick Actions
+              </span>
+              <span className="text-2xl transition-transform duration-200" style={{transform: collapsed.quickActions ? 'rotate(-90deg)' : 'rotate(0deg)'}}>
+                ▼
+              </span>
             </CardTitle>
             <CardDescription className="text-sm text-gray-600">
               Admin tools and management functions
             </CardDescription>
           </CardHeader>
+          {!collapsed.quickActions && (
           <CardContent>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4">
               <Button 
