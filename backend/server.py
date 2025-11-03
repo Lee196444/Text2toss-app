@@ -2369,7 +2369,7 @@ async def send_bulk_email_reminder(token: str = Depends(verify_admin_token)):
         }).to_list(1000)
         
         if not bookings:
-            return {"success": True, "message": "No pending payments found", "sent_count": 0}
+            return {"success": True, "message": "No pending payments found", "sent_count": 0, "failed_count": 0}
         
         sent_count = 0
         failed_count = 0
