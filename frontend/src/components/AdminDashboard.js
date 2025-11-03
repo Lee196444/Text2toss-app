@@ -38,6 +38,8 @@ const AdminDashboard = () => {
   const [routeDirections, setRouteDirections] = useState(null);
   const [showCalendar, setShowCalendar] = useState(false);
   const [calendarData, setCalendarData] = useState({});
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState(null);
+  const [showDateJobsModal, setShowDateJobsModal] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [pendingQuotes, setPendingQuotes] = useState([]);
   const [showQuoteApproval, setShowQuoteApproval] = useState(false);
