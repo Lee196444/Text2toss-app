@@ -315,15 +315,20 @@ def create_payment_reminder_email(booking_data: dict, amount: float, booking_id:
                 <h3 style="color: #3b82f6;">Payment Instructions:</h3>
                 {qr_section}
                 <ol style="background: #eff6ff; padding: 20px; border-radius: 8px;">
-                    <li>Send <strong>${amount}</strong> to <strong>@Text2toss</strong> via Venmo</li>
+                    <li>Open <strong>Venmo app</strong> on your phone</li>
+                    <li>Search for <strong>@Text2toss</strong></li>
+                    <li>Send <strong>${amount}</strong></li>
                     <li>Include Booking ID: <strong>{booking_id[:8]}</strong> in the payment note</li>
                     <li>We'll confirm payment and send pickup details</li>
                 </ol>
                 
                 <p style="margin-top: 20px; text-align: center;">
-                    <a href="venmo://paycharge?txn=pay&recipients=Text2toss&amount={amount}&note=Booking%20{booking_id[:8]}" style="display: inline-block; background: #3b82f6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px;">
-                        Open Venmo App
+                    <a href="https://venmo.com/u/Text2toss" style="display: inline-block; background: #3b82f6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                        Open Venmo Profile
                     </a>
+                </p>
+                <p style="text-align: center; font-size: 12px; color: #6b7280; margin-top: 10px;">
+                    Click above to open @Text2toss on Venmo
                 </p>
                 
                 <div class="footer">
