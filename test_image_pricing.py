@@ -9,7 +9,7 @@ import sys
 
 def test_image_pricing():
     """Test image-based quote generation"""
-    base_url = "https://junkapp-pricing.preview.emergentagent.com/api"
+    base_url = "https://trash-estimator.preview.emergentagent.com/api"
     
     print("🖼️  TESTING IMAGE-BASED PRICING")
     print("="*50)
