@@ -1474,8 +1474,8 @@ const AdminDashboard = () => {
                             'bg-white border-gray-200'
                           }`}
                           onClick={() => {
-                            setSelectedDate(dateStr);
-                            closeCalendar();
+                            setSelectedCalendarDate(dateStr);
+                            setShowDateJobsModal(true);
                           }}
                         >
                           <div className={`text-xs sm:text-sm font-semibold mb-1 ${
