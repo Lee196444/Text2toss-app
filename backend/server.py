@@ -1380,7 +1380,7 @@ async def send_payment_reminder(booking_id: str):
     venmo_qr_url = "https://www.paypal.com/qrcodes/venmocs/9f1f97dd-23ed-4676-82b5-3fc2126def65?created=1762118921"
     
     # Send payment reminder email (primary method)
-    if is_email_enabled():
+    if is_email_enabled() and booking.email:
         email_html = create_payment_reminder_email(
             booking.dict(), 
             amount, 
@@ -1390,11 +1390,11 @@ async def send_payment_reminder(booking_id: str):
         
         try:
             email_result = await send_email(
-                to_email="text2toss@gmail.com",  # Will be customer email
+                to_email=booking.email,
                 subject=f"💳 Payment Reminder - Booking {booking_id[:8]}",
                 html_content=email_html
             )
-            logging.info(f"Payment reminder email sent for booking {booking_id}: {email_result}")
+            logging.info(f"Payment reminder email sent for booking {booking_id} to {booking.email}: {email_result}")
             return {"success": True, "message": "Payment reminder sent via email"}
         except Exception as e:
             logging.error(f"Failed to send payment reminder email: {str(e)}")
