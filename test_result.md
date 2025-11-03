@@ -581,9 +581,6 @@
 
 ## test_plan:
   current_focus: 
-    - "CSV EXPORT ENDPOINT - Job contacts export functionality"
-    - "BULK EMAIL REMINDER ENDPOINT - Send payment reminders to all pending bookings"
-    - "BOOKING CONFIRMATION EMAIL ENDPOINT - Admin endpoint to resend booking confirmations"
     - "EMAIL NOTIFICATION CENTER - Replace SMS Center with Email Center UI"
     - "CSV EXPORT BUTTON - Export job contacts functionality"
     - "COLLAPSIBLE SECTIONS - Make all admin sections collapsible"
