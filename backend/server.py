@@ -1442,6 +1442,119 @@ async def send_payment_reminder(booking_id: str):
     else:
         return {"success": False, "message": "No notification method enabled"}
 
+@api_router.post("/admin/send-bulk-email-reminder")
+async def send_bulk_email_reminder(token: str = Depends(verify_admin_token)):
+    """Send payment reminder emails to all bookings with pending payments"""
+    try:
+        # Get all pending payment bookings
+        bookings = await db.bookings.find({
+            "payment_status": "pending"
+        }).to_list(1000)
+        
+        if not bookings:
+            return {"success": True, "message": "No pending payments found", "sent_count": 0}
+        
+        sent_count = 0
+        failed_count = 0
+        errors = []
+        
+        for booking_doc in bookings:
+            try:
+                booking = Booking(**parse_from_mongo(booking_doc))
+                
+                # Skip if no email
+                if not booking.email:
+                    continue
+                
+                # Get quote details
+                quote_doc = await db.quotes.find_one({"id": booking.quote_id})
+                if not quote_doc:
+                    continue
+                
+                amount = quote_doc.get("total_price", 0)
+                venmo_qr_url = "https://www.paypal.com/qrcodes/venmocs/9f1f97dd-23ed-4676-82b5-3fc2126def65?created=1762118921"
+                
+                # Create and send email
+                if is_email_enabled():
+                    email_html = create_payment_reminder_email(
+                        booking.dict(), 
+                        amount, 
+                        booking.id,
+                        venmo_qr_url
+                    )
+                    
+                    await send_email(
+                        to_email=booking.email,
+                        subject=f"💳 Payment Reminder - Booking {booking.id[:8]}",
+                        html_content=email_html
+                    )
+                    sent_count += 1
+                    logging.info(f"Bulk payment reminder email sent to {booking.email}")
+            except Exception as e:
+                failed_count += 1
+                errors.append(f"Booking {booking_doc.get('id', 'unknown')}: {str(e)}")
+                logging.error(f"Failed to send bulk email to {booking_doc.get('email', 'unknown')}: {str(e)}")
+        
+        return {
+            "success": True, 
+            "sent_count": sent_count,
+            "failed_count": failed_count,
+            "errors": errors if failed_count > 0 else None,
+            "message": f"Sent {sent_count} email(s), {failed_count} failed"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error sending bulk email reminders: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to send bulk emails: {str(e)}")
+
+@api_router.post("/admin/send-booking-confirmation-email/{booking_id}")
+async def send_booking_confirmation_email_admin(booking_id: str, token: str = Depends(verify_admin_token)):
+    """Send booking confirmation email to a specific booking (admin endpoint)"""
+    try:
+        # Get booking
+        booking_doc = await db.bookings.find_one({"id": booking_id})
+        if not booking_doc:
+            raise HTTPException(status_code=404, detail="Booking not found")
+        
+        booking = Booking(**parse_from_mongo(booking_doc))
+        
+        if not booking.email:
+            raise HTTPException(status_code=400, detail="No email address for this booking")
+        
+        # Get quote details
+        quote_doc = await db.quotes.find_one({"id": booking.quote_id})
+        if not quote_doc:
+            raise HTTPException(status_code=404, detail="Quote not found")
+        
+        amount = quote_doc.get("total_price", 0)
+        venmo_qr_url = "https://www.paypal.com/qrcodes/venmocs/9f1f97dd-23ed-4676-82b5-3fc2126def65?created=1762118921"
+        
+        # Create and send booking confirmation email
+        if is_email_enabled():
+            email_html = create_booking_confirmation_email(
+                booking.dict(), 
+                amount, 
+                booking_id,
+                venmo_qr_url
+            )
+            
+            await send_email(
+                to_email=booking.email,
+                subject=f"✅ Booking Confirmed - {booking_id[:8]}",
+                html_content=email_html
+            )
+            
+            logging.info(f"Booking confirmation email sent for {booking_id} to {booking.email}")
+            return {"success": True, "message": "Booking confirmation email sent"}
+        else:
+            raise HTTPException(status_code=500, detail="Email service not enabled")
+            
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        logger.error(f"Error sending booking confirmation email: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
+
 @api_router.get("/admin/daily-schedule")
 async def get_daily_schedule(date: str = None):
     """Get all bookings for a specific date (YYYY-MM-DD format) or today if no date specified"""
