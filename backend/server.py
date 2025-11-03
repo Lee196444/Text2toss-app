@@ -2450,9 +2450,7 @@ async def send_booking_confirmation_email_admin(booking_id: str, token: str = De
         if is_email_enabled():
             email_html = create_booking_confirmation_email(
                 booking.dict(), 
-                amount, 
-                booking_id,
-                venmo_qr_url
+                quote_doc
             )
             
             await send_email(
