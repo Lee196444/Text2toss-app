@@ -890,10 +890,18 @@ const AdminDashboard = () => {
               
               <Button 
                 onClick={() => setShowSmsCenter(true)} 
-                className="bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 text-blue-700 border-2 border-blue-200 hover:border-blue-300 shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl group transform hover:scale-105 min-h-[64px]"
+                className="bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
               >
-                <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">💬</span>
-                <span className="text-xs sm:text-sm font-medium leading-tight">SMS Center</span>
+                <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">📧</span>
+                <span className="text-xs sm:text-sm font-medium leading-tight">Email Center</span>
+              </Button>
+              
+              <Button 
+                onClick={exportJobContacts} 
+                className="bg-gradient-to-br from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
+              >
+                <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">📥</span>
+                <span className="text-xs sm:text-sm font-medium leading-tight">Export Contacts</span>
               </Button>
               
               <Button 
