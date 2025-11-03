@@ -467,7 +467,8 @@ const AdminDashboard = () => {
 
   const exportJobContacts = async () => {
     try {
-      const response = await axios.get(`${API}/admin/export-contacts`, {
+      const token = localStorage.getItem('admin_token');
+      const response = await axios.get(`${API}/admin/export-job-contacts?token=${token}`, {
         responseType: 'blob'
       });
       
@@ -485,6 +486,53 @@ const AdminDashboard = () => {
     } catch (error) {
       toast.error("Failed to export contacts");
       console.error('Export error:', error);
+    }
+  };
+
+  const sendBulkEmailReminder = async () => {
+    try {
+      const token = localStorage.getItem('admin_token');
+      const response = await axios.post(`${API}/admin/send-bulk-email-reminder?token=${token}`);
+      
+      if (response.data.success) {
+        toast.success(`Sent ${response.data.sent_count} email(s). ${response.data.failed_count} failed.`);
+      } else {
+        toast.error("Failed to send bulk emails");
+      }
+    } catch (error) {
+      toast.error("Bulk email sending failed");
+      console.error('Bulk email error:', error);
+    }
+  };
+
+  const sendBookingConfirmationEmail = async (bookingId) => {
+    try {
+      const token = localStorage.getItem('admin_token');
+      const response = await axios.post(`${API}/admin/send-booking-confirmation-email/${bookingId}?token=${token}`);
+      
+      if (response.data.success) {
+        toast.success("Booking confirmation email sent!");
+      } else {
+        toast.error("Failed to send email");
+      }
+    } catch (error) {
+      toast.error("Email sending failed");
+      console.error('Email send error:', error);
+    }
+  };
+
+  const sendPaymentReminder = async (bookingId) => {
+    try {
+      const response = await axios.post(`${API}/bookings/${bookingId}/payment-reminder`);
+      
+      if (response.data.success) {
+        toast.success("Payment reminder email sent!");
+      } else {
+        toast.error("Failed to send payment reminder");
+      }
+    } catch (error) {
+      toast.error("Payment reminder failed");
+      console.error('Payment reminder error:', error);
     }
   };
 
