@@ -126,6 +126,216 @@ async def send_sms(to_phone: str, message: str, image_url: str = None):
         logging.error(f"SMS send error: {str(e)}")
         return {"status": "error", "message": f"SMS failed: {str(e)}"}
 
+# Email Configuration and Functions
+import aiosmtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.image import MIMEImage
+
+def is_email_enabled():
+    """Check if email notifications are enabled"""
+    return os.environ.get('EMAIL_ENABLED', 'false').lower() == 'true'
+
+def is_sms_enabled():
+    """Check if SMS notifications are enabled"""
+    return os.environ.get('SMS_ENABLED', 'false').lower() == 'true'
+
+async def send_email(to_email: str, subject: str, html_content: str, attachments: list = None):
+    """Send email via Gmail SMTP"""
+    if not is_email_enabled():
+        logging.info(f"Email disabled - skipping: {subject} to {to_email}")
+        return {"status": "disabled", "message": "Email notifications disabled"}
+    
+    try:
+        # Email configuration
+        email_host = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+        email_port = int(os.environ.get('EMAIL_PORT', 587))
+        email_user = os.environ.get('EMAIL_USER')
+        email_password = os.environ.get('EMAIL_PASSWORD')
+        email_from = os.environ.get('EMAIL_FROM')
+        email_from_name = os.environ.get('EMAIL_FROM_NAME', 'Text2toss')
+        
+        if not all([email_user, email_password, email_from]):
+            logging.error("Email configuration incomplete")
+            return {"status": "error", "message": "Email not configured"}
+        
+        # Create message
+        message = MIMEMultipart('alternative')
+        message['Subject'] = subject
+        message['From'] = f"{email_from_name} <{email_from}>"
+        message['To'] = to_email
+        
+        # Add HTML content
+        html_part = MIMEText(html_content, 'html')
+        message.attach(html_part)
+        
+        # Add attachments if provided
+        if attachments:
+            for attachment in attachments:
+                message.attach(attachment)
+        
+        # Send email
+        await aiosmtplib.send(
+            message,
+            hostname=email_host,
+            port=email_port,
+            start_tls=True,
+            username=email_user,
+            password=email_password,
+        )
+        
+        logging.info(f"Email sent successfully to {to_email}: {subject}")
+        return {"status": "sent", "message": "Email sent successfully", "to_email": to_email}
+        
+    except Exception as e:
+        logging.error(f"Failed to send email: {str(e)}")
+        return {"status": "error", "message": f"Email failed: {str(e)}"}
+
+def create_booking_confirmation_email(booking_data: dict, quote_data: dict) -> str:
+    """Create HTML email for booking confirmation"""
+    pickup_date = booking_data.get('pickup_date', 'TBD')
+    if isinstance(pickup_date, str):
+        try:
+            pickup_date = datetime.fromisoformat(pickup_date).strftime('%B %d, %Y')
+        except:
+            pass
+    
+    return f"""
+    <html>
+    <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+            .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+            .header {{ background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+            .content {{ background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }}
+            .booking-details {{ background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981; }}
+            .detail-row {{ display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb; }}
+            .detail-label {{ font-weight: bold; color: #6b7280; }}
+            .detail-value {{ color: #111827; }}
+            .button {{ display: inline-block; background: #10b981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; }}
+            .footer {{ text-align: center; padding: 20px; color: #6b7280; font-size: 12px; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>🎉 Booking Confirmed!</h1>
+                <p>Your junk removal is scheduled</p>
+            </div>
+            <div class="content">
+                <h2 style="color: #10b981;">Booking Details</h2>
+                <div class="booking-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Booking ID:</span>
+                        <span class="detail-value">{booking_data.get('id', '')[:8]}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Pickup Date:</span>
+                        <span class="detail-value">{pickup_date}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Time Window:</span>
+                        <span class="detail-value">{booking_data.get('pickup_time', 'TBD')}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Address:</span>
+                        <span class="detail-value">{booking_data.get('address', 'Not provided')}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Total Amount:</span>
+                        <span class="detail-value" style="font-size: 20px; font-weight: bold; color: #10b981;">${quote_data.get('total_price', 0)}</span>
+                    </div>
+                </div>
+                
+                <h3 style="color: #10b981; margin-top: 30px;">📱 Payment Required</h3>
+                <p>Please send payment via Venmo to complete your booking:</p>
+                <ul style="background: #eff6ff; padding: 20px; border-radius: 8px;">
+                    <li>Send <strong>${quote_data.get('total_price', 0)}</strong> to <strong>@Text2toss</strong></li>
+                    <li>Include Booking ID: <strong>{booking_data.get('id', '')[:8]}</strong> in the note</li>
+                </ul>
+                
+                <p style="margin-top: 20px;">We'll confirm your payment and send final details before pickup!</p>
+                
+                <div class="footer">
+                    <p>Questions? Reply to this email or call us!</p>
+                    <p>© 2025 Text2toss Junk Removal - Flagstaff, AZ</p>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+def create_payment_reminder_email(booking_data: dict, amount: float, booking_id: str, qr_code_url: str = None) -> str:
+    """Create HTML email for payment reminder"""
+    pickup_date = booking_data.get('pickup_date', 'TBD')
+    if isinstance(pickup_date, str):
+        try:
+            pickup_date = datetime.fromisoformat(pickup_date).strftime('%B %d, %Y')
+        except:
+            pass
+    
+    qr_section = ""
+    if qr_code_url:
+        qr_section = f"""
+        <div style="text-align: center; margin: 20px 0;">
+            <img src="{qr_code_url}" alt="Venmo QR Code" style="width: 200px; height: 200px; border: 2px solid #e5e7eb; border-radius: 8px;">
+            <p style="font-size: 12px; color: #6b7280;">Scan with Venmo app to pay</p>
+        </div>
+        """
+    
+    return f"""
+    <html>
+    <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+            .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+            .header {{ background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+            .content {{ background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }}
+            .payment-box {{ background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border: 2px solid #3b82f6; }}
+            .amount {{ font-size: 32px; font-weight: bold; color: #3b82f6; text-align: center; margin: 20px 0; }}
+            .footer {{ text-align: center; padding: 20px; color: #6b7280; font-size: 12px; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>💳 Payment Reminder</h1>
+                <p>Complete your booking payment</p>
+            </div>
+            <div class="content">
+                <h2 style="color: #3b82f6;">Booking Summary</h2>
+                <div class="payment-box">
+                    <p><strong>Booking ID:</strong> {booking_id[:8]}</p>
+                    <p><strong>Pickup Date:</strong> {pickup_date}</p>
+                    <p><strong>Time:</strong> {booking_data.get('pickup_time', 'TBD')}</p>
+                    <div class="amount">${amount}</div>
+                </div>
+                
+                <h3 style="color: #3b82f6;">Payment Instructions:</h3>
+                {qr_section}
+                <ol style="background: #eff6ff; padding: 20px; border-radius: 8px;">
+                    <li>Send <strong>${amount}</strong> to <strong>@Text2toss</strong> via Venmo</li>
+                    <li>Include Booking ID: <strong>{booking_id[:8]}</strong> in the payment note</li>
+                    <li>We'll confirm payment and send pickup details</li>
+                </ol>
+                
+                <p style="margin-top: 20px; text-align: center;">
+                    <a href="venmo://paycharge?txn=pay&recipients=Text2toss&amount={amount}&note=Booking%20{booking_id[:8]}" style="display: inline-block; background: #3b82f6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px;">
+                        Open Venmo App
+                    </a>
+                </p>
+                
+                <div class="footer">
+                    <p>Questions? Reply to this email!</p>
+                    <p>© 2025 Text2toss Junk Removal</p>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
 # Helper functions for MongoDB datetime handling
 def prepare_for_mongo(data):
     if isinstance(data.get('date'), date):
