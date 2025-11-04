@@ -391,6 +391,29 @@ class JunkItem(BaseModel):
     quantity: int
     size: str  # small, medium, large
     description: Optional[str] = None
+    
+    @validator('quantity', pre=True)
+    def parse_quantity(cls, v):
+        """Parse quantity - handle both integers and descriptive strings"""
+        if isinstance(v, int):
+            return v
+        if isinstance(v, str):
+            # Convert common descriptive quantities to numbers
+            quantity_map = {
+                'one': 1, 'single': 1, 'a': 1,
+                'two': 2, 'couple': 2, 'pair': 2,
+                'three': 3, 'few': 3,
+                'four': 4, 'several': 4,
+                'five': 5, 'multiple': 5,
+                'six': 6, 'many': 6,
+                'seven': 7, 'numerous': 7,
+                'eight': 8, 'lots': 8,
+                'nine': 9, 'plenty': 9,
+                'ten': 10, 'dozens': 10
+            }
+            # Try to get mapped value (case insensitive)
+            return quantity_map.get(v.lower(), 5)  # Default to 5 if unknown
+        return 1  # Default fallback
 
 class PriceQuote(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
