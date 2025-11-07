@@ -48,6 +48,10 @@ const AdminDashboard = () => {
   const [smsMessages, setSmsMessages] = useState([]);
   const [smsLoading, setSmsLoading] = useState(false);
   const [newSmsMessage, setNewSmsMessage] = useState('');
+  const [showAllJobsModal, setShowAllJobsModal] = useState(false);
+  const [allJobs, setAllJobs] = useState([]);
+  const [jobSearchQuery, setJobSearchQuery] = useState('');
+  const [filteredJobs, setFilteredJobs] = useState([]);
   const [selectedCustomerPhone, setSelectedCustomerPhone] = useState('');
   
   // Collapse states for all sections
