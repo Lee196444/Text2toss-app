@@ -548,6 +548,51 @@ const AdminDashboard = () => {
     return `$${price?.toFixed(2) || '0.00'}`;
   };
 
+  // Fetch all jobs (history and present)
+  const fetchAllJobs = async () => {
+    try {
+      const token = localStorage.getItem('admin_token');
+      const response = await axios.get(`${API}/admin/all-bookings?token=${token}`);
+      const jobs = response.data || [];
+      setAllJobs(jobs);
+      setFilteredJobs(jobs);
+    } catch (error) {
+      console.error('Failed to fetch all jobs:', error);
+      toast.error('Failed to load jobs');
+    }
+  };
+
+  // Search jobs by job number
+  const handleJobSearch = (query) => {
+    setJobSearchQuery(query);
+    
+    if (!query.trim()) {
+      setFilteredJobs(allJobs);
+      return;
+    }
+    
+    const searchLower = query.toLowerCase();
+    const filtered = allJobs.filter(job => {
+      const jobId = job.id?.toLowerCase() || '';
+      const email = job.email?.toLowerCase() || '';
+      const phone = job.phone?.toLowerCase() || '';
+      const address = job.address?.toLowerCase() || '';
+      
+      return jobId.includes(searchLower) || 
+             email.includes(searchLower) || 
+             phone.includes(searchLower) ||
+             address.includes(searchLower);
+    });
+    
+    setFilteredJobs(filtered);
+  };
+
+  // Open All Jobs modal
+  const openAllJobsModal = () => {
+    setShowAllJobsModal(true);
+    fetchAllJobs();
+  };
+
   // Categorize bookings into bins
   const categorizBookings = () => {
     const today = new Date().toISOString().split('T')[0];
