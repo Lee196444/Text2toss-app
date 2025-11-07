@@ -922,9 +922,11 @@ const AdminDashboard = () => {
                 key={bin.type}
                 className={`cursor-pointer transition-all duration-200 ${bin.color} border-2 hover:shadow-lg transform hover:scale-105`}
                 onClick={() => {
-                  // Open calendar for NEW jobs, regular bin view for others
+                  // Handle different bin types
                   if (bin.type === 'new') {
                     openCalendar();
+                  } else if (bin.type === 'all') {
+                    openAllJobsModal();
                   } else {
                     openBin(bin.type);
                   }
@@ -933,7 +935,7 @@ const AdminDashboard = () => {
                 <CardContent className="p-3 text-center">
                   <div className="text-2xl mb-1">{bin.icon}</div>
                   <div className={`text-xl font-bold mb-1 ${bin.countColor}`}>
-                    {bins[bin.type].length}
+                    {bin.showTotal ? '∞' : bins[bin.type]?.length || 0}
                   </div>
                   <p className={`text-xs font-medium ${bin.textColor}`}>{bin.title}</p>
                   {bins[bin.type].length > 0 && (
