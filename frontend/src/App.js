@@ -562,6 +562,18 @@ const LandingPage = () => {
                     </div>
                   )}
 
+                  {/* Important Notice - Photo Tips (moved above upload) */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p className="text-sm text-blue-800 font-medium mb-2">
+                      📋 Photo Tips for Accurate Quotes:
+                    </p>
+                    <ul className="text-xs text-blue-700 space-y-1 list-disc list-inside">
+                      <li>Include all items in one photo if possible</li>
+                      <li>Ensure good lighting for clear visibility</li>
+                      <li>Show items from a distance to capture full size</li>
+                    </ul>
+                  </div>
+
                   {/* Image Upload Area */}
                   <div className="space-y-4">
                     {!uploadedImage ? (
@@ -625,18 +637,6 @@ const LandingPage = () => {
                     <p className="text-xs text-gray-500 text-right">
                       {imageDescription.length}/200 characters
                     </p>
-                  </div>
-
-                  {/* Important Notice */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p className="text-sm text-blue-800 font-medium mb-2">
-                      📋 Photo Tips for Accurate Quotes:
-                    </p>
-                    <ul className="text-xs text-blue-700 space-y-1 list-disc list-inside">
-                      <li>Include all items in one photo if possible</li>
-                      <li>Ensure good lighting for clear visibility</li>
-                      <li>Show items from a distance to capture full size</li>
-                    </ul>
                   </div>
                   
                   {/* Service Area Notice */}
