@@ -1837,7 +1837,7 @@ const AdminDashboard = () => {
                       <CardContent className="p-4">
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
+                            <div className="flex items-center gap-2 mb-2 flex-wrap">
                               <h3 className="font-bold text-base text-gray-800">
                                 Job #{job.id.substring(0, 8)}...
                               </h3>
@@ -1852,6 +1852,17 @@ const AdminDashboard = () => {
                                  job.status === 'cancelled' ? '✕' :
                                  '📅'} {job.status}
                               </Badge>
+                              {job.email && (
+                                <Button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openEmailCenter(job.email);
+                                  }}
+                                  className="bg-indigo-500 hover:bg-indigo-600 text-white text-xs px-2 py-1 rounded"
+                                >
+                                  📧 Email
+                                </Button>
+                              )}
                             </div>
                             
                             <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
