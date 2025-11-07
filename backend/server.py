@@ -2532,6 +2532,35 @@ async def optimize_route():
             "bookings_count": len(bookings),
             "route_data": optimized_route
         }
+
+@api_router.get("/admin/all-bookings")
+async def get_all_bookings(token: str = Depends(verify_admin_token)):
+    """Get all bookings (history and present) with quote details"""
+    try:
+        # Fetch all bookings sorted by created_at descending (newest first)
+        bookings = await db.bookings.find({}).sort("created_at", -1).to_list(10000)
+        
+        result = []
+        for booking in bookings:
+            if "_id" in booking:
+                del booking["_id"]
+            booking_data = parse_from_mongo(booking)
+            
+            # Add quote details
+            if booking_data.get("quote_id"):
+                quote = await db.quotes.find_one({"id": booking_data["quote_id"]})
+                if quote:
+                    if "_id" in quote:
+                        del quote["_id"]
+                    booking_data["quote_details"] = parse_from_mongo(quote)
+            
+            result.append(booking_data)
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error fetching all bookings: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch bookings")
         
     except Exception as e:
         logger.error(f"Route optimization failed: {str(e)}")
