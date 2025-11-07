@@ -872,12 +872,12 @@ const AdminDashboard = () => {
                   }
                 }}
               >
-                <CardContent className="p-6 text-center">
-                  <div className="text-4xl mb-3">{bin.icon}</div>
-                  <div className={`text-3xl font-bold mb-2 ${bin.countColor}`}>
+                <CardContent className="p-3 text-center">
+                  <div className="text-2xl mb-1">{bin.icon}</div>
+                  <div className={`text-xl font-bold mb-1 ${bin.countColor}`}>
                     {bins[bin.type].length}
                   </div>
-                  <p className={`text-sm font-medium ${bin.textColor}`}>{bin.title}</p>
+                  <p className={`text-xs font-medium ${bin.textColor}`}>{bin.title}</p>
                   {bins[bin.type].length > 0 && (
                     <div className={`text-xs mt-2 ${bin.textColor}`}>
                       Revenue: {formatPrice(bins[bin.type].reduce((sum, booking) => sum + (booking.quote_details?.total_price || 0), 0))}
