@@ -546,6 +546,42 @@ const AdminDashboard = () => {
     }
   };
 
+  // Send custom email to customer
+  const sendCustomEmail = async () => {
+    if (!emailCompose.to || !emailCompose.subject || !emailCompose.message) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    setSendingEmail(true);
+    try {
+      const token = localStorage.getItem('admin_token');
+      const response = await axios.post(`${API}/admin/send-custom-email?token=${token}`, {
+        to_email: emailCompose.to,
+        subject: emailCompose.subject,
+        message: emailCompose.message
+      });
+      
+      if (response.data.success) {
+        toast.success("Email sent successfully!");
+        setEmailCompose({ to: '', subject: '', message: '' });
+      } else {
+        toast.error("Failed to send email");
+      }
+    } catch (error) {
+      toast.error("Email sending failed");
+      console.error('Email send error:', error);
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
+  // Open email center with pre-filled recipient
+  const openEmailCenter = (email) => {
+    setEmailCompose({ ...emailCompose, to: email });
+    setShowSmsCenter(true);
+  };
+
   const formatTime = (timeRange) => {
     return timeRange;
   };
