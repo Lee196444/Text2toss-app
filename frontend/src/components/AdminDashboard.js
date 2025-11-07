@@ -890,7 +890,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Modern Quick Actions Grid - Improved Layout */}
-        <Card className="bg-white/95 backdrop-blur-sm border-gray-200 shadow-lg">
+        <Card className="bg-white/95 backdrop-blur-sm border-gray-200 shadow-lg overflow-visible">
           <CardHeader className="pb-3 cursor-pointer" onClick={() => toggleSection('quickActions')}>
             <CardTitle className="text-lg font-semibold text-gray-800 flex items-center justify-between">
               <span className="flex items-center gap-2">
