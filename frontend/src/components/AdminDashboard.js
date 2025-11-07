@@ -938,7 +938,7 @@ const AdminDashboard = () => {
                     {bin.showTotal ? '∞' : bins[bin.type]?.length || 0}
                   </div>
                   <p className={`text-xs font-medium ${bin.textColor}`}>{bin.title}</p>
-                  {bins[bin.type].length > 0 && (
+                  {!bin.showTotal && bins[bin.type]?.length > 0 && (
                     <div className={`text-xs mt-2 ${bin.textColor}`}>
                       Revenue: {formatPrice(bins[bin.type].reduce((sum, booking) => sum + (booking.quote_details?.total_price || 0), 0))}
                     </div>
