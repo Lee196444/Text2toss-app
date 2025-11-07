@@ -917,12 +917,12 @@ const AdminDashboard = () => {
               
               <Button 
                 onClick={() => setShowQuoteApproval(true)} 
-                className="bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 relative group transform hover:scale-105 min-h-[64px]"
+                className="bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 relative overflow-visible group transform hover:scale-105 min-h-[64px]"
               >
                 <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">📋</span>
                 <span className="text-xs sm:text-sm font-medium leading-tight">Quotes</span>
                 {pendingQuotes.length > 0 && (
-                  <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center font-bold shadow-md animate-bounce">
+                  <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 sm:min-w-[24px] sm:h-6 px-1.5 flex items-center justify-center font-bold shadow-lg">
                     {pendingQuotes.length}
                   </div>
                 )}
