@@ -870,7 +870,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Job Bins */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 md:gap-6">
           {(() => {
             const bins = categorizBookings();
             const binConfigs = [
@@ -905,6 +905,15 @@ const AdminDashboard = () => {
                 color: 'border-green-300 bg-green-50 hover:bg-green-100',
                 textColor: 'text-green-800',
                 countColor: 'text-green-600'
+              },
+              { 
+                type: 'all', 
+                title: 'All Jobs', 
+                icon: '📚', 
+                color: 'border-purple-300 bg-purple-50 hover:bg-purple-100',
+                textColor: 'text-purple-800',
+                countColor: 'text-purple-600',
+                showTotal: true
               }
             ];
 
