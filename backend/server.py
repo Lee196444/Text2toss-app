@@ -2532,6 +2532,9 @@ async def optimize_route():
             "bookings_count": len(bookings),
             "route_data": optimized_route
         }
+    except Exception as e:
+        logger.error(f"Error optimizing route: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to optimize route: {str(e)}")
 
 @api_router.get("/admin/all-bookings")
 async def get_all_bookings(token: str = Depends(verify_admin_token)):
