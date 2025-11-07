@@ -767,7 +767,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black/40 to-emerald-900/50 p-2 sm:p-4">
-      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 overflow-visible">{
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 overflow-visible">
         {/* Header */}
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/20">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
