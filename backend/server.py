@@ -2493,6 +2493,64 @@ async def send_booking_confirmation_email_admin(booking_id: str, token: str = De
         logger.error(f"Error sending booking confirmation email: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
 
+@api_router.post("/admin/send-custom-email")
+async def send_custom_email(
+    to_email: str,
+    subject: str,
+    message: str,
+    token: str = Depends(verify_admin_token)
+):
+    """Send custom email to customer from admin"""
+    try:
+        if not is_email_enabled():
+            raise HTTPException(status_code=500, detail="Email service not enabled")
+        
+        # Create simple HTML email
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+            <div style="max-width: 600px; margin: 20px auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px; text-align: center;">
+                    <h1 style="color: white; margin: 0; font-size: 28px;">Text2toss Junk Removal</h1>
+                </div>
+                
+                <div style="padding: 30px; color: #333;">
+                    <div style="white-space: pre-wrap; line-height: 1.6;">{message}</div>
+                </div>
+                
+                <div style="background-color: #f9f9f9; padding: 20px; text-align: center; border-top: 1px solid #eee;">
+                    <p style="color: #666; font-size: 14px; margin: 5px 0;">
+                        Text2toss Junk Removal Services
+                    </p>
+                    <p style="color: #999; font-size: 12px; margin: 5px 0;">
+                        Professional junk removal you can trust
+                    </p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        await send_email(
+            to_email=to_email,
+            subject=subject,
+            html_content=html_content
+        )
+        
+        logging.info(f"Custom email sent to {to_email}")
+        return {"success": True, "message": "Email sent successfully"}
+        
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        logger.error(f"Error sending custom email: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
+
 # Venmo-only payment system - Stripe endpoints removed
 
 @api_router.post("/admin/optimize-route")
