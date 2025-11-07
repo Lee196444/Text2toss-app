@@ -922,7 +922,7 @@ const AdminDashboard = () => {
                 <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">📋</span>
                 <span className="text-xs sm:text-sm font-medium leading-tight">Quotes</span>
                 {pendingQuotes.length > 0 && (
-                  <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 sm:min-w-[24px] sm:h-6 px-1.5 flex items-center justify-center font-bold shadow-lg">
+                  <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 sm:min-w-[24px] sm:h-6 px-1.5 flex items-center justify-center font-bold shadow-lg animate-bounce">
                     {pendingQuotes.length}
                   </div>
                 )}
