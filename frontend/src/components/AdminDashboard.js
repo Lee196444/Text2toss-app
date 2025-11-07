@@ -52,6 +52,12 @@ const AdminDashboard = () => {
   const [allJobs, setAllJobs] = useState([]);
   const [jobSearchQuery, setJobSearchQuery] = useState('');
   const [filteredJobs, setFilteredJobs] = useState([]);
+  const [emailCompose, setEmailCompose] = useState({
+    to: '',
+    subject: '',
+    message: ''
+  });
+  const [sendingEmail, setSendingEmail] = useState(false);
   const [selectedCustomerPhone, setSelectedCustomerPhone] = useState('');
   
   // Collapse states for all sections
