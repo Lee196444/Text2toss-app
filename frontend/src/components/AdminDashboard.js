@@ -2023,6 +2023,76 @@ const AdminDashboard = () => {
             
             <CardContent className="max-h-[70vh] overflow-y-auto p-4 sm:p-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Compose Email Section */}
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg flex items-center gap-2">
+                    ✉️ Compose Email
+                  </h3>
+                  
+                  <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        To Email:
+                      </label>
+                      <input
+                        type="email"
+                        value={emailCompose.to}
+                        onChange={(e) => setEmailCompose({...emailCompose, to: e.target.value})}
+                        placeholder="customer@example.com"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Subject:
+                      </label>
+                      <input
+                        type="text"
+                        value={emailCompose.subject}
+                        onChange={(e) => setEmailCompose({...emailCompose, subject: e.target.value})}
+                        placeholder="Email subject"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Message:
+                      </label>
+                      <textarea
+                        value={emailCompose.message}
+                        onChange={(e) => setEmailCompose({...emailCompose, message: e.target.value})}
+                        placeholder="Type your message here..."
+                        rows={6}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none resize-none"
+                      />
+                    </div>
+                    
+                    <Button
+                      onClick={sendCustomEmail}
+                      disabled={sendingEmail}
+                      className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium"
+                    >
+                      {sendingEmail ? '⏳ Sending...' : '📤 Send Email'}
+                    </Button>
+                  </div>
+                  
+                  {/* Quick Actions */}
+                  <div className="mt-6 space-y-3">
+                    <h3 className="font-semibold text-lg flex items-center gap-2">
+                      ⚡ Quick Actions
+                    </h3>
+                    <Button
+                      onClick={sendBulkEmailReminder}
+                      className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium"
+                    >
+                      <span className="mr-2">📧</span>
+                      Send Bulk Payment Reminders
+                    </Button>
+                  </div>
+                </div>
+                
                 {/* Email Templates */}
                 <div className="space-y-4">
                   <h3 className="font-semibold text-lg flex items-center gap-2">
