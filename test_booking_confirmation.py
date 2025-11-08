@@ -122,10 +122,15 @@ class BookingConfirmationTester:
         
         pickup_date = target_date.strftime('%Y-%m-%d')
         
+        # Use a unique time slot to avoid conflicts
+        import random
+        time_slots = ["08:00-10:00", "10:00-12:00", "12:00-14:00", "14:00-16:00", "16:00-18:00"]
+        pickup_time = random.choice(time_slots)
+        
         booking_data = {
             "quote_id": test_quote_id,
             "pickup_date": f"{pickup_date}T10:00:00",
-            "pickup_time": "09:00-11:00",
+            "pickup_time": pickup_time,
             "address": "456 Test Avenue, Flagstaff, AZ 86001",
             "phone": "+14805551234",
             "email": "customer@example.com",
