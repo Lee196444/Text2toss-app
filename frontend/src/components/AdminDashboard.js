@@ -912,10 +912,26 @@ const AdminDashboard = () => {
         </div>
 
         {/* Job Bins */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 md:gap-6">
-          {(() => {
-            const bins = categorizBookings();
-            const binConfigs = [
+        <Card className="bg-white/95 backdrop-blur-sm border-gray-200 shadow-lg overflow-visible">
+          <CardHeader className="pb-3 cursor-pointer" onClick={() => toggleSection('jobBins')}>
+            <CardTitle className="text-lg font-semibold text-gray-800 flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                📊 Job Bins
+              </span>
+              <span className="text-2xl transition-transform duration-200" style={{transform: collapsed.jobBins ? 'rotate(-90deg)' : 'rotate(0deg)'}}>
+                ▼
+              </span>
+            </CardTitle>
+            <CardDescription className="text-sm text-gray-600">
+              Organize and view jobs by status
+            </CardDescription>
+          </CardHeader>
+          {!collapsed.jobBins && (
+          <CardContent className="overflow-visible">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 md:gap-6">
+              {(() => {
+                const bins = categorizBookings();
+                const binConfigs = [
               { 
                 type: 'new', 
                 title: 'New Jobs', 
