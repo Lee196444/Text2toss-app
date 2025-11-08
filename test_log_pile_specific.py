@@ -12,7 +12,7 @@ import json
 def test_large_log_pile_scenario():
     """Test the exact large log pile scenario from the review request"""
     
-    base_url = "https://trash-estimator.preview.emergentagent.com"
+    base_url = "https://junkai-platform.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     print("🌲 TESTING FIXED AI IMAGE ANALYSIS - LARGE LOG PILE SCENARIO")

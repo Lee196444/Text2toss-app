@@ -10,7 +10,7 @@ import sys
 
 def test_pricing_system():
     """Test the new 1-10 scale pricing system in detail"""
-    base_url = "https://trash-estimator.preview.emergentagent.com/api"
+    base_url = "https://junkai-platform.preview.emergentagent.com/api"
     
     print("🔍 DETAILED NEW PRICING SYSTEM TEST")
     print("="*60)

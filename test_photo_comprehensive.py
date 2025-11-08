@@ -8,7 +8,7 @@ from pathlib import Path
 
 def test_photo_url_fix():
     """Comprehensive test of the photo URL fix"""
-    base_url = "https://trash-estimator.preview.emergentagent.com"
+    base_url = "https://junkai-platform.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     print("🎯 COMPREHENSIVE PHOTO URL FIX VERIFICATION")
