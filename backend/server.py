@@ -2554,7 +2554,7 @@ async def send_custom_email(
 # Venmo-only payment system - Stripe endpoints removed
 
 @api_router.post("/admin/optimize-route")
-async def optimize_route():
+async def optimize_route(token: str = Depends(verify_admin_token)):
     """Optimize pickup routes for scheduled bookings using Google Maps"""
     try:
         # Check if Google Maps API key is available
