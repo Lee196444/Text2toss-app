@@ -1005,7 +1005,10 @@ const AdminDashboard = () => {
               </Card>
             ));
           })()}
-        </div>
+            </div>
+          </CardContent>
+          )}
+        </Card>
 
         {/* Modern Quick Actions Grid - Improved Layout */}
         <Card className="bg-white/95 backdrop-blur-sm border-gray-200 shadow-lg overflow-visible">
