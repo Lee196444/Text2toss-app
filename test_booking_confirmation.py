@@ -148,7 +148,7 @@ class BookingConfirmationTester:
         print(f"   ✅ Booking created successfully")
         print(f"   📝 Booking ID: {test_booking_id}")
         print(f"   📅 Pickup Date: {pickup_date}")
-        print(f"   ⏰ Pickup Time: 09:00-11:00")
+        print(f"   ⏰ Pickup Time: {pickup_time}")
         print(f"   💳 Payment Method: venmo")
         print(f"   ✅ Curbside Confirmed: True")
         
