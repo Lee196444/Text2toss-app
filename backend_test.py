@@ -4165,6 +4165,9 @@ class TEXT2TOSSAPITester:
         self.test_basic_endpoints()
         self.test_admin_authentication()
         
+        # PRIORITY: Test booking confirmation functionality as requested in review
+        self.test_booking_confirmation_functionality()
+        
         # PRIORITY: Test email notification and CSV export system as requested in review
         self.test_email_notification_and_csv_export_system()
         
