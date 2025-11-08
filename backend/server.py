@@ -2887,7 +2887,9 @@ async def serve_image(folder: str, filename: str):
     if not content_type:
         content_type = "application/octet-stream"
     
-    return FileResponse(file_path, media_type=content_type, filename=filename)
+    # Return with inline disposition so images display in browser instead of downloading
+    headers = {"Content-Disposition": "inline"}
+    return FileResponse(file_path, media_type=content_type, headers=headers)
 
 # Customer Price Approval Endpoints
 @api_router.get("/customer-approval/{token}")
