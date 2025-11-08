@@ -4364,6 +4364,9 @@ class TEXT2TOSSAPITester:
         self.test_basic_endpoints()
         self.test_admin_authentication()
         
+        # PRIORITY: Test Google Maps route optimization functionality as requested in review
+        self.test_google_maps_route_optimization()
+        
         # PRIORITY: Test booking confirmation functionality as requested in review
         self.test_booking_confirmation_functionality()
         
