@@ -66,6 +66,7 @@ const AdminDashboard = () => {
     dailySchedule: false,
     weeklyOverview: false,
     quotesApproval: false,
+    jobBins: false,
     calendar: false,
     smsCenter: false,
     gallery: false
