@@ -2448,6 +2448,15 @@ async def send_bulk_email_reminder(token: str = Depends(verify_admin_token)):
         if not bookings:
             return {"success": True, "message": "No pending payments found", "sent_count": 0, "failed_count": 0}
         
+        # OPTIMIZATION: Batch fetch all quotes to avoid N+1 query problem
+        quote_ids = [booking['quote_id'] for booking in bookings if booking.get('quote_id')]
+        quotes = []
+        if quote_ids:
+            quotes = await db.quotes.find({"id": {"$in": quote_ids}}).to_list(length=1000)
+        
+        # Create quote lookup dictionary for O(1) access
+        quote_dict = {quote['id']: quote for quote in quotes}
+        
         sent_count = 0
         failed_count = 0
         errors = []
@@ -2460,8 +2469,8 @@ async def send_bulk_email_reminder(token: str = Depends(verify_admin_token)):
                 if not booking.email:
                     continue
                 
-                # Get quote details
-                quote_doc = await db.quotes.find_one({"id": booking.quote_id})
+                # Get quote details from pre-fetched dictionary (no database query)
+                quote_doc = quote_dict.get(booking.quote_id)
                 if not quote_doc:
                     continue
                 
