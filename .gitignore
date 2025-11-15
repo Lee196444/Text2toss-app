@@ -87,6 +87,9 @@ frontend/node_modules/.cache/default-development/0.pack
 .env.production
 .env.development
 !*.env.example
+# EXCEPTION: Allow deployment .env files for Emergent
+!backend/.env
+!frontend/.env
 
 # Secret and credential files
 *secret*
