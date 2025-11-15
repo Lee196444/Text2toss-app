@@ -1701,7 +1701,7 @@ async def get_calendar_data(start_date: str, end_date: str):
         ]
         
         bookings_cursor = db.bookings.aggregate(pipeline)
-        bookings = await bookings_cursor.to_list(length=None)
+        bookings = await bookings_cursor.to_list(length=2000)  # Reasonable limit for calendar month
         
         # Group bookings by date
         calendar_data = {}
@@ -1764,7 +1764,7 @@ async def check_availability(date: str):
         ]
         
         bookings_cursor = db.bookings.aggregate(pipeline)
-        bookings = await bookings_cursor.to_list(length=None)
+        bookings = await bookings_cursor.to_list(length=2000)  # Reasonable limit for calendar month
         
         # All possible time slots
         all_slots = [
@@ -1839,7 +1839,7 @@ async def check_availability_range(start_date: str, end_date: str):
                 ]
                 
                 bookings_cursor = db.bookings.aggregate(pipeline)
-                bookings = await bookings_cursor.to_list(length=None)
+                bookings = await bookings_cursor.to_list(length=2000)  # Reasonable limit for calendar month
                 
                 booked_count = len(bookings)
                 available_count = 5 - booked_count  # 5 total time slots
