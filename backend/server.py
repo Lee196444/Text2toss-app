@@ -2237,7 +2237,7 @@ async def get_pending_quotes():
         ]
         
         quotes_cursor = db.quotes.aggregate(pipeline)
-        quotes = await quotes_cursor.to_list(length=None)
+        quotes = await quotes_cursor.to_list(length=1000)  # Reasonable limit for pending quotes dashboard
         
         # Parse quotes from mongo
         parsed_quotes = []
