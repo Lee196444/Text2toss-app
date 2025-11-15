@@ -1,0 +1,249 @@
+🚀 Starting Enhanced AI Pricing System Tests...
+Testing 100% pricing accuracy improvements for Text2toss
+
+============================================================
+TESTING ENHANCED AI PRICING ACCURACY SCENARIOS
+============================================================
+
+📦 1. SINGLE LARGE ITEM TEST
+
+🔍 Testing Single Large Item - Old Sofa...
+   💰 Price: $175.0
+   📊 Scale Level: 9
+   🤖 AI Explanation: Scale 12 load (8x3x3 cubic feet = 72 cubic feet) - large brown leather sofa. Pricing includes ground...
+   ✅ Volume-based pricing language detected
+✅ Single Large Item - Old Sofa
+
+📦 2. MULTIPLE ITEMS TEST
+
+🔍 Testing Multiple Items - Dining Set...
+   💰 Price: $550.0
+   📊 Scale Level: 11
+   🤖 AI Explanation: Scale 11 load (120 cubic feet) - dining table, chairs, and dresser. Pricing includes ground level pi...
+   ✅ Volume-based pricing language detected
+❌ Multiple Items - Dining Set - Price $550.0 above maximum $235.0
+
+📦 3. MIXED SIZES TEST
+
+🔍 Testing Mixed Sizes - Electronics and Furniture...
+   💰 Price: $232.5
+   📊 Scale Level: 10
+   🤖 AI Explanation: Scale 10 load based on combined volume of TV, refrigerator, and desk. Pricing includes ground level ...
+   ✅ Volume-based pricing language detected
+✅ Mixed Sizes - Electronics and Furniture
+
+📦 4. HEAVY ITEMS TEST
+
+🔍 Testing Heavy Items - Appliances...
+   💰 Price: $300.0
+   📊 Scale Level: 10
+   🤖 AI Explanation: Scale 10 load - washing machine and dryer. Pricing includes ground level pickup, loading, and respon...
+   ✅ Volume-based pricing language detected
+❌ Heavy Items - Appliances - Price $300.0 above maximum $205.0
+
+============================================================
+TESTING BUSINESS LOGIC VALIDATION
+============================================================
+
+💰 1. MINIMUM PRICING ENFORCEMENT
+
+🔍 Testing Minimum Price - Single Small Item...
+   💰 Price: $50.0
+   📊 Scale Level: 3
+   🤖 AI Explanation: Scale 2 load for a single small cardboard box. Pricing includes ground level pickup, loading, and re...
+   ✅ Volume-based pricing language detected
+✅ Minimum Price - Single Small Item
+
+📏 2. VOLUME-BASED CALCULATIONS
+
+🔍 Testing Volume Assessment - Large Load...
+   💰 Price: $487.5
+   📊 Scale Level: 12
+   🤖 AI Explanation: Scale 14 load (estimated total volume 335 cubic feet) - sectional sofa, entertainment center, coffee...
+   ✅ Volume-based pricing language detected
+❌ Volume Assessment - Large Load - Price $487.5 above maximum $270.0
+
+🛡️ 3. SAFETY MARGINS AND OVERESTIMATION
+
+🔍 Testing Safety Margin Test - Uncertain Volume...
+   💰 Price: $462.5
+   📊 Scale Level: 10
+   🤖 AI Explanation: Scale 12 load (combined estimated volume of furniture pile and boxes) - conservative estimate for mi...
+   ✅ Conservative pricing language detected
+   ✅ Volume-based pricing language detected
+❌ Safety Margin Test - Uncertain Volume - Price $462.5 above maximum $205.0
+
+============================================================
+TESTING PRICING CONSISTENCY
+============================================================
+
+🔄 1. SAME ITEM LIST CONSISTENCY
+
+   Run 1/3:
+
+🔍 Testing Consistency Test Run 1...
+   💰 Price: $212.5
+   📊 Scale Level: 8
+   🤖 AI Explanation: Scale 8 load (estimated 85 cubic feet) - office chair and desk. Pricing includes ground level pickup...
+   ✅ Volume-based pricing language detected
+❌ Consistency Test Run 1 - Price $212.5 above maximum $205.0
+
+   Run 2/3:
+
+🔍 Testing Consistency Test Run 2...
+   💰 Price: $212.5
+   📊 Scale Level: 8
+   🤖 AI Explanation: Scale 8 load - includes an office chair and a large desk. Pricing covers ground level pickup, loadin...
+   ✅ Volume-based pricing language detected
+❌ Consistency Test Run 2 - Price $212.5 above maximum $205.0
+
+   Run 3/3:
+
+🔍 Testing Consistency Test Run 3...
+   💰 Price: $212.5
+   📊 Scale Level: 8
+   🤖 AI Explanation: Scale 8 load (total ~16 cubic feet for chair and 48 cubic feet for desk) - office chair and desk. Pr...
+   ✅ Volume-based pricing language detected
+❌ Consistency Test Run 3 - Price $212.5 above maximum $205.0
+
+📊 2. SIMILAR VOLUME CONSISTENCY
+
+🔍 Testing Similar Volume Test 1...
+   💰 Price: $212.5
+   📊 Scale Level: 10
+   🤖 AI Explanation: Scale 10 load (8x3x3 cubic feet for sofa and coffee table). Pricing includes ground level pickup, lo...
+   ✅ Volume-based pricing language detected
+❌ Similar Volume Test 1 - Price $212.5 above maximum $205.0
+
+🔍 Testing Similar Volume Test 2...
+   💰 Price: $212.5
+   📊 Scale Level: 10
+   🤖 AI Explanation: Scale 10 load (approximately 100 cubic feet) - loveseat and side table. Pricing includes ground leve...
+   ✅ Volume-based pricing language detected
+❌ Similar Volume Test 2 - Price $212.5 above maximum $205.0
+
+============================================================
+TESTING EDGE CASE PROTECTION
+============================================================
+
+🔬 1. VERY SMALL ITEMS PROTECTION
+
+🔍 Testing Very Small Items - Below Minimum Test...
+   💰 Price: $50.0
+   📊 Scale Level: 3
+   🤖 AI Explanation: Scale 2 load - single small electronic item (Phone Charger). Pricing includes ground level pickup, l...
+   ✅ Volume-based pricing language detected
+✅ Very Small Items - Below Minimum Test
+
+📈 2. LARGE VOLUME ESTIMATES
+
+🔍 Testing Large Volume - House Cleanout...
+   💰 Price: $1375.0
+   📊 Scale Level: 12
+   🤖 AI Explanation: Scale 20 load - large house cleanout including living room set, bedroom set, appliances, and miscell...
+   ✅ Volume-based pricing language detected
+❌ Large Volume - House Cleanout - Price $1375.0 above maximum $750.0; Scale 12 below minimum 14
+
+🤖 3. AI FALLBACK PRICING VALIDATION
+
+🔍 Testing Fallback Pricing Test...
+   💰 Price: $125.0
+   📊 Scale Level: 4
+   🤖 AI Explanation: Scale 4 load for two medium unknown items. Pricing includes ground level pickup, loading, and respon...
+   ✅ Volume-based pricing language detected
+✅ Fallback Pricing Test
+
+============================================================
+TESTING $30 MINIMUM PER ITEM SAFETY RULE
+============================================================
+
+💰 MINIMUM PER ITEM VALIDATION
+
+🔍 Testing Two Small Items...
+   💰 Price: $65.0
+   📊 Scale Level: 4
+   🤖 AI Explanation: Scale 2 load - one small box and one small bag. Pricing includes ground level pickup, loading, and r...
+   ✅ Volume-based pricing language detected
+✅ Two Small Items
+   ✅ Price per item: $32.50 (meets $30 minimum)
+
+🔍 Testing Three Medium Items...
+   💰 Price: $187.5
+   📊 Scale Level: 8
+   🤖 AI Explanation: Scale 8 load (medium office furniture) - office chair, small table, and floor lamp. Pricing includes...
+   ✅ Volume-based pricing language detected
+✅ Three Medium Items
+   ✅ Price per item: $62.50 (meets $30 minimum)
+
+🔍 Testing Four Small Items...
+   💰 Price: $80.0
+   📊 Scale Level: 3
+   🤖 AI Explanation: Scale 3 load (4 small electronics calculated at approximately 15 cubic feet total). Pricing includes...
+   ✅ Volume-based pricing language detected
+❌ Four Small Items - Price $80.0 below minimum $120.0
+
+============================================================
+TESTING IMAGE ANALYSIS ENHANCEMENT
+============================================================
+
+📸 1. LARGE FURNITURE PILE IMAGE
+   💰 Image Quote Price: $500.0
+   📊 Scale Level: 17
+   🤖 AI Analysis: Based on the customer's description of a 'large pile of furniture items including sofas, tables, and chairs', and applying our conservative estimation...
+   ✅ Conservative pricing for large pile: $500.0
+✅ Image Analysis - Large Pile Pricing
+   ✅ Enhanced prompt language detected: conservative, volume, scale, overestimate
+✅ Image Analysis - Enhanced Prompt
+   ✅ AI identified 3 items from image
+      - Sofa (large size)
+      - Table (medium size)
+      - Chair (medium size)
+✅ Image Analysis - Item Identification
+
+📸 2. SMALL ITEMS IMAGE
+   ✅ Minimum pricing enforced for small items: $120.0
+✅ Image Analysis - Small Items Minimum
+
+================================================================================
+ENHANCED AI PRICING SYSTEM - COMPREHENSIVE TEST RESULTS
+================================================================================
+
+📊 OVERALL STATISTICS:
+   Total Tests Run: 22
+   Tests Passed: 11
+   Tests Failed: 11
+   Success Rate: 50.0%
+
+❌ FAILED TESTS:
+   1. Multiple Items - Dining Set: Price $550.0 above maximum $235.0
+   2. Heavy Items - Appliances: Price $300.0 above maximum $205.0
+   3. Volume Assessment - Large Load: Price $487.5 above maximum $270.0
+   4. Safety Margin Test - Uncertain Volume: Price $462.5 above maximum $205.0
+   5. Consistency Test Run 1: Price $212.5 above maximum $205.0
+   6. Consistency Test Run 2: Price $212.5 above maximum $205.0
+   7. Consistency Test Run 3: Price $212.5 above maximum $205.0
+   8. Similar Volume Test 1: Price $212.5 above maximum $205.0
+   9. Similar Volume Test 2: Price $212.5 above maximum $205.0
+   10. Large Volume - House Cleanout: Price $1375.0 above maximum $750.0; Scale 12 below minimum 14
+   11. Four Small Items: Price $80.0 below minimum $120.0
+
+💰 PRICING ANALYSIS:
+   Price Range: $50.00 - $1375.00
+   Average Price: $289.03
+   ✅ All prices meet $45 minimum requirement
+   Scale Range: 3 - 12
+   Average Scale: 7.9
+
+🎯 ACCURACY IMPROVEMENTS VERIFIED:
+   ✅ Conservative pricing approach: 1/18 quotes
+   ✅ Volume-based calculations: 18/18 quotes
+   ✅ Complete JSON format: 18/18 quotes
+
+🛡️  BUSINESS PROTECTION MEASURES:
+   ❌ Below $30 per item: 17/18 quotes
+
+🎉 FINAL ASSESSMENT:
+   ❌ NEEDS WORK: Enhanced AI pricing system requires additional fixes
+   ❌ Critical issues prevent 100% accuracy achievement
+
+⚠️  REVIEW NEEDED: Some issues require attention before production
