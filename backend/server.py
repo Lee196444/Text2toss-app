@@ -41,6 +41,31 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
+# Database indexes for performance optimization
+@app.on_event("startup")
+async def create_indexes():
+    """Create database indexes on startup for optimal query performance"""
+    try:
+        # Bookings collection indexes
+        await db.bookings.create_index([("pickup_date", 1), ("status", 1)])
+        await db.bookings.create_index([("payment_status", 1)])
+        await db.bookings.create_index([("user_id", 1)])
+        await db.bookings.create_index([("id", 1)], unique=True)
+        await db.bookings.create_index([("email", 1)])
+        
+        # Quotes collection indexes
+        await db.quotes.create_index([("id", 1)], unique=True)
+        await db.quotes.create_index([("approval_status", 1)])
+        await db.quotes.create_index([("requires_approval", 1)])
+        
+        # Users collection indexes
+        await db.users.create_index([("email", 1)], unique=True)
+        await db.users.create_index([("id", 1)], unique=True)
+        
+        logger.info("✅ Database indexes created successfully")
+    except Exception as e:
+        logger.warning(f"⚠️ Index creation warning (indexes may already exist): {str(e)}")
+
 # Create the main app without a prefix
 app = FastAPI()
 
