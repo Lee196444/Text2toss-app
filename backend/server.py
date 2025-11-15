@@ -2648,7 +2648,7 @@ async def optimize_route(token: str = Depends(verify_admin_token)):
         bookings = await db.bookings.find({
             "pickup_date": today.isoformat(),
             "status": "scheduled"
-        }).to_list(length=None)
+        }).to_list(length=100)  # Reasonable limit for daily route optimization
         
         if len(bookings) < 2:
             return {"message": "Need at least 2 bookings to optimize route", "optimized": False}
