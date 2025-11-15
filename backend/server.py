@@ -1601,21 +1601,26 @@ async def get_weekly_schedule(start_date: str = None):
     
     end = start + timedelta(days=7)
     
-    # Get all bookings and filter in Python since dates are stored as strings
-    all_bookings = await db.bookings.find().to_list(1000)
-    bookings = []
+    # OPTIMIZATION: Use MongoDB date range query instead of fetching all and filtering in Python
+    start_str = start.strftime("%Y-%m-%d")
+    end_str = end.strftime("%Y-%m-%d")
     
-    for booking in all_bookings:
-        pickup_date_str = booking.get("pickup_date", "")
-        if pickup_date_str:
-            # Extract date part from pickup_date string
-            date_part = pickup_date_str.split("T")[0]  # Get YYYY-MM-DD part
-            try:
-                booking_date = datetime.fromisoformat(date_part).date()
-                if start <= booking_date < end:
-                    bookings.append(booking)
-            except:
-                continue
+    # Get bookings within date range using regex (more efficient than fetching all)
+    bookings = await db.bookings.find({
+        "pickup_date": {
+            "$gte": start_str,
+            "$lt": end_str
+        }
+    }).to_list(1000)
+    
+    # OPTIMIZATION: Batch fetch all quotes to avoid N+1 query problem
+    quote_ids = [booking['quote_id'] for booking in bookings if booking.get('quote_id')]
+    quotes = []
+    if quote_ids:
+        quotes = await db.quotes.find({"id": {"$in": quote_ids}}).to_list(length=1000)
+    
+    # Create quote lookup dictionary for O(1) access
+    quote_dict = {quote['id']: quote for quote in quotes}
     
     # Group by date
     schedule = {}
@@ -1638,8 +1643,8 @@ async def get_weekly_schedule(start_date: str = None):
         if date_key not in schedule:
             schedule[date_key] = []
         
-        # Add quote details
-        quote = await db.quotes.find_one({"id": booking_data["quote_id"]})
+        # Add quote details from pre-fetched dictionary (no database query)
+        quote = quote_dict.get(booking_data["quote_id"])
         if quote:
             if "_id" in quote:
                 del quote["_id"]
