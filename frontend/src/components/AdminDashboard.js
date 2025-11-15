@@ -958,10 +958,18 @@ const AdminDashboard = () => {
           </CardHeader>
           {!collapsed.jobBins && (
           <CardContent className="overflow-visible">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 md:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4 md:gap-6">
               {(() => {
                 const bins = categorizBookings();
                 const binConfigs = [
+              { 
+                type: 'pendingPayment', 
+                title: 'Pending Payment', 
+                icon: '💳', 
+                color: 'border-red-300 bg-red-50 hover:bg-red-100',
+                textColor: 'text-red-800',
+                countColor: 'text-red-600'
+              },
               { 
                 type: 'new', 
                 title: 'New Jobs', 
