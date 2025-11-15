@@ -1766,8 +1766,13 @@ async def check_availability_range(start_date: str, end_date: str):
                     "status": "restricted"
                 }
             else:
-                # Get bookings for this date
+                # Get PAID bookings for this date (only count scheduled/in_progress/completed)
                 pipeline = [
+                    {
+                        "$match": {
+                            "status": {"$in": ["scheduled", "in_progress", "completed"]}  # Only count paid bookings
+                        }
+                    },
                     {
                         "$addFields": {
                             "pickup_date_only": {
