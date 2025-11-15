@@ -1691,8 +1691,13 @@ async def check_availability(date: str):
                 "restriction_reason": "Pickup not available on Fridays, Saturdays, or Sundays"
             }
         
-        # Get existing bookings for this date
+        # Get existing PAID bookings for this date (only count scheduled/in_progress/completed)
         pipeline = [
+            {
+                "$match": {
+                    "status": {"$in": ["scheduled", "in_progress", "completed"]}  # Only count paid bookings
+                }
+            },
             {
                 "$addFields": {
                     "pickup_date_only": {
