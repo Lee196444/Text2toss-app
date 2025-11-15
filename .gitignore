@@ -93,3 +93,16 @@ frontend/node_modules/.cache/default-development/0.pack
 
 # Secret and credential files
 frontend/node_modules/.cache/default-development/7.pack
+
+# User uploaded content - should not be in repository
+static/temp_uploads/*
+static/customer_photos/*
+static/completion_photos/*
+static/booking_images/*
+static/gallery/*
+# But keep the directories themselves
+!static/temp_uploads/.gitkeep
+!static/customer_photos/.gitkeep
+!static/completion_photos/.gitkeep
+!static/booking_images/.gitkeep
+!static/gallery/.gitkeep
