@@ -2638,6 +2638,92 @@ const AdminDashboard = () => {
           </Card>
         </div>
       )}
+
+      {/* Pending Payment Modal */}
+      {showPendingPayments && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-red-500 to-red-600 text-white">
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-xl flex items-center gap-2">
+                  💳 Pending Payment - {pendingPayments.length} Bookings
+                </CardTitle>
+                <Button 
+                  onClick={() => setShowPendingPayments(false)}
+                  className="bg-white/20 hover:bg-white/30 text-white border-0"
+                  size="sm"
+                >
+                  ✕ Close
+                </Button>
+              </div>
+              <CardDescription className="text-white/90">
+                Customers who booked but haven't paid yet - Mark as paid to add to calendar
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="overflow-y-auto max-h-[70vh] p-4">
+              {pendingPayments.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="text-gray-500 text-lg">✅ All bookings are paid</div>
+                  <p className="text-gray-400 mt-2">No pending payments</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {pendingPayments.map((booking) => (
+                    <Card key={booking.id} className="border-l-4 border-l-red-400">
+                      <CardHeader className="pb-3">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <CardTitle className="text-lg">
+                              ${booking.quote_details?.total_price || 0} - {booking.pickup_time}
+                            </CardTitle>
+                            <CardDescription className="text-sm">
+                              {new Date(booking.pickup_date).toLocaleDateString()} • ID: {booking.id.substring(0, 8)}
+                            </CardDescription>
+                          </div>
+                          <Button 
+                            onClick={() => markAsPaid(booking.id)}
+                            className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
+                          >
+                            ✅ Mark as Paid
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-sm font-semibold">Customer:</p>
+                            <p className="text-sm">{booking.email || 'No email'}</p>
+                            <p className="text-sm">{booking.phone}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold">Address:</p>
+                            <p className="text-sm">{booking.address}</p>
+                          </div>
+                        </div>
+                        {booking.quote_details && (
+                          <div className="mt-3 p-3 bg-gray-50 rounded">
+                            <p className="text-sm font-semibold mb-1">Items:</p>
+                            <p className="text-xs text-gray-600">
+                              {booking.quote_details.items?.map(item => 
+                                `${item.quantity}x ${item.name} (${item.size})`
+                              ).join(', ')}
+                            </p>
+                          </div>
+                        )}
+                        <div className="mt-3 p-3 bg-red-50 rounded border border-red-200">
+                          <p className="text-sm text-red-800">
+                            ⏳ Awaiting Venmo payment - Once received, click "Mark as Paid" to add to calendar
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };
