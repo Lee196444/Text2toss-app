@@ -1608,10 +1608,15 @@ async def get_weekly_schedule(start_date: str = None):
 
 @api_router.get("/admin/calendar-data")
 async def get_calendar_data(start_date: str, end_date: str):
-    """Get calendar data for a month range showing all scheduled jobs"""
+    """Get calendar data for a month range showing all PAID scheduled jobs (excludes pending_payment bookings)"""
     try:
-        # Query bookings within the date range
+        # Query bookings within the date range - ONLY paid bookings
         pipeline = [
+            {
+                "$match": {
+                    "status": {"$in": ["scheduled", "in_progress", "completed"]}  # Exclude pending_payment
+                }
+            },
             {
                 "$addFields": {
                     "pickup_date_only": {
