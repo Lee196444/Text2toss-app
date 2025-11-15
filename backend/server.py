@@ -2646,15 +2646,24 @@ async def get_all_bookings(token: str = Depends(verify_admin_token)):
         # Fetch all bookings sorted by created_at descending (newest first)
         bookings = await db.bookings.find({}).sort("created_at", -1).to_list(10000)
         
+        # OPTIMIZATION: Batch fetch all quotes to avoid N+1 query problem
+        quote_ids = [booking['quote_id'] for booking in bookings if booking.get('quote_id')]
+        quotes = []
+        if quote_ids:
+            quotes = await db.quotes.find({"id": {"$in": quote_ids}}).to_list(length=10000)
+        
+        # Create quote lookup dictionary for O(1) access
+        quote_dict = {quote['id']: quote for quote in quotes}
+        
         result = []
         for booking in bookings:
             if "_id" in booking:
                 del booking["_id"]
             booking_data = parse_from_mongo(booking)
             
-            # Add quote details
+            # Add quote details from pre-fetched dictionary (no database query)
             if booking_data.get("quote_id"):
-                quote = await db.quotes.find_one({"id": booking_data["quote_id"]})
+                quote = quote_dict.get(booking_data["quote_id"])
                 if quote:
                     if "_id" in quote:
                         del quote["_id"]
