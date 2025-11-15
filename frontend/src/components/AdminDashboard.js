@@ -104,6 +104,7 @@ const AdminDashboard = () => {
     fetchWeeklySchedule();
     fetchPendingQuotes();
     fetchApprovalStats();
+    fetchPendingPayments();  // Fetch pending payments on load
   }, [selectedDate]);
 
   useEffect(() => {
