@@ -2736,9 +2736,9 @@ async def calculate_optimized_route(addresses: list, api_key: str):
 # Photo Management Endpoints
 @api_router.get("/admin/gallery-photos")
 async def get_gallery_photos():
-    """Get all gallery photos"""
+    """Get gallery photos (limited to most recent 500 for performance)"""
     try:
-        photos = await db.gallery_photos.find({}).to_list(length=None)
+        photos = await db.gallery_photos.find({}).sort("created_at", -1).limit(500).to_list(500)
         # Ensure all URLs are full URLs for consistent display
         full_urls = []
         for photo in photos:
