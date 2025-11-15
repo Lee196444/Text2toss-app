@@ -59,6 +59,8 @@ const AdminDashboard = () => {
   });
   const [sendingEmail, setSendingEmail] = useState(false);
   const [selectedCustomerPhone, setSelectedCustomerPhone] = useState('');
+  const [pendingPayments, setPendingPayments] = useState([]);  // New state for unpaid bookings
+  const [showPendingPayments, setShowPendingPayments] = useState(false);  // Modal state
   
   // Collapse states for all sections
   const [collapsed, setCollapsed] = useState({
