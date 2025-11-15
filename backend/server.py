@@ -1530,16 +1530,19 @@ async def get_pending_payments():
 
 @api_router.post("/admin/bookings/{booking_id}/mark-paid")
 async def mark_booking_paid(booking_id: str):
-    """Mark a booking as paid"""
+    """Mark a booking as paid and move it to scheduled status (adds to calendar)"""
     result = await db.bookings.update_one(
         {"id": booking_id},
-        {"$set": {"payment_status": "paid"}}
+        {"$set": {
+            "payment_status": "paid",
+            "status": "scheduled"  # Move from pending_payment to scheduled (visible in calendar)
+        }}
     )
     
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="Booking not found")
     
-    return {"success": True, "message": "Booking marked as paid"}
+    return {"success": True, "message": "Booking marked as paid and added to calendar"}
 
 @api_router.get("/admin/weekly-schedule")
 async def get_weekly_schedule(start_date: str = None):
