@@ -41,6 +41,12 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
+# Create the main app without a prefix
+app = FastAPI()
+
+# Create a router with the /api prefix
+api_router = APIRouter(prefix="/api")
+
 # Database indexes for performance optimization
 @app.on_event("startup")
 async def create_indexes():
@@ -66,13 +72,7 @@ async def create_indexes():
     except Exception as e:
         logger.warning(f"⚠️ Index creation warning (indexes may already exist): {str(e)}")
 
-# Create the main app without a prefix
-app = FastAPI()
-
 # Static file serving through API endpoint (due to Kubernetes routing)
-
-# Create a router with the /api prefix
-api_router = APIRouter(prefix="/api")
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
