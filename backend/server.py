@@ -1467,7 +1467,7 @@ async def send_payment_reminder(booking_id: str):
 
 @api_router.get("/admin/daily-schedule")
 async def get_daily_schedule(date: str = None):
-    """Get all bookings for a specific date (YYYY-MM-DD format) or today if no date specified"""
+    """Get all PAID bookings for a specific date (YYYY-MM-DD format) or today if no date specified. Only shows jobs that are scheduled/in_progress/completed (payment confirmed)."""
     if date is None:
         target_date = datetime.now(timezone.utc).date()
     else:
@@ -1476,10 +1476,12 @@ async def get_daily_schedule(date: str = None):
     # Find bookings for the target date - match date part of pickup_date
     target_date_str = target_date.strftime("%Y-%m-%d")
     
+    # IMPORTANT: Only show bookings that are NOT pending_payment (i.e., payment has been confirmed)
     bookings = await db.bookings.find({
         "pickup_date": {
             "$regex": f"^{target_date_str}"
-        }
+        },
+        "status": {"$in": ["scheduled", "in_progress", "completed"]}  # Exclude pending_payment
     }).sort("pickup_time", 1).to_list(1000)
     
     result = []
