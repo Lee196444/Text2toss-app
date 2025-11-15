@@ -585,6 +585,33 @@ const AdminDashboard = () => {
     setShowSmsCenter(true);
   };
 
+  // Fetch pending payment bookings
+  const fetchPendingPayments = async () => {
+    try {
+      const token = localStorage.getItem('admin_token');
+      const response = await axios.get(`${API}/admin/pending-payments?token=${token}`);
+      setPendingPayments(response.data);
+    } catch (error) {
+      console.error('Error fetching pending payments:', error);
+    }
+  };
+
+  // Mark booking as paid
+  const markAsPaid = async (bookingId) => {
+    try {
+      const token = localStorage.getItem('admin_token');
+      await axios.post(`${API}/admin/bookings/${bookingId}/mark-paid?token=${token}`);
+      toast.success("Booking marked as paid and added to calendar!");
+      
+      // Refresh data
+      fetchDailySchedule();
+      fetchPendingPayments();
+    } catch (error) {
+      toast.error("Failed to mark as paid");
+      console.error('Mark paid error:', error);
+    }
+  };
+
   const formatTime = (timeRange) => {
     return timeRange;
   };
