@@ -3049,12 +3049,21 @@ async def export_job_contacts(token: str = Depends(verify_admin_token)):
     Includes customer name, email, phone, job details, booking and payment status
     """
     try:
-        # Fetch all bookings with their quotes
+        # Fetch all bookings (limit to 10000 for performance)
         bookings_cursor = db.bookings.find({})
-        bookings = await bookings_cursor.to_list(length=None)
+        bookings = await bookings_cursor.to_list(length=10000)
         
         if not bookings:
             raise HTTPException(status_code=404, detail="No bookings found")
+        
+        # OPTIMIZATION: Batch fetch all quotes to avoid N+1 query problem
+        quote_ids = [booking['quote_id'] for booking in bookings if booking.get('quote_id')]
+        quotes = []
+        if quote_ids:
+            quotes = await db.price_quotes.find({"id": {"$in": quote_ids}}).to_list(length=10000)
+        
+        # Create quote lookup dictionary for O(1) access
+        quote_dict = {quote['id']: quote for quote in quotes}
         
         # Create CSV in memory
         output = io.StringIO()
@@ -3080,10 +3089,8 @@ async def export_job_contacts(token: str = Depends(verify_admin_token)):
         
         # Write booking data
         for booking in bookings:
-            # Fetch quote details if available
-            quote = None
-            if booking.get('quote_id'):
-                quote = await db.price_quotes.find_one({"id": booking['quote_id']})
+            # Get quote from pre-fetched dictionary (no database query)
+            quote = quote_dict.get(booking.get('quote_id'))
             
             # Extract job description from quote
             job_description = ""
