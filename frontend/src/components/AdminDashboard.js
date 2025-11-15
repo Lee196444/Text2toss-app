@@ -1019,7 +1019,10 @@ const AdminDashboard = () => {
                 className={`cursor-pointer transition-all duration-200 ${bin.color} border-2 hover:shadow-lg transform hover:scale-105`}
                 onClick={() => {
                   // Handle different bin types
-                  if (bin.type === 'new') {
+                  if (bin.type === 'pendingPayment') {
+                    fetchPendingPayments();
+                    setShowPendingPayments(true);
+                  } else if (bin.type === 'new') {
                     openCalendar();
                   } else if (bin.type === 'all') {
                     openAllJobsModal();
@@ -1031,12 +1034,17 @@ const AdminDashboard = () => {
                 <CardContent className="p-3 text-center">
                   <div className="text-2xl mb-1">{bin.icon}</div>
                   <div className={`text-xl font-bold mb-1 ${bin.countColor}`}>
-                    {bin.showTotal ? '∞' : bins[bin.type]?.length || 0}
+                    {bin.type === 'pendingPayment' ? pendingPayments.length : (bin.showTotal ? '∞' : bins[bin.type]?.length || 0)}
                   </div>
                   <p className={`text-xs font-medium ${bin.textColor}`}>{bin.title}</p>
-                  {!bin.showTotal && bins[bin.type]?.length > 0 && (
+                  {!bin.showTotal && bin.type !== 'pendingPayment' && bins[bin.type]?.length > 0 && (
                     <div className={`text-xs mt-2 ${bin.textColor}`}>
                       Revenue: {formatPrice(bins[bin.type].reduce((sum, booking) => sum + (booking.quote_details?.total_price || 0), 0))}
+                    </div>
+                  )}
+                  {bin.type === 'pendingPayment' && pendingPayments.length > 0 && (
+                    <div className={`text-xs mt-2 ${bin.textColor}`}>
+                      Total: {formatPrice(pendingPayments.reduce((sum, booking) => sum + (booking.quote_details?.total_price || 0), 0))}
                     </div>
                   )}
                 </CardContent>
