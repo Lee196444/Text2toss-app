@@ -1165,6 +1165,14 @@ const AdminDashboard = () => {
                 <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">🗺️</span>
                 <span className="text-xs sm:text-sm font-medium leading-tight">Route</span>
               </Button>
+
+              <Button 
+                onClick={generateMarketingQR} 
+                className="bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
+              >
+                <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">📱</span>
+                <span className="text-xs sm:text-sm font-medium leading-tight">QR Code</span>
+              </Button>
             </div>
           </CardContent>
           )}
