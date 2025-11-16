@@ -617,6 +617,8 @@
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
+  completed_tests:
+    - "NEW APPROVAL-REQUIRED PAYMENT BLOCKING FEATURE - Quote approval system with payment blocking"
 
   - task: "UPDATED BOOKING FORM - Button layout fixes and curbside confirmation"
     implemented: true
