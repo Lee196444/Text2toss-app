@@ -1296,13 +1296,58 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
   };
 
   const handleVenmoBooking = async () => {
-    if (!bookingData.pickup_date || !bookingData.pickup_time || !bookingData.address || !bookingData.phone) {
-      toast.error("Please fill in all required fields");
-      return;
+    // Reset previous errors
+    setFieldErrors({});
+    
+    // Validate all required fields
+    const errors = {};
+    const missingFields = [];
+    
+    if (!bookingData.pickup_date) {
+      errors.pickup_date = true;
+      missingFields.push("Pickup Date");
     }
-
+    
+    if (!bookingData.pickup_time) {
+      errors.pickup_time = true;
+      missingFields.push("Pickup Time");
+    }
+    
+    if (!bookingData.address || bookingData.address.trim() === '') {
+      errors.address = true;
+      missingFields.push("Service Address");
+    }
+    
+    if (!bookingData.phone || bookingData.phone.trim() === '') {
+      errors.phone = true;
+      missingFields.push("Phone Number");
+    }
+    
+    if (!bookingData.email || bookingData.email.trim() === '') {
+      errors.email = true;
+      missingFields.push("Email Address");
+    }
+    
     if (!bookingData.curbside_confirmed) {
-      toast.error("Please confirm that all items are placed on the ground by the curb");
+      errors.curbside_confirmed = true;
+      missingFields.push("Curbside Confirmation");
+    }
+    
+    // If there are any missing fields, show error and highlight them
+    if (missingFields.length > 0) {
+      setFieldErrors(errors);
+      const fieldList = missingFields.join(", ");
+      toast.error(`Please complete the following required fields: ${fieldList}`);
+      
+      // Scroll to first error field
+      setTimeout(() => {
+        const firstErrorField = document.querySelector('.border-red-500');
+        if (firstErrorField) {
+          firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          firstErrorField.focus();
+        }
+      }, 100);
+      
       return;
     }
 
