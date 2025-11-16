@@ -780,12 +780,12 @@ const LandingPage = () => {
                             ⏳ Quote Requires Admin Approval
                           </p>
                           <p className="text-sm text-yellow-800 mb-2">
-                            This quote requires manual review for accuracy. <strong>Payment is blocked until approved.</strong>
+                            <strong>Please click "Continue to Booking" below</strong> to provide your contact info and preferred pickup date/time.
                           </p>
                           <p className="text-xs text-yellow-700">
-                            ✓ You'll receive an email within 24 hours with the approved quote<br/>
-                            ✓ No payment will be processed until you review and confirm<br/>
-                            ✓ You can safely exit this page - we'll contact you
+                            ✓ Payment is blocked until quote is approved<br/>
+                            ✓ You'll receive an email within 24 hours with approval<br/>
+                            ✓ Then you can complete payment to confirm your booking
                           </p>
                         </div>
                       </div>
