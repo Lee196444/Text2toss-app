@@ -1390,15 +1390,78 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
     booking_mongo = prepare_for_mongo(booking.dict())
     await db.bookings.insert_one(booking_mongo)
     
-    # Send confirmation email (primary notification method)
+    # Check if quote requires approval
+    quote_requires_approval = quote_doc.get("requires_approval", False)
+    
+    # Send appropriate email based on approval status
     if is_email_enabled() and booking.email:
-        email_html = create_booking_confirmation_email(booking.dict(), quote_doc)
-        email_result = await send_email(
-            to_email=booking.email,
-            subject=f"🎉 Booking Confirmed - {booking.pickup_date.strftime('%B %d, %Y')}",
-            html_content=email_html
-        )
-        logging.info(f"Booking confirmation email sent to {booking.email}: {email_result}")
+        if quote_requires_approval:
+            # Send "Under Review" email for quotes needing approval
+            email_html = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                    .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                    .header {{ background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+                    .content {{ background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }}
+                    .highlight {{ background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 5px; }}
+                    .button {{ display: inline-block; background: #10b981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }}
+                    .footer {{ text-align: center; color: #6b7280; font-size: 14px; margin-top: 30px; }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1 style="margin: 0;">📧 Quote Under Review</h1>
+                        <p style="margin: 10px 0 0 0; opacity: 0.9;">Your request has been received!</p>
+                    </div>
+                    <div class="content">
+                        <h2>Hello!</h2>
+                        <p>Thank you for requesting a quote from Text2toss! We've received your junk removal request and it's currently under review by our team.</p>
+                        
+                        <div class="highlight">
+                            <strong>⏰ What happens next?</strong><br>
+                            Our team will carefully review your items and provide you with an accurate, approved quote <strong>within 24 hours</strong>.
+                        </div>
+                        
+                        <h3>Your Request Details:</h3>
+                        <ul>
+                            <li><strong>Pickup Date:</strong> {booking.pickup_date.strftime('%B %d, %Y')}</li>
+                            <li><strong>Pickup Time:</strong> {booking.pickup_time}</li>
+                            <li><strong>Address:</strong> {booking.address}</li>
+                            <li><strong>Estimated Price:</strong> ${quote_doc.get('total_price', 0):.2f} (subject to review)</li>
+                        </ul>
+                        
+                        <p><strong>💡 Important:</strong> No payment is required at this time. Once your quote is approved, you'll receive an email with the final price and payment instructions.</p>
+                        
+                        <p>If you have any questions or need to make changes, please don't hesitate to contact us!</p>
+                        
+                        <div class="footer">
+                            <p><strong>Text2toss Junk Removal</strong><br>
+                            Professional • Reliable • Eco-Friendly</p>
+                        </div>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """
+            email_result = await send_email(
+                to_email=booking.email,
+                subject="⏳ Your Quote is Under Review - Text2toss",
+                html_content=email_html
+            )
+            logging.info(f"Quote under review email sent to {booking.email}: {email_result}")
+        else:
+            # Send standard booking confirmation email for auto-approved quotes
+            email_html = create_booking_confirmation_email(booking.dict(), quote_doc)
+            email_result = await send_email(
+                to_email=booking.email,
+                subject=f"🎉 Booking Confirmed - {booking.pickup_date.strftime('%B %d, %Y')}",
+                html_content=email_html
+            )
+            logging.info(f"Booking confirmation email sent to {booking.email}: {email_result}")
     
     # Optional: Send SMS if enabled
     if is_sms_enabled():
