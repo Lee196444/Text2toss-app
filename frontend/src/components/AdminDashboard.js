@@ -2770,6 +2770,99 @@ const AdminDashboard = () => {
           </Card>
         </div>
       )}
+
+      {/* Marketing QR Code Modal */}
+      {showQRModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-2xl bg-white shadow-2xl">
+            <CardHeader className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-2xl flex items-center gap-2">
+                  📱 Marketing QR Code
+                </CardTitle>
+                <Button 
+                  onClick={() => setShowQRModal(false)}
+                  className="bg-white/20 hover:bg-white/30 text-white border-0"
+                  size="sm"
+                >
+                  ✕ Close
+                </Button>
+              </div>
+              <CardDescription className="text-white/90 mt-2">
+                Scan this QR code to visit Text2toss.com instantly!
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-8">
+              <div className="space-y-6">
+                {/* QR Code Display */}
+                <div className="flex flex-col items-center">
+                  <div className="bg-white p-6 rounded-xl shadow-lg border-4 border-purple-200">
+                    {marketingQRCode && (
+                      <img 
+                        src={marketingQRCode} 
+                        alt="Text2toss Marketing QR Code" 
+                        className="w-80 h-80"
+                      />
+                    )}
+                  </div>
+                  <p className="text-center mt-4 text-gray-700 font-medium">
+                    🌐 Scan to visit: <span className="text-purple-600 font-bold">text2toss.com</span>
+                  </p>
+                </div>
+
+                {/* Instructions */}
+                <div className="bg-purple-50 rounded-lg p-6 border border-purple-200">
+                  <h3 className="font-semibold text-purple-900 mb-3 flex items-center gap-2">
+                    📋 How to Use This QR Code:
+                  </h3>
+                  <ul className="space-y-2 text-sm text-purple-800">
+                    <li className="flex items-start gap-2">
+                      <span className="font-bold">1.</span>
+                      <span><strong>Download</strong> the QR code using the button below</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="font-bold">2.</span>
+                      <span><strong>Print</strong> on business cards, flyers, yard signs, or vehicle magnets</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="font-bold">3.</span>
+                      <span><strong>Share</strong> on social media, email signatures, or your website</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="font-bold">4.</span>
+                      <span>When customers <strong>scan with their phone camera</strong>, they'll instantly access your quote page!</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Download Button */}
+                <div className="flex gap-4">
+                  <Button 
+                    onClick={downloadQRCode}
+                    className="flex-1 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white py-6 text-lg font-semibold shadow-lg"
+                  >
+                    ⬇️ Download QR Code (PNG)
+                  </Button>
+                  <Button 
+                    onClick={() => setShowQRModal(false)}
+                    className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-6 text-lg font-semibold"
+                  >
+                    Close
+                  </Button>
+                </div>
+
+                {/* Usage Tips */}
+                <div className="bg-emerald-50 rounded-lg p-4 border border-emerald-200">
+                  <p className="text-sm text-emerald-800 flex items-start gap-2">
+                    <span className="text-lg">💡</span>
+                    <span><strong>Pro Tip:</strong> Test the QR code with your phone before printing to make sure it works perfectly!</span>
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };
