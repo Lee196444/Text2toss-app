@@ -1531,38 +1531,68 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
 
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2 md:col-span-2">
-                <Label className="text-base font-semibold text-gray-700">Pickup Address</Label>
+                <Label className="text-base font-semibold text-gray-700">
+                  Pickup Address {fieldErrors.address && <span className="text-red-600">*Required</span>}
+                </Label>
                 <Textarea
                   placeholder="Enter your full address..."
                   value={bookingData.address}
-                  onChange={(e) => setBookingData({...bookingData, address: e.target.value})}
-                  className="min-h-[80px] border-2 resize-none text-base"
+                  onChange={(e) => {
+                    setBookingData({...bookingData, address: e.target.value});
+                    setFieldErrors({...fieldErrors, address: false}); // Clear error on change
+                  }}
+                  className={`min-h-[80px] border-2 resize-none text-base ${fieldErrors.address ? 'border-red-500 bg-red-50 focus:border-red-600 focus:ring-red-500' : ''}`}
                   data-testid="address-textarea"
                 />
+                {fieldErrors.address && (
+                  <p className="text-red-600 text-sm font-medium flex items-center gap-1">
+                    <span>⚠️</span> Please enter your pickup address
+                  </p>
+                )}
               </div>
               
               <div className="space-y-2">
-                <Label className="text-base font-semibold text-gray-700">Email Address</Label>
+                <Label className="text-base font-semibold text-gray-700">
+                  Email Address {fieldErrors.email && <span className="text-red-600">*Required</span>}
+                </Label>
                 <Input
                   type="email"
                   placeholder="your.email@example.com"
                   value={bookingData.email}
-                  onChange={(e) => setBookingData({...bookingData, email: e.target.value})}
-                  className="h-12 border-2 text-base"
+                  onChange={(e) => {
+                    setBookingData({...bookingData, email: e.target.value});
+                    setFieldErrors({...fieldErrors, email: false}); // Clear error on change
+                  }}
+                  className={`h-12 border-2 text-base ${fieldErrors.email ? 'border-red-500 bg-red-50 focus:border-red-600 focus:ring-red-500' : ''}`}
                   data-testid="email-input"
                 />
+                {fieldErrors.email && (
+                  <p className="text-red-600 text-sm font-medium flex items-center gap-1">
+                    <span>⚠️</span> Please enter your email address
+                  </p>
+                )}
               </div>
               
               <div className="space-y-2">
-                <Label className="text-base font-semibold text-gray-700">Phone Number</Label>
+                <Label className="text-base font-semibold text-gray-700">
+                  Phone Number {fieldErrors.phone && <span className="text-red-600">*Required</span>}
+                </Label>
                 <Input
                   type="tel"
                   placeholder="(555) 123-4567"
                   value={bookingData.phone}
-                  onChange={(e) => setBookingData({...bookingData, phone: e.target.value})}
-                  className="h-12 border-2 text-base"
+                  onChange={(e) => {
+                    setBookingData({...bookingData, phone: e.target.value});
+                    setFieldErrors({...fieldErrors, phone: false}); // Clear error on change
+                  }}
+                  className={`h-12 border-2 text-base ${fieldErrors.phone ? 'border-red-500 bg-red-50 focus:border-red-600 focus:ring-red-500' : ''}`}
                   data-testid="phone-input"
                 />
+                {fieldErrors.phone && (
+                  <p className="text-red-600 text-sm font-medium flex items-center gap-1">
+                    <span>⚠️</span> Please enter your phone number
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -1575,23 +1605,31 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
             </div>
 
             {/* Curbside Confirmation */}
-            <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4">
+            <div className={`bg-amber-50 border-2 rounded-xl p-4 ${fieldErrors.curbside_confirmed ? 'border-red-500 bg-red-50' : 'border-amber-200'}`}>
               <label className="flex items-start gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   id="curbside-confirmation"
                   checked={bookingData.curbside_confirmed || false}
-                  onChange={(e) => setBookingData({...bookingData, curbside_confirmed: e.target.checked})}
+                  onChange={(e) => {
+                    setBookingData({...bookingData, curbside_confirmed: e.target.checked});
+                    setFieldErrors({...fieldErrors, curbside_confirmed: false}); // Clear error on change
+                  }}
                   className="mt-1 h-5 w-5 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
                   data-testid="curbside-checkbox"
                 />
                 <div>
                   <p className="font-semibold text-gray-800 text-base">
-                    Items are curbside & ground level
+                    Items are curbside & ground level {fieldErrors.curbside_confirmed && <span className="text-red-600">*Required</span>}
                   </p>
                   <p className="text-sm text-gray-600 mt-1">
                     All items must be accessible from street level without stairs
                   </p>
+                  {fieldErrors.curbside_confirmed && (
+                    <p className="text-red-600 text-sm font-medium flex items-center gap-1 mt-2">
+                      <span>⚠️</span> You must confirm curbside placement to proceed
+                    </p>
+                  )}
                 </div>
               </label>
             </div>
