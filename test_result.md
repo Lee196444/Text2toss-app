@@ -596,12 +596,10 @@
 
 ## test_plan:
   current_focus: 
-    - "BOOKING FLOW CRASH FIX - Continue to Booking button functionality"
     - "EMAIL NOTIFICATION CENTER - Replace SMS Center with Email Center UI"
     - "CSV EXPORT BUTTON - Export job contacts functionality"
     - "COLLAPSIBLE SECTIONS - Make all admin sections collapsible"
-  stuck_tasks: 
-    - "BOOKING FLOW CRASH FIX - Continue to Booking button functionality"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
