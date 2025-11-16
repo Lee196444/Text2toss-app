@@ -235,6 +235,11 @@ const LandingPage = () => {
       setImageAnalyzed(true);
       setQuoteStep(2); // Move to quote display step
       toast.success("Quote generated successfully!");
+      
+      // Check if quote requires approval and show modal
+      if (response.data.requires_approval) {
+        setShowApprovalModal(true);
+      }
     } catch (error) {
       const errorMsg = error.response?.data?.detail || "Failed to analyze image. Please try again.";
       setQuoteError(errorMsg);
