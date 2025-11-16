@@ -1508,6 +1508,11 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
                 html_content=email_html
             )
             logging.info(f"Booking confirmation email sent to {booking.email}: {email_result}")
+    else:
+        if not is_email_enabled():
+            logging.warning(f"Email NOT sent - email is disabled in environment")
+        if not booking.email:
+            logging.warning(f"Email NOT sent - no email address provided for booking {booking.id}")
     
     # Optional: Send SMS if enabled
     if is_sms_enabled():
