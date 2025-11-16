@@ -962,12 +962,22 @@ const LandingPage = () => {
               </div>
             </div>
             
-            <div className="p-6 bg-gray-50 rounded-b-2xl">
+            <div className="p-6 bg-gray-50 rounded-b-2xl space-y-3">
               <button
-                onClick={() => setShowApprovalModal(false)}
+                onClick={() => {
+                  setShowApprovalModal(false);
+                  setShowBooking(true);
+                  setShowQuote(false);
+                }}
                 className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-emerald-600 hover:to-teal-700 transition-all shadow-lg"
               >
-                Understood, Thank You
+                📝 Provide Booking Details Now
+              </button>
+              <button
+                onClick={() => setShowApprovalModal(false)}
+                className="w-full bg-white border-2 border-gray-300 text-gray-700 py-3 px-6 rounded-lg font-semibold hover:bg-gray-50 transition-all"
+              >
+                I'll Wait for Email
               </button>
             </div>
           </div>
