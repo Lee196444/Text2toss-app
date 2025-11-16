@@ -619,6 +619,7 @@
   test_priority: "high_first"
   completed_tests:
     - "NEW APPROVAL-REQUIRED PAYMENT BLOCKING FEATURE - Quote approval system with payment blocking"
+    - "COMPLETE APPROVAL-REQUIRED BOOKING FLOW - Customer perspective end-to-end test"
 
   - task: "UPDATED BOOKING FORM - Button layout fixes and curbside confirmation"
     implemented: true
