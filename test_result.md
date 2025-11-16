@@ -637,6 +637,18 @@
     - "NEW APPROVAL-REQUIRED PAYMENT BLOCKING FEATURE - Quote approval system with payment blocking"
     - "COMPLETE APPROVAL-REQUIRED BOOKING FLOW - Customer perspective end-to-end test"
 
+  - task: "APPROVAL MODAL RESPONSIVE DESIGN - Button visibility across all screen sizes"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "testing"
+          comment: "Starting comprehensive responsive design testing for approval modal buttons across mobile (375x667, 320x568), tablet (768x1024), and desktop (1920x1080) viewports. Testing scenario: Upload large photo → Generate quote → Verify approval modal appears → Check both buttons ('📝 Provide Booking Details Now' and 'I'll Wait for Email') are fully visible and accessible on all screen sizes."
+
   - task: "UPDATED BOOKING FORM - Button layout fixes and curbside confirmation"
     implemented: true
     working: true
