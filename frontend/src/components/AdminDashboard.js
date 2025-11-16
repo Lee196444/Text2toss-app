@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import QRCode from 'qrcode';
 import { GoogleMap, Marker, DirectionsRenderer, useJsApiLoader } from '@react-google-maps/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
@@ -28,6 +29,8 @@ const AdminDashboard = () => {
   const [optimizedRoute, setOptimizedRoute] = useState(null);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [marketingQRCode, setMarketingQRCode] = useState('');
   const [completionPhoto, setCompletionPhoto] = useState(null);
   const [completionNote, setCompletionNote] = useState("");
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
