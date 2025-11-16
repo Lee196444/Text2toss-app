@@ -105,3 +105,15 @@ static/gallery/*
 !static/completion_photos/.gitkeep
 !static/booking_images/.gitkeep
 !static/gallery/.gitkeep
+-e 
+# Environment files
+*.env
+*.env.*
+-e 
+# Environment files
+*.env
+*.env.*
+-e 
+# Environment files
+*.env
+*.env.*
