@@ -881,6 +881,78 @@ const LandingPage = () => {
         />
       )}
 
+      {/* Quote Approval Required Modal */}
+      {showApprovalModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl animate-fadeIn">
+            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white p-6 rounded-t-2xl">
+              <div className="flex items-center justify-center mb-2">
+                <span className="text-4xl">📧</span>
+              </div>
+              <h3 className="text-xl font-bold text-center">Quote Under Review</h3>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div className="bg-blue-50 border border-blue-300 rounded-lg p-4">
+                <p className="text-base font-semibold text-blue-900 mb-2">
+                  ✓ Quote Successfully Submitted
+                </p>
+                <p className="text-sm text-blue-800 leading-relaxed">
+                  Your quote request is currently under review by our team. We will carefully assess your requirements and provide you with an accurate quote.
+                </p>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="flex items-start space-x-3">
+                  <span className="text-2xl mt-1">📧</span>
+                  <div>
+                    <p className="font-semibold text-gray-900 mb-1">Expect a Response Within 24 Hours</p>
+                    <p className="text-sm text-gray-700 leading-relaxed">
+                      You will receive an email notification with your approved quote and next steps. Please check your inbox (and spam folder) for our response.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-3">
+                  <span className="text-2xl mt-1">💳</span>
+                  <div>
+                    <p className="font-semibold text-gray-900 mb-1">Payment & Booking Confirmation</p>
+                    <p className="text-sm text-gray-700 leading-relaxed">
+                      Once your quote is approved, you will complete Step 3 (Payment) to confirm your booking. No charges will be made until you review and approve the final quote.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-3">
+                  <span className="text-2xl mt-1">👋</span>
+                  <div>
+                    <p className="font-semibold text-gray-900 mb-1">You May Exit This Page</p>
+                    <p className="text-sm text-gray-700 leading-relaxed">
+                      Thank you for choosing Text2toss! You can safely close this page. We will contact you via email with your approved quote.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 text-center">
+                <p className="text-sm text-emerald-800 font-medium">
+                  📞 Questions? We're here to help! Contact us anytime.
+                </p>
+              </div>
+            </div>
+            
+            <div className="p-6 bg-gray-50 rounded-b-2xl">
+              <button
+                onClick={() => setShowApprovalModal(false)}
+                className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-emerald-600 hover:to-teal-700 transition-all shadow-lg"
+              >
+                Understood, Thank You
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Contact Section */}
       <section id="contact" className="py-12 sm:py-20 bg-slate-900/90 backdrop-blur-sm">
         <div className="container mx-auto px-4 sm:px-6">
