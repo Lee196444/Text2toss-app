@@ -1470,9 +1470,7 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
       const bookingResponse = await axios.post(`${API}/bookings`, {
         quote_id: quote.id,
         ...bookingData,
-        payment_method: 'venmo',
-        // Add status override if approval is required
-        ...(quote.requires_approval && { status: 'pending_customer_approval' })
+        payment_method: 'venmo'
       });
       
       const bookingId = bookingResponse.data.id;
