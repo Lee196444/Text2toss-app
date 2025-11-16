@@ -852,6 +852,41 @@ const AdminDashboard = () => {
     return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
   };
 
+  // Generate Marketing QR Code
+  const generateMarketingQR = async () => {
+    try {
+      // Use text2toss.com when deployed, preview URL for development
+      const websiteUrl = 'https://text2toss.com'; // Change to actual domain after deployment
+      
+      const qrCodeDataUrl = await QRCode.toDataURL(websiteUrl, {
+        width: 800,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#ffffff'
+        }
+      });
+      
+      setMarketingQRCode(qrCodeDataUrl);
+      setShowQRModal(true);
+      toast.success('QR Code generated successfully!');
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+      toast.error('Failed to generate QR code');
+    }
+  };
+
+  // Download QR Code
+  const downloadQRCode = () => {
+    const link = document.createElement('a');
+    link.href = marketingQRCode;
+    link.download = 'Text2toss-Marketing-QR-Code.png';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('QR Code downloaded!');
+  };
+
   const fetchPendingQuotes = async () => {
     try {
       const response = await axios.get(`${API}/admin/pending-quotes`);
