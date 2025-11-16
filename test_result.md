@@ -626,6 +626,7 @@
 
 ## test_plan:
   current_focus: 
+    - "APPROVAL MODAL RESPONSIVE DESIGN - Button visibility across all screen sizes"
     - "EMAIL NOTIFICATION CENTER - Replace SMS Center with Email Center UI"
     - "CSV EXPORT BUTTON - Export job contacts functionality"
     - "COLLAPSIBLE SECTIONS - Make all admin sections collapsible"
