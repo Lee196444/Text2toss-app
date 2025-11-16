@@ -1460,11 +1460,21 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
       const bookingResponse = await axios.post(`${API}/bookings`, {
         quote_id: quote.id,
         ...bookingData,
-        payment_method: 'venmo'
+        payment_method: 'venmo',
+        // Add status override if approval is required
+        ...(quote.requires_approval && { status: 'pending_customer_approval' })
       });
       
       const bookingId = bookingResponse.data.id;
       
+      // If quote requires approval, show success message and close
+      if (quote.requires_approval) {
+        toast.success("Booking information submitted! We'll contact you within 24 hours after quote approval.");
+        onSuccess(); // Close the modal
+        return;
+      }
+      
+      // For non-approval quotes, proceed with payment
       // Generate Venmo payment URL and QR code
       const venmoUrl = `https://venmo.com/code?user_id=Text2toss&amount=${quote.total_price}&note=Text2toss%20Booking%20${bookingId.substring(0, 8)}`;
       
