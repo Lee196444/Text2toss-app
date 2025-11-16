@@ -1392,10 +1392,13 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
     
     # Check if quote requires approval
     quote_requires_approval = quote_doc.get("requires_approval", False)
+    logging.info(f"Booking created: {booking.id}, Quote ID: {booking.quote_id}, Requires Approval: {quote_requires_approval}, Email: {booking.email}")
     
     # Send appropriate email based on approval status
     if is_email_enabled() and booking.email:
+        logging.info(f"Email enabled, attempting to send email to {booking.email}")
         if quote_requires_approval:
+            logging.info(f"Quote requires approval - sending 'Under Review' email")
             # Send "Under Review" email for quotes needing approval
             email_html = f"""
             <!DOCTYPE html>
