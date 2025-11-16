@@ -67,6 +67,7 @@ const LandingPage = () => {
   const [venmoBookingId, setVenmoBookingId] = useState('');
   const [venmoQRCode, setVenmoQRCode] = useState('');
   const [quoteError, setQuoteError] = useState(''); // NEW: Error handling
+  const [showApprovalModal, setShowApprovalModal] = useState(false); // NEW: Approval notification modal
   
   // Photo Reel States
   const [photoReel, setPhotoReel] = useState([
