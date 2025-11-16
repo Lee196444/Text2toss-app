@@ -804,16 +804,27 @@ const LandingPage = () => {
                   >
                     ← New Quote
                   </Button>
-                  <Button
-                    onClick={() => {
-                      setShowBooking(true);
-                      setShowQuote(false);
-                    }}
-                    className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 px-8"
-                    data-testid="book-pickup-btn"
-                  >
-                    Continue to Booking →
-                  </Button>
+                  
+                  {/* Show different button based on approval status */}
+                  {quote.requires_approval ? (
+                    <Button
+                      onClick={() => setShowApprovalModal(true)}
+                      className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 px-8"
+                    >
+                      📧 Awaiting Approval
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => {
+                        setShowBooking(true);
+                        setShowQuote(false);
+                      }}
+                      className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 px-8"
+                      data-testid="book-pickup-btn"
+                    >
+                      Continue to Booking →
+                    </Button>
+                  )}
                 </div>
 
                 {/* BOTTOM Progress Indicator - Step 2 */}
