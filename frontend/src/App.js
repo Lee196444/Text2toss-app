@@ -1529,6 +1529,29 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
         {/* Scrollable Content */}
         <div className="overflow-y-auto max-h-[calc(100vh-16rem)]">
           <CardContent className="p-4 sm:p-6 space-y-5">
+          
+          {/* Approval Required Notice */}
+          {quote.requires_approval && (
+            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-400 rounded-lg p-4 shadow-sm">
+              <div className="flex items-start gap-3">
+                <span className="text-3xl">⏳</span>
+                <div>
+                  <p className="text-base font-bold text-yellow-900 mb-2">
+                    Quote Pending Admin Approval
+                  </p>
+                  <p className="text-sm text-yellow-800 mb-2">
+                    Please fill out your booking information below. Your booking will be held as <strong>pending</strong> until your quote is approved.
+                  </p>
+                  <p className="text-xs text-yellow-700">
+                    ✓ No payment will be processed until quote is approved<br/>
+                    ✓ We'll contact you within 24 hours with approval<br/>
+                    ✓ You can then complete payment to confirm your booking
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          
           {/* Schedule Section */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b-2 border-emerald-500">
