@@ -895,16 +895,16 @@ const LandingPage = () => {
 
       {/* Quote Approval Required Modal */}
       {showApprovalModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl animate-fadeIn">
-            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white p-6 rounded-t-2xl">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl animate-fadeIn my-8 max-h-[90vh] flex flex-col">
+            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white p-4 sm:p-6 rounded-t-2xl flex-shrink-0">
               <div className="flex items-center justify-center mb-2">
-                <span className="text-4xl">📧</span>
+                <span className="text-3xl sm:text-4xl">📧</span>
               </div>
-              <h3 className="text-xl font-bold text-center">Quote Under Review</h3>
+              <h3 className="text-lg sm:text-xl font-bold text-center">Quote Under Review</h3>
             </div>
             
-            <div className="p-6 space-y-4">
+            <div className="p-4 sm:p-6 space-y-3 sm:space-y-4 overflow-y-auto flex-1">
               <div className="bg-blue-50 border border-blue-300 rounded-lg p-4">
                 <p className="text-base font-semibold text-blue-900 mb-2">
                   ✓ Quote Successfully Submitted
