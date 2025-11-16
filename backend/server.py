@@ -1499,6 +1499,7 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
             )
             logging.info(f"Quote under review email sent to {booking.email}: {email_result}")
         else:
+            logging.info(f"Quote auto-approved - sending standard booking confirmation")
             # Send standard booking confirmation email for auto-approved quotes
             email_html = create_booking_confirmation_email(booking.dict(), quote_doc)
             email_result = await send_email(
