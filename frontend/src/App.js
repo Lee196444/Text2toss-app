@@ -1242,6 +1242,7 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
   const [bookedTimeSlots, setBookedTimeSlots] = useState([]);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({}); // Track validation errors
 
   // Check if date is allowed (no Fridays, Saturdays, Sundays)
   const isDateAllowed = (dateString) => {
