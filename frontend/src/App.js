@@ -68,6 +68,7 @@ const LandingPage = () => {
   const [venmoQRCode, setVenmoQRCode] = useState('');
   const [quoteError, setQuoteError] = useState(''); // NEW: Error handling
   const [showApprovalModal, setShowApprovalModal] = useState(false); // NEW: Approval notification modal
+  const [fieldErrors, setFieldErrors] = useState({}); // NEW: Track which fields have errors
   
   // Photo Reel States
   const [photoReel, setPhotoReel] = useState([
