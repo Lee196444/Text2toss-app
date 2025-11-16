@@ -955,27 +955,27 @@ const LandingPage = () => {
                 </div>
               </div>
               
-              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 text-center">
-                <p className="text-sm text-emerald-800 font-medium">
+              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 sm:p-4 text-center">
+                <p className="text-xs sm:text-sm text-emerald-800 font-medium">
                   📞 Questions? We're here to help! Contact us anytime.
                 </p>
               </div>
             </div>
             
-            <div className="p-6 bg-gray-50 rounded-b-2xl space-y-3">
+            <div className="p-4 sm:p-6 bg-gray-50 rounded-b-2xl space-y-2 sm:space-y-3 flex-shrink-0 border-t border-gray-200">
               <button
                 onClick={() => {
                   setShowApprovalModal(false);
                   setShowBooking(true);
                   setShowQuote(false);
                 }}
-                className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-emerald-600 hover:to-teal-700 transition-all shadow-lg"
+                className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-3 px-4 sm:px-6 rounded-lg text-sm sm:text-base font-semibold hover:from-emerald-600 hover:to-teal-700 transition-all shadow-lg"
               >
                 📝 Provide Booking Details Now
               </button>
               <button
                 onClick={() => setShowApprovalModal(false)}
-                className="w-full bg-white border-2 border-gray-300 text-gray-700 py-3 px-6 rounded-lg font-semibold hover:bg-gray-50 transition-all"
+                className="w-full bg-white border-2 border-gray-300 text-gray-700 py-3 px-4 sm:px-6 rounded-lg text-sm sm:text-base font-semibold hover:bg-gray-50 transition-all"
               >
                 I'll Wait for Email
               </button>
