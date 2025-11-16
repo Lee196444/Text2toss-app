@@ -1809,13 +1809,24 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
             Cancel
           </Button>
           
-          <Button 
-            onClick={handleVenmoBooking}
-            data-testid="venmo-booking-btn" 
-            className="flex-1 h-12 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-base font-bold shadow-lg hover:shadow-xl transition-all"
-          >
-            📱 Confirm Booking
-          </Button>
+          {/* Different button based on approval status */}
+          {quote.requires_approval ? (
+            <Button 
+              onClick={handleVenmoBooking}
+              data-testid="venmo-booking-btn" 
+              className="flex-1 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white text-base font-bold shadow-lg hover:shadow-xl transition-all"
+            >
+              📝 Submit Booking (Pending Approval)
+            </Button>
+          ) : (
+            <Button 
+              onClick={handleVenmoBooking}
+              data-testid="venmo-booking-btn" 
+              className="flex-1 h-12 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-base font-bold shadow-lg hover:shadow-xl transition-all"
+            >
+              📱 Confirm Booking
+            </Button>
+          )}
         </div>
       </Card>
       
