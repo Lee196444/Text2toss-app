@@ -771,14 +771,24 @@ const LandingPage = () => {
                   )}
 
                   {/* Approval Notice for Large Jobs */}
-                  {quote.scale_level && quote.scale_level >= 4 && (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                      <p className="text-sm font-medium text-yellow-800 mb-2">
-                        ⏳ Admin Approval Required
-                      </p>
-                      <p className="text-xs text-yellow-700">
-                        Large jobs require admin review for accuracy. You'll be contacted within 24 hours with final pricing before any payment is processed.
-                      </p>
+                  {quote.requires_approval && (
+                    <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-400 rounded-lg p-4 shadow-sm">
+                      <div className="flex items-start gap-3">
+                        <span className="text-3xl">📧</span>
+                        <div>
+                          <p className="text-base font-bold text-yellow-900 mb-2">
+                            ⏳ Quote Requires Admin Approval
+                          </p>
+                          <p className="text-sm text-yellow-800 mb-2">
+                            This quote requires manual review for accuracy. <strong>Payment is blocked until approved.</strong>
+                          </p>
+                          <p className="text-xs text-yellow-700">
+                            ✓ You'll receive an email within 24 hours with the approved quote<br/>
+                            ✓ No payment will be processed until you review and confirm<br/>
+                            ✓ You can safely exit this page - we'll contact you
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   )}
 
