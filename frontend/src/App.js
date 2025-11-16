@@ -923,6 +923,15 @@ const LandingPage = () => {
                 </p>
               </div>
               
+              <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4">
+                <p className="text-base font-bold text-red-900 mb-1">
+                  🔒 Payment Blocked Until Approval
+                </p>
+                <p className="text-sm text-red-800">
+                  You cannot proceed to payment until your quote is reviewed and approved by our team. This ensures accuracy and prevents confusion.
+                </p>
+              </div>
+              
               <div className="space-y-4">
                 <div className="flex items-start space-x-3">
                   <span className="text-2xl mt-1">📧</span>
@@ -937,9 +946,9 @@ const LandingPage = () => {
                 <div className="flex items-start space-x-3">
                   <span className="text-2xl mt-1">💳</span>
                   <div>
-                    <p className="font-semibold text-gray-900 mb-1">Payment & Booking Confirmation</p>
+                    <p className="font-semibold text-gray-900 mb-1">Payment After Approval Only</p>
                     <p className="text-sm text-gray-700 leading-relaxed">
-                      Once your quote is approved, you will complete Step 3 (Payment) to confirm your booking. No charges will be made until you review and approve the final quote.
+                      Once your quote is approved, you will receive a link to complete Step 3 (Payment) to confirm your booking. <strong>No charges will be made until you review and approve the final quote.</strong>
                     </p>
                   </div>
                 </div>
