@@ -1373,6 +1373,9 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
             print(f"Error preserving image: {str(e)}")
             # Don't fail booking if image handling fails
     
+    # Set status based on whether quote requires approval
+    booking_status = "pending_customer_approval" if quote_doc.get("requires_approval", False) else "pending_payment"
+    
     booking = Booking(
         user_id=user_id,
         quote_id=booking_data.quote_id,
@@ -1384,7 +1387,8 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
         special_instructions=booking_data.special_instructions,
         curbside_confirmed=booking_data.curbside_confirmed,
         email_notifications=booking_data.email_notifications,
-        image_path=permanent_image_path
+        image_path=permanent_image_path,
+        status=booking_status
     )
     
     booking_mongo = prepare_for_mongo(booking.dict())
