@@ -1438,6 +1438,10 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
                             <h3>Your Quote Request Details:</h3>
                             <table style="width: 100%; border-collapse: collapse;">
                                 <tr>
+                                    <td style="padding: 8px 0; font-weight: 600; color: #4b5563;">Quote ID:</td>
+                                    <td style="padding: 8px 0; color: #1f2937; font-family: monospace; background: #f3f4f6; padding: 4px 8px; border-radius: 4px;">{booking.quote_id}</td>
+                                </tr>
+                                <tr>
                                     <td style="padding: 8px 0; font-weight: 600; color: #4b5563;">Pickup Date:</td>
                                     <td style="padding: 8px 0; color: #1f2937;">{booking.pickup_date.strftime('%B %d, %Y')}</td>
                                 </tr>
