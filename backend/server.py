@@ -1402,45 +1402,83 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
             <html>
             <head>
                 <style>
-                    body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
-                    .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-                    .header {{ background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
-                    .content {{ background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }}
-                    .highlight {{ background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 5px; }}
-                    .button {{ display: inline-block; background: #10b981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }}
-                    .footer {{ text-align: center; color: #6b7280; font-size: 14px; margin-top: 30px; }}
+                    body {{ font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.7; color: #333; background-color: #f5f5f5; }}
+                    .container {{ max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; }}
+                    .header {{ background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 40px 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+                    .content {{ background: #ffffff; padding: 40px 30px; }}
+                    .highlight {{ background: #dbeafe; border-left: 4px solid #3b82f6; padding: 20px; margin: 25px 0; border-radius: 5px; }}
+                    .info-box {{ background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; margin: 20px 0; border-radius: 8px; }}
+                    .steps {{ background: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; margin: 25px 0; border-radius: 5px; }}
+                    .details {{ background: #f9fafb; padding: 20px; margin: 20px 0; border-radius: 8px; border: 1px solid #e5e7eb; }}
+                    .footer {{ text-align: center; color: #6b7280; font-size: 14px; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; }}
+                    h1 {{ margin: 0; font-size: 28px; }}
+                    h2 {{ color: #1f2937; font-size: 20px; margin-top: 0; }}
+                    h3 {{ color: #374151; font-size: 18px; margin-bottom: 15px; }}
+                    .status {{ display: inline-block; background: #3b82f6; color: white; padding: 6px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; }}
                 </style>
             </head>
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1 style="margin: 0;">📧 Quote Under Review</h1>
-                        <p style="margin: 10px 0 0 0; opacity: 0.9;">Your request has been received!</p>
+                        <div style="font-size: 48px; margin-bottom: 10px;">✓</div>
+                        <h1>Quote Successfully Submitted</h1>
+                        <p style="margin: 15px 0 0 0; opacity: 0.95; font-size: 16px;">Thank you for choosing Text2toss Junk Removal</p>
                     </div>
                     <div class="content">
-                        <h2>Hello!</h2>
-                        <p>Thank you for requesting a quote from Text2toss! We've received your junk removal request and it's currently under review by our team.</p>
+                        <p style="font-size: 16px; margin-bottom: 20px;">Dear Valued Customer,</p>
+                        
+                        <p>Thank you for submitting your junk removal quote request. Your quote is currently <span class="status">Under Review</span> by our professional team.</p>
                         
                         <div class="highlight">
-                            <strong>⏰ What happens next?</strong><br>
-                            Our team will carefully review your items and provide you with an accurate, approved quote <strong>within 24 hours</strong>.
+                            <h3 style="margin-top: 0; color: #1e40af;">📧 Response Timeline</h3>
+                            <p style="margin: 0; font-size: 15px;">You will receive an email response with your <strong>approved quote within 24 hours</strong>. Our team is carefully reviewing your requirements to ensure accurate pricing.</p>
                         </div>
                         
-                        <h3>Your Request Details:</h3>
-                        <ul>
-                            <li><strong>Pickup Date:</strong> {booking.pickup_date.strftime('%B %d, %Y')}</li>
-                            <li><strong>Pickup Time:</strong> {booking.pickup_time}</li>
-                            <li><strong>Address:</strong> {booking.address}</li>
-                            <li><strong>Estimated Price:</strong> ${quote_doc.get('total_price', 0):.2f} (subject to review)</li>
-                        </ul>
+                        <div class="details">
+                            <h3>Your Quote Request Details:</h3>
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <td style="padding: 8px 0; font-weight: 600; color: #4b5563;">Pickup Date:</td>
+                                    <td style="padding: 8px 0; color: #1f2937;">{booking.pickup_date.strftime('%B %d, %Y')}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 0; font-weight: 600; color: #4b5563;">Pickup Time:</td>
+                                    <td style="padding: 8px 0; color: #1f2937;">{booking.pickup_time}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 0; font-weight: 600; color: #4b5563;">Service Address:</td>
+                                    <td style="padding: 8px 0; color: #1f2937;">{booking.address}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 0; font-weight: 600; color: #4b5563;">Estimated Price:</td>
+                                    <td style="padding: 8px 0; color: #1f2937; font-weight: 600;">${quote_doc.get('total_price', 0):.2f} <span style="font-size: 13px; color: #6b7280; font-weight: normal;">(subject to review)</span></td>
+                                </tr>
+                            </table>
+                        </div>
                         
-                        <p><strong>💡 Important:</strong> No payment is required at this time. Once your quote is approved, you'll receive an email with the final price and payment instructions.</p>
+                        <div class="steps">
+                            <h3 style="margin-top: 0; color: #92400e;">📋 Next Steps - What to Expect</h3>
+                            <ol style="margin: 10px 0 0 0; padding-left: 20px;">
+                                <li style="margin-bottom: 12px; color: #1f2937;"><strong>Quote Review:</strong> Our team will assess your requirements and finalize pricing.</li>
+                                <li style="margin-bottom: 12px; color: #1f2937;"><strong>Email Notification:</strong> You will receive your approved quote via email within 24 hours.</li>
+                                <li style="margin-bottom: 12px; color: #1f2937;"><strong>Step 3 - Payment:</strong> Once you receive and approve the quote, you will complete the payment step to confirm your booking.</li>
+                                <li style="margin-bottom: 0; color: #1f2937;"><strong>Booking Confirmed:</strong> After payment, your junk removal service will be officially scheduled.</li>
+                            </ol>
+                        </div>
                         
-                        <p>If you have any questions or need to make changes, please don't hesitate to contact us!</p>
+                        <div class="info-box">
+                            <p style="margin: 0; font-size: 15px;"><strong>💡 Important:</strong> No payment is required at this time. You will only be charged <strong>after</strong> you review and approve the final quote. Your booking will be confirmed once Step 3 (Payment) is completed.</p>
+                        </div>
+                        
+                        <p style="margin-top: 30px;">If you have any questions or need to make changes to your request, please feel free to contact us. We're here to help!</p>
+                        
+                        <p style="margin-top: 25px; color: #4b5563;">Best regards,<br>
+                        <strong style="color: #1f2937;">The Text2toss Team</strong></p>
                         
                         <div class="footer">
-                            <p><strong>Text2toss Junk Removal</strong><br>
-                            Professional • Reliable • Eco-Friendly</p>
+                            <p style="margin-bottom: 10px;"><strong>Text2toss Junk Removal</strong></p>
+                            <p style="margin: 5px 0; color: #9ca3af;">Professional • Reliable • Eco-Friendly</p>
+                            <p style="margin: 15px 0 0 0; font-size: 13px; color: #9ca3af;">Thank you for choosing our service!</p>
                         </div>
                     </div>
                 </div>
@@ -1449,7 +1487,7 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
             """
             email_result = await send_email(
                 to_email=booking.email,
-                subject="⏳ Your Quote is Under Review - Text2toss",
+                subject="✓ Quote Submitted - Under Review | Text2toss",
                 html_content=email_html
             )
             logging.info(f"Quote under review email sent to {booking.email}: {email_result}")
