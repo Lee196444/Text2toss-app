@@ -2451,6 +2451,138 @@ Your job is on hold until you approve the new price."""
             {"$set": update_data}
         )
         
+        # Send email notification to customer
+        if is_email_enabled():
+            # Check if there's a booking for this quote to get customer email
+            booking = await db.bookings.find_one({"quote_id": quote_id})
+            
+            if booking and booking.get("email"):
+                customer_email = booking.get("email")
+                customer_name = booking.get("name", "Valued Customer")
+                
+                try:
+                    if approval_action.action == "approve":
+                        # Send approval email
+                        approved_price = approval_action.approved_price or quote.get("total_price")
+                        
+                        email_subject = "✅ Your Quote Has Been Approved - Text2toss"
+                        email_html = f"""
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <style>
+                                body {{ font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.7; color: #333; background-color: #f5f5f5; }}
+                                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; }}
+                                .header {{ background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 40px 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+                                .content {{ background: #ffffff; padding: 40px 30px; }}
+                                .price-box {{ background: #d1fae5; border: 2px solid #10b981; padding: 20px; margin: 25px 0; border-radius: 8px; text-align: center; }}
+                                .price {{ font-size: 36px; font-weight: bold; color: #059669; margin: 10px 0; }}
+                                .info-box {{ background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; margin: 20px 0; border-radius: 8px; }}
+                                .cta-button {{ display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }}
+                                .footer {{ text-align: center; color: #6b7280; font-size: 14px; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; }}
+                                h1 {{ margin: 0; font-size: 28px; }}
+                            </style>
+                        </head>
+                        <body>
+                            <div class="container">
+                                <div class="header">
+                                    <div style="font-size: 48px; margin-bottom: 10px;">✅</div>
+                                    <h1>Quote Approved!</h1>
+                                    <p style="margin: 15px 0 0 0; opacity: 0.95; font-size: 16px;">Great news! Your junk removal quote has been approved.</p>
+                                </div>
+                                <div class="content">
+                                    <p>Hi {customer_name},</p>
+                                    
+                                    <p>We're excited to let you know that your junk removal quote has been <strong>approved</strong> and is ready to proceed!</p>
+                                    
+                                    <div class="price-box">
+                                        <div style="font-size: 16px; color: #059669; font-weight: 600;">Approved Quote</div>
+                                        <div class="price">${approved_price:.2f}</div>
+                                    </div>
+                                    
+                                    {f'<div class="info-box"><strong>Admin Notes:</strong><br>{approval_action.admin_notes}</div>' if approval_action.admin_notes else ''}
+                                    
+                                    <div class="info-box">
+                                        <h3 style="margin-top: 0; color: #059669;">Next Steps:</h3>
+                                        <ol style="margin: 10px 0; padding-left: 20px;">
+                                            <li><strong>Complete Payment:</strong> Please proceed to pay via Venmo to confirm your booking</li>
+                                            <li><strong>Schedule Confirmed:</strong> Your pickup will be scheduled once payment is received</li>
+                                            <li><strong>We'll Be There:</strong> Our team will arrive at your scheduled time</li>
+                                        </ol>
+                                    </div>
+                                    
+                                    <p style="margin-top: 30px;">If you have any questions or need to make changes, please don't hesitate to reach out to us.</p>
+                                    
+                                    <p style="margin-top: 20px;">Thank you for choosing Text2toss!</p>
+                                </div>
+                                <div class="footer">
+                                    <p>Text2toss Junk Removal<br>Professional Junk Removal Services</p>
+                                    <p style="margin-top: 10px; font-size: 12px; color: #9ca3af;">This is an automated notification. Please do not reply to this email.</p>
+                                </div>
+                            </div>
+                        </body>
+                        </html>
+                        """
+                        
+                        await send_email(customer_email, email_subject, email_html)
+                        logging.info(f"Approval email sent to {customer_email}")
+                        
+                    else:  # reject
+                        # Send rejection email
+                        email_subject = "Quote Decision - Text2toss"
+                        email_html = f"""
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <style>
+                                body {{ font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.7; color: #333; background-color: #f5f5f5; }}
+                                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; }}
+                                .header {{ background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 40px 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+                                .content {{ background: #ffffff; padding: 40px 30px; }}
+                                .info-box {{ background: #fef3c7; border: 1px solid #fbbf24; padding: 20px; margin: 20px 0; border-radius: 8px; }}
+                                .footer {{ text-align: center; color: #6b7280; font-size: 14px; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; }}
+                                h1 {{ margin: 0; font-size: 28px; }}
+                            </style>
+                        </head>
+                        <body>
+                            <div class="container">
+                                <div class="header">
+                                    <div style="font-size: 48px; margin-bottom: 10px;">📋</div>
+                                    <h1>Quote Update</h1>
+                                    <p style="margin: 15px 0 0 0; opacity: 0.95; font-size: 16px;">Regarding your junk removal request</p>
+                                </div>
+                                <div class="content">
+                                    <p>Hi {customer_name},</p>
+                                    
+                                    <p>Thank you for considering Text2toss for your junk removal needs. After reviewing your request, we're unable to proceed with this particular job at this time.</p>
+                                    
+                                    {f'<div class="info-box"><strong>Reason:</strong><br>{approval_action.admin_notes}</div>' if approval_action.admin_notes else ''}
+                                    
+                                    <div class="info-box">
+                                        <p style="margin: 0;"><strong>We're here to help!</strong></p>
+                                        <p style="margin: 10px 0 0 0;">If you have questions or would like to discuss alternative options, please feel free to contact us. We may be able to assist with a modified request.</p>
+                                    </div>
+                                    
+                                    <p style="margin-top: 30px;">We appreciate your understanding and hope to serve you in the future.</p>
+                                    
+                                    <p style="margin-top: 20px;">Best regards,<br>Text2toss Team</p>
+                                </div>
+                                <div class="footer">
+                                    <p>Text2toss Junk Removal<br>Professional Junk Removal Services</p>
+                                    <p style="margin-top: 10px; font-size: 12px; color: #9ca3af;">This is an automated notification. Please do not reply to this email.</p>
+                                </div>
+                            </div>
+                        </body>
+                        </html>
+                        """
+                        
+                        await send_email(customer_email, email_subject, email_html)
+                        logging.info(f"Rejection email sent to {customer_email}")
+                        
+                except Exception as email_error:
+                    logging.error(f"Failed to send approval/rejection email: {str(email_error)}")
+                    # Don't fail the approval process if email fails
+        
         # Get updated quote for response
         updated_quote = await db.quotes.find_one({"id": quote_id})
         if "_id" in updated_quote:
