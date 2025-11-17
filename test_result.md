@@ -626,7 +626,6 @@
 
 ## test_plan:
   current_focus: 
-    - "APPROVAL MODAL RESPONSIVE DESIGN - Button visibility across all screen sizes"
     - "EMAIL NOTIFICATION CENTER - Replace SMS Center with Email Center UI"
     - "CSV EXPORT BUTTON - Export job contacts functionality"
     - "COLLAPSIBLE SECTIONS - Make all admin sections collapsible"
@@ -636,6 +635,8 @@
   completed_tests:
     - "NEW APPROVAL-REQUIRED PAYMENT BLOCKING FEATURE - Quote approval system with payment blocking"
     - "COMPLETE APPROVAL-REQUIRED BOOKING FLOW - Customer perspective end-to-end test"
+    - "APPROVAL MODAL RESPONSIVE DESIGN - Button visibility across all screen sizes"
+    - "COMPREHENSIVE IPHONE FUNCTIONALITY TESTING - Complete customer booking flow"
 
   - task: "APPROVAL MODAL RESPONSIVE DESIGN - Button visibility across all screen sizes"
     implemented: true
