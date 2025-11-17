@@ -2362,7 +2362,9 @@ const AdminDashboard = () => {
                                         return quote.temp_image_path;
                                       }
                                       const filename = quote.temp_image_path.split('/').pop();
-                                      return `${process.env.REACT_APP_BACKEND_URL}/api/images/temp_uploads/${filename}`;
+                                      // Determine folder based on filename prefix
+                                      const folder = filename.startsWith('approval_') ? 'approval_quotes' : 'temp_uploads';
+                                      return `${process.env.REACT_APP_BACKEND_URL}/api/images/${folder}/${filename}`;
                                     })()}
                                     alt="Customer uploaded photo for quote" 
                                     className="max-w-full h-auto max-h-64 rounded-lg border border-gray-300 cursor-pointer hover:opacity-90 transition-opacity"
