@@ -1513,6 +1513,17 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
       }
       
       // For non-approval quotes, proceed with payment
+      toast.success("✅ Booking Successfully Submitted! Please complete payment to confirm.", {
+        duration: 4000,
+        style: {
+          background: '#10b981',
+          color: '#ffffff',
+          fontSize: '16px',
+          fontWeight: '600',
+          padding: '16px',
+        },
+      });
+      
       // Generate Venmo payment URL and QR code
       const venmoUrl = `https://venmo.com/code?user_id=Text2toss&amount=${quote.total_price}&note=Text2toss%20Booking%20${bookingId.substring(0, 8)}`;
       
