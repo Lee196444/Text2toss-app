@@ -2345,12 +2345,16 @@ const AdminDashboard = () => {
                               </div>
                             )}
                             
-                            {quote.temp_image_path && (
-                              <div className="mt-4">
-                                <h4 className="font-semibold mb-2 flex items-center gap-2">
-                                  Customer Photo:
+                            <div className="mt-4">
+                              <h4 className="font-semibold mb-2 flex items-center gap-2">
+                                Customer Photo:
+                                {quote.temp_image_path ? (
                                   <Badge className="bg-blue-100 text-blue-800">📸 Uploaded</Badge>
-                                </h4>
+                                ) : (
+                                  <Badge className="bg-gray-100 text-gray-600">No Photo</Badge>
+                                )}
+                              </h4>
+                              {quote.temp_image_path ? (
                                 <div className="bg-white border-2 border-gray-200 rounded-lg p-3">
                                   <img 
                                     src={(() => {
@@ -2373,16 +2377,28 @@ const AdminDashboard = () => {
                                       window.open(imageUrl, '_blank');
                                     }}
                                     onError={(e) => {
-                                      e.target.src = '/placeholder-image.png';
-                                      e.target.alt = 'Photo could not be loaded';
+                                      console.error('Image failed to load:', quote.temp_image_path);
+                                      e.target.style.display = 'none';
+                                      e.target.parentElement.innerHTML = `
+                                        <div class="bg-red-50 border-2 border-red-200 rounded-lg p-4 text-center">
+                                          <div class="text-3xl mb-2">⚠️</div>
+                                          <p class="text-sm font-semibold text-red-800 mb-1">Image Not Available</p>
+                                          <p class="text-xs text-red-600">The customer photo could not be loaded. Path: ${quote.temp_image_path.split('/').pop()}</p>
+                                        </div>
+                                      `;
                                     }}
                                   />
                                   <div className="mt-2 text-xs text-gray-500 text-center">
                                     Click image to view full size • Used for AI pricing analysis
                                   </div>
                                 </div>
-                              </div>
-                            )}
+                              ) : (
+                                <div className="bg-gray-50 border-2 border-gray-200 rounded-lg p-4 text-center">
+                                  <div className="text-3xl mb-2">📷</div>
+                                  <p className="text-sm text-gray-600">No photo uploaded for this quote</p>
+                                </div>
+                              )}
+                            </div>
                           </div>
 
                           {/* Approval Actions */}
