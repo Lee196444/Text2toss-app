@@ -1738,7 +1738,7 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
 
             {/* Curbside Confirmation */}
             <div className={`bg-amber-50 border-2 rounded-xl p-4 ${fieldErrors.curbside_confirmed ? 'border-red-500 bg-red-50' : 'border-amber-200'}`}>
-              <label className="flex items-start gap-3 cursor-pointer">
+              <label className="flex items-start gap-3 sm:gap-4 cursor-pointer">
                 <input
                   type="checkbox"
                   id="curbside-confirmation"
@@ -1747,10 +1747,10 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
                     setBookingData({...bookingData, curbside_confirmed: e.target.checked});
                     setFieldErrors({...fieldErrors, curbside_confirmed: false}); // Clear error on change
                   }}
-                  className="mt-1 h-5 w-5 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
+                  className="mt-1 h-6 w-6 sm:h-5 sm:w-5 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded cursor-pointer flex-shrink-0"
                   data-testid="curbside-checkbox"
                 />
-                <div>
+                <div className="flex-1">
                   <p className="font-semibold text-gray-800 text-base">
                     Items are curbside & ground level {fieldErrors.curbside_confirmed && <span className="text-red-600">*Required</span>}
                   </p>
