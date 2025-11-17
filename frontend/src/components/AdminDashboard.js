@@ -2300,7 +2300,7 @@ const AdminDashboard = () => {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {pendingQuotes.map((quote) => (
+                  {(pendingQuotes || []).map((quote) => (
                     <Card key={quote.id} className="border-l-4 border-l-orange-400">
                       <CardHeader className="pb-3">
                         <div className="flex justify-between items-start">
