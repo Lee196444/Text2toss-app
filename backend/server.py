@@ -1279,19 +1279,36 @@ async def create_quote_from_image(
         # If quote requires approval, copy image to permanent location
         image_path_to_store = str(file_path)
         if requires_approval:
-            # Create permanent approval quotes directory
-            approval_dir = Path("/app/static/approval_quotes")
-            approval_dir.mkdir(parents=True, exist_ok=True)
-            
-            # Copy to permanent location
-            permanent_filename = f"approval_{uuid.uuid4()}{file_extension}"
-            permanent_path = approval_dir / permanent_filename
-            
-            import shutil
-            shutil.copy2(str(file_path), str(permanent_path))
-            image_path_to_store = str(permanent_path)
-            
-            logger.info(f"Copied approval-required quote image to permanent storage: {permanent_path}")
+            try:
+                # Create permanent approval quotes directory
+                approval_dir = Path("/app/static/approval_quotes")
+                approval_dir.mkdir(parents=True, exist_ok=True)
+                
+                # Verify source file exists
+                if not file_path.exists():
+                    logger.error(f"Source temp file does not exist: {file_path}")
+                    raise Exception(f"Source file not found: {file_path}")
+                
+                # Copy to permanent location
+                permanent_filename = f"approval_{uuid.uuid4()}{file_extension}"
+                permanent_path = approval_dir / permanent_filename
+                
+                import shutil
+                shutil.copy2(str(file_path), str(permanent_path))
+                
+                # Verify copy was successful
+                if not permanent_path.exists():
+                    logger.error(f"Failed to copy file to: {permanent_path}")
+                    raise Exception(f"File copy failed: {permanent_path}")
+                
+                image_path_to_store = str(permanent_path)
+                logger.info(f"✅ Successfully copied approval image: {file_path.name} -> {permanent_path.name}")
+                
+            except Exception as copy_error:
+                logger.error(f"❌ Failed to copy approval image: {str(copy_error)}")
+                # Fall back to temp path if copy fails
+                logger.warning(f"Using temp path as fallback: {file_path}")
+                image_path_to_store = str(file_path)
         
         # Create quote with image path
         quote = PriceQuote(
