@@ -626,9 +626,7 @@
 
 ## test_plan:
   current_focus: 
-    - "EMAIL NOTIFICATION CENTER - Replace SMS Center with Email Center UI"
-    - "CSV EXPORT BUTTON - Export job contacts functionality"
-    - "COLLAPSIBLE SECTIONS - Make all admin sections collapsible"
+    - "IPHONE CHECKBOX USABILITY TESTING - Improved checkbox functionality across all iPhone sizes"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
