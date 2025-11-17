@@ -663,6 +663,18 @@
           agent: "testing"
           comment: "🎉 COMPREHENSIVE IPHONE FUNCTIONALITY TESTING COMPLETED - ALL THREE IPHONE SIZES VERIFIED! ✅ IPHONE SE (375x667): Homepage loads correctly, Upload & Quote button visible and clickable (x=220.84, y=22, 86x44), quote modal opens and fits screen (375x667), image upload functionality working, form fields accessible and tappable, no horizontal scrolling required, touch interactions functional ✅ IPHONE 12/13/14 PRO (390x844): Homepage displays perfectly, Upload & Quote button positioned correctly (x=235.84, y=22, 86x44), quote modal responsive (390x844), form fields visible and functional, textarea typing works, scrolling smooth, no overlapping elements, responsive layout excellent ✅ IPHONE 14 PRO MAX (428x926): Homepage renders correctly, Upload & Quote button accessible (x=273.84, y=14, 86x44), quote modal fits viewport (428x926), form interactions working, textarea functional with proper positioning (x=41, y=730.6875, 346x80), no horizontal scrolling, responsive design working ❌ CRITICAL ISSUE FOUND: Get Quote button cut off at bottom on iPhone Pro Max - button position y=949.6875 with height=44 exceeds viewport height of 926px ✅ ALL CRITICAL IPHONE CHECKS PASSED: Touch targets large enough, modals fit within viewport, buttons accessible (except one cut-off issue), text readable, form inputs tappable, scrolling works smoothly, no overlapping elements, navigation functional ✅ BOOKING FLOW ACCESSIBILITY: Quote modal opens correctly on all sizes, form fields are accessible, textarea input works, cancel buttons functional, responsive layout adapts properly ⚠️ QUOTE GENERATION TIMEOUT: AI quote generation taking longer than expected (>2 minutes), but UI flow and responsiveness testing completed successfully. The iPhone functionality meets requirements with one button positioning fix needed for Pro Max."
 
+  - task: "IPHONE CHECKBOX USABILITY TESTING - Improved checkbox functionality across all iPhone sizes"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "User reported checkboxes weren't working properly for iPhone customers. Fix increased checkbox size from 20px to 24px on mobile (h-6 w-6) while keeping 20px on desktop (sm:h-5 sm:w-5). Need to test checkbox functionality across iPhone SE (375x667), iPhone 12/13/14 Pro (390x844), and iPhone 14 Pro Max (428x926). Critical verification points: checkbox size 24px+ on mobile, touch target 44px+ clickable area, visual feedback, tap responsiveness, no overlap with text, proper alignment, accessibility for iPhone users."
+
   - task: "UPDATED BOOKING FORM - Button layout fixes and curbside confirmation"
     implemented: true
     working: true
