@@ -2347,10 +2347,13 @@ const AdminDashboard = () => {
                                 </h4>
                                 <div className="bg-white border-2 border-gray-200 rounded-lg p-3">
                                   <img 
-                                    src={quote.temp_image_path.startsWith('http') ? 
-                                      quote.temp_image_path : 
-                                      `${process.env.REACT_APP_BACKEND_URL}/api/images/temp_uploads/${quote.temp_image_path.split('/').pop()}`
-                                    }
+                                    src={(() => {
+                                      if (quote.temp_image_path.startsWith('http')) {
+                                        return quote.temp_image_path;
+                                      }
+                                      const filename = quote.temp_image_path.split('/').pop();
+                                      return `${process.env.REACT_APP_BACKEND_URL}/api/images/temp_uploads/${filename}`;
+                                    })()}
                                     alt="Customer uploaded photo for quote" 
                                     className="max-w-full h-auto max-h-64 rounded-lg border border-gray-300 cursor-pointer hover:opacity-90 transition-opacity"
                                     onClick={() => {
