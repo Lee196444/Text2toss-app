@@ -581,24 +581,48 @@ const LandingPage = () => {
                   {/* Image Upload Area */}
                   <div className="space-y-4">
                     {!uploadedImage ? (
-                      <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-emerald-300 rounded-lg cursor-pointer bg-emerald-50 hover:bg-emerald-100 transition-colors">
-                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                          <span className="text-6xl mb-4">📷</span>
-                          <p className="mb-2 text-sm font-semibold text-emerald-700">
-                            Click to upload photo
-                          </p>
-                          <p className="text-xs text-emerald-600">
-                            PNG, JPG or HEIC (max 10MB)
-                          </p>
-                        </div>
-                        <Input
-                          type="file"
-                          accept="image/*,image/heic,image/heif"
-                          onChange={handleImageUpload}
-                          className="hidden"
-                          data-testid="image-upload-input"
-                        />
-                      </label>
+                      <div className="space-y-3">
+                        {/* Camera Button */}
+                        <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-emerald-400 rounded-lg cursor-pointer bg-emerald-50 hover:bg-emerald-100 transition-colors">
+                          <div className="flex flex-col items-center justify-center">
+                            <span className="text-5xl mb-2">📸</span>
+                            <p className="text-sm font-semibold text-emerald-700">
+                              Take Photo with Camera
+                            </p>
+                            <p className="text-xs text-emerald-600 mt-1">
+                              Use your device camera
+                            </p>
+                          </div>
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            capture="environment"
+                            onChange={handleImageUpload}
+                            className="hidden"
+                            data-testid="camera-input"
+                          />
+                        </label>
+
+                        {/* Gallery Button */}
+                        <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-blue-400 rounded-lg cursor-pointer bg-blue-50 hover:bg-blue-100 transition-colors">
+                          <div className="flex flex-col items-center justify-center">
+                            <span className="text-5xl mb-2">🖼️</span>
+                            <p className="text-sm font-semibold text-blue-700">
+                              Choose from Gallery
+                            </p>
+                            <p className="text-xs text-blue-600 mt-1">
+                              PNG, JPG or HEIC (max 10MB)
+                            </p>
+                          </div>
+                          <Input
+                            type="file"
+                            accept="image/*,image/heic,image/heif"
+                            onChange={handleImageUpload}
+                            className="hidden"
+                            data-testid="gallery-input"
+                          />
+                        </label>
+                      </div>
                     ) : (
                       <div className="relative">
                         <img
