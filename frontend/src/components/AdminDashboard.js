@@ -2405,9 +2405,13 @@ const AdminDashboard = () => {
                             {quote.temp_image_path && (
                               <Button 
                                 onClick={() => {
-                                  const imageUrl = quote.temp_image_path.startsWith('http') ? 
-                                    quote.temp_image_path : 
-                                    `${process.env.REACT_APP_BACKEND_URL}/api/images/temp_uploads/${quote.temp_image_path.split('/').pop()}`;
+                                  let imageUrl;
+                                  if (quote.temp_image_path.startsWith('http')) {
+                                    imageUrl = quote.temp_image_path;
+                                  } else {
+                                    const filename = quote.temp_image_path.split('/').pop();
+                                    imageUrl = `${process.env.REACT_APP_BACKEND_URL}/api/images/temp_uploads/${filename}`;
+                                  }
                                   
                                   // Check if image exists before opening
                                   const img = new Image();
