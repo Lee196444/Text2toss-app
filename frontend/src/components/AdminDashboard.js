@@ -2374,7 +2374,8 @@ const AdminDashboard = () => {
                                         imageUrl = quote.temp_image_path;
                                       } else {
                                         const filename = quote.temp_image_path.split('/').pop();
-                                        imageUrl = `${process.env.REACT_APP_BACKEND_URL}/api/images/temp_uploads/${filename}`;
+                                        const folder = filename.startsWith('approval_') ? 'approval_quotes' : 'temp_uploads';
+                                        imageUrl = `${process.env.REACT_APP_BACKEND_URL}/api/images/${folder}/${filename}`;
                                       }
                                       window.open(imageUrl, '_blank');
                                     }}
