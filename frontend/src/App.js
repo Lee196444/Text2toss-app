@@ -594,6 +594,7 @@ const LandingPage = () => {
                         <Input
                           type="file"
                           accept="image/*"
+                          capture="environment"
                           onChange={handleImageUpload}
                           className="hidden"
                           data-testid="image-upload-input"
