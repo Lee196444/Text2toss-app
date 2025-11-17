@@ -1782,15 +1782,29 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
 
             {/* Email Notifications Opt-in */}
             <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
-              <label className="flex items-start gap-3 sm:gap-4 cursor-pointer">
-                <input
-                  type="checkbox"
-                  id="email-notifications"
-                  checked={bookingData.email_notifications || true}
-                  onChange={(e) => setBookingData({...bookingData, email_notifications: e.target.checked})}
-                  className="mt-1 h-6 w-6 sm:h-5 sm:w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer flex-shrink-0"
-                  data-testid="email-checkbox"
-                />
+              <div 
+                onClick={() => setBookingData({...bookingData, email_notifications: !bookingData.email_notifications})}
+                className="flex items-start gap-3 sm:gap-4 cursor-pointer"
+              >
+                {/* Custom Checkbox */}
+                <div className="mt-1 flex-shrink-0">
+                  <div className={`
+                    w-7 h-7 sm:w-6 sm:h-6 
+                    rounded border-2 
+                    flex items-center justify-center
+                    transition-all duration-200
+                    ${bookingData.email_notifications 
+                      ? 'bg-blue-500 border-blue-500' 
+                      : 'bg-white border-gray-400'
+                    }
+                  `}>
+                    {bookingData.email_notifications && (
+                      <svg className="w-5 h-5 sm:w-4 sm:h-4 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24" stroke="currentColor">
+                        <path d="M5 13l4 4L19 7"></path>
+                      </svg>
+                    )}
+                  </div>
+                </div>
                 <div className="flex-1">
                   <p className="font-semibold text-gray-800 text-base">
                     📧 Get Email Updates (Recommended)
@@ -1799,7 +1813,7 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
                     Receive booking confirmation, payment reminders, and job updates via email
                   </p>
                 </div>
-              </label>
+              </div>
             </div>
 
             {/* Special Instructions */}
