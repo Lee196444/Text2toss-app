@@ -2383,7 +2383,7 @@ const AdminDashboard = () => {
                                         <div class="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 text-center">
                                           <div class="text-3xl mb-2">📷</div>
                                           <p class="text-sm font-semibold text-yellow-800 mb-2">Photo No Longer Available</p>
-                                          <p class="text-xs text-yellow-700 mb-2">The customer uploaded a photo, but temporary files are cleaned up after 24 hours.</p>
+                                          <p class="text-xs text-yellow-700 mb-2">The customer uploaded a photo, but temporary files are cleaned up after 4 days.</p>
                                           <p class="text-xs text-yellow-600">You can still approve/reject based on the job description and pricing information below.</p>
                                         </div>
                                       `;
