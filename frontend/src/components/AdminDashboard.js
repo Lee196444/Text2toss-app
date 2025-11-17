@@ -890,9 +890,11 @@ const AdminDashboard = () => {
   const fetchPendingQuotes = async () => {
     try {
       const response = await axios.get(`${API}/admin/pending-quotes`);
-      setPendingQuotes(response.data);
+      setPendingQuotes(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Error fetching pending quotes:', error);
+      setPendingQuotes([]); // Set empty array on error
+      toast.error('Failed to load pending quotes');
     }
   };
 
