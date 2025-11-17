@@ -1498,7 +1498,16 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
       
       // If quote requires approval, show success message and close
       if (quote.requires_approval) {
-        toast.success("Booking information submitted! We'll contact you within 24 hours after quote approval.");
+        toast.success("✅ Booking Successfully Submitted! We'll contact you within 24 hours after quote approval.", {
+          duration: 5000,
+          style: {
+            background: '#10b981',
+            color: '#ffffff',
+            fontSize: '16px',
+            fontWeight: '600',
+            padding: '16px',
+          },
+        });
         onSuccess(); // Close the modal
         return;
       }
