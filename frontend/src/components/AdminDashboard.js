@@ -2325,14 +2325,18 @@ const AdminDashboard = () => {
                             <h4 className="font-semibold mb-2">Job Description:</h4>
                             <p className="text-sm text-gray-700 mb-3">{quote.description}</p>
                             
-                            <h4 className="font-semibold mb-2">Items:</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
-                              {quote.items.map((item, index) => (
-                                <div key={index} className="text-sm bg-white p-2 rounded border">
-                                  {item.quantity}x {item.name} ({item.size})
+                            {quote.items && quote.items.length > 0 && (
+                              <>
+                                <h4 className="font-semibold mb-2">Items:</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
+                                  {quote.items.map((item, index) => (
+                                    <div key={index} className="text-sm bg-white p-2 rounded border">
+                                      {item.quantity}x {item.name} ({item.size})
+                                    </div>
+                                  ))}
                                 </div>
-                              ))}
-                            </div>
+                              </>
+                            )}
                             
                             {quote.ai_explanation && (
                               <div>
