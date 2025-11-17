@@ -1768,16 +1768,16 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
 
             {/* Email Notifications Opt-in */}
             <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
-              <label className="flex items-start gap-3 cursor-pointer">
+              <label className="flex items-start gap-3 sm:gap-4 cursor-pointer">
                 <input
                   type="checkbox"
                   id="email-notifications"
                   checked={bookingData.email_notifications || true}
                   onChange={(e) => setBookingData({...bookingData, email_notifications: e.target.checked})}
-                  className="mt-1 h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  className="mt-1 h-6 w-6 sm:h-5 sm:w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer flex-shrink-0"
                   data-testid="email-checkbox"
                 />
-                <div>
+                <div className="flex-1">
                   <p className="font-semibold text-gray-800 text-base">
                     📧 Get Email Updates (Recommended)
                   </p>
