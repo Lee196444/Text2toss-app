@@ -1738,18 +1738,32 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
 
             {/* Curbside Confirmation */}
             <div className={`bg-amber-50 border-2 rounded-xl p-4 ${fieldErrors.curbside_confirmed ? 'border-red-500 bg-red-50' : 'border-amber-200'}`}>
-              <label className="flex items-start gap-3 sm:gap-4 cursor-pointer">
-                <input
-                  type="checkbox"
-                  id="curbside-confirmation"
-                  checked={bookingData.curbside_confirmed || false}
-                  onChange={(e) => {
-                    setBookingData({...bookingData, curbside_confirmed: e.target.checked});
-                    setFieldErrors({...fieldErrors, curbside_confirmed: false}); // Clear error on change
-                  }}
-                  className="mt-1 h-6 w-6 sm:h-5 sm:w-5 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded cursor-pointer flex-shrink-0"
-                  data-testid="curbside-checkbox"
-                />
+              <div 
+                onClick={() => {
+                  setBookingData({...bookingData, curbside_confirmed: !bookingData.curbside_confirmed});
+                  setFieldErrors({...fieldErrors, curbside_confirmed: false});
+                }}
+                className="flex items-start gap-3 sm:gap-4 cursor-pointer"
+              >
+                {/* Custom Checkbox */}
+                <div className="mt-1 flex-shrink-0">
+                  <div className={`
+                    w-7 h-7 sm:w-6 sm:h-6 
+                    rounded border-2 
+                    flex items-center justify-center
+                    transition-all duration-200
+                    ${bookingData.curbside_confirmed 
+                      ? 'bg-emerald-500 border-emerald-500' 
+                      : 'bg-white border-gray-400'
+                    }
+                  `}>
+                    {bookingData.curbside_confirmed && (
+                      <svg className="w-5 h-5 sm:w-4 sm:h-4 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24" stroke="currentColor">
+                        <path d="M5 13l4 4L19 7"></path>
+                      </svg>
+                    )}
+                  </div>
+                </div>
                 <div className="flex-1">
                   <p className="font-semibold text-gray-800 text-base">
                     Items are curbside & ground level {fieldErrors.curbside_confirmed && <span className="text-red-600">*Required</span>}
@@ -1763,7 +1777,7 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
                     </p>
                   )}
                 </div>
-              </label>
+              </div>
             </div>
 
             {/* Email Notifications Opt-in */}
