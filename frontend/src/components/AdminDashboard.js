@@ -2357,9 +2357,13 @@ const AdminDashboard = () => {
                                     alt="Customer uploaded photo for quote" 
                                     className="max-w-full h-auto max-h-64 rounded-lg border border-gray-300 cursor-pointer hover:opacity-90 transition-opacity"
                                     onClick={() => {
-                                      const imageUrl = quote.temp_image_path.startsWith('http') ? 
-                                        quote.temp_image_path : 
-                                        `${process.env.REACT_APP_BACKEND_URL}/api/images/temp_uploads/${quote.temp_image_path.split('/').pop()}`;
+                                      let imageUrl;
+                                      if (quote.temp_image_path.startsWith('http')) {
+                                        imageUrl = quote.temp_image_path;
+                                      } else {
+                                        const filename = quote.temp_image_path.split('/').pop();
+                                        imageUrl = `${process.env.REACT_APP_BACKEND_URL}/api/images/temp_uploads/${filename}`;
+                                      }
                                       window.open(imageUrl, '_blank');
                                     }}
                                     onError={(e) => {
