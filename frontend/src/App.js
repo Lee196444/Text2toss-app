@@ -493,8 +493,8 @@ const LandingPage = () => {
 
       {/* NEW: Improved Quote Modal - Step-by-Step Wizard */}
       {showQuote && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-start sm:items-center justify-center p-4 overflow-y-auto">
-          <Card className="w-full max-w-2xl max-h-[90vh] my-4 sm:my-0 shadow-2xl flex flex-col">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-start sm:items-center justify-center p-2 sm:p-4 overflow-y-auto">
+          <Card className="w-full max-w-2xl max-h-[95vh] my-2 sm:my-0 shadow-2xl overflow-y-auto">
             
             {/* TOP Progress Indicator */}
             <div className="bg-emerald-50 border-b border-emerald-200 p-4 sticky top-0 z-10">
