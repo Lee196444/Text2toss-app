@@ -1276,7 +1276,24 @@ async def create_quote_from_image(
         requires_approval = scale_level is not None and scale_level >= 9
         approval_status = "pending_approval" if requires_approval else "auto_approved"
         
-        # Create quote with temporary image path
+        # If quote requires approval, copy image to permanent location
+        image_path_to_store = str(file_path)
+        if requires_approval:
+            # Create permanent approval quotes directory
+            approval_dir = Path("/app/static/approval_quotes")
+            approval_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Copy to permanent location
+            permanent_filename = f"approval_{uuid.uuid4()}{file_extension}"
+            permanent_path = approval_dir / permanent_filename
+            
+            import shutil
+            shutil.copy2(str(file_path), str(permanent_path))
+            image_path_to_store = str(permanent_path)
+            
+            logger.info(f"Copied approval-required quote image to permanent storage: {permanent_path}")
+        
+        # Create quote with image path
         quote = PriceQuote(
             user_id="anonymous",
             items=items,
@@ -1285,7 +1302,7 @@ async def create_quote_from_image(
             breakdown=breakdown,
             description=f"Image analysis: {description}" if description else "Image-based quote",
             ai_explanation=ai_explanation,
-            temp_image_path=str(file_path),  # Store temp path, will be moved when booked
+            temp_image_path=image_path_to_store,  # Store permanent path for approval quotes
             requires_approval=requires_approval,
             approval_status=approval_status
         )
