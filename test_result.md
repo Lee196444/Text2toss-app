@@ -626,7 +626,9 @@
 
 ## test_plan:
   current_focus: 
-    - "IPHONE CHECKBOX USABILITY TESTING - Improved checkbox functionality across all iPhone sizes"
+    - "EMAIL NOTIFICATION CENTER - Replace SMS Center with Email Center UI"
+    - "CSV EXPORT BUTTON - Export job contacts functionality"
+    - "COLLAPSIBLE SECTIONS - Make all admin sections collapsible"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -635,6 +637,7 @@
     - "COMPLETE APPROVAL-REQUIRED BOOKING FLOW - Customer perspective end-to-end test"
     - "APPROVAL MODAL RESPONSIVE DESIGN - Button visibility across all screen sizes"
     - "COMPREHENSIVE IPHONE FUNCTIONALITY TESTING - Complete customer booking flow"
+    - "IPHONE CHECKBOX USABILITY TESTING - Improved checkbox functionality across all iPhone sizes"
 
   - task: "APPROVAL MODAL RESPONSIVE DESIGN - Button visibility across all screen sizes"
     implemented: true
