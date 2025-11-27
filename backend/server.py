@@ -3493,6 +3493,30 @@ async def export_job_contacts(token: str = Depends(verify_admin_token)):
 # Include the router in the main app
 app.include_router(api_router)
 
+# Health check endpoint for Kubernetes
+@app.get("/health")
+@app.get("/healthz")
+async def health_check():
+    """Health check endpoint for Kubernetes liveness and readiness probes"""
+    try:
+        # Check database connection
+        await db.command("ping")
+        return {
+            "status": "healthy",
+            "database": "connected",
+            "service": "text2toss-api"
+        }
+    except Exception as e:
+        logger.error(f"Health check failed: {str(e)}")
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "unhealthy",
+                "database": "disconnected",
+                "error": str(e)
+            }
+        )
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
