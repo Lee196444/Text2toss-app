@@ -579,37 +579,75 @@ const LandingPage = () => {
                   </div>
 
                   {/* Image Upload Area */}
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {!uploadedImage ? (
-                      <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-emerald-300 rounded-lg cursor-pointer bg-gradient-to-br from-emerald-50 to-blue-50 hover:from-emerald-100 hover:to-blue-100 transition-all duration-300 shadow-sm hover:shadow-md">
-                        <div className="flex flex-col items-center justify-center py-6 px-4">
-                          <div className="flex items-center gap-3 mb-3">
-                            <span className="text-5xl">📸</span>
-                            <span className="text-5xl">🖼️</span>
+                      <>
+                        {/* Take Picture Button */}
+                        <label className="block w-full cursor-pointer">
+                          <div className="flex items-center gap-4 p-5 border-3 border-emerald-400 rounded-xl bg-emerald-50 hover:bg-emerald-100 transition-all duration-200 shadow-md hover:shadow-lg active:scale-98">
+                            <div className="flex-shrink-0 w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center">
+                              <span className="text-4xl">📸</span>
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-lg font-bold text-emerald-900 mb-1">
+                                Take a Picture
+                              </p>
+                              <p className="text-sm text-emerald-700">
+                                Open camera to take photo now
+                              </p>
+                            </div>
+                            <div className="text-emerald-500">
+                              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                              </svg>
+                            </div>
                           </div>
-                          <p className="text-lg font-bold text-gray-800 mb-2 text-center">
-                            Upload Photo
-                          </p>
-                          <p className="text-sm text-gray-600 mb-2 text-center">
-                            Camera or Gallery - Your Choice!
-                          </p>
-                          <div className="bg-white/80 rounded-lg px-4 py-2 mt-2">
-                            <p className="text-xs text-gray-500 text-center">
-                              Tap to select from Camera or Gallery
-                            </p>
-                            <p className="text-xs text-gray-400 text-center mt-1">
-                              PNG, JPG, HEIC (max 10MB)
-                            </p>
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            capture="environment"
+                            onChange={handleImageUpload}
+                            className="hidden"
+                            data-testid="camera-input"
+                          />
+                        </label>
+
+                        {/* Choose from Gallery Button */}
+                        <label className="block w-full cursor-pointer">
+                          <div className="flex items-center gap-4 p-5 border-3 border-blue-400 rounded-xl bg-blue-50 hover:bg-blue-100 transition-all duration-200 shadow-md hover:shadow-lg active:scale-98">
+                            <div className="flex-shrink-0 w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center">
+                              <span className="text-4xl">🖼️</span>
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-lg font-bold text-blue-900 mb-1">
+                                Choose from Gallery
+                              </p>
+                              <p className="text-sm text-blue-700">
+                                Select existing photo from device
+                              </p>
+                            </div>
+                            <div className="text-blue-500">
+                              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                              </svg>
+                            </div>
                           </div>
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            className="hidden"
+                            data-testid="gallery-input"
+                          />
+                        </label>
+
+                        {/* Helper Text */}
+                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
+                          <p className="text-xs text-gray-600">
+                            📷 Accepted formats: PNG, JPG, HEIC • Max size: 10MB
+                          </p>
                         </div>
-                        <Input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageUpload}
-                          className="hidden"
-                          data-testid="image-upload-input"
-                        />
-                      </label>
+                      </>
                     ) : (
                       <div className="relative">
                         <img
