@@ -581,48 +581,36 @@ const LandingPage = () => {
                   {/* Image Upload Area */}
                   <div className="space-y-4">
                     {!uploadedImage ? (
-                      <div className="space-y-3">
-                        {/* Camera Button */}
-                        <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-emerald-400 rounded-lg cursor-pointer bg-emerald-50 hover:bg-emerald-100 transition-colors">
-                          <div className="flex flex-col items-center justify-center">
-                            <span className="text-5xl mb-2">📸</span>
-                            <p className="text-sm font-semibold text-emerald-700">
-                              Take Photo with Camera
+                      <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-emerald-300 rounded-lg cursor-pointer bg-gradient-to-br from-emerald-50 to-blue-50 hover:from-emerald-100 hover:to-blue-100 transition-all duration-300 shadow-sm hover:shadow-md">
+                        <div className="flex flex-col items-center justify-center py-6 px-4">
+                          <div className="flex items-center gap-3 mb-3">
+                            <span className="text-5xl">📸</span>
+                            <span className="text-5xl">🖼️</span>
+                          </div>
+                          <p className="text-lg font-bold text-gray-800 mb-2 text-center">
+                            Upload Photo
+                          </p>
+                          <p className="text-sm text-gray-600 mb-2 text-center">
+                            Camera or Gallery - Your Choice!
+                          </p>
+                          <div className="bg-white/80 rounded-lg px-4 py-2 mt-2">
+                            <p className="text-xs text-gray-500 text-center">
+                              Tap to select from Camera or Gallery
                             </p>
-                            <p className="text-xs text-emerald-600 mt-1">
-                              Use your device camera
+                            <p className="text-xs text-gray-400 text-center mt-1">
+                              PNG, JPG, HEIC (max 10MB)
                             </p>
                           </div>
-                          <Input
-                            type="file"
-                            accept="image/*"
-                            capture="environment"
-                            onChange={handleImageUpload}
-                            className="hidden"
-                            data-testid="camera-input"
-                          />
-                        </label>
-
-                        {/* Gallery Button */}
-                        <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-blue-400 rounded-lg cursor-pointer bg-blue-50 hover:bg-blue-100 transition-colors">
-                          <div className="flex flex-col items-center justify-center">
-                            <span className="text-5xl mb-2">🖼️</span>
-                            <p className="text-sm font-semibold text-blue-700">
-                              Choose from Gallery
-                            </p>
-                            <p className="text-xs text-blue-600 mt-1">
-                              PNG, JPG or HEIC (max 10MB)
-                            </p>
-                          </div>
-                          <Input
-                            type="file"
-                            accept="image/*,image/heic,image/heif"
-                            onChange={handleImageUpload}
-                            className="hidden"
-                            data-testid="gallery-input"
-                          />
-                        </label>
-                      </div>
+                        </div>
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          capture="user"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                          data-testid="image-upload-input"
+                        />
+                      </label>
                     ) : (
                       <div className="relative">
                         <img
