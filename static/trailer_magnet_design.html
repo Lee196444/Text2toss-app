@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text2toss Trailer Magnet - 12"x24"</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #333;
+            padding: 20px;
+            font-family: 'Arial Black', Arial, sans-serif;
+        }
+        
+        .print-note {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        
+        .print-note h2 {
+            color: #10b981;
+            margin-bottom: 10px;
+        }
+        
+        .print-note p {
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        /* Magnet Container - 12"x24" at 300 DPI = 3600px x 7200px */
+        /* For screen preview, scaled down to 25% = 900px x 1800px */
+        .magnet {
+            width: 1800px;
+            height: 900px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            margin: 0 auto;
+        }
+        
+        /* Honeycomb Pattern Background */
+        .honeycomb-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                repeating-linear-gradient(0deg, transparent, transparent 60px, rgba(255, 255, 255, 0.1) 60px, rgba(255, 255, 255, 0.1) 62px),
+                repeating-linear-gradient(60deg, transparent, transparent 60px, rgba(255, 255, 255, 0.1) 60px, rgba(255, 255, 255, 0.1) 62px),
+                repeating-linear-gradient(-60deg, transparent, transparent 60px, rgba(255, 255, 255, 0.1) 60px, rgba(255, 255, 255, 0.1) 62px);
+            opacity: 0.4;
+        }
+        
+        .content {
+            position: relative;
+            z-index: 1;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            padding: 60px 80px;
+            gap: 60px;
+        }
+        
+        /* Left Section - Main Info */
+        .left-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+        
+        /* Logo/Brand */
+        .brand {
+            background: white;
+            padding: 40px 50px;
+            border-radius: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .brand h1 {
+            font-size: 120px;
+            color: #10b981;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -2px;
+            line-height: 1;
+            text-shadow: 2px 2px 0 #059669;
+        }
+        
+        .brand .emoji {
+            font-size: 100px;
+            display: inline-block;
+            margin-right: 20px;
+        }
+        
+        /* Tagline */
+        .tagline {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .tagline p {
+            font-size: 52px;
+            color: #1f2937;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+        
+        .tagline .icon {
+            font-size: 60px;
+            margin-right: 15px;
+        }
+        
+        /* Phone Number */
+        .phone {
+            background: #1f2937;
+            padding: 35px 50px;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+            border: 5px solid white;
+        }
+        
+        .phone p {
+            font-size: 90px;
+            color: white;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+        
+        /* Service Area */
+        .service-area {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 25px 40px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .service-area p {
+            font-size: 42px;
+            color: #1f2937;
+            font-weight: 700;
+        }
+        
+        /* Right Section - QR Code */
+        .right-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+        
+        .qr-container {
+            background: white;
+            padding: 50px;
+            border-radius: 30px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+            border: 8px solid #1f2937;
+        }
+        
+        .qr-container img {
+            width: 500px;
+            height: 500px;
+            display: block;
+        }
+        
+        .scan-text {
+            background: white;
+            padding: 25px 40px;
+            border-radius: 15px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .scan-text p {
+            font-size: 48px;
+            color: #1f2937;
+            font-weight: 700;
+            text-align: center;
+            line-height: 1.2;
+        }
+        
+        .scan-text .arrow {
+            font-size: 60px;
+            display: block;
+            margin-top: 10px;
+        }
+        
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .print-note {
+                display: none;
+            }
+            
+            .magnet {
+                width: 7200px;
+                height: 3600px;
+                box-shadow: none;
+                page-break-after: always;
+            }
+            
+            /* Scale up all fonts for print */
+            .brand h1 { font-size: 480px; }
+            .brand .emoji { font-size: 400px; }
+            .tagline p { font-size: 208px; }
+            .tagline .icon { font-size: 240px; }
+            .phone p { font-size: 360px; }
+            .service-area p { font-size: 168px; }
+            .scan-text p { font-size: 192px; }
+            .scan-text .arrow { font-size: 240px; }
+            .qr-container img { width: 2000px; height: 2000px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-note">
+        <h2>🎨 Text2toss Trailer Magnet Design</h2>
+        <p><strong>Size:</strong> 12" x 24" (Horizontal)</p>
+        <p><strong>Resolution:</strong> 300 DPI Print Quality</p>
+        <p><strong>Instructions:</strong> Right-click and "Print" or save as PDF for professional printing</p>
+        <p><strong>QR Code Links To:</strong> https://junkai-platform.emergent.host/</p>
+        <p style="margin-top: 10px; color: #059669;"><strong>✅ Ready to print at any sign/print shop!</strong></p>
+    </div>
+
+    <div class="magnet">
+        <!-- Honeycomb Background Pattern -->
+        <div class="honeycomb-bg"></div>
+        
+        <div class="content">
+            <!-- Left Section - Main Information -->
+            <div class="left-section">
+                <!-- Brand/Logo -->
+                <div class="brand">
+                    <h1><span class="emoji">🗑️</span>TEXT2TOSS</h1>
+                </div>
+                
+                <!-- Tagline -->
+                <div class="tagline">
+                    <p><span class="icon">📸</span>Text a Photo<br>Get Instant Quote!</p>
+                </div>
+                
+                <!-- Phone Number -->
+                <div class="phone">
+                    <p>928-853-9619</p>
+                </div>
+                
+                <!-- Service Area -->
+                <div class="service-area">
+                    <p>Serving Flagstaff, AZ</p>
+                </div>
+            </div>
+            
+            <!-- Right Section - QR Code -->
+            <div class="right-section">
+                <div class="qr-container">
+                    <img src="text2toss_qr_code.png" alt="Scan to Book">
+                </div>
+                
+                <div class="scan-text">
+                    <p>SCAN TO<br>BOOK NOW<span class="arrow">👆</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
