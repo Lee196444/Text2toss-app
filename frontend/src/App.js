@@ -1220,8 +1220,47 @@ const VenmoPaymentModal = ({ quote, bookingId, qrCode, onClose }) => {
   const venmoUrl = `venmo://paycharge?txn=pay&recipients=Text2toss&amount=${quote.total_price}&note=Text2toss%20Booking%20${bookingId.substring(0, 8)}`;
   
   const copyBookingId = () => {
-    navigator.clipboard.writeText(bookingId.substring(0, 8));
-    toast.success("Booking ID copied to clipboard!");
+    const textToCopy = bookingId.substring(0, 8);
+    
+    // Try modern Clipboard API first
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(textToCopy)
+        .then(() => {
+          toast.success("Booking ID copied to clipboard!");
+        })
+        .catch((err) => {
+          // Fallback to legacy method
+          copyToClipboardFallback(textToCopy);
+        });
+    } else {
+      // Use fallback for browsers/contexts that don't support Clipboard API
+      copyToClipboardFallback(textToCopy);
+    }
+  };
+  
+  const copyToClipboardFallback = (text) => {
+    // Legacy method that works everywhere
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-999999px";
+    textArea.style.top = "-999999px";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+      const successful = document.execCommand('copy');
+      if (successful) {
+        toast.success("Booking ID copied to clipboard!");
+      } else {
+        toast.error("Copy failed. Booking ID: " + text);
+      }
+    } catch (err) {
+      toast.error("Copy failed. Booking ID: " + text);
+    }
+    
+    document.body.removeChild(textArea);
   };
 
   const openVenmoApp = () => {
