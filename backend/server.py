@@ -1432,6 +1432,109 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
     quote_requires_approval = quote_doc.get("requires_approval", False)
     logging.info(f"Booking created: {booking.id}, Quote ID: {booking.quote_id}, Requires Approval: {quote_requires_approval}, Email: {booking.email}")
     
+    # Send admin notification email for new booking
+    if is_email_enabled():
+        try:
+            admin_email = os.environ.get('EMAIL_FROM', 'text2toss@gmail.com')
+            admin_email_subject = f"🔔 New Booking Received - ${quote_doc.get('total_price', 0):.2f}"
+            admin_email_html = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                    .container {{ max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; }}
+                    .header {{ background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+                    .content {{ background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }}
+                    .booking-details {{ background: white; padding: 20px; margin: 20px 0; border-radius: 8px; border: 2px solid #10b981; }}
+                    .detail-row {{ padding: 10px 0; border-bottom: 1px solid #e5e7eb; }}
+                    .detail-label {{ font-weight: bold; color: #374151; }}
+                    .detail-value {{ color: #1f2937; }}
+                    .status-badge {{ display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; }}
+                    .approval-required {{ background: #fef3c7; color: #92400e; border: 2px solid #f59e0b; }}
+                    .ready-to-pay {{ background: #d1fae5; color: #065f46; border: 2px solid #10b981; }}
+                    .action-button {{ display: inline-block; background: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; margin-top: 20px; }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <div style="font-size: 48px; margin-bottom: 10px;">🔔</div>
+                        <h1 style="margin: 0;">New Booking Received!</h1>
+                        <p style="margin: 10px 0 0 0; opacity: 0.95;">Action may be required</p>
+                    </div>
+                    <div class="content">
+                        <div class="booking-details">
+                            <h2 style="margin-top: 0; color: #10b981;">Booking Information</h2>
+                            
+                            <div class="detail-row">
+                                <span class="detail-label">Status:</span>
+                                <span class="status-badge {'approval-required' if quote_requires_approval else 'ready-to-pay'}">
+                                    {'⏳ PENDING APPROVAL' if quote_requires_approval else '💳 READY FOR PAYMENT'}
+                                </span>
+                            </div>
+                            
+                            <div class="detail-row">
+                                <span class="detail-label">Customer Name:</span>
+                                <span class="detail-value">{booking.name or 'Not provided'}</span>
+                            </div>
+                            
+                            <div class="detail-row">
+                                <span class="detail-label">Email:</span>
+                                <span class="detail-value">{booking.email}</span>
+                            </div>
+                            
+                            <div class="detail-row">
+                                <span class="detail-label">Phone:</span>
+                                <span class="detail-value">{booking.phone}</span>
+                            </div>
+                            
+                            <div class="detail-row">
+                                <span class="detail-label">Address:</span>
+                                <span class="detail-value">{booking.address}</span>
+                            </div>
+                            
+                            <div class="detail-row">
+                                <span class="detail-label">Pickup Date:</span>
+                                <span class="detail-value">{booking.pickup_date.strftime('%B %d, %Y')}</span>
+                            </div>
+                            
+                            <div class="detail-row">
+                                <span class="detail-label">Pickup Time:</span>
+                                <span class="detail-value">{booking.pickup_time}</span>
+                            </div>
+                            
+                            <div class="detail-row">
+                                <span class="detail-label">Quote Amount:</span>
+                                <span class="detail-value" style="font-size: 24px; font-weight: bold; color: #10b981;">${quote_doc.get('total_price', 0):.2f}</span>
+                            </div>
+                            
+                            {f'<div class="detail-row"><span class="detail-label">Special Instructions:</span><span class="detail-value">{booking.special_instructions}</span></div>' if booking.special_instructions else ''}
+                            
+                            <div class="detail-row" style="border-bottom: none;">
+                                <span class="detail-label">Curbside Confirmed:</span>
+                                <span class="detail-value">{'✅ Yes' if booking.curbside_confirmed else '❌ No'}</span>
+                            </div>
+                        </div>
+                        
+                        {'<div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 5px;"><strong>⚠️ Action Required:</strong> This quote requires your approval before the customer can proceed with payment. Review and approve/reject in the admin dashboard.</div>' if quote_requires_approval else '<div style="background: #d1fae5; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0; border-radius: 5px;"><strong>✅ Ready:</strong> Customer can proceed with payment. Booking will appear on your schedule once payment is confirmed.</div>'}
+                        
+                        <div style="text-align: center; margin-top: 30px;">
+                            <p style="color: #6b7280; font-size: 14px; margin: 0;">Booking ID: {booking.id}</p>
+                            <p style="color: #6b7280; font-size: 12px; margin-top: 5px;">Received: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}</p>
+                        </div>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """
+            
+            await send_email(admin_email, admin_email_subject, admin_email_html)
+            logging.info(f"Admin notification email sent to {admin_email} for booking {booking.id}")
+        except Exception as admin_email_error:
+            logging.error(f"Failed to send admin notification email: {str(admin_email_error)}")
+            # Don't fail booking if admin email fails
+    
     # Send appropriate email based on approval status
     if is_email_enabled() and booking.email:
         logging.info(f"Email enabled, attempting to send email to {booking.email}")
