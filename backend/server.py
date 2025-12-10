@@ -2637,24 +2637,38 @@ Your job is on hold until you approve the new price."""
                                     <p>We're excited to let you know that your junk removal quote has been <strong>approved</strong> and is ready to proceed!</p>
                                     
                                     <div class="price-box">
-                                        <div style="font-size: 16px; color: #059669; font-weight: 600;">Approved Quote</div>
+                                        <div style="font-size: 16px; color: #059669; font-weight: 600;">
+                                            {'Updated Price (Admin Adjusted)' if approval_action.approved_price and approval_action.approved_price != quote.get("total_price") else 'Approved Quote'}
+                                        </div>
                                         <div class="price">${approved_price:.2f}</div>
+                                        {f'<div style="font-size: 14px; color: #6b7280; margin-top: 10px;"><s>Original: ${quote.get("total_price"):.2f}</s></div>' if approval_action.approved_price and approval_action.approved_price != quote.get("total_price") else ''}
                                     </div>
                                     
                                     {f'<div class="info-box"><strong>Admin Notes:</strong><br>{approval_action.admin_notes}</div>' if approval_action.admin_notes else ''}
                                     
                                     <div class="info-box">
-                                        <h3 style="margin-top: 0; color: #059669;">Next Steps:</h3>
+                                        <h3 style="margin-top: 0; color: #059669;">✅ Ready to Complete Your Booking!</h3>
+                                        <p style="margin: 10px 0;">Your quote is approved and ready for payment. Click the button below to complete your booking and confirm your pickup date.</p>
+                                    </div>
+                                    
+                                    <div style="text-align: center; margin: 30px 0;">
+                                        <a href="{os.environ.get('REACT_APP_BACKEND_URL', 'https://junkai-platform.emergent.host')}" class="cta-button" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 16px 48px; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 18px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+                                            💳 Complete Payment Now
+                                        </a>
+                                        <p style="font-size: 12px; color: #6b7280; margin-top: 15px;">Click to return to Text2toss and complete your booking</p>
+                                    </div>
+                                    
+                                    <div class="info-box">
+                                        <h3 style="margin-top: 0; color: #059669;">What Happens Next:</h3>
                                         <ol style="margin: 10px 0; padding-left: 20px;">
-                                            <li><strong>Complete Payment:</strong> Please proceed to pay via Venmo to confirm your booking</li>
-                                            <li><strong>Schedule Confirmed:</strong> Your pickup will be scheduled once payment is received</li>
-                                            <li><strong>We'll Be There:</strong> Our team will arrive at your scheduled time</li>
+                                            <li><strong>Complete Payment:</strong> Click the button above and pay via Venmo to confirm</li>
+                                            <li><strong>Booking Confirmed:</strong> You'll receive immediate confirmation</li>
+                                            <li><strong>Pickup Scheduled:</strong> Your job is added to our schedule</li>
+                                            <li><strong>We Arrive:</strong> Our team will be there at your scheduled time!</li>
                                         </ol>
                                     </div>
                                     
-                                    <p style="margin-top: 30px;">If you have any questions or need to make changes, please don't hesitate to reach out to us.</p>
-                                    
-                                    <p style="margin-top: 20px;">Thank you for choosing Text2toss!</p>
+                                    <p style="margin-top: 30px; font-size: 14px; color: #6b7280; text-align: center;">Questions? Reply to this email or call us at 928-853-9619</p>
                                 </div>
                                 <div class="footer">
                                     <p>Text2toss Junk Removal<br>Professional Junk Removal Services</p>
