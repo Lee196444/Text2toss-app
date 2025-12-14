@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text2toss App Icon Preview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #1f2937;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        
+        p {
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+        
+        .icon-preview {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 30px 0;
+        }
+        
+        .icon-wrapper {
+            position: relative;
+        }
+        
+        .icon-large {
+            width: 256px;
+            height: 256px;
+            border-radius: 56px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .icon-large:hover {
+            transform: scale(1.05);
+        }
+        
+        .sizes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .size-item {
+            text-align: center;
+        }
+        
+        .size-item img {
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+            transition: transform 0.2s ease;
+        }
+        
+        .size-item img:hover {
+            transform: translateY(-4px);
+        }
+        
+        .size-label {
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 600;
+        }
+        
+        .info-box {
+            background: #f3f4f6;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        
+        .info-box h3 {
+            color: #10b981;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .info-box ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .info-box li {
+            padding: 8px 0;
+            color: #4b5563;
+            display: flex;
+            align-items: center;
+        }
+        
+        .info-box li::before {
+            content: "✓";
+            color: #10b981;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        
+        .download-btn {
+            display: block;
+            width: 100%;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            text-align: center;
+            padding: 16px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 20px;
+            transition: transform 0.2s ease;
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗑️ Text2toss App Icon</h1>
+        <p>Your professional app icon is ready!</p>
+        
+        <div class="icon-preview">
+            <div class="icon-wrapper">
+                <img src="text2toss-icon.png" alt="Text2toss Icon" class="icon-large">
+            </div>
+        </div>
+        
+        <div class="sizes">
+            <div class="size-item">
+                <img src="text2toss-icon.png" width="64" height="64" alt="64x64">
+                <div class="size-label">64×64</div>
+            </div>
+            <div class="size-item">
+                <img src="text2toss-icon.png" width="128" height="128" alt="128x128">
+                <div class="size-label">128×128</div>
+            </div>
+            <div class="size-item">
+                <img src="text2toss-icon.png" width="192" height="192" alt="192x192">
+                <div class="size-label">192×192</div>
+            </div>
+        </div>
+        
+        <div class="info-box">
+            <h3>Icon Features</h3>
+            <ul>
+                <li>512×512 pixels (high resolution)</li>
+                <li>Emerald green gradient background</li>
+                <li>White circle with trash can icon</li>
+                <li>Optimized for all devices</li>
+                <li>iOS, Android, and Desktop ready</li>
+            </ul>
+        </div>
+        
+        <a href="text2toss-icon.png" download="text2toss-icon.png" class="download-btn">
+            📥 Download Icon
+        </a>
+        
+        <div class="info-box" style="margin-top: 20px;">
+            <h3>Where It Appears</h3>
+            <ul>
+                <li>iPhone/iPad home screen</li>
+                <li>Android home screen</li>
+                <li>Browser tabs (favicon)</li>
+                <li>Bookmarks</li>
+                <li>PWA app icon</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
