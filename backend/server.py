@@ -1475,12 +1475,7 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
                             </div>
                             
                             <div class="detail-row">
-                                <span class="detail-label">Customer Name:</span>
-                                <span class="detail-value">{booking.name or 'Not provided'}</span>
-                            </div>
-                            
-                            <div class="detail-row">
-                                <span class="detail-label">Email:</span>
+                                <span class="detail-label">Customer Email:</span>
                                 <span class="detail-value">{booking.email}</span>
                             </div>
                             
