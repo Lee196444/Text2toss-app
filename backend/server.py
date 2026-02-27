@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, UploadFile, File, Form, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse, JSONResponse
 from dotenv import load_dotenv
@@ -21,13 +21,9 @@ import json
 import secrets
 import re
 import base64
-from fastapi import UploadFile, File, Form
 import aiofiles
-import os
-from pathlib import Path
+import shutil
 from twilio.rest import Client
-import logging
-from fastapi import Request
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
