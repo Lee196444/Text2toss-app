@@ -1396,7 +1396,6 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
                 permanent_path = permanent_dir / permanent_filename
                 
                 # Copy file to permanent location
-                import shutil
                 shutil.move(str(temp_path), str(permanent_path))
                 permanent_image_path = str(permanent_path)
                 
