@@ -1250,17 +1250,16 @@ async def create_quote_from_image(
     if not file.content_type.startswith('image/'):
         raise HTTPException(status_code=400, detail="Only image files are allowed")
     
-    # Create uploads directory in static folder for persistent storage
-    temp_uploads_dir = Path("/app/static/temp_uploads")
-    temp_uploads_dir.mkdir(parents=True, exist_ok=True)
+    # Save uploaded file directly to permanent quote_images directory
+    quote_images_dir = Path("/app/static/quote_images")
+    quote_images_dir.mkdir(parents=True, exist_ok=True)
     
-    # Save uploaded file to accessible location
     file_extension = Path(file.filename).suffix or '.jpg'
-    temp_filename = f"temp_{uuid.uuid4()}{file_extension}"
-    file_path = temp_uploads_dir / temp_filename
+    permanent_filename = f"quote_{uuid.uuid4()}{file_extension}"
+    file_path = quote_images_dir / permanent_filename
     
     try:
-        # Save uploaded file
+        # Save uploaded file permanently
         async with aiofiles.open(file_path, 'wb') as f:
             content = await file.read()
             await f.write(content)
@@ -1272,40 +1271,7 @@ async def create_quote_from_image(
         requires_approval = scale_level is not None and scale_level >= 9
         approval_status = "pending_approval" if requires_approval else "auto_approved"
         
-        # If quote requires approval, copy image to permanent location
-        image_path_to_store = str(file_path)
-        if requires_approval:
-            try:
-                # Create permanent approval quotes directory
-                approval_dir = Path("/app/static/approval_quotes")
-                approval_dir.mkdir(parents=True, exist_ok=True)
-                
-                # Verify source file exists
-                if not file_path.exists():
-                    logger.error(f"Source temp file does not exist: {file_path}")
-                    raise Exception(f"Source file not found: {file_path}")
-                
-                # Copy to permanent location
-                permanent_filename = f"approval_{uuid.uuid4()}{file_extension}"
-                permanent_path = approval_dir / permanent_filename
-                
-                shutil.copy2(str(file_path), str(permanent_path))
-                
-                # Verify copy was successful
-                if not permanent_path.exists():
-                    logger.error(f"Failed to copy file to: {permanent_path}")
-                    raise Exception(f"File copy failed: {permanent_path}")
-                
-                image_path_to_store = str(permanent_path)
-                logger.info(f"✅ Successfully copied approval image: {file_path.name} -> {permanent_path.name}")
-                
-            except Exception as copy_error:
-                logger.error(f"❌ Failed to copy approval image: {str(copy_error)}")
-                # Fall back to temp path if copy fails
-                logger.warning(f"Using temp path as fallback: {file_path}")
-                image_path_to_store = str(file_path)
-        
-        # Create quote with image path
+        # Create quote with permanent image path
         quote = PriceQuote(
             user_id="anonymous",
             items=items,
@@ -1314,7 +1280,7 @@ async def create_quote_from_image(
             breakdown=breakdown,
             description=f"Image analysis: {description}" if description else "Image-based quote",
             ai_explanation=ai_explanation,
-            temp_image_path=image_path_to_store,  # Store permanent path for approval quotes
+            temp_image_path=str(file_path),
             requires_approval=requires_approval,
             approval_status=approval_status
         )
@@ -1322,12 +1288,15 @@ async def create_quote_from_image(
         quote_mongo = prepare_for_mongo(quote.dict())
         await db.quotes.insert_one(quote_mongo)
         
-        logger.info(f"Quote created: id={quote.id}, scale={scale_level}, requires_approval={requires_approval}, approval_status={approval_status}")
+        logger.info(f"Quote created: id={quote.id}, scale={scale_level}, requires_approval={requires_approval}, approval_status={approval_status}, image={permanent_filename}")
+        
+        # Cleanup: keep only the latest 30 quote images
+        await cleanup_old_quote_images(30)
         
         return quote
         
     except Exception as e:
-        # Clean up temporary file on error
+        # Clean up file on error
         if file_path.exists():
             file_path.unlink()
         raise e
