@@ -2262,26 +2262,24 @@ async def get_public_completion_photo(booking_id: str):
 
 @api_router.post("/admin/cleanup-temp-images")
 async def cleanup_temporary_images():
-    """Clean up temporary images older than 4 days that weren't booked"""
+    """Clean up old quote images, keeping only the latest 30"""
+    await cleanup_old_quote_images(30)
+    
+    # Also clean old temp_uploads older than 7 days
     import time
-    
     temp_dir = Path("/app/static/temp_uploads")
-    if not temp_dir.exists():
-        return {"message": "No temporary directory found"}
-    
     cleaned_count = 0
-    cutoff_time = time.time() - (4 * 24 * 60 * 60)  # 4 days ago (96 hours)
+    if temp_dir.exists():
+        cutoff_time = time.time() - (7 * 24 * 60 * 60)
+        for file_path in temp_dir.glob("temp_*"):
+            if file_path.is_file() and file_path.stat().st_mtime < cutoff_time:
+                try:
+                    file_path.unlink()
+                    cleaned_count += 1
+                except Exception as e:
+                    logger.error(f"Failed to delete {file_path.name}: {str(e)}")
     
-    for file_path in temp_dir.glob("temp_*"):
-        if file_path.is_file() and file_path.stat().st_mtime < cutoff_time:
-            try:
-                file_path.unlink()
-                cleaned_count += 1
-                logger.info(f"Cleaned up old temp image: {file_path.name}")
-            except Exception as e:
-                logger.error(f"Failed to delete {file_path.name}: {str(e)}")
-    
-    return {"message": f"Cleaned up {cleaned_count} temporary images older than 4 days"}
+    return {"message": f"Cleanup complete. Removed {cleaned_count} old temp files. Latest 30 quote images retained."}
 
 @api_router.post("/admin/bookings/{booking_id}/notify-customer")
 async def notify_customer_completion(booking_id: str):
