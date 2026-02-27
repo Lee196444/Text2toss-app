@@ -3356,7 +3356,6 @@ async def remove_gallery_photo(request: dict):
 @api_router.get("/images/{folder}/{filename}")
 async def serve_image(folder: str, filename: str):
     """Serve images through API endpoint due to Kubernetes routing"""
-    from fastapi.responses import FileResponse
     import mimetypes
     
     file_path = f"/app/static/{folder}/{filename}"
