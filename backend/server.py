@@ -3605,13 +3605,12 @@ async def export_job_contacts(token: str = Depends(verify_admin_token)):
 # Include the router in the main app
 app.include_router(api_router)
 
-# Health check endpoint for Kubernetes
-@app.get("/health")
-@app.get("/healthz")
+# Health check endpoint for Kubernetes (on api_router so accessible via /api/health)
+@api_router.get("/health")
+@api_router.get("/healthz")
 async def health_check():
     """Health check endpoint for Kubernetes liveness and readiness probes"""
     try:
-        # Check database connection
         await db.command("ping")
         return {
             "status": "healthy",
@@ -3628,6 +3627,17 @@ async def health_check():
                 "error": str(e)
             }
         )
+
+# Also register at root level for direct access
+@app.get("/health")
+@app.get("/healthz")
+async def root_health_check():
+    """Root health check for direct access"""
+    try:
+        await db.command("ping")
+        return {"status": "healthy", "database": "connected", "service": "text2toss-api"}
+    except Exception as e:
+        return JSONResponse(status_code=503, content={"status": "unhealthy", "error": str(e)})
 
 app.add_middleware(
     CORSMiddleware,
