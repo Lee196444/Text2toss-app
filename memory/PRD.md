@@ -18,9 +18,21 @@ Full-stack junk removal booking application for Flagstaff, AZ. Customers upload 
 - Admin dashboard with job bins, calendar, route optimization
 - Quote approval/rejection with price adjustments
 - Email notifications (customer + admin)
-- **Permanent image storage for ALL quote photos** (latest 30 retained in `/app/static/quote_images/`)
+- Permanent image storage for ALL quote photos (latest 30 retained in `/app/static/quote_images/`)
 - Admin authentication (username/password with JWT)
 - Health check endpoint at `/api/health`
+
+## UI Design (Redesigned Feb 27, 2026)
+- Clean, Uber-inspired white/minimal design
+- CSS variables for brand colors (`--brand: #059669`)
+- Sticky nav with T2T logo, links, Get Quote CTA, admin icon
+- Hero: "Junk removal, made simple." + Upload CTA + trust strip
+- How it works: 3 clean step cards
+- Green CTA banner mid-page
+- Contact: phone, email, facebook cards
+- Dark footer with copyright
+- Mobile responsive (tested at 390px)
+- Quote modal: 3-step progress (Upload → Quote → Book) with clean dot indicators
 
 ## Key Business Logic
 - Scale 1-8: Auto-approved, customer can pay immediately
@@ -33,22 +45,16 @@ Full-stack junk removal booking application for Flagstaff, AZ. Customers upload 
 - Cleanup automatically retains only the latest 30 photos
 - Booking creation does NOT move/delete quote images
 - Images served via `/api/images/quote_images/{filename}`
-- Legacy images supported: `approval_` prefix -> `approval_quotes/`, `temp_` prefix -> `temp_uploads/`
 
 ## Admin Credentials
 - Username: lrobe
 - Password: L1964c10$
 
-## Architecture
-- Backend routes prefixed with `/api` via APIRouter
-- Static images served via `/api/images/{folder}/{filename}`
-- Health check at both `/api/health` (via api_router) and `/health` (root)
-
 ## Status: Stable
 - All core flows tested and working (Feb 27, 2026)
-- 22/22 backend tests passing
-- Frontend flows verified including photo display in admin
+- 22/22 frontend+backend tests passing (iteration_4)
+- UI redesign verified on desktop + mobile
 
 ## Backlog
-- P2: Refactor `App.js` (1800+ lines) into separate components
+- P2: Refactor `App.js` (1500+ lines) into separate component files
 - P2: Refactor `AdminDashboard.js` (2900+ lines) into sub-components
