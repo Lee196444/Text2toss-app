@@ -1,5 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
+:root {
+  --brand: #059669;
+  --brand-light: #d1fae5;
+  --brand-dark: #064e3b;
+  --surface: #ffffff;
+  --surface-2: #f8faf9;
+  --surface-3: #f0fdf4;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #9ca3af;
+  --border: #e5e7eb;
+  --border-brand: #a7f3d0;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -15,16 +29,14 @@ html, body {
 }
 
 body {
-  font-family: 'Inter', sans-serif;
-  line-height: 1.6;
-  color: #ffffff;
-  background-image: url('https://customer-assets.emergentagent.com/job_text2toss-venmo/artifacts/x9ylj5p1_file_000000009f1c622f8fa39a4fa28b3561.png');
-  background-size: auto;
-  background-attachment: fixed;
-  background-position: center;
-  background-repeat: repeat;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background: var(--surface);
   min-height: 100vh;
   min-width: 100vw;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .App {
@@ -34,343 +46,150 @@ body {
   height: 100%;
 }
 
-/* Smooth scrolling */
 html {
   scroll-behavior: smooth;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
 
-::-webkit-scrollbar-track {
-  background: #f1f5f9;
-}
+/* Interactions */
+button { transition: all 0.15s ease; }
+button:active { transform: scale(0.98); }
 
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-/* Button hover effects */
-button {
-  transition: all 0.2s ease-in-out;
-}
-
-button:hover {
-  transform: translateY(-1px);
-}
-
-button:active {
-  transform: translateY(0);
-}
-
-/* Input focus effects */
-input:focus,
-textarea:focus {
+input:focus, textarea:focus, select:focus {
   outline: none;
-  ring: 2px;
-  ring-color: rgb(16 185 129);
-  border-color: rgb(16 185 129);
+  border-color: var(--brand) !important;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
 }
 
-/* Card hover effects */
-[data-testid*="card"]:hover,
-.shadow-lg:hover {
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  transition: box-shadow 0.3s ease-in-out;
-}
-
-/* Gradient text selection */
 ::selection {
-  background-color: rgba(16, 185, 129, 0.2);
-  color: #065f46;
+  background-color: rgba(5, 150, 105, 0.15);
+  color: var(--brand-dark);
 }
 
-/* Loading animations */
+/* Animations */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.5s ease-out forwards;
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.6s ease-out;
+  animation: fadeIn 0.4s ease-out forwards;
 }
 
-/* Modal backdrop blur */
-.backdrop-blur-sm {
-  backdrop-filter: blur(4px);
-}
+.stagger-1 { animation-delay: 0.1s; opacity: 0; }
+.stagger-2 { animation-delay: 0.2s; opacity: 0; }
+.stagger-3 { animation-delay: 0.3s; opacity: 0; }
+.stagger-4 { animation-delay: 0.4s; opacity: 0; }
 
-/* Professional spacing and typography */
+/* Toast */
+.sonner-toaster { font-family: 'Inter', sans-serif; }
+
+/* Headings */
 h1, h2, h3, h4, h5, h6 {
   font-weight: 700;
   letter-spacing: -0.025em;
+  color: var(--text-primary);
 }
 
-p {
-  color: #6b7280;
-}
+p { color: var(--text-secondary); }
 
-/* Mobile-first responsive design */
-/* Base styles are mobile-first, then scaled up */
-
-/* Extra small devices (phones, 320px and up) */
-@media (max-width: 480px) {
-  body {
-    font-size: 14px;
-    background-attachment: scroll; /* Better performance on mobile */
-    padding-bottom: 60px; /* Space for Emergent badge */
-  }
-  
-  .text-5xl {
-    font-size: 2rem !important;
-    line-height: 1.2;
-  }
-  
-  .text-6xl {
-    font-size: 2.25rem !important;
-    line-height: 1.2;
-  }
-  
-  .text-4xl {
-    font-size: 1.75rem !important;
-  }
-  
-  .text-3xl {
-    font-size: 1.5rem !important;
-  }
-  
-  .text-2xl {
-    font-size: 1.25rem !important;
-  }
-  
-  .text-xl {
-    font-size: 1.125rem !important;
-  }
-  
-  /* Reduce padding on mobile */
-  .p-6 {
-    padding: 1rem !important;
-  }
-  
-  .p-8 {
-    padding: 1.5rem !important;
-  }
-  
-  .px-8 {
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
-  }
-  
-  .py-6 {
-    padding-top: 1rem !important;
-    padding-bottom: 1rem !important;
-  }
-  
-  /* Adjust grid layouts for mobile */
-  .grid-cols-2 {
-    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
-  }
-  
-  .md\\:grid-cols-2 {
-    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
-  }
-  
-  .md\\:grid-cols-3 {
-    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
-  }
-  
-  .md\\:grid-cols-4 {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-  
-  /* Make buttons more touch-friendly */
-  button {
-    min-height: 44px !important;
-    padding: 0.75rem 0.5rem !important;
-    font-size: 0.875rem !important;
-    max-width: 100% !important;
-    word-wrap: break-word !important;
-    overflow: hidden !important;
-  }
-  
-  /* Improve modal sizing on mobile */
-  .max-w-md {
-    max-width: calc(100vw - 2rem) !important;
-    margin: 1rem !important;
-  }
-  
-  /* Prevent content overlap with Emergent badge */
-  section {
-    padding-bottom: 80px !important;
-  }
-  
-  /* Ensure main content doesn't get cut off */
-  main, 
-  .hero-section,
-  [data-testid*="hero"] {
-    margin-bottom: 80px !important;
-  }
-  
-  /* Fix button overflow on mobile */
-  [data-testid="hero-get-quote-btn"],
-  [data-testid="learn-more-btn"] {
-    max-width: calc(100vw - 3rem) !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-  }
-  
-  /* Navigation buttons mobile optimization */
-  [data-testid="admin-login-nav-btn"],
-  [data-testid="get-quote-btn"] {
-    min-width: auto !important;
-    font-weight: 500 !important;
-    letter-spacing: 0.025em !important;
-  }
-  
-  .max-w-2xl,
-  .max-w-4xl,
-  .max-w-6xl {
-    max-width: calc(100vw - 1rem) !important;
-    margin: 0.5rem !important;
-  }
-  
-  /* Calendar responsive adjustments */
-  .calendar-grid .grid-cols-7 > div {
-    min-height: 60px !important;
-    font-size: 0.75rem !important;
-  }
-  
-  /* Job bins responsive */
-  .transform.hover\\:scale-105:hover {
-    transform: scale(1.02) !important;
-  }
-}
-
-/* Small devices (tablets, 481px and up) */
-@media (min-width: 481px) and (max-width: 768px) {
-  .text-5xl {
-    font-size: 2.5rem !important;
-  }
-  
-  .text-6xl {
-    font-size: 3rem !important;
-  }
-  
-  .grid-cols-2 {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-  
-  .md\\:grid-cols-4 {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-}
-
-/* Medium devices (desktops, 769px and up) */
-@media (min-width: 769px) {
-  /* Desktop styles - keep existing */
-}
-
-/* Accessibility improvements */
-button:focus-visible,
-a:focus-visible {
-  outline: 2px solid #10b981;
+/* Accessibility */
+button:focus-visible, a:focus-visible {
+  outline: 2px solid var(--brand);
   outline-offset: 2px;
 }
 
-/* Image loading placeholder */
-img {
-  background-color: #f3f4f6;
-  border-radius: inherit;
-}
+/* Image loading */
+img { background-color: #f3f4f6; }
 
-/* Professional form styling */
-form {
-  space-y: 1.5rem;
-}
-
-/* Toast positioning */
-.sonner-toaster {
-  font-family: 'Inter', sans-serif;
-}
-
-/* Mobile touch optimizations */
+/* Mobile touch */
 @media (pointer: coarse) {
-  /* Increase touch target sizes */
-  button, 
-  [role="button"],
-  input,
-  textarea,
-  select {
+  button, [role="button"], input, textarea, select {
     min-height: 44px;
-    min-width: 44px;
-  }
-  
-  /* Remove hover effects on touch devices */
-  .hover\\:scale-105:hover {
-    transform: none;
-  }
-  
-  .hover\\:shadow-lg:hover {
-    box-shadow: inherit;
   }
 }
 
-/* iOS Safari specific fixes */
+/* iOS fixes */
 @supports (-webkit-touch-callout: none) {
-  body {
-    -webkit-text-size-adjust: 100%;
-    -webkit-font-smoothing: antialiased;
-  }
-  
-  input, textarea {
-    -webkit-appearance: none;
-    border-radius: 0;
-  }
+  body { -webkit-text-size-adjust: 100%; }
+  input, textarea { -webkit-appearance: none; border-radius: 0; }
 }
 
-/* Prevent zoom on input focus (iOS) */
+/* Prevent zoom on iOS */
 @media screen and (max-width: 767px) {
-  input[type="text"],
-  input[type="email"],
-  input[type="password"],
-  input[type="number"],
-  input[type="tel"],
-  input[type="date"],
-  input[type="time"],
-  textarea,
-  select {
+  input[type="text"], input[type="email"], input[type="password"],
+  input[type="number"], input[type="tel"], input[type="date"],
+  input[type="time"], textarea, select {
     font-size: 16px !important;
   }
 }
 
-/* High DPI display adjustments */
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  img {
-    image-rendering: -webkit-optimize-contrast;
-  }
+/* Photo carousel */
+.photo-carousel {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
 }
 
-/* Dark mode support for mobile */
-@media (prefers-color-scheme: dark) {
-  ::-webkit-scrollbar-track {
-    background: #1e293b;
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    background: #475569;
-  }
+.photo-carousel img {
+  transition: opacity 0.6s ease;
+}
+
+/* Step indicator */
+.step-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  transition: all 0.3s ease;
+}
+
+.step-dot.active {
+  background: var(--brand);
+  color: white;
+  box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.15);
+}
+
+.step-dot.done {
+  background: var(--brand);
+  color: white;
+}
+
+.step-dot.pending {
+  background: #e5e7eb;
+  color: #9ca3af;
+}
+
+.step-line {
+  width: 48px;
+  height: 2px;
+  background: #e5e7eb;
+  transition: background 0.3s ease;
+}
+
+.step-line.done {
+  background: var(--brand);
 }
