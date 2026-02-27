@@ -1374,27 +1374,8 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
             detail=f"Time slot {booking_data.pickup_time} is already booked for {booking_data.pickup_date}"
         )
     
-    # Handle image preservation if quote had an image
-    permanent_image_path = None
-    if quote_doc.get("temp_image_path"):
-        try:
-            # Create permanent storage directory
-            permanent_dir = Path("/app/backend/static/booking_images")
-            permanent_dir.mkdir(parents=True, exist_ok=True)
-            
-            temp_path = Path(quote_doc["temp_image_path"])
-            if temp_path.exists():
-                # Move image to permanent storage
-                permanent_filename = f"booking_{booking_data.quote_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}{temp_path.suffix}"
-                permanent_path = permanent_dir / permanent_filename
-                
-                # Copy file to permanent location
-                shutil.move(str(temp_path), str(permanent_path))
-                permanent_image_path = str(permanent_path)
-                
-        except Exception as e:
-            print(f"Error preserving image: {str(e)}")
-            # Don't fail booking if image handling fails
+    # Use the quote image path directly (images are now stored permanently in quote_images/)
+    permanent_image_path = quote_doc.get("temp_image_path")
     
     # Set status based on whether quote requires approval
     booking_status = "pending_customer_approval" if quote_doc.get("requires_approval", False) else "pending_payment"
