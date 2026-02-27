@@ -2283,7 +2283,7 @@ const AdminDashboard = () => {
                   </span>
                 </CardTitle>
                 <CardDescription className="text-xs sm:text-sm mt-1">
-                  Review high-value quotes (Scale 4-10) before payment
+                  Review high-value quotes (Scale 9-20) before payment
                 </CardDescription>
               </div>
               <Button 
