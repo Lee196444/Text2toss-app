@@ -1237,6 +1237,30 @@ async def create_quote(quote_data: PriceQuoteCreate):
     
     return quote
 
+async def cleanup_old_quote_images(keep_count: int = 30):
+    """Keep only the latest N quote images, delete older ones"""
+    try:
+        quote_images_dir = Path("/app/static/quote_images")
+        if not quote_images_dir.exists():
+            return
+        
+        # Get all quote image files sorted by modification time (newest first)
+        image_files = sorted(
+            [f for f in quote_images_dir.glob("quote_*") if f.is_file()],
+            key=lambda f: f.stat().st_mtime,
+            reverse=True
+        )
+        
+        # Delete files beyond the keep_count
+        for old_file in image_files[keep_count:]:
+            try:
+                old_file.unlink()
+                logger.info(f"Cleaned up old quote image: {old_file.name}")
+            except Exception as e:
+                logger.error(f"Failed to delete {old_file.name}: {str(e)}")
+    except Exception as e:
+        logger.error(f"Error during quote image cleanup: {str(e)}")
+
 @api_router.post("/quotes/image", response_model=PriceQuote)
 async def create_quote_from_image(
     file: UploadFile = File(...),
