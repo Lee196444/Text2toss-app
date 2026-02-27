@@ -3602,10 +3602,7 @@ async def export_job_contacts(token: str = Depends(verify_admin_token)):
         logger.error(f"Error exporting job contacts: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to export job contacts: {str(e)}")
 
-# Include the router in the main app
-app.include_router(api_router)
-
-# Health check endpoint for Kubernetes (on api_router so accessible via /api/health)
+# Health check endpoint on api_router (accessible via /api/health)
 @api_router.get("/health")
 @api_router.get("/healthz")
 async def health_check():
@@ -3627,6 +3624,9 @@ async def health_check():
                 "error": str(e)
             }
         )
+
+# Include the router in the main app
+app.include_router(api_router)
 
 # Also register at root level for direct access
 @app.get("/health")
