@@ -1289,7 +1289,6 @@ async def create_quote_from_image(
                 permanent_filename = f"approval_{uuid.uuid4()}{file_extension}"
                 permanent_path = approval_dir / permanent_filename
                 
-                import shutil
                 shutil.copy2(str(file_path), str(permanent_path))
                 
                 # Verify copy was successful
