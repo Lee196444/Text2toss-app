@@ -2349,7 +2349,7 @@ const AdminDashboard = () => {
                               <h4 className="font-semibold mb-2 flex items-center gap-2">
                                 Customer Photo:
                                 {quote.temp_image_path ? (
-                                  <Badge className="bg-blue-100 text-blue-800">📸 Uploaded</Badge>
+                                  <Badge className="bg-blue-100 text-blue-800" data-testid="photo-uploaded-badge">Uploaded</Badge>
                                 ) : (
                                   <Badge className="bg-gray-100 text-gray-600">No Photo</Badge>
                                 )}
@@ -2362,19 +2362,23 @@ const AdminDashboard = () => {
                                         return quote.temp_image_path;
                                       }
                                       const filename = quote.temp_image_path.split('/').pop();
-                                      // Determine folder based on filename prefix
-                                      const folder = filename.startsWith('approval_') ? 'approval_quotes' : 'temp_uploads';
+                                      const folder = filename.startsWith('quote_') ? 'quote_images' 
+                                        : filename.startsWith('approval_') ? 'approval_quotes' 
+                                        : 'temp_uploads';
                                       return `${process.env.REACT_APP_BACKEND_URL}/api/images/${folder}/${filename}`;
                                     })()}
                                     alt="Customer uploaded photo for quote" 
                                     className="max-w-full h-auto max-h-64 rounded-lg border border-gray-300 cursor-pointer hover:opacity-90 transition-opacity"
+                                    data-testid="quote-photo-img"
                                     onClick={() => {
                                       let imageUrl;
                                       if (quote.temp_image_path.startsWith('http')) {
                                         imageUrl = quote.temp_image_path;
                                       } else {
                                         const filename = quote.temp_image_path.split('/').pop();
-                                        const folder = filename.startsWith('approval_') ? 'approval_quotes' : 'temp_uploads';
+                                        const folder = filename.startsWith('quote_') ? 'quote_images' 
+                                          : filename.startsWith('approval_') ? 'approval_quotes' 
+                                          : 'temp_uploads';
                                         imageUrl = `${process.env.REACT_APP_BACKEND_URL}/api/images/${folder}/${filename}`;
                                       }
                                       window.open(imageUrl, '_blank');
@@ -2386,14 +2390,13 @@ const AdminDashboard = () => {
                                         <div class="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 text-center">
                                           <div class="text-3xl mb-2">📷</div>
                                           <p class="text-sm font-semibold text-yellow-800 mb-2">Photo No Longer Available</p>
-                                          <p class="text-xs text-yellow-700 mb-2">The customer uploaded a photo, but temporary files are cleaned up after 4 days.</p>
-                                          <p class="text-xs text-yellow-600">You can still approve/reject based on the job description and pricing information below.</p>
+                                          <p class="text-xs text-yellow-700 mb-2">Only the last 30 quote photos are retained.</p>
                                         </div>
                                       `;
                                     }}
                                   />
                                   <div className="mt-2 text-xs text-gray-500 text-center">
-                                    Click image to view full size • Used for AI pricing analysis
+                                    Click image to view full size
                                   </div>
                                 </div>
                               ) : (
