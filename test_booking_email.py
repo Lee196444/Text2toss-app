@@ -7,7 +7,7 @@ import json
 from datetime import datetime, timedelta
 
 def test_booking_confirmation_with_real_booking():
-    base_url = "https://junkapp.preview.emergentagent.com"
+    base_url = "https://quote-status-pending.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Step 1: Login as admin

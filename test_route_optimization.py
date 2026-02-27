@@ -11,7 +11,7 @@ from datetime import datetime
 
 class RouteOptimizationTester:
     def __init__(self):
-        self.base_url = "https://junkapp.preview.emergentagent.com"
+        self.base_url = "https://quote-status-pending.preview.emergentagent.com"
         self.api_url = f"{self.base_url}/api"
         self.admin_token = None
         self.expected_api_key = "AIzaSyAL2MUm0nrPx833OcXtSGinSyZYApx344A"

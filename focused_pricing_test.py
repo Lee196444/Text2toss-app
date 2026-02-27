@@ -3,7 +3,7 @@ import json
 
 def test_specific_scenarios():
     """Test specific scenarios from the review request"""
-    base_url = "https://junkapp.preview.emergentagent.com"
+    base_url = "https://quote-status-pending.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     print("🔍 FOCUSED PRICING ACCURACY TEST")

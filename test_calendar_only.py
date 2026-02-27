@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 
 def test_calendar_functionality():
     """Test the NEW CALENDAR FUNCTIONALITY comprehensively"""
-    base_url = "https://junkapp.preview.emergentagent.com"
+    base_url = "https://quote-status-pending.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # First, get admin token
