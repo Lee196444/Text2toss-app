@@ -271,448 +271,334 @@ const LandingPage = () => {
   };
 
   return (
-    <div className="min-h-screen min-w-full w-full bg-gradient-to-br from-black/40 to-emerald-900/50">
-      {/* Toast notifications handled by global function */}
+    <div className="min-h-screen bg-white" data-testid="landing-page">
       
-      {/* Navigation */}
-      <nav className="bg-black/70 backdrop-blur-md border-b border-emerald-400/30 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-3 sm:py-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold text-base sm:text-xl">T2T</span>
+      {/* Nav */}
+      <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="flex justify-between items-center h-14 sm:h-16">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">T2T</span>
               </div>
-              <div className="flex flex-col">
-                <span className="text-2xl sm:text-3xl font-black text-white tracking-tight">TEXT2TOSS</span>
-                <span className="text-xs sm:text-sm text-emerald-300 font-medium tracking-wide">Professional Junk Removal</span>
-              </div>
+              <span className="text-lg sm:text-xl font-extrabold tracking-tight text-gray-900">Text2toss</span>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="hidden md:flex items-center space-x-8">
-                <a href="#how-it-works" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors">How It Works</a>
-                <a href="#contact" className="text-gray-300 hover:text-emerald-400 font-medium transition-colors">Contact</a>
-              </div>
+            <div className="flex items-center gap-3">
+              <a href="#how-it-works" className="hidden sm:block text-sm text-gray-500 hover:text-gray-900 font-medium transition-colors">How It Works</a>
+              <a href="#contact" className="hidden sm:block text-sm text-gray-500 hover:text-gray-900 font-medium transition-colors">Contact</a>
               <Button 
                 onClick={() => setShowQuote(true)}
                 size="sm"
-                className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-2 min-w-0 font-medium"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 h-9 rounded-full"
                 data-testid="get-quote-btn"
               >
-                <span className="hidden sm:inline">📸 Upload & Quote</span>
-                <span className="sm:hidden">Get Quote</span>
+                Get Quote
               </Button>
               <Link to="/admin">
-                <Button 
-                  variant="outline"
-                  className="border-emerald-400 text-emerald-400 hover:bg-emerald-400 hover:text-white w-10 h-10 p-0 rounded-lg flex items-center justify-center"
-                  data-testid="admin-login-nav-btn"
-                >
-                  🔐
-                </Button>
+                <button className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-300 transition-colors" data-testid="admin-login-nav-btn">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                </button>
               </Link>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="py-8 sm:py-12 lg:py-20 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-4 sm:gap-8 lg:gap-12 items-center">
-            <div className="space-y-4 sm:space-y-6 lg:space-y-8 px-2 lg:px-0">
-              <div className="space-y-4 lg:space-y-6">
-                <div className="text-center lg:text-left">
-                  <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-200 text-xs sm:text-sm">
-                    <span className="flex items-center justify-center flex-wrap">
-                      <span>📸 AI-Powered Photo Quotes</span>
-                      <span className="hidden sm:inline"> • No Callbacks Required</span>
-                    </span>
-                  </Badge>
+      {/* Hero */}
+      <section className="pt-12 sm:pt-20 pb-8 sm:pb-16 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+            
+            {/* Left - Copy */}
+            <div className="space-y-6 sm:space-y-8 animate-fade-up">
+              <div>
+                <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 text-xs sm:text-sm font-medium px-3 py-1.5 rounded-full mb-4 sm:mb-6">
+                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                  Serving Flagstaff, AZ
                 </div>
-                <h1 className="text-4xl sm:text-6xl md:text-8xl lg:text-[10rem] xl:text-[12rem] font-black leading-tight text-center lg:text-left">
-                  <span style={{
-                    color: '#10b981',
-                    textShadow: `
-                      -4px -4px 0 white, -4px -3px 0 white, -4px -2px 0 white, -4px -1px 0 white, -4px 0 0 white, -4px 1px 0 white, -4px 2px 0 white, -4px 3px 0 white, -4px 4px 0 white,
-                      -3px -4px 0 white, -3px 4px 0 white,
-                      -2px -4px 0 white, -2px 4px 0 white,
-                      -1px -4px 0 white, -1px 4px 0 white,
-                      0px -4px 0 white, 0px 4px 0 white,
-                      1px -4px 0 white, 1px 4px 0 white,
-                      2px -4px 0 white, 2px 4px 0 white,
-                      3px -4px 0 white, 3px 4px 0 white,
-                      4px -4px 0 white, 4px -3px 0 white, 4px -2px 0 white, 4px -1px 0 white, 4px 0 0 white, 4px 1px 0 white, 4px 2px 0 white, 4px 3px 0 white, 4px 4px 0 white,
-                      0 0 10px #00ff88, 0 0 20px #00ff88, 0 0 30px #00ff88, 0 0 40px #00ff88
-                    `
-                  }}>Text2toss</span>
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 tracking-tight leading-[1.1]">
+                  Junk removal,<br />
+                  <span className="text-emerald-600">made simple.</span>
                 </h1>
-                <div className="bg-emerald-900/40 border border-emerald-400/40 rounded-lg p-3 sm:p-4 mb-3 sm:mb-4">
-                  <p className="text-emerald-200 text-sm sm:text-base lg:text-lg font-semibold text-center">
-                    📍 Servicing Flagstaff AZ and surrounding areas
-                  </p>
-                  <p className="text-emerald-300 text-xs sm:text-sm text-center mt-1">
-                    Locally owned and operated business
-                  </p>
-                </div>
-                <div className="text-sm sm:text-base lg:text-xl text-gray-200 leading-relaxed text-center lg:text-left px-2 lg:px-0 mb-3 sm:mb-4">
-                  <p className="mb-2">
-                    Upload photo of junk and quick description, get a quote in seconds!
-                  </p>
-                  <p className="mb-2">
-                    No more waiting on callbacks and no more hassles.
-                  </p>
-                  <p className="font-semibold text-emerald-200">
-                    Junk removal made seamless.
-                  </p>
-                </div>
-                <div className="bg-emerald-900/30 border border-emerald-400/30 rounded-lg p-3 sm:p-4 mt-3 sm:mt-4 mb-20">
-                  <p className="text-emerald-200 text-xs sm:text-sm font-medium text-center lg:text-left">
-                    📍 Ground Level & Curbside Pickup Only
-                  </p>
-                  <p className="text-emerald-300 text-xs sm:text-sm mt-1 text-center lg:text-left">
-                    We pickup items from ground level locations and curbside. Items must be accessible without stairs.
-                  </p>
-                </div>
+                <p className="mt-4 sm:mt-6 text-base sm:text-lg text-gray-500 leading-relaxed max-w-lg">
+                  Snap a photo of your junk, get an instant AI quote, and schedule a pickup. No callbacks. No hassles.
+                </p>
               </div>
-              
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 lg:gap-4 justify-center px-2 sm:px-4 lg:px-0 max-w-full mx-auto">
+
+              <div className="flex flex-col sm:flex-row gap-3">
                 <Button 
                   onClick={() => setShowQuote(true)}
                   size="lg"
-                  className="w-full sm:flex-1 bg-black border-4 border-white hover:bg-black/80 text-lg sm:text-xl lg:text-2xl font-black px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  className="bg-gray-900 hover:bg-gray-800 text-white text-base sm:text-lg font-bold px-6 sm:px-8 h-14 rounded-xl shadow-lg hover:shadow-xl transition-all"
                   data-testid="hero-get-quote-btn"
-                  style={{
-                    color: '#059669',
-                    textShadow: `
-                      -3px -3px 0 white, -3px -2px 0 white, -3px -1px 0 white, -3px 0 0 white, -3px 1px 0 white, -3px 2px 0 white, -3px 3px 0 white,
-                      -2px -3px 0 white, -2px 3px 0 white,
-                      -1px -3px 0 white, -1px 3px 0 white,
-                      0px -3px 0 white, 0px 3px 0 white,
-                      1px -3px 0 white, 1px 3px 0 white,
-                      2px -3px 0 white, 2px 3px 0 white,
-                      3px -3px 0 white, 3px -2px 0 white, 3px -1px 0 white, 3px 0 0 white, 3px 1px 0 white, 3px 2px 0 white, 3px 3px 0 white,
-                      0 0 5px #10b981, 0 0 10px #10b981
-                    `
-                  }}
                 >
-                  <span className="flex items-center justify-center space-x-3">
-                    <span className="text-lg sm:text-2xl lg:text-3xl">📸</span>
-                    <span className="whitespace-nowrap">UPLOAD & QUOTE</span>
-                  </span>
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                  Upload Photo & Get Quote
                 </Button>
+                <a href="tel:9288539619">
+                  <Button 
+                    variant="outline"
+                    size="lg"
+                    className="w-full sm:w-auto border-2 border-gray-200 text-gray-700 hover:bg-gray-50 text-base font-semibold px-6 h-14 rounded-xl"
+                  >
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                    Call Us
+                  </Button>
+                </a>
               </div>
-              
-              {/* Mobile-Responsive Feature Highlights */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mt-4 px-2 lg:px-0">
-                <div className="flex items-center justify-center sm:justify-start space-x-2">
-                  <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-white text-xs">✓</span>
-                  </div>
-                  <span className="text-gray-200 text-sm sm:text-base">No Callbacks Required</span>
+
+              {/* Trust strip */}
+              <div className="flex flex-wrap gap-x-6 gap-y-2 pt-2">
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                  Instant AI quotes
                 </div>
-                <div className="flex items-center justify-center sm:justify-start space-x-2">
-                  <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-white text-xs">✓</span>
-                  </div>
-                  <span className="text-gray-200 text-sm sm:text-base">Instant Photo Quotes</span>
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                  No callbacks
                 </div>
-                <div className="flex items-center justify-center sm:justify-start space-x-2">
-                  <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-white text-xs">✓</span>
-                  </div>
-                  <span className="text-gray-200 text-sm sm:text-base">Professional Service</span>
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                  Curbside pickup
                 </div>
               </div>
             </div>
 
-            <PhotoCarousel 
-              photos={photoReel}
-              currentIndex={currentPhotoIndex}
-              onIndexChange={setCurrentPhotoIndex}
-            />
+            {/* Right - Photo carousel */}
+            <div className="animate-fade-up stagger-2">
+              <PhotoCarousel 
+                photos={photoReel}
+                currentIndex={currentPhotoIndex}
+                onIndexChange={setCurrentPhotoIndex}
+              />
+            </div>
           </div>
         </div>
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="py-20 bg-black/60 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-4">How Text2toss Works</h2>
-            <p className="text-xl text-gray-200">Three simple steps - no waiting, no callbacks</p>
+      <section id="how-it-works" className="py-12 sm:py-20 bg-gray-50 border-t border-gray-100">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-10 sm:mb-14">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">How it works</h2>
+            <p className="text-base text-gray-500">Three steps, no waiting</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card className="text-center border-0 shadow-lg hover:shadow-xl transition-shadow bg-gradient-to-b from-white to-emerald-50/30">
-              <CardHeader>
-                <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full mx-auto flex items-center justify-center mb-4">
-                  <span className="text-white text-2xl font-bold">1</span>
+          <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
+            {[
+              { step: "1", title: "Upload a photo", desc: "Take a photo of your junk and add a quick description. Our AI identifies items and calculates pricing instantly.", icon: <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg> },
+              { step: "2", title: "Get your quote", desc: "Receive transparent pricing in seconds. No hidden fees, no surprises, no waiting for callbacks.", icon: <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg> },
+              { step: "3", title: "Schedule & pay", desc: "Pick a convenient Mon-Thu time slot and pay via Venmo. We handle the rest — ground level and curbside.", icon: <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg> }
+            ].map((item) => (
+              <div key={item.step} className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-100 hover:border-emerald-200 hover:shadow-lg transition-all duration-300">
+                <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-5">
+                  {item.icon}
                 </div>
-                <CardTitle className="text-2xl">Upload Photo & Description</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-700 leading-relaxed">
-                  Take a photo of your junk and add a quick description. 
-                  Our AI instantly identifies items and calculates pricing - no callbacks needed!
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center border-0 shadow-lg hover:shadow-xl transition-shadow bg-gradient-to-b from-white to-teal-50/30">
-              <CardHeader>
-                <div className="w-16 h-16 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-full mx-auto flex items-center justify-center mb-4">
-                  <span className="text-white text-2xl font-bold">2</span>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Step {item.step}</span>
                 </div>
-                <CardTitle className="text-2xl">Get Quote in Seconds</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-700 leading-relaxed">
-                  Receive your quote instantly - no waiting for callbacks or estimates. 
-                  Transparent pricing with no hidden fees or surprises.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center border-0 shadow-lg hover:shadow-xl transition-shadow bg-gradient-to-b from-white to-emerald-50/30">
-              <CardHeader>
-                <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full mx-auto flex items-center justify-center mb-4">
-                  <span className="text-white text-2xl font-bold">3</span>
-                </div>
-                <CardTitle className="text-2xl">Schedule Pickup, Pay</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-700 leading-relaxed">
-                  Choose a convenient time for pickup and pay via Venmo only. 
-                  Send payment to @Text2toss with your booking ID for confirmation.
-                </p>
-              </CardContent>
-            </Card>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">{item.title}</h3>
+                <p className="text-sm text-gray-500 leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* NEW: Improved Quote Modal - Step-by-Step Wizard */}
+      {/* CTA Banner */}
+      <section className="py-12 sm:py-16 bg-emerald-600">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">Ready to clear your space?</h2>
+          <p className="text-emerald-100 text-base mb-8 max-w-xl mx-auto">Upload a photo and get your instant quote in under 30 seconds. It's that easy.</p>
+          <Button 
+            onClick={() => setShowQuote(true)}
+            size="lg"
+            className="bg-white text-emerald-700 hover:bg-emerald-50 text-base font-bold px-8 h-14 rounded-xl shadow-lg"
+          >
+            Get Your Free Quote
+          </Button>
+        </div>
+      </section>
+
+      {/* Contact */}
+      <section id="contact" className="py-12 sm:py-20 bg-white">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="text-center mb-10 sm:mb-14">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Get in touch</h2>
+            <p className="text-base text-gray-500">We're here to help with your junk removal needs</p>
+          </div>
+
+          <div className="grid sm:grid-cols-3 gap-4 sm:gap-6">
+            <a href="tel:9288539619" className="group flex flex-col items-center p-6 rounded-2xl border border-gray-100 hover:border-emerald-200 hover:shadow-md transition-all">
+              <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-3 group-hover:bg-emerald-100 transition-colors">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+              </div>
+              <span className="text-sm font-semibold text-gray-900">(928) 853-9619</span>
+              <span className="text-xs text-gray-400 mt-1">Mon-Sat 8AM-6PM</span>
+            </a>
+            <a href="mailto:text2toss@gmail.com" className="group flex flex-col items-center p-6 rounded-2xl border border-gray-100 hover:border-emerald-200 hover:shadow-md transition-all">
+              <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-3 group-hover:bg-emerald-100 transition-colors">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+              </div>
+              <span className="text-sm font-semibold text-gray-900">text2toss@gmail.com</span>
+              <span className="text-xs text-gray-400 mt-1">Quick response</span>
+            </a>
+            <a href="https://www.facebook.com/share/17Vsc23wKL/" target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center p-6 rounded-2xl border border-gray-100 hover:border-emerald-200 hover:shadow-md transition-all">
+              <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-3 group-hover:bg-emerald-100 transition-colors">
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+              </div>
+              <span className="text-sm font-semibold text-gray-900">Facebook</span>
+              <span className="text-xs text-gray-400 mt-1">Follow us</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 py-10 sm:py-14">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">T2T</span>
+              </div>
+              <span className="text-lg font-extrabold text-white">Text2toss</span>
+            </div>
+            <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-gray-400">
+              <span>Flagstaff, AZ</span>
+              <span>Ground level & curbside only</span>
+              <span>Mon-Sat 8AM-6PM</span>
+            </div>
+          </div>
+          <div className="border-t border-gray-800 mt-8 pt-6 text-center">
+            <p className="text-sm text-gray-500">
+              &copy; {new Date().getFullYear()} Text2toss. Professional junk removal in Flagstaff, AZ.
+            </p>
+          </div>
+        </div>
+      </footer>
+
+      {/* ============ MODALS ============ */}
+
+      {/* Quote Modal */}
       {showQuote && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-start sm:items-center justify-center p-2 sm:p-4 overflow-y-auto">
-          <Card className="w-full max-w-2xl max-h-[95vh] my-2 sm:my-0 shadow-2xl overflow-y-auto">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-start sm:items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <Card className="w-full max-w-lg max-h-[95vh] my-2 sm:my-0 shadow-2xl border-0 overflow-y-auto rounded-2xl">
             
-            {/* TOP Progress Indicator */}
-            <div className="bg-emerald-50 border-b border-emerald-200 p-4 sticky top-0 z-10">
-              <div className="flex items-center justify-center space-x-2">
-                {/* Step 1 Indicator */}
-                <div className="flex flex-col items-center">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
-                    quoteStep > 1 ? "bg-emerald-600 text-white" :
-                    quoteStep === 1 ? "bg-emerald-500 text-white ring-4 ring-emerald-200" :
-                    "bg-gray-200 text-gray-500"
-                  }`}>
-                    {quoteStep > 1 ? "✓" : "1"}
-                  </div>
-                  <p className={`text-xs mt-1 font-medium ${quoteStep === 1 ? "text-emerald-700" : "text-gray-500"}`}>
-                    Upload
-                  </p>
+            {/* Progress */}
+            <div className="bg-white border-b border-gray-100 px-4 py-3 sticky top-0 z-10">
+              <div className="flex items-center justify-center gap-2">
+                <div className={`step-dot ${quoteStep > 1 ? 'done' : quoteStep === 1 ? 'active' : 'pending'}`}>
+                  {quoteStep > 1 ? <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg> : "1"}
                 </div>
-                
-                <div className="w-12 h-1 bg-emerald-200"></div>
-                
-                {/* Step 2 Indicator */}
-                <div className="flex flex-col items-center">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
-                    quoteStep > 2 ? "bg-emerald-600 text-white" :
-                    quoteStep === 2 ? "bg-emerald-500 text-white ring-4 ring-emerald-200" :
-                    "bg-gray-200 text-gray-500"
-                  }`}>
-                    {quoteStep > 2 ? "✓" : "2"}
-                  </div>
-                  <p className={`text-xs mt-1 font-medium ${quoteStep === 2 ? "text-emerald-700" : "text-gray-500"}`}>
-                    Quote
-                  </p>
+                <div className={`step-line ${quoteStep > 1 ? 'done' : ''}`}></div>
+                <div className={`step-dot ${quoteStep > 2 ? 'done' : quoteStep === 2 ? 'active' : 'pending'}`}>
+                  {quoteStep > 2 ? <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg> : "2"}
                 </div>
-                
-                <div className="w-12 h-1 bg-emerald-200"></div>
-                
-                {/* Step 3 Indicator */}
-                <div className="flex flex-col items-center">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
-                    quoteStep === 3 ? "bg-emerald-500 text-white ring-4 ring-emerald-200" :
-                    "bg-gray-200 text-gray-500"
-                  }`}>
-                    3
-                  </div>
-                  <p className={`text-xs mt-1 font-medium ${quoteStep === 3 ? "text-emerald-700" : "text-gray-500"}`}>
-                    Book
-                  </p>
-                </div>
+                <div className={`step-line ${quoteStep > 2 ? 'done' : ''}`}></div>
+                <div className={`step-dot ${quoteStep === 3 ? 'active' : 'pending'}`}>3</div>
+              </div>
+              <div className="flex justify-between mt-1.5 px-1">
+                <span className={`text-xs font-medium ${quoteStep >= 1 ? 'text-emerald-600' : 'text-gray-400'}`}>Upload</span>
+                <span className={`text-xs font-medium ${quoteStep >= 2 ? 'text-emerald-600' : 'text-gray-400'}`}>Quote</span>
+                <span className={`text-xs font-medium ${quoteStep >= 3 ? 'text-emerald-600' : 'text-gray-400'}`}>Book</span>
               </div>
             </div>
 
-            {/* STEP 1: Upload Photo */}
+            {/* STEP 1: Upload */}
             {quoteStep === 1 && (
               <>
-                <CardHeader className="text-center pb-4">
-                  <CardTitle className="text-3xl font-bold text-emerald-800">
-                    📸 Upload Your Junk Photo
+                <CardHeader className="text-center pb-3 pt-6">
+                  <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900">
+                    Upload your junk photo
                   </CardTitle>
-                  <CardDescription className="text-base">
+                  <CardDescription className="text-sm text-gray-500">
                     Take a clear photo of the items you want removed
                   </CardDescription>
                 </CardHeader>
 
-                <CardContent className="space-y-6">
-                  {/* Error Message */}
+                <CardContent className="space-y-4 px-5 sm:px-6">
                   {quoteError && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-                      <p className="text-red-700 text-sm font-medium">⚠️ {quoteError}</p>
+                    <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-center">
+                      <p className="text-red-600 text-sm font-medium">{quoteError}</p>
                     </div>
                   )}
 
-                  {/* Important Notice - Photo Tips (moved above upload) */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p className="text-sm text-blue-800 font-medium mb-2">
-                      📋 Photo Tips for Accurate Quotes:
-                    </p>
-                    <ul className="text-xs text-blue-700 space-y-1 list-disc list-inside">
-                      <li>Include all items in one photo if possible</li>
-                      <li>Ensure good lighting for clear visibility</li>
-                      <li>Show items from a distance to capture full size</li>
-                    </ul>
-                  </div>
-
-                  {/* Image Upload Area */}
-                  <div className="space-y-3">
-                    {!uploadedImage ? (
-                      <>
-                        {/* Take Picture Button */}
-                        <label className="block w-full cursor-pointer">
-                          <div className="flex items-center gap-4 p-5 border-3 border-emerald-400 rounded-xl bg-emerald-50 hover:bg-emerald-100 transition-all duration-200 shadow-md hover:shadow-lg active:scale-98">
-                            <div className="flex-shrink-0 w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center">
-                              <span className="text-4xl">📸</span>
-                            </div>
-                            <div className="flex-1">
-                              <p className="text-lg font-bold text-emerald-900 mb-1">
-                                Take a Picture
-                              </p>
-                              <p className="text-sm text-emerald-700">
-                                Open camera to take photo now
-                              </p>
-                            </div>
-                            <div className="text-emerald-500">
-                              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                              </svg>
-                            </div>
+                  {/* Upload area */}
+                  {!uploadedImage ? (
+                    <div className="space-y-3">
+                      <label className="block cursor-pointer">
+                        <div className="flex items-center gap-4 p-4 border-2 border-dashed border-emerald-300 rounded-xl bg-emerald-50/50 hover:bg-emerald-50 transition-colors">
+                          <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                           </div>
-                          <Input
-                            type="file"
-                            accept="image/*"
-                            capture="environment"
-                            onChange={handleImageUpload}
-                            className="hidden"
-                            data-testid="camera-input"
-                          />
-                        </label>
-
-                        {/* Choose from Gallery Button */}
-                        <label className="block w-full cursor-pointer">
-                          <div className="flex items-center gap-4 p-5 border-3 border-blue-400 rounded-xl bg-blue-50 hover:bg-blue-100 transition-all duration-200 shadow-md hover:shadow-lg active:scale-98">
-                            <div className="flex-shrink-0 w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center">
-                              <span className="text-4xl">🖼️</span>
-                            </div>
-                            <div className="flex-1">
-                              <p className="text-lg font-bold text-blue-900 mb-1">
-                                Choose from Gallery
-                              </p>
-                              <p className="text-sm text-blue-700">
-                                Select existing photo from device
-                              </p>
-                            </div>
-                            <div className="text-blue-500">
-                              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                              </svg>
-                            </div>
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900">Take a picture</p>
+                            <p className="text-xs text-gray-500">Open camera to capture now</p>
                           </div>
-                          <Input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageUpload}
-                            className="hidden"
-                            data-testid="gallery-input"
-                          />
-                        </label>
-
-                        {/* Helper Text */}
-                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
-                          <p className="text-xs text-gray-600">
-                            📷 Accepted formats: PNG, JPG, HEIC • Max size: 10MB
-                          </p>
+                          <svg className="w-5 h-5 text-gray-300 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
                         </div>
-                      </>
-                    ) : (
-                      <div className="relative">
-                        <img
-                          src={uploadedImage}
-                          alt="Uploaded items"
-                          className="w-full h-64 object-cover rounded-lg border-2 border-emerald-300"
-                        />
-                        <Button
-                          onClick={() => {
-                            setImageFile(null);
-                            setUploadedImage(null);
-                            setQuoteError('');
-                          }}
-                          variant="destructive"
-                          size="sm"
-                          className="absolute top-2 right-2"
-                        >
-                          ✕ Remove
-                        </Button>
-                        <Badge className="absolute bottom-2 left-2 bg-green-600 text-white">
-                          ✓ Photo Ready
-                        </Badge>
-                      </div>
-                    )}
-                  </div>
+                        <Input type="file" accept="image/*" capture="environment" onChange={handleImageUpload} className="hidden" data-testid="camera-input" />
+                      </label>
 
-                  {/* Description (Optional) */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">
-                      Brief Description (Optional)
-                    </label>
+                      <label className="block cursor-pointer">
+                        <div className="flex items-center gap-4 p-4 border-2 border-dashed border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
+                          <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900">Choose from gallery</p>
+                            <p className="text-xs text-gray-500">Select an existing photo</p>
+                          </div>
+                          <svg className="w-5 h-5 text-gray-300 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+                        </div>
+                        <Input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" data-testid="gallery-input" />
+                      </label>
+
+                      <p className="text-xs text-gray-400 text-center">PNG, JPG, HEIC up to 10MB</p>
+                    </div>
+                  ) : (
+                    <div className="relative rounded-xl overflow-hidden">
+                      <img src={uploadedImage} alt="Uploaded items" className="w-full h-56 object-cover" />
+                      <Button
+                        onClick={() => { setImageFile(null); setUploadedImage(null); setQuoteError(''); }}
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-3 right-3 h-8 rounded-lg text-xs"
+                      >
+                        Remove
+                      </Button>
+                      <div className="absolute bottom-3 left-3 bg-emerald-600 text-white text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
+                        Ready
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Description */}
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-gray-700">Brief description <span className="text-gray-400 font-normal">(optional)</span></label>
                     <Textarea
                       placeholder="e.g., Old furniture in garage, mattress, boxes..."
                       value={imageDescription}
                       onChange={(e) => setImageDescription(e.target.value)}
-                      className="min-h-[80px]"
+                      className="min-h-[70px] text-sm resize-none rounded-xl border-gray-200"
                       maxLength={200}
                       data-testid="image-description-input"
                     />
-                    <p className="text-xs text-gray-500 text-right">
-                      {imageDescription.length}/200 characters
-                    </p>
                   </div>
                   
-                  {/* Service Area Notice */}
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                    <p className="text-yellow-800 text-xs font-medium">
-                      📍 <strong>Service Area:</strong> Ground level & curbside pickup only. No stairs or upper floors.
-                    </p>
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                    <p className="text-xs text-amber-700 font-medium">Ground level & curbside pickup only. Items must be accessible without stairs.</p>
                   </div>
                 </CardContent>
 
-                {/* Actions */}
-                <div className="p-6 bg-gray-50 border-t flex justify-between">
+                <div className="p-5 bg-white border-t flex justify-between gap-3">
                   <Button
                     variant="outline"
-                    onClick={() => {
-                      setShowQuote(false);
-                      setQuoteStep(1);
-                      setImageFile(null);
-                      setUploadedImage(null);
-                      setQuoteError('');
-                      setImageDescription('');
-                    }}
+                    onClick={() => { setShowQuote(false); setQuoteStep(1); setImageFile(null); setUploadedImage(null); setQuoteError(''); setImageDescription(''); }}
                     disabled={imageAnalyzing}
+                    className="h-11 rounded-xl border-gray-200"
                     data-testid="cancel-quote-btn"
                   >
                     Cancel
@@ -720,184 +606,86 @@ const LandingPage = () => {
                   <Button
                     onClick={analyzeImageAndGetQuote}
                     disabled={!imageFile || imageAnalyzing}
-                    className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 px-8"
+                    className="h-11 bg-emerald-600 hover:bg-emerald-700 rounded-xl px-6 font-semibold"
                     data-testid="get-instant-quote-btn"
                   >
                     {imageAnalyzing ? (
                       <span className="flex items-center gap-2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Analyzing Photo...
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                        Analyzing...
                       </span>
-                    ) : (
-                      <span className="flex items-center gap-2">
-                        Get Instant Quote →
-                      </span>
-                    )}
+                    ) : "Get Quote"}
                   </Button>
-                </div>
-
-                {/* BOTTOM Progress Indicator - Step 1 */}
-                <div className="bg-emerald-50 border-t border-emerald-200 p-3">
-                  <div className="flex items-center justify-center space-x-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-sm ring-2 ring-emerald-200">
-                        1
-                      </div>
-                      <span className="text-sm font-semibold text-emerald-700">Upload Photo</span>
-                    </div>
-                    <div className="w-8 h-0.5 bg-emerald-300"></div>
-                    <div className="flex items-center gap-2 opacity-50">
-                      <div className="w-8 h-8 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-bold text-sm">
-                        2
-                      </div>
-                      <span className="text-sm text-gray-500">View Quote</span>
-                    </div>
-                    <div className="w-8 h-0.5 bg-gray-300"></div>
-                    <div className="flex items-center gap-2 opacity-50">
-                      <div className="w-8 h-8 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-bold text-sm">
-                        3
-                      </div>
-                      <span className="text-sm text-gray-500">Book & Pay</span>
-                    </div>
-                  </div>
                 </div>
               </>
             )}
 
-            {/* STEP 2: Quote Display */}
+            {/* STEP 2: Quote */}
             {quoteStep === 2 && quote && (
               <>
-                <CardHeader className="text-center pb-4 bg-emerald-50">
-                  <div className="flex justify-center mb-4">
-                    <span className="text-6xl">💰</span>
-                  </div>
-                  <CardTitle className="text-4xl font-bold text-emerald-800">
+                <CardHeader className="text-center pb-2 pt-6 bg-emerald-50 border-b border-emerald-100">
+                  <div className="text-5xl font-black text-emerald-700 mb-1">
                     ${quote.total_price}
-                  </CardTitle>
-                  <CardDescription className="text-lg font-medium text-emerald-700">
-                    Your Instant Quote
+                  </div>
+                  <CardDescription className="text-sm font-medium text-emerald-600">
+                    Your instant quote
                   </CardDescription>
-                </CardHeader>
-
-                <CardContent className="space-y-6 pt-6">
-                  {/* Quote ID */}
-                  <div className="text-center">
-                    <Badge variant="outline" className="border-emerald-300 text-emerald-700">
-                      Quote ID: {quote.id?.substring(0, 8)}
+                  <div className="mt-2">
+                    <Badge variant="outline" className="border-emerald-200 text-emerald-600 text-xs">
+                      Quote #{quote.id?.substring(0, 8)}
                     </Badge>
                   </div>
+                </CardHeader>
 
-                  {/* Items Identified */}
+                <CardContent className="space-y-4 pt-5 px-5 sm:px-6">
                   {quote.breakdown && quote.breakdown.items && quote.breakdown.items.length > 0 && (
-                    <div className="bg-white border border-emerald-200 rounded-lg p-4">
-                      <h4 className="font-semibold text-emerald-800 mb-3 text-center">
-                        📋 Items Identified
-                      </h4>
-                      <div className="space-y-2">
-                        {quote.breakdown.items.map((item, index) => (
-                          <div key={index} className="flex justify-between items-center py-2 border-b last:border-b-0">
-                            <span className="text-sm font-medium text-gray-700">
-                              {item.name} <span className="text-xs text-gray-500">({item.size})</span>
-                            </span>
-                            <span className="text-sm font-semibold text-emerald-600">
-                              ${item.estimated_cost || 'Included'}
-                            </span>
-                          </div>
-                        ))}
+                    <div className="border border-gray-100 rounded-xl divide-y divide-gray-50">
+                      <div className="px-4 py-2.5 bg-gray-50 rounded-t-xl">
+                        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Items identified</h4>
                       </div>
-                    </div>
-                  )}
-
-                  {/* AI Explanation */}
-                  {quote.ai_explanation && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <p className="text-xs font-semibold text-blue-800 mb-2">🤖 AI Analysis:</p>
-                      <p className="text-sm text-blue-700">{quote.ai_explanation}</p>
-                    </div>
-                  )}
-
-                  {/* Approval Notice for Large Jobs */}
-                  {quote.requires_approval && (
-                    <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-400 rounded-lg p-4 shadow-sm">
-                      <div className="flex items-start gap-3">
-                        <span className="text-3xl">📧</span>
-                        <div>
-                          <p className="text-base font-bold text-yellow-900 mb-2">
-                            ⏳ Quote Requires Admin Approval
-                          </p>
-                          <p className="text-sm text-yellow-800 mb-2">
-                            <strong>Please click "Continue to Booking" below</strong> to provide your contact info and preferred pickup date/time.
-                          </p>
-                          <p className="text-xs text-yellow-700">
-                            ✓ Payment is blocked until quote is approved<br/>
-                            ✓ You'll receive an email within 24 hours with approval<br/>
-                            ✓ Then you can complete payment to confirm your booking
-                          </p>
+                      {quote.breakdown.items.map((item, index) => (
+                        <div key={index} className="flex justify-between items-center px-4 py-2.5">
+                          <span className="text-sm text-gray-700">{item.name} <span className="text-xs text-gray-400">({item.size})</span></span>
+                          <span className="text-sm font-semibold text-gray-900">${item.estimated_cost || '—'}</span>
                         </div>
-                      </div>
+                      ))}
                     </div>
                   )}
 
-                  {/* Service Note */}
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                    <p className="text-xs text-gray-600 text-center">
-                      ℹ️ Ground level & curbside pickup only. Items must be accessible without stairs.
-                    </p>
-                  </div>
+                  {quote.ai_explanation && (
+                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                      <p className="text-xs font-semibold text-blue-600 mb-1">AI Analysis</p>
+                      <p className="text-sm text-blue-700 leading-relaxed">{quote.ai_explanation}</p>
+                    </div>
+                  )}
+
+                  {quote.requires_approval && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                      <p className="text-sm font-bold text-amber-800 mb-1">Admin approval required</p>
+                      <p className="text-xs text-amber-700 leading-relaxed">
+                        Continue to provide your details. Payment is blocked until approval. You'll hear back within 24 hours.
+                      </p>
+                    </div>
+                  )}
+
+                  <p className="text-xs text-gray-400 text-center">Ground level & curbside pickup only</p>
                 </CardContent>
 
-                {/* Actions */}
-                <div className="p-6 bg-gray-50 border-t flex justify-between">
+                <div className="p-5 bg-white border-t flex justify-between gap-3">
                   <Button
                     variant="outline"
-                    onClick={() => {
-                      setQuoteStep(1);
-                      setQuote(null);
-                      setImageFile(null);
-                      setUploadedImage(null);
-                      setImageDescription('');
-                    }}
+                    onClick={() => { setQuoteStep(1); setQuote(null); setImageFile(null); setUploadedImage(null); setImageDescription(''); }}
+                    className="h-11 rounded-xl border-gray-200"
                   >
-                    ← New Quote
+                    New Quote
                   </Button>
-                  
-                  {/* Always allow booking form entry, payment blocked later if approval required */}
                   <Button
-                    onClick={() => {
-                      setShowBooking(true);
-                      setShowQuote(false);
-                    }}
-                    className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 px-8"
+                    onClick={() => { setShowBooking(true); setShowQuote(false); }}
+                    className="h-11 bg-gray-900 hover:bg-gray-800 rounded-xl px-6 font-semibold"
                     data-testid="book-pickup-btn"
                   >
-                    Continue to Booking →
+                    Continue to Booking
                   </Button>
-                </div>
-
-                {/* BOTTOM Progress Indicator - Step 2 */}
-                <div className="bg-emerald-50 border-t border-emerald-200 p-3">
-                  <div className="flex items-center justify-center space-x-2">
-                    <div className="flex items-center gap-2 opacity-70">
-                      <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-sm">
-                        ✓
-                      </div>
-                      <span className="text-sm text-emerald-600 font-medium">Uploaded</span>
-                    </div>
-                    <div className="w-8 h-0.5 bg-emerald-400"></div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-sm ring-2 ring-emerald-200">
-                        2
-                      </div>
-                      <span className="text-sm font-semibold text-emerald-700">Quote Ready</span>
-                    </div>
-                    <div className="w-8 h-0.5 bg-emerald-300"></div>
-                    <div className="flex items-center gap-2 opacity-50">
-                      <div className="w-8 h-8 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-bold text-sm">
-                        3
-                      </div>
-                      <span className="text-sm text-gray-500">Book & Pay</span>
-                    </div>
-                  </div>
                 </div>
               </>
             )}
@@ -911,17 +699,8 @@ const LandingPage = () => {
         <BookingModal 
           quote={quote} 
           onClose={() => setShowBooking(false)}
-          onSuccess={() => {
-            setShowBooking(false);
-            setShowQuote(false);
-            toast.success("Pickup scheduled successfully!");
-          }}
-          onVenmoPayment={(bookingId, qrCode) => {
-            setVenmoBookingId(bookingId);
-            setVenmoQRCode(qrCode);
-            setShowBooking(false);
-            setShowVenmoPayment(true);
-          }}
+          onSuccess={() => { setShowBooking(false); setShowQuote(false); toast.success("Pickup scheduled successfully!"); }}
+          onVenmoPayment={(bookingId, qrCode) => { setVenmoBookingId(bookingId); setVenmoQRCode(qrCode); setShowBooking(false); setShowVenmoPayment(true); }}
         />
       )}
 
@@ -931,218 +710,66 @@ const LandingPage = () => {
           quote={quote}
           bookingId={venmoBookingId}
           qrCode={venmoQRCode}
-          onClose={() => {
-            setShowVenmoPayment(false);
-            setShowQuote(false);
-            toast.success("Booking confirmed! Payment instructions sent via SMS.");
-          }}
+          onClose={() => { setShowVenmoPayment(false); setShowQuote(false); toast.success("Booking confirmed! Payment instructions sent via SMS."); }}
         />
       )}
 
-      {/* Quote Approval Required Modal */}
+      {/* Approval Modal */}
       {showApprovalModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl animate-fadeIn my-8 max-h-[90vh] flex flex-col">
-            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white p-4 sm:p-6 rounded-t-2xl flex-shrink-0">
-              <div className="flex items-center justify-center mb-2">
-                <span className="text-3xl sm:text-4xl">📧</span>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl my-8 max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="bg-emerald-600 text-white p-6 flex-shrink-0 text-center">
+              <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               </div>
-              <h3 className="text-lg sm:text-xl font-bold text-center">Quote Under Review</h3>
+              <h3 className="text-xl font-bold">Quote Under Review</h3>
             </div>
             
-            <div className="p-4 sm:p-6 space-y-3 sm:space-y-4 overflow-y-auto flex-1">
-              <div className="bg-blue-50 border border-blue-300 rounded-lg p-3 sm:p-4">
-                <p className="text-sm sm:text-base font-semibold text-blue-900 mb-2">
-                  ✓ Quote Successfully Submitted
-                </p>
-                <p className="text-xs sm:text-sm text-blue-800 leading-relaxed">
-                  Your quote request is currently under review by our team. We will carefully assess your requirements and provide you with an accurate quote.
-                </p>
+            <div className="p-6 space-y-4 overflow-y-auto flex-1">
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+                <p className="text-sm font-semibold text-emerald-800 mb-1">Quote submitted successfully</p>
+                <p className="text-xs text-emerald-700">Our team is reviewing your request and will provide an accurate quote.</p>
               </div>
               
-              <div className="bg-red-50 border-2 border-red-300 rounded-lg p-3 sm:p-4">
-                <p className="text-sm sm:text-base font-bold text-red-900 mb-1">
-                  🔒 Payment Blocked Until Approval
-                </p>
-                <p className="text-xs sm:text-sm text-red-800">
-                  You cannot proceed to payment until your quote is reviewed and approved by our team. This ensures accuracy and prevents confusion.
-                </p>
-              </div>
-              
-              <div className="space-y-3 sm:space-y-4">
-                <div className="flex items-start space-x-2 sm:space-x-3">
-                  <span className="text-xl sm:text-2xl mt-1 flex-shrink-0">📧</span>
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                  </div>
                   <div>
-                    <p className="text-sm sm:text-base font-semibold text-gray-900 mb-1">Expect a Response Within 24 Hours</p>
-                    <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">
-                      You will receive an email notification with your approved quote and next steps. Please check your inbox (and spam folder) for our response.
-                    </p>
+                    <p className="text-sm font-semibold text-gray-900">Response within 24 hours</p>
+                    <p className="text-xs text-gray-500">Check your email for the approved quote and next steps.</p>
                   </div>
                 </div>
-                
-                <div className="flex items-start space-x-2 sm:space-x-3">
-                  <span className="text-xl sm:text-2xl mt-1 flex-shrink-0">💳</span>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                  </div>
                   <div>
-                    <p className="text-sm sm:text-base font-semibold text-gray-900 mb-1">Payment After Approval Only</p>
-                    <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">
-                      Once your quote is approved, you will receive a link to complete Step 3 (Payment) to confirm your booking. <strong>No charges will be made until you review and approve the final quote.</strong>
-                    </p>
+                    <p className="text-sm font-semibold text-gray-900">No charges until approved</p>
+                    <p className="text-xs text-gray-500">Payment link sent only after quote approval.</p>
                   </div>
                 </div>
-                
-                <div className="flex items-start space-x-2 sm:space-x-3">
-                  <span className="text-xl sm:text-2xl mt-1 flex-shrink-0">👋</span>
-                  <div>
-                    <p className="text-sm sm:text-base font-semibold text-gray-900 mb-1">You May Exit This Page</p>
-                    <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">
-                      Thank you for choosing Text2toss! You can safely close this page. We will contact you via email with your approved quote.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 sm:p-4 text-center">
-                <p className="text-xs sm:text-sm text-emerald-800 font-medium">
-                  📞 Questions? We're here to help! Contact us anytime.
-                </p>
               </div>
             </div>
             
-            <div className="p-4 sm:p-6 bg-gray-50 rounded-b-2xl space-y-2 sm:space-y-3 flex-shrink-0 border-t border-gray-200">
+            <div className="p-5 bg-gray-50 space-y-2 flex-shrink-0 border-t">
               <button
-                onClick={() => {
-                  setShowApprovalModal(false);
-                  setShowBooking(true);
-                  setShowQuote(false);
-                }}
-                className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-3 px-4 sm:px-6 rounded-lg text-sm sm:text-base font-semibold hover:from-emerald-600 hover:to-teal-700 transition-all shadow-lg"
+                onClick={() => { setShowApprovalModal(false); setShowBooking(true); setShowQuote(false); }}
+                className="w-full bg-gray-900 text-white py-3 rounded-xl text-sm font-semibold hover:bg-gray-800 transition-colors"
               >
-                📝 Provide Booking Details Now
+                Provide Booking Details
               </button>
               <button
                 onClick={() => setShowApprovalModal(false)}
-                className="w-full bg-white border-2 border-gray-300 text-gray-700 py-3 px-4 sm:px-6 rounded-lg text-sm sm:text-base font-semibold hover:bg-gray-50 transition-all"
+                className="w-full bg-white border border-gray-200 text-gray-600 py-3 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors"
               >
-                I'll Wait for Email
+                I'll wait for the email
               </button>
             </div>
           </div>
         </div>
       )}
-
-      {/* Contact Section */}
-      <section id="contact" className="py-12 sm:py-20 bg-slate-900/90 backdrop-blur-sm">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-5xl font-bold text-white mb-4">
-              Get In <span className="text-emerald-400">Touch</span>
-            </h2>
-            <p className="text-gray-300 text-lg sm:text-xl max-w-2xl mx-auto">
-              Ready to clear out your space? Contact us for fast, professional junk removal services.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            {/* Phone */}
-            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 text-center hover:bg-slate-800/70 transition-all duration-300 border border-slate-700">
-              <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">📞</span>
-              </div>
-              <h3 className="font-semibold text-white mb-2">Call Us</h3>
-              <a 
-                href="tel:9288539619" 
-                className="text-emerald-400 hover:text-emerald-300 transition-colors text-lg font-medium"
-              >
-                (928) 853-9619
-              </a>
-              <p className="text-gray-400 text-sm mt-2">Mon-Sat: 8AM-6PM</p>
-            </div>
-
-            {/* Email */}
-            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 text-center hover:bg-slate-800/70 transition-all duration-300 border border-slate-700">
-              <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">✉️</span>
-              </div>
-              <h3 className="font-semibold text-white mb-2">Email Us</h3>
-              <a 
-                href="mailto:text2toss@gmail.com" 
-                className="text-emerald-400 hover:text-emerald-300 transition-colors text-lg font-medium"
-              >
-                text2toss@gmail.com
-              </a>
-              <p className="text-gray-400 text-sm mt-2">Quick Response</p>
-            </div>
-
-            {/* Facebook */}
-            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 text-center hover:bg-slate-800/70 transition-all duration-300 border border-slate-700">
-              <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">📘</span>
-              </div>
-              <h3 className="font-semibold text-white mb-2">Follow Us</h3>
-              <a 
-                href="https://www.facebook.com/share/17Vsc23wKL/" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-emerald-400 hover:text-emerald-300 transition-colors text-lg font-medium"
-              >
-                Facebook
-              </a>
-              <p className="text-gray-400 text-sm mt-2">Updates & Tips</p>
-            </div>
-          </div>
-
-          {/* Service Area Info */}
-          <div className="mt-12 text-center">
-            <div className="bg-slate-800/30 backdrop-blur-sm rounded-xl p-6 max-w-2xl mx-auto border border-slate-700">
-              <h3 className="font-semibold text-white mb-3">🏔️ Serving Flagstaff, Arizona</h3>
-              <p className="text-gray-300 text-sm leading-relaxed">
-                Professional junk removal services • Ground level & curbside pickup only<br />
-                Fast response times • Eco-friendly disposal • Competitive AI-powered pricing
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-slate-900/95 backdrop-blur-sm border-t border-slate-800 py-8 sm:py-12">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
-            <div>
-              <div className="flex items-center justify-center md:justify-start space-x-3 mb-4">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-lg sm:text-xl font-bold">🏠</span>
-                </div>
-                <span className="text-2xl sm:text-4xl font-black text-white tracking-tight">TEXT2TOSS</span>
-              </div>
-              <p className="text-gray-400 text-sm sm:text-base leading-relaxed">
-                Fast, reliable junk removal with instant AI-powered quotes. Easy Venmo payments (@Text2toss). Ground level & curbside pickup only.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold text-white mb-4 text-sm sm:text-base">Contact Info</h3>
-              <div className="space-y-2">
-                <a href="tel:9288539619" className="block text-gray-400 hover:text-emerald-400 transition-colors text-sm sm:text-base">📞 (928) 853-9619</a>
-                <a href="mailto:text2toss@gmail.com" className="block text-gray-400 hover:text-emerald-400 transition-colors text-sm sm:text-base">✉️ text2toss@gmail.com</a>
-                <a href="https://www.facebook.com/share/17Vsc23wKL/" target="_blank" rel="noopener noreferrer" className="block text-gray-400 hover:text-emerald-400 transition-colors text-sm sm:text-base">📘 Facebook</a>
-              </div>
-            </div>
-            <div>
-              <h3 className="font-semibold text-white mb-4 text-sm sm:text-base">Service Area</h3>
-              <p className="text-gray-400 text-sm sm:text-base">
-                🏔️ Flagstaff, Arizona<br />
-                📍 Ground Level & Curbside Only<br />
-                ⏰ Mon-Sat: 8AM-6PM
-              </p>
-            </div>
-          </div>
-          <div className="border-t border-slate-800 mt-8 pt-8 text-center">
-            <p className="text-gray-400 text-sm sm:text-base">
-              © 2024 Text2toss. All rights reserved. | Professional junk removal services in Flagstaff, AZ.
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
