@@ -1327,13 +1327,9 @@ async def create_quote_from_image(
         quote_mongo = prepare_for_mongo(quote.dict())
         await db.quotes.insert_one(quote_mongo)
         
-        return quote
+        logger.info(f"Quote created: id={quote.id}, scale={scale_level}, requires_approval={requires_approval}, approval_status={approval_status}")
         
-    except Exception as e:
-        # Clean up temporary file on error
-        if file_path.exists():
-            file_path.unlink()
-        raise e
+        return quote
 
 @api_router.get("/quotes/{quote_id}", response_model=PriceQuote)
 async def get_quote(quote_id: str):
