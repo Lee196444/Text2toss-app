@@ -18,7 +18,7 @@ Full-stack junk removal booking application for Flagstaff, AZ. Customers upload 
 - Admin dashboard with job bins, calendar, route optimization
 - Quote approval/rejection with price adjustments
 - Email notifications (customer + admin)
-- Permanent image storage for approval-required quotes
+- **Permanent image storage for ALL quote photos** (latest 30 retained in `/app/static/quote_images/`)
 - Admin authentication (username/password with JWT)
 - Health check endpoint at `/api/health`
 
@@ -28,6 +28,13 @@ Full-stack junk removal booking application for Flagstaff, AZ. Customers upload 
 - Pickup days: Monday-Thursday only
 - Ground level / curbside pickup only
 
+## Image Storage Architecture
+- ALL quote photos saved permanently to `/app/static/quote_images/` with `quote_` prefix
+- Cleanup automatically retains only the latest 30 photos
+- Booking creation does NOT move/delete quote images
+- Images served via `/api/images/quote_images/{filename}`
+- Legacy images supported: `approval_` prefix -> `approval_quotes/`, `temp_` prefix -> `temp_uploads/`
+
 ## Admin Credentials
 - Username: lrobe
 - Password: L1964c10$
@@ -35,12 +42,12 @@ Full-stack junk removal booking application for Flagstaff, AZ. Customers upload 
 ## Architecture
 - Backend routes prefixed with `/api` via APIRouter
 - Static images served via `/api/images/{folder}/{filename}`
-- Two image storage locations: `/app/static/temp_uploads/` (temporary) and `/app/static/approval_quotes/` (permanent)
+- Health check at both `/api/health` (via api_router) and `/health` (root)
 
 ## Status: Stable
 - All core flows tested and working (Feb 27, 2026)
-- 17/17 backend tests passing
-- Frontend flows verified
+- 22/22 backend tests passing
+- Frontend flows verified including photo display in admin
 
 ## Backlog
 - P2: Refactor `App.js` (1800+ lines) into separate components
