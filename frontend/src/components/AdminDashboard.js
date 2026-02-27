@@ -2433,25 +2433,19 @@ const AdminDashboard = () => {
                           <div className="flex flex-col sm:flex-row gap-3">
                             {quote.temp_image_path && (
                               <Button 
+                                data-testid="view-full-photo-btn"
                                 onClick={() => {
                                   let imageUrl;
                                   if (quote.temp_image_path.startsWith('http')) {
                                     imageUrl = quote.temp_image_path;
                                   } else {
                                     const filename = quote.temp_image_path.split('/').pop();
-                                    const folder = filename.startsWith('approval_') ? 'approval_quotes' : 'temp_uploads';
+                                    const folder = filename.startsWith('quote_') ? 'quote_images' 
+                                      : filename.startsWith('approval_') ? 'approval_quotes' 
+                                      : 'temp_uploads';
                                     imageUrl = `${process.env.REACT_APP_BACKEND_URL}/api/images/${folder}/${filename}`;
                                   }
-                                  
-                                  // Check if image exists before opening
-                                  const img = new Image();
-                                  img.onload = () => {
-                                    window.open(imageUrl, '_blank');
-                                  };
-                                  img.onerror = () => {
-                                    alert('⚠️ Image not available\n\nThe customer photo for this quote is no longer available. The image may have been deleted or moved.\n\nYou can still approve or reject the quote based on the items list and pricing information.');
-                                  };
-                                  img.src = imageUrl;
+                                  window.open(imageUrl, '_blank');
                                 }}
                                 variant="outline"
                                 className="border-blue-400 text-blue-700 hover:bg-blue-50 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium"
