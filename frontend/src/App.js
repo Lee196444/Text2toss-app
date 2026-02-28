@@ -624,6 +624,13 @@ const LandingPage = () => {
             {quoteStep === 2 && quote && (
               <>
                 <CardHeader className="text-center pb-2 pt-6 bg-emerald-50 border-b border-emerald-100">
+                  {/* Success banner */}
+                  <div className="flex items-center justify-center gap-2 mb-3">
+                    <div className="w-10 h-10 bg-emerald-600 rounded-full flex items-center justify-center">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" /></svg>
+                    </div>
+                  </div>
+                  <p className="text-sm font-bold text-emerald-700 mb-2" data-testid="quote-success-msg">Quote submitted successfully!</p>
                   <div className="text-5xl font-black text-emerald-700 mb-1">
                     ${quote.total_price}
                   </div>
@@ -671,20 +678,21 @@ const LandingPage = () => {
                   <p className="text-xs text-gray-400 text-center">Ground level & curbside pickup only</p>
                 </CardContent>
 
-                <div className="p-5 bg-white border-t flex justify-between gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={() => { setQuoteStep(1); setQuote(null); setImageFile(null); setUploadedImage(null); setImageDescription(''); }}
-                    className="h-11 rounded-xl border-gray-200"
-                  >
-                    New Quote
-                  </Button>
+                <div className="p-5 bg-white border-t space-y-3">
                   <Button
                     onClick={() => { setShowBooking(true); setShowQuote(false); }}
-                    className="h-11 bg-gray-900 hover:bg-gray-800 rounded-xl px-6 font-semibold"
+                    className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 rounded-xl font-bold text-base"
                     data-testid="book-pickup-btn"
                   >
                     Continue to Booking
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => { setShowQuote(false); setQuoteStep(1); setQuote(null); setImageFile(null); setUploadedImage(null); setImageDescription(''); }}
+                    className="w-full h-12 rounded-xl border-gray-200 font-semibold text-base"
+                    data-testid="close-quote-btn"
+                  >
+                    Close
                   </Button>
                 </div>
               </>
