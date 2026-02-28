@@ -1345,44 +1345,42 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
             {/* Time Picker */}
             <div className="space-y-2">
               <Label className="text-base font-semibold text-gray-700">Select Time Window</Label>
-              <Select 
-                value={bookingData.pickup_time} 
-                onValueChange={(value) => setBookingData({...bookingData, pickup_time: value})}
-                disabled={!bookingData.pickup_date || checkingAvailability}
-              >
-                <SelectTrigger className="h-14 border-2 text-base" data-testid="pickup-time-select">
-                  <SelectValue placeholder={
-                    checkingAvailability ? "⏳ Checking..." : 
-                    !bookingData.pickup_date ? "Select date first" : 
-                    "Choose time window"
-                  } />
-                </SelectTrigger>
-                <SelectContent>
+              <div className="relative">
+                <select
+                  value={bookingData.pickup_time || ""}
+                  onChange={(e) => setBookingData({...bookingData, pickup_time: e.target.value})}
+                  disabled={!bookingData.pickup_date || checkingAvailability}
+                  className="w-full h-14 border-2 border-gray-200 rounded-lg px-4 text-base bg-white appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none"
+                  data-testid="pickup-time-select"
+                >
+                  <option value="" disabled>
+                    {checkingAvailability ? "Checking..." : 
+                     !bookingData.pickup_date ? "Select date first" : 
+                     "Choose time window"}
+                  </option>
                   {[
-                    { value: "08:00-10:00", label: "Morning (8-10 AM)", icon: "🌅" },
-                    { value: "10:00-12:00", label: "Late Morning (10 AM-12 PM)", icon: "☀️" },
-                    { value: "12:00-14:00", label: "Afternoon (12-2 PM)", icon: "🕐" },
-                    { value: "14:00-16:00", label: "Mid Afternoon (2-4 PM)", icon: "☀️" },
-                    { value: "16:00-18:00", label: "Evening (4-6 PM)", icon: "🌆" }
+                    { value: "08:00-10:00", label: "Morning (8-10 AM)" },
+                    { value: "10:00-12:00", label: "Late Morning (10 AM-12 PM)" },
+                    { value: "12:00-14:00", label: "Afternoon (12-2 PM)" },
+                    { value: "14:00-16:00", label: "Mid Afternoon (2-4 PM)" },
+                    { value: "16:00-18:00", label: "Evening (4-6 PM)" }
                   ].map(timeSlot => {
                     const isBooked = bookedTimeSlots.includes(timeSlot.value);
                     return (
-                      <SelectItem 
+                      <option 
                         key={timeSlot.value}
-                        value={timeSlot.value} 
+                        value={timeSlot.value}
                         disabled={isBooked}
-                        className={`${isBooked ? "opacity-50 cursor-not-allowed" : ""} py-3`}
                       >
-                        <span className="flex items-center gap-2">
-                          <span>{timeSlot.icon}</span>
-                          <span>{timeSlot.label}</span>
-                          {isBooked && <span className="text-red-600 font-semibold">• Booked</span>}
-                        </span>
-                      </SelectItem>
+                        {timeSlot.label}{isBooked ? " (Booked)" : ""}
+                      </option>
                     );
                   })}
-                </SelectContent>
-              </Select>
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                </div>
+              </div>
             </div>
           </div>
 
