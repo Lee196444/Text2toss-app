@@ -1232,6 +1232,36 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-start justify-center p-4 overflow-y-auto pt-8">
+
+      {/* Booking Submitted Success Screen */}
+      {bookingSubmitted ? (
+        <div className="w-full max-w-md mt-12 animate-fade-up">
+          <div className="bg-white rounded-2xl shadow-2xl overflow-hidden text-center">
+            <div className="bg-emerald-600 py-10 px-6">
+              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-10 h-10 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" /></svg>
+              </div>
+              <h2 className="text-2xl font-bold text-white" data-testid="booking-success-title">Booking Submitted!</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-gray-700 text-base leading-relaxed">
+                Your booking has been submitted successfully. Our team will review your quote and contact you within <strong>24 hours</strong>.
+              </p>
+              <p className="text-sm text-gray-500">
+                Payment will be available once your quote is approved. Check your email for updates.
+              </p>
+              <button
+                onClick={() => { setBookingSubmitted(false); onSuccess(); }}
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-xl text-base font-bold transition-colors"
+                data-testid="booking-success-close-btn"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : (
+
       <Card className="w-full max-w-2xl shadow-2xl border-0 mb-8 max-h-[calc(100vh-4rem)]">
         {/* Sticky Header with Price & Progress */}
         <div className="sticky top-0 z-10 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-t-lg">
