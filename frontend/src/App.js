@@ -1628,6 +1628,7 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
           )}
         </div>
       </Card>
+      )}
       
       {/* Availability Calendar Modal */}
       {showCalendar && (
