@@ -1051,7 +1051,7 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
     curbside_confirmed: false,
     email_notifications: true
   });
-  const [bookedTimeSlots, setBookedTimeSlots] = useState([]);
+  const [bookingSubmitted, setBookingSubmitted] = useState(false);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({}); // Track validation errors
