@@ -2102,6 +2102,10 @@ async def update_booking_status(booking_id: str, status_update: dict):
     
     update_data = {"status": new_status}
     
+    # If cancelling, also update payment_status so it's removed from pending payments
+    if new_status == "cancelled":
+        update_data["payment_status"] = "cancelled"
+    
     # If marking as completed, add completion timestamp
     if new_status == "completed":
         update_data["completed_at"] = datetime.now(timezone.utc).isoformat()
