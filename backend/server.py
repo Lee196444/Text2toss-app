@@ -936,114 +936,51 @@ def calculate_basic_price(items: List[JunkItem]) -> float:
 async def analyze_image_for_quote(image_path: str, description: str) -> tuple[List[JunkItem], float, str, Optional[int], Optional[dict]]:
     """Use AI vision to analyze uploaded image and identify junk items for pricing"""
     
-    ai_prompt = f"""You are a professional junk removal expert with 10+ years experience analyzing customer photos for accurate pricing. This is for Text2toss - a GROUND LEVEL and CURBSIDE PICKUP ONLY service in Flagstaff, AZ.
+    # Compress image for faster AI processing
+    compressed_path = image_path
+    try:
+        from PIL import Image as PILImage
+        img = PILImage.open(image_path)
+        max_dim = 1024
+        if max(img.size) > max_dim:
+            ratio = max_dim / max(img.size)
+            new_size = (int(img.size[0] * ratio), int(img.size[1] * ratio))
+            img = img.resize(new_size, PILImage.LANCZOS)
+        compressed_path = image_path.rsplit('.', 1)[0] + '_compressed.jpg'
+        img.convert('RGB').save(compressed_path, 'JPEG', quality=75, optimize=True)
+        logger.info(f"Compressed image: {Path(image_path).stat().st_size // 1024}KB -> {Path(compressed_path).stat().st_size // 1024}KB")
+    except Exception as e:
+        logger.warning(f"Image compression failed, using original: {e}")
+        compressed_path = image_path
+    
+    ai_prompt = f"""You are a junk removal pricing expert for Text2toss in Flagstaff, AZ. GROUND LEVEL & CURBSIDE PICKUP ONLY.
 
-CRITICAL ACCURACY REQUIREMENTS FOR 100% PRICING ACCURACY:
-- Examine the image with extreme care and identify ALL visible items
-- Count every single item you can see, including partially visible ones
-- Use reference objects for scale (doors=7ft, people=6ft, cars=12-15ft long)
-- Be CONSERVATIVE with pricing - overestimate rather than underestimate by 15-20%
-- If unsure between two scale levels, always choose the HIGHER scale
-- Look for items hidden behind others or in shadows
-- Consider that piles are often deeper than they appear
+Customer note: {description or 'None'}
 
-BUSINESS PROTECTION RULES:
-- NEVER underestimate volume - this causes customer disputes
-- Add safety margin to all estimates
-- If items look heavy (metal, stone, appliances), increase pricing by 20%
-- Multiple trips = higher pricing (anything over truck capacity)
+PRICING SCALE (by total volume):
+Scale 1: $15 (trash bag) | Scale 2: $20 (small box) | Scale 3: $50 (large bag) | Scale 4: $63 (multiple bags)
+Scale 5: $78 (microwave-sized) | Scale 6: $95 (small chair) | Scale 7: $115 (small furniture) | Scale 8: $138 (small dresser)
+Scale 9: $163 (large chair) | Scale 10: $190 (loveseat) | Scale 11: $220 (dining table) | Scale 12: $253 (sofa)
+Scale 13: $290 (sectional) | Scale 14: $333 (bedroom set) | Scale 15: $380 (living room set) | Scale 16: $433 (multi-room)
+Scale 17: $490 (small apt) | Scale 18: $553 (large apt) | Scale 19: $620 (small house) | Scale 20: $703 (large house)
 
-SERVICE LIMITATIONS (CRITICAL):
-- Ground level pickup only (no stairs, no upper floors) 
-- Items must be accessible at ground level or placed curbside
-- Customer must move items from upper floors/basements themselves
+Rules: Overestimate by 15-20%. Heavy items (metal/appliances) +20%. Use objects for scale reference.
 
-CUSTOMER DESCRIPTION (use to identify additional items not clearly visible):
-{description}
-
-**CRITICAL**: Base pricing on TOTAL ESTIMATED CUBIC FEET, not item count
-**CONSISTENCY REQUIREMENT**: Always provide the exact same analysis and pricing for identical images
-
-SCALE 1: $15 - 15-gallon trash bag or smaller
-SCALE 2: $20 - Small box, single small item
-SCALE 3: $45-55 - Large trash bag, small electronics
-SCALE 4: $55-70 - Multiple bags, small appliances
-SCALE 5: $70-85 - Microwave, toaster oven sized items
-SCALE 6: $85-105 - Small chair, end table
-SCALE 7: $105-125 - Multiple small furniture pieces
-SCALE 8: $125-150 - Office chair, small dresser
-SCALE 9: $150-175 - Large chair, coffee table
-SCALE 10: $175-205 - Love seat, medium dresser
-SCALE 11: $205-235 - Dining table, bookshelf
-SCALE 12: $235-270 - Sofa, large dresser
-SCALE 13: $270-310 - Sectional sofa, wardrobe
-SCALE 14: $310-355 - Bedroom set, multiple large items
-SCALE 15: $355-405 - Living room set
-SCALE 16: $405-460 - Multiple room furniture
-SCALE 17: $460-520 - Small apartment cleanout
-SCALE 18: $520-585 - Large apartment cleanout
-SCALE 19: $585-655 - Small house cleanout
-SCALE 20: $655-750 - Large house cleanout, estate sale items
-
-**SPECIAL CONSIDERATIONS FOR OUTDOOR MATERIALS:**
-- Large log piles, construction debris, landscaping waste typically Scale 15-20
-- Stack height is critical - tall piles have exponentially more volume
-- Use objects in photo for scale reference (people = ~6ft, cars = ~12ft long)
-- When in doubt about pile size, err on the higher scale estimate
-
-Additional charges may apply for:
-- Hazardous materials disposal: +$25-50
-- Electronic waste recycling: +$15-35 per item  
-- Extra heavy items requiring special handling: +$20-40
-
-PRICING PROCESS:
-1. Identify all items in the image
-2. Estimate combined volume using the 1-20 scale above  
-3. Select appropriate price range for that scale
-4. Adjust within range based on item condition, weight, disposal complexity
-5. Add any applicable additional charges
-6. BE CONSISTENT - same image should always get same analysis
-
-Respond ONLY with a JSON object in this exact format:
-{{
-  "items": [
-    {{
-      "name": "item name",
-      "quantity": 1,
-      "size": "small/medium/large",
-      "description": "brief description from image"
-    }}
-  ],
-  "total_price": 150.00,
-  "scale_level": 5,
-  "breakdown": {{
-    "base_price": "140.00",
-    "volume_assessment": "Medium load - dining room furniture",
-    "items": [
-      {{"name": "Dining table", "size": "large", "estimated_cost": 80.00}},
-      {{"name": "4 chairs", "size": "medium", "estimated_cost": 60.00}}
-    ],
-    "factors": [
-      "Ground level pickup only",
-      "Standard disposal fees included",
-      "No hazardous materials"
-    ],
-    "additional_charges": 10.00,
-    "total": 150.00
-  }},
-  "explanation": "Scale 5 load (9x9x9 cubic feet) - identified dining table and 4 chairs in image. Pricing includes ground level pickup, loading, and responsible disposal."
-}}"""
+Respond ONLY with JSON:
+{{"items": [{{"name": "item", "quantity": 1, "size": "small/medium/large", "description": "brief"}}], "total_price": 150.00, "scale_level": 5, "breakdown": {{"base_price": "140.00", "volume_assessment": "Medium load", "items": [{{"name": "Table", "size": "large", "estimated_cost": 80.00}}], "factors": ["Ground level pickup"], "additional_charges": 10.00, "total": 150.00}}, "explanation": "Scale 5 - identified table and chairs. Includes pickup and disposal."}}"""
 
     try:
-        # Calculate image hash for caching consistency
         import hashlib
         with open(image_path, 'rb') as f:
             image_hash = hashlib.md5(f.read()).hexdigest()
         
-        # Check cache for this image (stored in database)
+        # Check cache
         cached_quote = await db.image_cache.find_one({"image_hash": image_hash})
         if cached_quote:
-            print(f"🎯 Cache HIT for image {image_hash[:8]} - returning consistent pricing")
+            logger.info(f"Cache HIT for image {image_hash[:8]}")
+            # Clean up compressed file
+            if compressed_path != image_path and Path(compressed_path).exists():
+                Path(compressed_path).unlink()
             return (
                 [JunkItem(**item) for item in cached_quote["items"]],
                 cached_quote["total_price"],
@@ -1052,29 +989,29 @@ Respond ONLY with a JSON object in this exact format:
                 cached_quote.get("breakdown")
             )
         
-        print(f"📸 Cache MISS for image {image_hash[:8]} - generating new analysis")
+        logger.info(f"Cache MISS for image {image_hash[:8]} - analyzing")
         
-        # Create image file content
         image_file = FileContentWithMimeType(
-            file_path=image_path,
+            file_path=compressed_path,
             mime_type="image/jpeg"
         )
         
-        # Initialize AI chat with vision capabilities - Use latest Gemini 2.5 Flash for image analysis
-        # CRITICAL: Use image hash in session_id for consistency
         chat = LlmChat(
             api_key=os.environ.get('EMERGENT_LLM_KEY'),
-            session_id=f"vision_analysis_{image_hash}",  # Use image hash for session consistency
-            system_message="You are a professional junk removal expert with visual analysis capabilities. Always respond with valid JSON only. BE CONSISTENT - same image should always produce the same analysis and pricing."
-        ).with_model("gemini", "gemini-2.5-flash")  # Use latest Gemini 2.5 Flash for enhanced image analysis
+            session_id=f"vision_{image_hash}",
+            system_message="You are a junk removal pricing expert. Respond with valid JSON only. Be consistent."
+        ).with_model("gemini", "gemini-2.5-flash")
         
-        # Send message with image
         user_message = UserMessage(
             text=ai_prompt,
             file_contents=[image_file]
         )
         
         response = await chat.send_message(user_message)
+        
+        # Clean up compressed file
+        if compressed_path != image_path and Path(compressed_path).exists():
+            Path(compressed_path).unlink()
         
         # Parse AI response
         response_text = response.strip()

@@ -210,6 +210,8 @@ const LandingPage = () => {
     }
   };
 
+  const [analysisStatus, setAnalysisStatus] = useState('');
+
   const analyzeImageAndGetQuote = async () => {
     if (!imageFile) {
       setQuoteError("Please upload a photo of your items");
@@ -219,6 +221,15 @@ const LandingPage = () => {
 
     setImageAnalyzing(true);
     setQuoteError('');
+    
+    // Cycle through status messages
+    const messages = ['Uploading photo...', 'Identifying items...', 'Calculating price...'];
+    let i = 0;
+    setAnalysisStatus(messages[0]);
+    const statusInterval = setInterval(() => {
+      i = Math.min(i + 1, messages.length - 1);
+      setAnalysisStatus(messages[i]);
+    }, 3000);
     
     try {
       const formData = new FormData();
@@ -245,6 +256,8 @@ const LandingPage = () => {
       toast.error(errorMsg);
       console.error(error);
     } finally {
+      clearInterval(statusInterval);
+      setAnalysisStatus('');
       setImageAnalyzing(false);
     }
   };
@@ -629,7 +642,7 @@ const LandingPage = () => {
                     {imageAnalyzing ? (
                       <span className="flex items-center gap-2">
                         <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                        Analyzing...
+                        {analysisStatus || 'Analyzing...'}
                       </span>
                     ) : "Get Quote"}
                   </Button>
