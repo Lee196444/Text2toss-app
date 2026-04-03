@@ -465,7 +465,7 @@ const LandingPage = () => {
               <span className="text-sm font-semibold text-gray-900">Facebook</span>
               <span className="text-xs text-gray-400 mt-1">Follow us</span>
             </a>
-            <a href="https://g.page/r/text2toss/review" target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center p-6 rounded-2xl border border-gray-100 hover:border-amber-200 hover:shadow-md transition-all" data-testid="google-review-link">
+            <a href="https://g.page/r/CaN7_KQsxQCdEAE/review" target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center p-6 rounded-2xl border border-gray-100 hover:border-amber-200 hover:shadow-md transition-all" data-testid="google-review-link">
               <div className="w-12 h-12 bg-amber-50 text-amber-500 rounded-xl flex items-center justify-center mb-3 group-hover:bg-amber-100 transition-colors">
                 <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
               </div>
