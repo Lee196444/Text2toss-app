@@ -9,7 +9,7 @@ Full-stack junk removal booking application for Flagstaff, AZ. Customers upload 
 - **Database:** MongoDB
 - **AI:** Google Gemini 2.5 Flash (via emergentintegrations)
 - **Email:** Gmail SMTP (aiosmtplib)
-- **SMS:** Twilio (configured but optional)
+- **SMS:** Twilio (configured, needs credentials)
 
 ## Core Features (Implemented)
 - AI image analysis for junk quote generation (1-20 scale)
@@ -18,43 +18,42 @@ Full-stack junk removal booking application for Flagstaff, AZ. Customers upload 
 - Admin dashboard with job bins, calendar, route optimization
 - Quote approval/rejection with price adjustments
 - Email notifications (customer + admin)
-- Permanent image storage for ALL quote photos (latest 30 retained in `/app/static/quote_images/`)
+- Permanent image storage for ALL quote photos (latest 30 retained)
 - Admin authentication (username/password with JWT)
 - Health check endpoint at `/api/health`
+- **Customer booking lookup** at `/track` — enter email to check status
+- **Admin bulk reject** — reject individual or all pending payments
+- **Auto-refresh admin** data every 30 seconds
+- **Google Reviews** link in contact section
+- **Track Booking** nav link and post-booking prompt
 
-## UI Design (Redesigned Feb 27, 2026)
-- Clean, Uber-inspired white/minimal design
-- CSS variables for brand colors (`--brand: #059669`)
-- Sticky nav with T2T logo, links, Get Quote CTA, admin icon
-- Hero: "Junk removal, made simple." + Upload CTA + trust strip
-- How it works: 3 clean step cards
-- Green CTA banner mid-page
-- Contact: phone, email, facebook cards
-- Dark footer with copyright
-- Mobile responsive (tested at 390px)
-- Quote modal: 3-step progress (Upload → Quote → Book) with clean dot indicators
+## Pages
+- `/` — Customer landing page (hero, how it works, CTA, contact)
+- `/track` — Customer booking lookup by email
+- `/admin` — Admin dashboard (login required)
+- `/customer-approval/:token` — Customer approval flow
 
-## Key Business Logic
-- Scale 1-8: Auto-approved, customer can pay immediately
-- Scale 9-20: Requires admin approval; customer can submit booking info but payment is blocked
-- Pickup days: Monday-Thursday only
-- Ground level / curbside pickup only
-
-## Image Storage Architecture
-- ALL quote photos saved permanently to `/app/static/quote_images/` with `quote_` prefix
-- Cleanup automatically retains only the latest 30 photos
-- Booking creation does NOT move/delete quote images
-- Images served via `/api/images/quote_images/{filename}`
+## Key Endpoints
+- `POST /api/quotes/image` — Create quote from image
+- `POST /api/quotes` — Create quote from items list
+- `GET /api/bookings/lookup?email=` — Customer booking lookup
+- `POST /api/bookings` — Create booking
+- `GET /api/admin/pending-quotes` — Quotes awaiting admin approval
+- `POST /api/admin/quotes/{id}/approve` — Approve/reject quote
+- `GET /api/admin/pending-payments` — Unpaid bookings
+- `PATCH /api/admin/bookings/{id}` — Update booking status (cancelling also clears payment_status)
+- `POST /api/admin/bookings/{id}/mark-paid` — Mark as paid
 
 ## Admin Credentials
 - Username: lrobe
 - Password: L1964c10$
 
-## Status: Stable
-- All core flows tested and working (Feb 27, 2026)
-- 22/22 frontend+backend tests passing (iteration_4)
-- UI redesign verified on desktop + mobile
+## Status: Stable (April 3, 2026)
+- All core flows tested and working
+- 100% backend + frontend tests passing (iteration_5)
 
 ## Backlog
-- P2: Refactor `App.js` (1500+ lines) into separate component files
+- P2: Refactor `App.js` (1600+ lines) into separate component files
 - P2: Refactor `AdminDashboard.js` (2900+ lines) into sub-components
+- P3: Before/after photo gallery on homepage
+- P3: SMS via Twilio (code exists, needs credentials)
