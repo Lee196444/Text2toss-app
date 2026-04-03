@@ -27,17 +27,11 @@ const AdminLogin = ({ onLoginSuccess }) => {
       const response = await axios.post(`${API}/admin/login`, {
         username: username,
         password: password
-      });
+      }, { withCredentials: true });
 
       if (response.data.success) {
-        // Store admin token and user info
-        localStorage.setItem('admin_token', response.data.token);
-        localStorage.setItem('admin_user', JSON.stringify({
-          username: username,
-          display_name: response.data.display_name
-        }));
         toast.success(`Welcome back, ${response.data.display_name}!`);
-        onLoginSuccess();
+        onLoginSuccess(response.data.display_name);
       }
     } catch (error) {
       toast.error("Invalid username or password");

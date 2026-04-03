@@ -17,9 +17,12 @@ const toast = {
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// All admin API calls send the httpOnly session cookie automatically
+axios.defaults.withCredentials = true;
+
 const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || ""; // Set this in .env file
 
-const AdminDashboard = () => {
+const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [dailyBookings, setDailyBookings] = useState([]);
   const [weeklySchedule, setWeeklySchedule] = useState({});
@@ -94,6 +97,8 @@ const AdminDashboard = () => {
   const [showCustomerPhoto, setShowCustomerPhoto] = useState(false);
   const [currentCustomerPhoto, setCurrentCustomerPhoto] = useState(null);
 
+  const [failedQuoteImages, setFailedQuoteImages] = useState(new Set());
+  
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,
@@ -108,6 +113,7 @@ const AdminDashboard = () => {
     fetchPendingQuotes();
     fetchApprovalStats();
     fetchPendingPayments();
+    // eslint-disable-next-line
   }, [selectedDate]);
 
   // Auto-refresh admin data every 30 seconds
@@ -119,12 +125,14 @@ const AdminDashboard = () => {
       fetchDailySchedule();
     }, 30000);
     return () => clearInterval(interval);
+    // eslint-disable-next-line
   }, [selectedDate]);
 
   useEffect(() => {
     if (showSmsCenter) {
       fetchSmsMessages();
     }
+    // eslint-disable-next-line
   }, [showSmsCenter]);
 
   useEffect(() => {
@@ -132,15 +140,13 @@ const AdminDashboard = () => {
       fetchGalleryPhotos();
       fetchReelPhotos();
     }
+    // eslint-disable-next-line
   }, [showPhotoGallery]);
 
   // Photo Management Functions
   const fetchGalleryPhotos = async () => {
     try {
-      const token = localStorage.getItem('admin_token');
-      const response = await axios.get(`${API}/admin/gallery-photos`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await axios.get(`${API}/admin/gallery-photos`);
       
       // Backend now returns full URLs
       setGalleryPhotos(response.data);
@@ -152,10 +158,7 @@ const AdminDashboard = () => {
 
   const fetchReelPhotos = async () => {
     try {
-      const token = localStorage.getItem('admin_token');
-      const response = await axios.get(`${API}/admin/reel-photos`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await axios.get(`${API}/admin/reel-photos`);
       
       // Backend now returns full URLs
       setReelPhotos(response.data.photos || Array(6).fill(null));
@@ -171,10 +174,7 @@ const AdminDashboard = () => {
     
     setUploadingGalleryPhoto(true);
     try {
-      const token = localStorage.getItem('admin_token');
-      const response = await axios.post(`${API}/admin/upload-gallery-photo`, formData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await axios.post(`${API}/admin/upload-gallery-photo`, formData);
       toast.success('Photo uploaded successfully');
       fetchGalleryPhotos();
     } catch (error) {
@@ -187,12 +187,9 @@ const AdminDashboard = () => {
 
   const updateReelPhoto = async (slotIndex, photoUrl) => {
     try {
-      const token = localStorage.getItem('admin_token');
       await axios.post(`${API}/admin/update-reel-photo`, {
         slot_index: slotIndex,
         photo_url: photoUrl
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
       });
       toast.success(`Photo updated in slot ${slotIndex + 1}`);
       fetchReelPhotos();
@@ -204,10 +201,8 @@ const AdminDashboard = () => {
 
   const removeGalleryPhoto = async (photoUrl) => {
     try {
-      const token = localStorage.getItem('admin_token');
       await axios.delete(`${API}/admin/gallery-photo`, {
-        data: { photo_url: photoUrl },
-        headers: { Authorization: `Bearer ${token}` }
+        data: { photo_url: photoUrl }
       });
       toast.success('Photo removed from gallery');
       fetchGalleryPhotos();
@@ -495,8 +490,7 @@ const AdminDashboard = () => {
 
   const exportJobContacts = async () => {
     try {
-      const token = localStorage.getItem('admin_token');
-      const response = await axios.get(`${API}/admin/export-job-contacts?token=${token}`, {
+      const response = await axios.get(`${API}/admin/export-job-contacts`, {
         responseType: 'blob'
       });
       
@@ -519,8 +513,7 @@ const AdminDashboard = () => {
 
   const sendBulkEmailReminder = async () => {
     try {
-      const token = localStorage.getItem('admin_token');
-      const response = await axios.post(`${API}/admin/send-bulk-email-reminder?token=${token}`);
+      const response = await axios.post(`${API}/admin/send-bulk-email-reminder`);
       
       if (response.data.success) {
         toast.success(`Sent ${response.data.sent_count} email(s). ${response.data.failed_count} failed.`);
@@ -535,8 +528,7 @@ const AdminDashboard = () => {
 
   const sendBookingConfirmationEmail = async (bookingId) => {
     try {
-      const token = localStorage.getItem('admin_token');
-      const response = await axios.post(`${API}/admin/send-booking-confirmation-email/${bookingId}?token=${token}`);
+      const response = await axios.post(`${API}/admin/send-booking-confirmation-email/${bookingId}`);
       
       if (response.data.success) {
         toast.success("Booking confirmation email sent!");
@@ -573,8 +565,7 @@ const AdminDashboard = () => {
 
     setSendingEmail(true);
     try {
-      const token = localStorage.getItem('admin_token');
-      const response = await axios.post(`${API}/admin/send-custom-email?token=${token}`, {
+      const response = await axios.post(`${API}/admin/send-custom-email`, {
         to_email: emailCompose.to,
         subject: emailCompose.subject,
         message: emailCompose.message
@@ -603,8 +594,7 @@ const AdminDashboard = () => {
   // Fetch pending payment bookings
   const fetchPendingPayments = async () => {
     try {
-      const token = localStorage.getItem('admin_token');
-      const response = await axios.get(`${API}/admin/pending-payments?token=${token}`);
+      const response = await axios.get(`${API}/admin/pending-payments`);
       setPendingPayments(response.data);
     } catch (error) {
       console.error('Error fetching pending payments:', error);
@@ -614,8 +604,7 @@ const AdminDashboard = () => {
   // Mark booking as paid
   const markAsPaid = async (bookingId) => {
     try {
-      const token = localStorage.getItem('admin_token');
-      await axios.post(`${API}/admin/bookings/${bookingId}/mark-paid?token=${token}`);
+      await axios.post(`${API}/admin/bookings/${bookingId}/mark-paid`);
       toast.success("Booking marked as paid and added to calendar!");
       
       // Refresh data
@@ -630,8 +619,7 @@ const AdminDashboard = () => {
   const rejectPayment = async (bookingId) => {
     if (!window.confirm("Remove this booking from Pending Payment? This will cancel the booking.")) return;
     try {
-      const token = localStorage.getItem('admin_token');
-      await axios.patch(`${API}/admin/bookings/${bookingId}?token=${token}`, { status: "cancelled" });
+      await axios.patch(`${API}/admin/bookings/${bookingId}`, { status: "cancelled" });
       toast.success("Booking removed from pending payments.");
       fetchPendingPayments();
     } catch (error) {
@@ -643,10 +631,9 @@ const AdminDashboard = () => {
   const rejectAllPendingPayments = async () => {
     if (!window.confirm(`Remove ALL ${pendingPayments.length} bookings from Pending Payment? This cannot be undone.`)) return;
     try {
-      const token = localStorage.getItem('admin_token');
       let rejected = 0;
       for (const booking of pendingPayments) {
-        await axios.patch(`${API}/admin/bookings/${booking.id}?token=${token}`, { status: "cancelled" });
+        await axios.patch(`${API}/admin/bookings/${booking.id}`, { status: "cancelled" });
         rejected++;
       }
       toast.success(`${rejected} bookings removed from pending payments.`);
@@ -668,8 +655,7 @@ const AdminDashboard = () => {
   // Fetch all jobs (history and present)
   const fetchAllJobs = async () => {
     try {
-      const token = localStorage.getItem('admin_token');
-      const response = await axios.get(`${API}/admin/all-bookings?token=${token}`);
+      const response = await axios.get(`${API}/admin/all-bookings`);
       const jobs = response.data || [];
       setAllJobs(jobs);
       setFilteredJobs(jobs);
@@ -982,14 +968,7 @@ const AdminDashboard = () => {
                 <h1 className="text-2xl sm:text-3xl font-bold text-white">Text2toss Admin</h1>
               </div>
               <p className="text-emerald-100 text-sm sm:text-base">
-                Welcome back, {(() => {
-                  try {
-                    const adminUser = JSON.parse(localStorage.getItem('admin_user') || '{}');
-                    return adminUser.display_name || 'Admin';
-                  } catch {
-                    return 'Admin';
-                  }
-                })()}! Manage daily pickups and optimize routes
+                Welcome back, {adminDisplayName}! Manage daily pickups and optimize routes
               </p>
             </div>
             
@@ -1008,16 +987,12 @@ const AdminDashboard = () => {
                 Today
               </Button>
               <Button 
-                onClick={() => {
-                  localStorage.removeItem('admin_token');
-                  localStorage.removeItem('admin_user');
-                  window.location.reload();
-                }}
+                onClick={onLogout}
                 size="sm"
                 variant="outline"
                 className="w-full sm:w-auto bg-white/10 border-white/30 text-white hover:bg-white/20"
               >
-                🚪 Logout
+                Logout
               </Button>
             </div>
           </div>
@@ -2371,7 +2346,7 @@ const AdminDashboard = () => {
                                 <h4 className="font-semibold mb-2">Items:</h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
                                   {quote.items.map((item, index) => (
-                                    <div key={index} className="text-sm bg-white p-2 rounded border">
+                                    <div key={`${item.name}-${item.size}-${index}`} className="text-sm bg-white p-2 rounded border">
                                       {item.quantity}x {item.name} ({item.size})
                                     </div>
                                   ))}
@@ -2397,48 +2372,49 @@ const AdminDashboard = () => {
                               </h4>
                               {quote.temp_image_path ? (
                                 <div className="bg-white border-2 border-gray-200 rounded-lg p-3">
-                                  <img 
-                                    src={(() => {
-                                      if (quote.temp_image_path.startsWith('http')) {
-                                        return quote.temp_image_path;
-                                      }
-                                      const filename = quote.temp_image_path.split('/').pop();
-                                      const folder = filename.startsWith('quote_') ? 'quote_images' 
-                                        : filename.startsWith('approval_') ? 'approval_quotes' 
-                                        : 'temp_uploads';
-                                      return `${process.env.REACT_APP_BACKEND_URL}/api/images/${folder}/${filename}`;
-                                    })()}
-                                    alt="Customer uploaded photo for quote" 
-                                    className="max-w-full h-auto max-h-64 rounded-lg border border-gray-300 cursor-pointer hover:opacity-90 transition-opacity"
-                                    data-testid="quote-photo-img"
-                                    onClick={() => {
-                                      let imageUrl;
-                                      if (quote.temp_image_path.startsWith('http')) {
-                                        imageUrl = quote.temp_image_path;
-                                      } else {
-                                        const filename = quote.temp_image_path.split('/').pop();
-                                        const folder = filename.startsWith('quote_') ? 'quote_images' 
-                                          : filename.startsWith('approval_') ? 'approval_quotes' 
-                                          : 'temp_uploads';
-                                        imageUrl = `${process.env.REACT_APP_BACKEND_URL}/api/images/${folder}/${filename}`;
-                                      }
-                                      window.open(imageUrl, '_blank');
-                                    }}
-                                    onError={(e) => {
-                                      console.error('Image failed to load:', quote.temp_image_path);
-                                      e.target.style.display = 'none';
-                                      e.target.parentElement.innerHTML = `
-                                        <div class="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 text-center">
-                                          <div class="text-3xl mb-2">📷</div>
-                                          <p class="text-sm font-semibold text-yellow-800 mb-2">Photo No Longer Available</p>
-                                          <p class="text-xs text-yellow-700 mb-2">Only the last 30 quote photos are retained.</p>
-                                        </div>
-                                      `;
-                                    }}
-                                  />
-                                  <div className="mt-2 text-xs text-gray-500 text-center">
-                                    Click image to view full size
-                                  </div>
+                                  {failedQuoteImages.has(quote.id) ? (
+                                    <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 text-center">
+                                      <p className="text-sm font-semibold text-yellow-800 mb-2">Photo No Longer Available</p>
+                                      <p className="text-xs text-yellow-700">Only the last 30 quote photos are retained.</p>
+                                    </div>
+                                  ) : (
+                                    <>
+                                      <img 
+                                        src={(() => {
+                                          if (quote.temp_image_path.startsWith('http')) {
+                                            return quote.temp_image_path;
+                                          }
+                                          const filename = quote.temp_image_path.split('/').pop();
+                                          const folder = filename.startsWith('quote_') ? 'quote_images' 
+                                            : filename.startsWith('approval_') ? 'approval_quotes' 
+                                            : 'temp_uploads';
+                                          return `${process.env.REACT_APP_BACKEND_URL}/api/images/${folder}/${filename}`;
+                                        })()}
+                                        alt="Customer uploaded photo for quote" 
+                                        className="max-w-full h-auto max-h-64 rounded-lg border border-gray-300 cursor-pointer hover:opacity-90 transition-opacity"
+                                        data-testid="quote-photo-img"
+                                        onClick={() => {
+                                          let imageUrl;
+                                          if (quote.temp_image_path.startsWith('http')) {
+                                            imageUrl = quote.temp_image_path;
+                                          } else {
+                                            const filename = quote.temp_image_path.split('/').pop();
+                                            const folder = filename.startsWith('quote_') ? 'quote_images' 
+                                              : filename.startsWith('approval_') ? 'approval_quotes' 
+                                              : 'temp_uploads';
+                                            imageUrl = `${process.env.REACT_APP_BACKEND_URL}/api/images/${folder}/${filename}`;
+                                          }
+                                          window.open(imageUrl, '_blank');
+                                        }}
+                                        onError={() => {
+                                          setFailedQuoteImages(prev => new Set([...prev, quote.id]));
+                                        }}
+                                      />
+                                      <div className="mt-2 text-xs text-gray-500 text-center">
+                                        Click image to view full size
+                                      </div>
+                                    </>
+                                  )}
                                 </div>
                               ) : (
                                 <div className="bg-gray-50 border-2 border-gray-200 rounded-lg p-4 text-center">
@@ -2609,7 +2585,7 @@ const AdminDashboard = () => {
                 </h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                   {reelPhotos.map((photo, index) => (
-                    <div key={index} className="border rounded-lg p-2 bg-gray-50">
+                    <div key={`reel-slot-${index}`} className="border rounded-lg p-2 bg-gray-50">
                       <div className="text-center text-sm font-medium mb-2">Slot {index + 1}</div>
                       {photo ? (
                         <div className="relative">
@@ -2646,7 +2622,7 @@ const AdminDashboard = () => {
                 ) : (
                   <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                     {galleryPhotos.map((photo, index) => (
-                      <div key={index} className="relative group">
+                      <div key={`gallery-${photo.substring(photo.lastIndexOf('/') + 1, photo.lastIndexOf('/') + 12)}-${index}`} className="relative group">
                         <img 
                           src={photo} 
                           alt={`Gallery ${index + 1}`} 

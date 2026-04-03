@@ -129,3 +129,4 @@ static/gallery/*
 # Environment files
 *.env
 *.env.*
+frontend/node_modules/.cache/default-development/15.pack

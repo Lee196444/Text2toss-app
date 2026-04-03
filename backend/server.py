@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, UploadFile, File, Form, Request
+from fastapi import FastAPI, APIRouter, HTTPException, UploadFile, File, Form, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse, JSONResponse
 from dotenv import load_dotenv
@@ -97,7 +97,7 @@ async def send_sms(to_phone: str, message: str, image_url: str = None):
     
     if not client:
         logging.warning("Twilio not configured - SMS simulation mode")
-        print(f"\n--- SMS SIMULATION ---")
+        print("\n--- SMS SIMULATION ---")
         print(f"To: {to_phone}")
         print(f"Message: {message}")
         if image_url:
@@ -112,7 +112,7 @@ async def send_sms(to_phone: str, message: str, image_url: str = None):
                     print(f"❌ Photo URL returned status: {response.status_code}")
             except Exception as e:
                 print(f"❌ Photo URL test failed: {str(e)}")
-        print(f"--- END SIMULATION ---\n")
+        print("--- END SIMULATION ---\n")
         
         return {
             "status": "simulated", 
@@ -220,7 +220,7 @@ def create_booking_confirmation_email(booking_data: dict, quote_data: dict) -> s
     if isinstance(pickup_date, str):
         try:
             pickup_date = datetime.fromisoformat(pickup_date).strftime('%B %d, %Y')
-        except:
+        except (ValueError, TypeError):
             pass
     
     return f"""
@@ -295,7 +295,7 @@ def create_payment_reminder_email(booking_data: dict, amount: float, booking_id:
     if isinstance(pickup_date, str):
         try:
             pickup_date = datetime.fromisoformat(pickup_date).strftime('%B %d, %Y')
-        except:
+        except (ValueError, TypeError):
             pass
     
     qr_section = ""
@@ -653,6 +653,8 @@ def validate_pricing_logic(items: List[JunkItem], ai_price: float, ai_scale: Opt
     min_scale = min_scale_by_count.get(item_count, min_scale_by_count[5])
     max_scale = max_scale_by_count.get(item_count, max_scale_by_count[5])
     
+    validated_scale = min_scale  # Initialize with safe default
+    
     if ai_scale is not None:
         validated_scale = max(min_scale, min(ai_scale, max_scale))
     else:
@@ -851,7 +853,7 @@ Respond ONLY with a JSON object in this exact format:
             safety_price = len(items) * 30  # $30 minimum per item
             if safety_price > validated_price:
                 validated_price = safety_price
-                explanation += f" (Safety adjustment applied - minimum $30 per item for business sustainability)"
+                explanation += " (Safety adjustment applied - minimum $30 per item for business sustainability)"
         
         # Scale consistency check
         if validated_scale != scale_level and scale_level:
@@ -972,7 +974,7 @@ Respond ONLY with JSON:
     try:
         import hashlib
         with open(image_path, 'rb') as f:
-            image_hash = hashlib.md5(f.read()).hexdigest()
+            image_hash = hashlib.sha256(f.read()).hexdigest()
         
         # Check cache
         cached_quote = await db.image_cache.find_one({"image_hash": image_hash})
@@ -1277,7 +1279,7 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
     if token:
         try:
             user_id = await get_current_user(token)
-        except:
+        except Exception:
             pass
     
     # Verify quote exists
@@ -1441,7 +1443,7 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
     if is_email_enabled() and booking.email:
         logging.info(f"Email enabled, attempting to send email to {booking.email}")
         if quote_requires_approval:
-            logging.info(f"Quote requires approval - sending 'Under Review' email")
+            logging.info("Quote requires approval - sending 'Under Review' email")
             # Send "Under Review" email for quotes needing approval
             email_html = f"""
             <!DOCTYPE html>
@@ -1542,7 +1544,7 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
             )
             logging.info(f"Quote under review email sent to {booking.email}: {email_result}")
         else:
-            logging.info(f"Quote auto-approved - sending standard booking confirmation")
+            logging.info("Quote auto-approved - sending standard booking confirmation")
             # Send standard booking confirmation email for auto-approved quotes
             email_html = create_booking_confirmation_email(booking.dict(), quote_doc)
             email_result = await send_email(
@@ -1553,7 +1555,7 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
             logging.info(f"Booking confirmation email sent to {booking.email}: {email_result}")
     else:
         if not is_email_enabled():
-            logging.warning(f"Email NOT sent - email is disabled in environment")
+            logging.warning("Email NOT sent - email is disabled in environment")
         if not booking.email:
             logging.warning(f"Email NOT sent - no email address provided for booking {booking.id}")
     
@@ -1717,9 +1719,9 @@ async def get_daily_schedule(date: str = None):
                 del quote["_id"]
             booking_data["quote_details"] = parse_from_mongo(quote)
             
-        # Create Booking object without quote_details field for validation
+        # Validate Booking data structure
         clean_booking_data = {k: v for k, v in booking_data.items() if k != "quote_details"}
-        booking_obj = Booking(**clean_booking_data)
+        Booking(**clean_booking_data)  # Validate only
         
         result.append(booking_data)  # Return raw data instead of Pydantic object
     
@@ -2075,7 +2077,7 @@ async def update_booking_status(booking_id: str, status_update: dict):
     if new_status == "completed":
         update_data["completed_at"] = datetime.now(timezone.utc).isoformat()
     
-    result = await db.bookings.update_one(
+    await db.bookings.update_one(
         {"id": booking_id},
         {"$set": update_data}
     )
@@ -2709,42 +2711,54 @@ async def get_quote_approval_stats():
 
 @api_router.post("/admin/login")
 async def admin_login(login_data: AdminLogin):
-    """Secure admin username/password authentication"""
+    """Secure admin username/password authentication — sets httpOnly cookie"""
     try:
-        # Get admin user from database
         admin_user = await db.admin_users.find_one({"username": login_data.username})
-        
         if not admin_user:
             raise HTTPException(status_code=401, detail="Invalid credentials")
-        
-        # Verify password
+
         if not pwd_context.verify(login_data.password, admin_user["password_hash"]):
             raise HTTPException(status_code=401, detail="Invalid credentials")
-        
-        # Create admin session token with user info
+
         admin_token = jwt.encode(
             {
-                "admin": True, 
+                "admin": True,
                 "username": admin_user["username"],
                 "display_name": admin_user["display_name"],
                 "exp": datetime.now(timezone.utc) + timedelta(hours=8)
-            }, 
-            SECRET_KEY, 
+            },
+            SECRET_KEY,
             algorithm=ALGORITHM
         )
-        
-        return {
-            "success": True, 
-            "token": admin_token, 
+
+        response = JSONResponse(content={
+            "success": True,
             "message": "Login successful",
             "display_name": admin_user["display_name"]
-        }
-        
+        })
+        response.set_cookie(
+            key="admin_session",
+            value=admin_token,
+            httponly=True,
+            secure=True,
+            samesite="lax",
+            max_age=8 * 3600,
+            path="/api"
+        )
+        return response
+
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Admin login error: {str(e)}")
         raise HTTPException(status_code=401, detail="Invalid credentials")
+
+@api_router.post("/admin/logout")
+async def admin_logout():
+    """Clear the admin session cookie"""
+    response = JSONResponse(content={"success": True, "message": "Logged out"})
+    response.delete_cookie("admin_session", path="/api")
+    return response
 
 @api_router.post("/admin/init")
 async def initialize_admin():
@@ -2773,22 +2787,25 @@ async def initialize_admin():
     return {"message": "Admin user created successfully", "username": "lrobe"}
 
 @api_router.get("/admin/verify")
-async def verify_admin_token(token: str = None):
-    """Verify admin token"""
-    if not token:
-        raise HTTPException(status_code=401, detail="No token provided")
-    
+async def verify_admin_token(request: Request):
+    """Verify admin session from httpOnly cookie and return admin info"""
+    admin_session = request.cookies.get("admin_session")
+    if not admin_session:
+        raise HTTPException(status_code=401, detail="Not authenticated")
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        if payload.get("admin"):
-            return {"valid": True}
-        else:
+        payload = jwt.decode(admin_session, SECRET_KEY, algorithms=[ALGORITHM])
+        if not payload.get("admin"):
             raise HTTPException(status_code=401, detail="Invalid admin token")
+        return {
+            "valid": True,
+            "username": payload.get("username"),
+            "display_name": payload.get("display_name")
+        }
     except jwt.PyJWTError:
-        raise HTTPException(status_code=401, detail="Invalid admin token")
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
 
 @api_router.post("/admin/send-bulk-email-reminder")
-async def send_bulk_email_reminder(token: str = Depends(verify_admin_token)):
+async def send_bulk_email_reminder():
     """Send payment reminder emails to all bookings with pending payments"""
     try:
         # Get all pending payment bookings
@@ -2862,7 +2879,7 @@ async def send_bulk_email_reminder(token: str = Depends(verify_admin_token)):
         raise HTTPException(status_code=500, detail=f"Failed to send bulk emails: {str(e)}")
 
 @api_router.post("/admin/send-booking-confirmation-email/{booking_id}")
-async def send_booking_confirmation_email_admin(booking_id: str, token: str = Depends(verify_admin_token)):
+async def send_booking_confirmation_email_admin(booking_id: str):
     """Send booking confirmation email to a specific booking (admin endpoint)"""
     try:
         # Get booking
@@ -2879,9 +2896,6 @@ async def send_booking_confirmation_email_admin(booking_id: str, token: str = De
         quote_doc = await db.quotes.find_one({"id": booking.quote_id})
         if not quote_doc:
             raise HTTPException(status_code=404, detail="Quote not found")
-        
-        amount = quote_doc.get("total_price", 0)
-        venmo_qr_url = "https://www.paypal.com/qrcodes/venmocs/9f1f97dd-23ed-4676-82b5-3fc2126def65?created=1762118921"
         
         # Create and send booking confirmation email
         if is_email_enabled():
@@ -2911,8 +2925,7 @@ async def send_booking_confirmation_email_admin(booking_id: str, token: str = De
 async def send_custom_email(
     to_email: str,
     subject: str,
-    message: str,
-    token: str = Depends(verify_admin_token)
+    message: str
 ):
     """Send custom email to customer from admin"""
     try:
@@ -2968,7 +2981,7 @@ async def send_custom_email(
 # Venmo-only payment system - Stripe endpoints removed
 
 @api_router.post("/admin/optimize-route")
-async def optimize_route(token: str = Depends(verify_admin_token)):
+async def optimize_route():
     """Optimize pickup routes for scheduled bookings using Google Maps"""
     try:
         # Check if Google Maps API key is available
@@ -3009,7 +3022,7 @@ async def optimize_route(token: str = Depends(verify_admin_token)):
         raise HTTPException(status_code=500, detail=f"Failed to optimize route: {str(e)}")
 
 @api_router.get("/admin/all-bookings")
-async def get_all_bookings(token: str = Depends(verify_admin_token)):
+async def get_all_bookings():
     """Get all bookings (history and present) with quote details"""
     try:
         # Fetch all bookings sorted by created_at descending (newest first)
@@ -3388,7 +3401,7 @@ Payment instructions will be sent shortly. Job ID: {booking['id'][:8]}"""
             update_data["status"] = "cancelled"
             
             # Send cancellation SMS
-            message = f"""❌ Text2toss: Booking Cancelled
+            message = """❌ Text2toss: Booking Cancelled
             
 Your booking has been cancelled due to price adjustment decline.
 
@@ -3420,7 +3433,7 @@ We appreciate your understanding."""
         raise HTTPException(status_code=500, detail="Failed to process approval")
 
 @api_router.get("/admin/export-job-contacts")
-async def export_job_contacts(token: str = Depends(verify_admin_token)):
+async def export_job_contacts():
     """
     Export all job contacts to CSV file
     Includes customer name, email, phone, job details, booking and payment status
@@ -3563,6 +3576,26 @@ async def health_check():
 
 # Include the router in the main app
 app.include_router(api_router)
+
+# Admin auth middleware — protects all /api/admin/* routes via httpOnly cookie
+ADMIN_AUTH_EXEMPT = {"/api/admin/login", "/api/admin/init"}
+
+@app.middleware("http")
+async def admin_auth_middleware(request: Request, call_next):
+    path = request.url.path
+    if path.startswith("/api/admin/") and path not in ADMIN_AUTH_EXEMPT:
+        admin_session = request.cookies.get("admin_session")
+        if not admin_session:
+            return JSONResponse(status_code=401, content={"detail": "Not authenticated"})
+        try:
+            payload = jwt.decode(admin_session, SECRET_KEY, algorithms=[ALGORITHM])
+            if not payload.get("admin"):
+                return JSONResponse(status_code=401, content={"detail": "Invalid admin token"})
+            request.state.admin = payload
+        except jwt.PyJWTError:
+            return JSONResponse(status_code=401, content={"detail": "Invalid or expired token"})
+    response = await call_next(request)
+    return response
 
 # Also register at root level for direct access
 @app.get("/health")

@@ -11,22 +11,14 @@ const API = `${BACKEND_URL}/api`;
 const ProtectedAdmin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
+  const [adminDisplayName, setAdminDisplayName] = useState("Admin");
 
   const checkAuthStatus = async () => {
-    const token = localStorage.getItem('admin_token');
-    
-    if (!token) {
-      setIsAuthenticated(false);
-      setIsChecking(false);
-      return;
-    }
-
     try {
-      await axios.get(`${API}/admin/verify?token=${token}`);
+      const res = await axios.get(`${API}/admin/verify`, { withCredentials: true });
       setIsAuthenticated(true);
-    } catch (error) {
-      // Token is invalid, remove it
-      localStorage.removeItem('admin_token');
+      setAdminDisplayName(res.data.display_name || "Admin");
+    } catch {
       setIsAuthenticated(false);
     }
     setIsChecking(false);
@@ -36,12 +28,17 @@ const ProtectedAdmin = () => {
     checkAuthStatus();
   }, []);
 
-  const handleLoginSuccess = () => {
+  const handleLoginSuccess = (displayName) => {
+    setAdminDisplayName(displayName || "Admin");
     setIsAuthenticated(true);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('admin_token');
+  const handleLogout = async () => {
+    try {
+      await axios.post(`${API}/admin/logout`, {}, { withCredentials: true });
+    } catch {
+      // ignore — cookie may already be expired
+    }
     setIsAuthenticated(false);
     toast.success("Logged out successfully");
   };
@@ -68,11 +65,11 @@ const ProtectedAdmin = () => {
           className="bg-white/90 border-red-200 text-red-700 hover:bg-red-50"
           data-testid="admin-logout-btn"
         >
-          🚪 Logout
+          Logout
         </Button>
       </div>
       
-      <AdminDashboard />
+      <AdminDashboard adminDisplayName={adminDisplayName} onLogout={handleLogout} />
     </div>
   );
 };

@@ -87,14 +87,13 @@ const LandingPage = () => {
     const fetchPhotoReel = async () => {
       try {
         const response = await axios.get(`${API}/reel-photos`);
-        
-        // Backend now returns full URLs
         setPhotoReel(response.data.photos || []);
       } catch (error) {
         console.error('Failed to fetch photo reel:', error);
       }
     };
     fetchPhotoReel();
+    // eslint-disable-next-line
   }, []);
 
   // Auto-cycle photos every 4 seconds
@@ -681,7 +680,7 @@ const LandingPage = () => {
                         <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Items identified</h4>
                       </div>
                       {quote.breakdown.items.map((item, index) => (
-                        <div key={index} className="flex justify-between items-center px-4 py-2.5">
+                        <div key={`${item.name}-${item.size}-${index}`} className="flex justify-between items-center px-4 py-2.5">
                           <span className="text-sm text-gray-700">{item.name} <span className="text-xs text-gray-400">({item.size})</span></span>
                           <span className="text-sm font-semibold text-gray-900">${item.estimated_cost || '—'}</span>
                         </div>
@@ -854,7 +853,7 @@ const PhotoCarousel = ({ photos, currentIndex, onIndexChange }) => {
               const isActive = validIndices[index] === currentIndex;
               return (
                 <button
-                  key={index}
+                  key={`dot-${index}`}
                   onClick={() => handleDotClick(index)}
                   className={`w-2 h-2 rounded-full transition-all ${isActive ? 'bg-white w-6' : 'bg-white/50 hover:bg-white/70'}`}
                 />

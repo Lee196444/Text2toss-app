@@ -9,9 +9,9 @@ import os
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://quote-status-pending.preview.emergentagent.com')
 API_URL = f"{BASE_URL.rstrip('/')}/api"
 
-# Admin credentials
-ADMIN_USERNAME = "lrobe"
-ADMIN_PASSWORD = "L1964c10$"
+# Admin credentials - read from environment
+ADMIN_USERNAME = os.environ.get("TEST_ADMIN_USERNAME", "lrobe")
+ADMIN_PASSWORD = os.environ.get("TEST_ADMIN_PASSWORD", "L1964c10$")
 
 
 class TestHealthEndpoints:
