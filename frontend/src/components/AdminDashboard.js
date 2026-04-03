@@ -616,6 +616,19 @@ const AdminDashboard = () => {
     }
   };
 
+  const rejectPayment = async (bookingId) => {
+    if (!window.confirm("Remove this booking from Pending Payment? This will cancel the booking.")) return;
+    try {
+      const token = localStorage.getItem('admin_token');
+      await axios.patch(`${API}/admin/bookings/${bookingId}?token=${token}`, { status: "cancelled" });
+      toast.success("Booking removed from pending payments.");
+      fetchPendingPayments();
+    } catch (error) {
+      toast.error("Failed to reject payment");
+      console.error('Reject payment error:', error);
+    }
+  };
+
   const formatTime = (timeRange) => {
     return timeRange;
   };
@@ -2752,7 +2765,7 @@ const AdminDashboard = () => {
                   {pendingPayments.map((booking) => (
                     <Card key={booking.id} className="border-l-4 border-l-red-400">
                       <CardHeader className="pb-3">
-                        <div className="flex justify-between items-start">
+                        <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
                           <div>
                             <CardTitle className="text-lg">
                               ${booking.quote_details?.total_price || 0} - {booking.pickup_time}
@@ -2761,12 +2774,23 @@ const AdminDashboard = () => {
                               {new Date(booking.pickup_date).toLocaleDateString()} • ID: {booking.id.substring(0, 8)}
                             </CardDescription>
                           </div>
-                          <Button 
-                            onClick={() => markAsPaid(booking.id)}
-                            className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
-                          >
-                            ✅ Mark as Paid
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button 
+                              onClick={() => markAsPaid(booking.id)}
+                              className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
+                              data-testid="mark-paid-btn"
+                            >
+                              ✅ Mark as Paid
+                            </Button>
+                            <Button 
+                              onClick={() => rejectPayment(booking.id)}
+                              variant="outline"
+                              className="bg-red-50 hover:bg-red-100 text-red-600 border-red-300"
+                              data-testid="reject-payment-btn"
+                            >
+                              Reject
+                            </Button>
+                          </div>
                         </div>
                       </CardHeader>
                       <CardContent>
