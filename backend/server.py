@@ -1635,6 +1635,34 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
     
     return booking
 
+@api_router.get("/bookings/lookup")
+async def lookup_bookings(email: str):
+    """Customer-facing: look up bookings by email"""
+    if not email:
+        raise HTTPException(status_code=400, detail="Email is required")
+    
+    bookings = await db.bookings.find({"email": {"$regex": f"^{re.escape(email)}$", "$options": "i"}}).sort("created_at", -1).to_list(20)
+    
+    result = []
+    for booking in bookings:
+        if "_id" in booking:
+            del booking["_id"]
+        b = parse_from_mongo(booking)
+        # Get quote details
+        quote = await db.quotes.find_one({"id": b.get("quote_id")})
+        if quote:
+            if "_id" in quote:
+                del quote["_id"]
+            b["quote_details"] = {
+                "total_price": quote.get("total_price"),
+                "approved_price": quote.get("approved_price"),
+                "approval_status": quote.get("approval_status"),
+                "items": quote.get("items", [])
+            }
+        result.append(b)
+    
+    return result
+
 @api_router.get("/bookings", response_model=List[Booking])
 async def get_bookings(token: str = None):
     user_id = await get_current_user(token) if token else "anonymous"

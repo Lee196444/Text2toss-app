@@ -107,7 +107,18 @@ const AdminDashboard = () => {
     fetchWeeklySchedule();
     fetchPendingQuotes();
     fetchApprovalStats();
-    fetchPendingPayments();  // Fetch pending payments on load
+    fetchPendingPayments();
+  }, [selectedDate]);
+
+  // Auto-refresh admin data every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchPendingPayments();
+      fetchPendingQuotes();
+      fetchApprovalStats();
+      fetchDailySchedule();
+    }, 30000);
+    return () => clearInterval(interval);
   }, [selectedDate]);
 
   useEffect(() => {
@@ -626,6 +637,23 @@ const AdminDashboard = () => {
     } catch (error) {
       toast.error("Failed to reject payment");
       console.error('Reject payment error:', error);
+    }
+  };
+
+  const rejectAllPendingPayments = async () => {
+    if (!window.confirm(`Remove ALL ${pendingPayments.length} bookings from Pending Payment? This cannot be undone.`)) return;
+    try {
+      const token = localStorage.getItem('admin_token');
+      let rejected = 0;
+      for (const booking of pendingPayments) {
+        await axios.patch(`${API}/admin/bookings/${booking.id}?token=${token}`, { status: "cancelled" });
+        rejected++;
+      }
+      toast.success(`${rejected} bookings removed from pending payments.`);
+      fetchPendingPayments();
+    } catch (error) {
+      toast.error("Failed to reject some payments");
+      fetchPendingPayments();
     }
   };
 
@@ -2747,12 +2775,24 @@ const AdminDashboard = () => {
                   className="bg-white/20 hover:bg-white/30 text-white border-0"
                   size="sm"
                 >
-                  ✕ Close
+                  Close
                 </Button>
               </div>
-              <CardDescription className="text-white/90">
-                Customers who booked but haven't paid yet - Mark as paid to add to calendar
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <CardDescription className="text-white/90">
+                  Customers who booked but haven't paid yet
+                </CardDescription>
+                {pendingPayments.length > 0 && (
+                  <Button
+                    onClick={rejectAllPendingPayments}
+                    size="sm"
+                    className="bg-white/20 hover:bg-white/30 text-white border border-white/30"
+                    data-testid="reject-all-payments-btn"
+                  >
+                    Reject All ({pendingPayments.length})
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="overflow-y-auto max-h-[70vh] p-4">
               {pendingPayments.length === 0 ? (

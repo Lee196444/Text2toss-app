@@ -5,6 +5,7 @@ import axios from "axios";
 import QRCode from 'qrcode';
 import ProtectedAdmin from "./components/ProtectedAdmin";
 import CustomerApproval from "./components/CustomerApproval";
+import BookingLookup from "./components/BookingLookup";
 import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 import { Textarea } from "./components/ui/textarea";
@@ -285,6 +286,7 @@ const LandingPage = () => {
             </div>
             <div className="flex items-center gap-3">
               <a href="#how-it-works" className="hidden sm:block text-sm text-gray-500 hover:text-gray-900 font-medium transition-colors">How It Works</a>
+              <Link to="/track" className="hidden sm:block text-sm text-gray-500 hover:text-gray-900 font-medium transition-colors">Track Booking</Link>
               <a href="#contact" className="hidden sm:block text-sm text-gray-500 hover:text-gray-900 font-medium transition-colors">Contact</a>
               <Button 
                 onClick={() => setShowQuote(true)}
@@ -428,7 +430,7 @@ const LandingPage = () => {
             <p className="text-base text-gray-500">We're here to help with your junk removal needs</p>
           </div>
 
-          <div className="grid sm:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             <a href="tel:9288539619" className="group flex flex-col items-center p-6 rounded-2xl border border-gray-100 hover:border-emerald-200 hover:shadow-md transition-all">
               <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-3 group-hover:bg-emerald-100 transition-colors">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
@@ -450,6 +452,21 @@ const LandingPage = () => {
               <span className="text-sm font-semibold text-gray-900">Facebook</span>
               <span className="text-xs text-gray-400 mt-1">Follow us</span>
             </a>
+            <a href="https://g.page/r/text2toss/review" target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center p-6 rounded-2xl border border-gray-100 hover:border-amber-200 hover:shadow-md transition-all" data-testid="google-review-link">
+              <div className="w-12 h-12 bg-amber-50 text-amber-500 rounded-xl flex items-center justify-center mb-3 group-hover:bg-amber-100 transition-colors">
+                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              </div>
+              <span className="text-sm font-semibold text-gray-900">Leave a Review</span>
+              <span className="text-xs text-gray-400 mt-1">Google Reviews</span>
+            </a>
+          </div>
+
+          {/* Track booking link */}
+          <div className="mt-8 text-center">
+            <Link to="/track" className="inline-flex items-center gap-2 text-emerald-600 hover:text-emerald-700 font-semibold text-sm transition-colors" data-testid="track-booking-link">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              Track your booking status
+            </Link>
           </div>
         </div>
       </section>
@@ -1250,6 +1267,11 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
               <p className="text-sm text-gray-500">
                 Payment will be available once your quote is approved. Check your email for updates.
               </p>
+              <Link to="/track" className="block">
+                <button className="w-full bg-emerald-50 border border-emerald-200 text-emerald-700 py-3 rounded-xl text-sm font-semibold hover:bg-emerald-100 transition-colors">
+                  Track My Booking
+                </button>
+              </Link>
               <button
                 onClick={() => { setBookingSubmitted(false); onSuccess(); }}
                 className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-xl text-base font-bold transition-colors"
@@ -1654,6 +1676,7 @@ function App() {
           <Route path="/preview" element={<PreviewPage />} />
           <Route path="/admin" element={<ProtectedAdmin />} />
           <Route path="/customer-approval/:token" element={<CustomerApproval />} />
+          <Route path="/track" element={<BookingLookup />} />
         </Routes>
       </BrowserRouter>
     </div>
