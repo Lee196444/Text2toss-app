@@ -7,7 +7,7 @@ Full-stack junk removal booking application for Flagstaff, AZ. Customers upload 
 - **Frontend:** React (CRA), Tailwind CSS, Shadcn UI
 - **Backend:** FastAPI (Python), Motor (async MongoDB driver)
 - **Database:** MongoDB
-- **AI:** Google Gemini 2.5 Flash (via emergentintegrations)
+- **AI:** Google Gemini 2.0 Flash (via emergentintegrations) — optimized for speed
 - **Email:** Gmail SMTP (aiosmtplib)
 - **SMS:** Twilio (configured, needs credentials)
 
@@ -18,56 +18,61 @@ Full-stack junk removal booking application for Flagstaff, AZ. Customers upload 
 - Admin dashboard with job bins, calendar, route optimization
 - Quote approval/rejection with price adjustments
 - Email notifications (customer + admin)
-- Permanent image storage for ALL quote photos (latest 30 retained)
-- **Admin authentication via httpOnly cookies** (JWT session, secure, samesite=lax)
+- Permanent image storage for ALL quote photos
+- Admin authentication via httpOnly cookies (JWT session, secure, samesite=lax)
 - Admin auth middleware protecting all /api/admin/* endpoints
 - Health check endpoint at `/api/health`
-- Customer booking lookup at `/track` — enter email to check status
+- Customer booking lookup at `/track`
 - Admin bulk reject — reject individual or all pending payments
 - Auto-refresh admin data every 30 seconds
 - Google Reviews link in contact section
-- Track Booking nav link and post-booking prompt
 
-## Security Hardening (Completed April 3, 2026)
-- Migrated admin auth from localStorage JWT to httpOnly cookie-based sessions
-- All admin endpoints protected by server-side middleware (no client-side token storage)
-- Cookie: `admin_session`, httpOnly=true, secure=true, samesite=lax, path=/api, max_age=8h
-- No localStorage references for authentication tokens anywhere in frontend
+## Security Hardening (Completed April 2026)
+- httpOnly cookie-based admin sessions (no localStorage tokens)
+- All admin endpoints protected by server-side middleware
 - SHA-256 hashing (no MD5)
-- Python linting fully clean
+- No hardcoded secrets in code — environment variables only
+- Python and JS linting fully clean
+- No eslint-disable comments remaining
 
-## Pages
-- `/` — Customer landing page (hero, how it works, CTA, contact)
-- `/track` — Customer booking lookup by email
-- `/admin` — Admin dashboard (login required)
-- `/customer-approval/:token` — Customer approval flow
+## Code Quality Improvements (Completed April 2026)
+- **Backend refactoring:** Extracted helper functions (_estimate_item_volume, _price_to_scale, _build_text_pricing_prompt, _parse_ai_pricing_response, _build_admin_booking_notification, _build_under_review_email). Reduced validate_pricing_logic from 103→33 lines, calculate_basic_price from 40→15 lines.
+- **Frontend hooks:** All fetch functions wrapped in useCallback with proper dependency arrays. Zero eslint-disable comments.
+- **Console cleanup:** Removed debug console.log statements, kept descriptive error logs only.
+- **Array keys:** Fixed index-as-key anti-pattern in ImprovedQuoteFlow.
+- **Error handling:** All catch blocks have proper error logging.
+- **Removed:** App_backup.js (dead code)
+
+## Performance (Completed April 2026)
+- AI quote generation: ~2s (was ~25s) — 12x faster
+- Client-side image compression before upload (5-10MB → ~150KB)
+- gemini-2.0-flash model (was 2.5-flash thinking model)
+- Image hash caching for repeat photos
+- Background cleanup tasks (non-blocking)
 
 ## Key Endpoints
 - `POST /api/quotes/image` — Create quote from image
-- `POST /api/quotes` — Create quote from items list
-- `GET /api/bookings/lookup?email=` — Customer booking lookup
 - `POST /api/bookings` — Create booking
-- `GET /api/admin/pending-quotes` — Quotes awaiting admin approval
+- `GET /api/bookings/lookup?email=` — Customer booking lookup
+- `GET /api/admin/pending-quotes` — Quotes awaiting approval
 - `POST /api/admin/quotes/{id}/approve` — Approve/reject quote
 - `GET /api/admin/pending-payments` — Unpaid bookings
-- `PATCH /api/admin/bookings/{id}` — Update booking status
-- `POST /api/admin/bookings/{id}/mark-paid` — Mark as paid
 - `POST /api/admin/login` — Sets httpOnly cookie
 - `POST /api/admin/logout` — Clears httpOnly cookie
 - `GET /api/admin/verify` — Verifies cookie, returns admin info
+- `GET /api/health` — Healthcheck
 
 ## Admin Credentials
 - Username: lrobe
 - Password: L1964c10$
 
-## Status: Stable (April 3, 2026)
-- All core flows tested and working
-- Security hardening complete (iteration_6: 19/19 tests passed)
-- AI quote speed optimized: ~25s → ~2s (12x faster)
+## Status: Stable (April 2026)
+- All core flows tested and working (iteration_7: 19/19 tests passed)
+- Security hardening complete
+- Code quality review fixes applied
 
 ## Backlog
-- P1: Refactor `server.py` complex functions (create_booking, calculate_ai_price, analyze_image_for_quote)
-- P1: Refactor `App.js` (1600+ lines) into separate component files
-- P1: Refactor `AdminDashboard.js` (2900+ lines) into sub-components
-- P3: Before/after photo gallery on homepage
+- P1: Decompose AdminDashboard.js (2900+ lines) into sub-components (SmsCenter, PhotoGallery, AllJobsModal)
+- P1: Decompose App.js (1700+ lines) into route-specific components
+- P2: Before/after photo gallery on homepage
 - P3: SMS via Twilio (code exists, needs credentials)
