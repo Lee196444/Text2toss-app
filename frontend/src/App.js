@@ -211,6 +211,28 @@ const LandingPage = () => {
 
   const [analysisStatus, setAnalysisStatus] = useState('');
 
+  // Compress image client-side before uploading (phone photos can be 5-10MB)
+  const compressImageForUpload = (file) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxDim = 800;
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          const ratio = maxDim / Math.max(width, height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.65);
+      };
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
   const analyzeImageAndGetQuote = async () => {
     if (!imageFile) {
       setQuoteError("Please upload a photo of your items");
@@ -221,18 +243,21 @@ const LandingPage = () => {
     setImageAnalyzing(true);
     setQuoteError('');
     
-    // Cycle through status messages
-    const messages = ['Uploading photo...', 'Identifying items...', 'Calculating price...'];
+    // Cycle through status messages faster since upload is now quicker
+    const messages = ['Compressing photo...', 'Analyzing items...', 'Calculating price...'];
     let i = 0;
     setAnalysisStatus(messages[0]);
     const statusInterval = setInterval(() => {
       i = Math.min(i + 1, messages.length - 1);
       setAnalysisStatus(messages[i]);
-    }, 3000);
+    }, 2000);
     
     try {
+      // Compress image client-side first (5-10MB → ~100-200KB)
+      const compressedBlob = await compressImageForUpload(imageFile);
+      
       const formData = new FormData();
-      formData.append('file', imageFile);
+      formData.append('file', compressedBlob, 'photo.jpg');
       formData.append('description', imageDescription);
 
       const response = await axios.post(`${API}/quotes/image`, formData, {

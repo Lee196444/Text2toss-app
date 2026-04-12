@@ -63,6 +63,7 @@ Full-stack junk removal booking application for Flagstaff, AZ. Customers upload 
 ## Status: Stable (April 3, 2026)
 - All core flows tested and working
 - Security hardening complete (iteration_6: 19/19 tests passed)
+- AI quote speed optimized: ~25s → ~2s (12x faster)
 
 ## Backlog
 - P1: Refactor `server.py` complex functions (create_booking, calculate_ai_price, analyze_image_for_quote)

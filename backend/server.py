@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, UploadFile, File, Form, Request
+from fastapi import FastAPI, APIRouter, HTTPException, UploadFile, File, Form, Request, BackgroundTasks
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse, JSONResponse
 from dotenv import load_dotenv
@@ -937,49 +937,51 @@ def calculate_basic_price(items: List[JunkItem]) -> float:
 # AI Vision Analysis for Image-based Quotes
 async def analyze_image_for_quote(image_path: str, description: str) -> tuple[List[JunkItem], float, str, Optional[int], Optional[dict]]:
     """Use AI vision to analyze uploaded image and identify junk items for pricing"""
+    import time as _time
+    t0 = _time.monotonic()
     
-    # Compress image for faster AI processing
+    # Compress image aggressively for fast AI processing (768px, quality 50)
     compressed_path = image_path
     try:
         from PIL import Image as PILImage
         img = PILImage.open(image_path)
-        max_dim = 1024
+        max_dim = 768
         if max(img.size) > max_dim:
             ratio = max_dim / max(img.size)
             new_size = (int(img.size[0] * ratio), int(img.size[1] * ratio))
             img = img.resize(new_size, PILImage.LANCZOS)
         compressed_path = image_path.rsplit('.', 1)[0] + '_compressed.jpg'
-        img.convert('RGB').save(compressed_path, 'JPEG', quality=75, optimize=True)
-        logger.info(f"Compressed image: {Path(image_path).stat().st_size // 1024}KB -> {Path(compressed_path).stat().st_size // 1024}KB")
+        img.convert('RGB').save(compressed_path, 'JPEG', quality=50, optimize=True)
+        logger.info(f"Compressed image: {Path(image_path).stat().st_size // 1024}KB -> {Path(compressed_path).stat().st_size // 1024}KB ({_time.monotonic()-t0:.1f}s)")
     except Exception as e:
         logger.warning(f"Image compression failed, using original: {e}")
         compressed_path = image_path
     
-    ai_prompt = f"""You are a junk removal pricing expert for Text2toss in Flagstaff, AZ. GROUND LEVEL & CURBSIDE PICKUP ONLY.
-
-Customer note: {description or 'None'}
-
-PRICING SCALE (by total volume):
-Scale 1: $15 (trash bag) | Scale 2: $20 (small box) | Scale 3: $50 (large bag) | Scale 4: $63 (multiple bags)
-Scale 5: $78 (microwave-sized) | Scale 6: $95 (small chair) | Scale 7: $115 (small furniture) | Scale 8: $138 (small dresser)
-Scale 9: $163 (large chair) | Scale 10: $190 (loveseat) | Scale 11: $220 (dining table) | Scale 12: $253 (sofa)
-Scale 13: $290 (sectional) | Scale 14: $333 (bedroom set) | Scale 15: $380 (living room set) | Scale 16: $433 (multi-room)
-Scale 17: $490 (small apt) | Scale 18: $553 (large apt) | Scale 19: $620 (small house) | Scale 20: $703 (large house)
-
-Rules: Overestimate by 15-20%. Heavy items (metal/appliances) +20%. Use objects for scale reference.
-
-Respond ONLY with JSON:
-{{"items": [{{"name": "item", "quantity": 1, "size": "small/medium/large", "description": "brief"}}], "total_price": 150.00, "scale_level": 5, "breakdown": {{"base_price": "140.00", "volume_assessment": "Medium load", "items": [{{"name": "Table", "size": "large", "estimated_cost": 80.00}}], "factors": ["Ground level pickup"], "additional_charges": 10.00, "total": 150.00}}, "explanation": "Scale 5 - identified table and chairs. Includes pickup and disposal."}}"""
+    ai_prompt = (
+        f"Junk removal pricing expert — Text2toss, Flagstaff AZ. GROUND LEVEL/CURBSIDE ONLY.\n\n"
+        f"Customer note: {description or 'None'}\n\n"
+        "SCALE (by total volume):\n"
+        "1:$15|2:$20|3:$50|4:$63|5:$78|6:$95|7:$115|8:$138|9:$163|10:$190|11:$220|12:$253|13:$290|14:$333|15:$380|16:$433|17:$490|18:$553|19:$620|20:$703\n\n"
+        "Rules: Identify all items. Estimate total cubic feet. Overestimate 15-20%. Heavy items +20%.\n\n"
+        'JSON only:\n'
+        '{"items":[{"name":"item","quantity":1,"size":"small/medium/large","description":"brief"}],'
+        '"total_price":150.00,"scale_level":5,'
+        '"breakdown":{"base_price":"140.00","volume_assessment":"Medium load",'
+        '"items":[{"name":"Table","size":"large","estimated_cost":80.00}],'
+        '"factors":["Ground level"],"additional_charges":10.00,"total":150.00},'
+        '"explanation":"Scale 5 - table and chairs."}'
+    )
 
     try:
         import hashlib
-        with open(image_path, 'rb') as f:
+        # Hash the compressed image (much smaller = faster hash)
+        with open(compressed_path, 'rb') as f:
             image_hash = hashlib.sha256(f.read()).hexdigest()
         
         # Check cache
         cached_quote = await db.image_cache.find_one({"image_hash": image_hash})
         if cached_quote:
-            logger.info(f"Cache HIT for image {image_hash[:8]}")
+            logger.info(f"Cache HIT for image {image_hash[:8]} (total {_time.monotonic()-t0:.1f}s)")
             # Clean up compressed file
             if compressed_path != image_path and Path(compressed_path).exists():
                 Path(compressed_path).unlink()
@@ -991,18 +993,19 @@ Respond ONLY with JSON:
                 cached_quote.get("breakdown")
             )
         
-        logger.info(f"Cache MISS for image {image_hash[:8]} - analyzing")
+        logger.info(f"Cache MISS for image {image_hash[:8]} - sending to AI")
         
         image_file = FileContentWithMimeType(
             file_path=compressed_path,
             mime_type="image/jpeg"
         )
         
+        t_ai = _time.monotonic()
         chat = LlmChat(
             api_key=os.environ.get('EMERGENT_LLM_KEY'),
             session_id=f"vision_{image_hash}",
-            system_message="You are a junk removal pricing expert. Respond with valid JSON only. Be consistent."
-        ).with_model("gemini", "gemini-2.5-flash")
+            system_message="Junk removal pricing expert. Respond with valid JSON only."
+        ).with_model("gemini", "gemini-2.0-flash")
         
         user_message = UserMessage(
             text=ai_prompt,
@@ -1010,6 +1013,7 @@ Respond ONLY with JSON:
         )
         
         response = await chat.send_message(user_message)
+        logger.info(f"AI response in {_time.monotonic()-t_ai:.1f}s (total {_time.monotonic()-t0:.1f}s)")
         
         # Clean up compressed file
         if compressed_path != image_path and Path(compressed_path).exists():
@@ -1202,6 +1206,7 @@ async def cleanup_old_quote_images(keep_count: int = 30):
 
 @api_router.post("/quotes/image", response_model=PriceQuote)
 async def create_quote_from_image(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     description: str = Form(default="")
 ):
@@ -1253,8 +1258,8 @@ async def create_quote_from_image(
         
         logger.info(f"Quote created: id={quote.id}, scale={scale_level}, requires_approval={requires_approval}, approval_status={approval_status}, image={permanent_filename}")
         
-        # Cleanup: keep only the latest 30 quote images
-        await cleanup_old_quote_images(30)
+        # Cleanup old images in background (don't block the response)
+        background_tasks.add_task(cleanup_old_quote_images, 30)
         
         return quote
         
