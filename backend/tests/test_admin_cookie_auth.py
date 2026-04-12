@@ -8,9 +8,9 @@ import os
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 
-# Admin credentials
-ADMIN_USERNAME = "lrobe"
-ADMIN_PASSWORD = "L1964c10$"
+# Admin credentials - loaded from environment
+ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "lrobe")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "L1964c10$")
 
 class TestAdminCookieAuth:
     """Test admin authentication with httpOnly cookies"""

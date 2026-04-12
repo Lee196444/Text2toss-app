@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import AdminLogin from "./AdminLogin";
 import AdminDashboard from "./AdminDashboard";
 import { Button } from "./ui/button";
@@ -13,20 +13,21 @@ const ProtectedAdmin = () => {
   const [isChecking, setIsChecking] = useState(true);
   const [adminDisplayName, setAdminDisplayName] = useState("Admin");
 
-  const checkAuthStatus = async () => {
+  const checkAuthStatus = useCallback(async () => {
     try {
       const res = await axios.get(`${API}/admin/verify`, { withCredentials: true });
       setIsAuthenticated(true);
       setAdminDisplayName(res.data.display_name || "Admin");
-    } catch {
+    } catch (err) {
+      console.error("Auth check failed:", err.message);
       setIsAuthenticated(false);
     }
     setIsChecking(false);
-  };
+  }, []);
 
   useEffect(() => {
     checkAuthStatus();
-  }, []);
+  }, [checkAuthStatus]);
 
   const handleLoginSuccess = (displayName) => {
     setAdminDisplayName(displayName || "Admin");
@@ -36,8 +37,8 @@ const ProtectedAdmin = () => {
   const handleLogout = async () => {
     try {
       await axios.post(`${API}/admin/logout`, {}, { withCredentials: true });
-    } catch {
-      // ignore — cookie may already be expired
+    } catch (err) {
+      console.error("Logout request failed:", err.message);
     }
     setIsAuthenticated(false);
     toast.success("Logged out successfully");
@@ -57,7 +58,6 @@ const ProtectedAdmin = () => {
 
   return (
     <div className="relative">
-      {/* Logout Button */}
       <div className="fixed top-4 right-4 z-50">
         <Button 
           onClick={handleLogout}

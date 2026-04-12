@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "./App.css";
 import { BrowserRouter, Routes, Route, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
@@ -83,18 +83,18 @@ const LandingPage = () => {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
   // Fetch photo reel data from backend
-  useEffect(() => {
-    const fetchPhotoReel = async () => {
-      try {
-        const response = await axios.get(`${API}/reel-photos`);
-        setPhotoReel(response.data.photos || []);
-      } catch (error) {
-        console.error('Failed to fetch photo reel:', error);
-      }
-    };
-    fetchPhotoReel();
-    // eslint-disable-next-line
+  const fetchPhotoReel = useCallback(async () => {
+    try {
+      const response = await axios.get(`${API}/reel-photos`);
+      setPhotoReel(response.data.photos || []);
+    } catch (error) {
+      console.error('Failed to fetch photo reel:', error);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchPhotoReel();
+  }, [fetchPhotoReel]);
 
   // Auto-cycle photos every 4 seconds
   useEffect(() => {
@@ -278,7 +278,6 @@ const LandingPage = () => {
       const errorMsg = error.response?.data?.detail || "Failed to analyze image. Please try again.";
       setQuoteError(errorMsg);
       toast.error(errorMsg);
-      console.error(error);
     } finally {
       clearInterval(statusInterval);
       setAnalysisStatus('');
@@ -302,7 +301,6 @@ const LandingPage = () => {
       toast.success(`Quote generated successfully! Total: $${response.data.total_price}`);
     } catch (error) {
       toast.error("Failed to generate quote");
-      console.error(error);
     } finally {
       setQuoteLoading(false);
     }
@@ -1280,7 +1278,6 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
       
     } catch (error) {
       toast.error("Failed to create booking");
-      console.error(error);
     }
   };
 

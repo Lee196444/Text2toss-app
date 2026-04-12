@@ -235,7 +235,7 @@ const ImprovedQuoteFlow = ({ onClose }) => {
                   </h4>
                   <div className="space-y-2">
                     {quote.breakdown.items.map((item, index) => (
-                      <div key={index} className="flex justify-between items-center py-2 border-b last:border-b-0">
+                      <div key={`${item.name}-${item.size}-${index}`} className="flex justify-between items-center py-2 border-b last:border-b-0">
                         <span className="text-sm font-medium text-gray-700">
                           {item.name} <span className="text-xs text-gray-500">({item.size})</span>
                         </span>

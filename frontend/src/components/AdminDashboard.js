@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import QRCode from 'qrcode';
 import { GoogleMap, Marker, DirectionsRenderer, useJsApiLoader } from '@react-google-maps/api';
@@ -103,48 +103,13 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
     id: 'google-map-script',
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,
     libraries: ['geometry'],
-    onLoad: () => console.log('Google Maps loaded successfully'),
-    onError: (error) => console.error('Google Maps load error:', error)
+    onLoad: () => {},
+    onError: () => toast.error('Google Maps failed to load')
   });
 
-  useEffect(() => {
-    fetchDailySchedule();
-    fetchWeeklySchedule();
-    fetchPendingQuotes();
-    fetchApprovalStats();
-    fetchPendingPayments();
-    // eslint-disable-next-line
-  }, [selectedDate]);
-
-  // Auto-refresh admin data every 30 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetchPendingPayments();
-      fetchPendingQuotes();
-      fetchApprovalStats();
-      fetchDailySchedule();
-    }, 30000);
-    return () => clearInterval(interval);
-    // eslint-disable-next-line
-  }, [selectedDate]);
-
-  useEffect(() => {
-    if (showSmsCenter) {
-      fetchSmsMessages();
-    }
-    // eslint-disable-next-line
-  }, [showSmsCenter]);
-
-  useEffect(() => {
-    if (showPhotoGallery) {
-      fetchGalleryPhotos();
-      fetchReelPhotos();
-    }
-    // eslint-disable-next-line
-  }, [showPhotoGallery]);
-
+  // IMPORTANT: All useCallback functions must be defined BEFORE useEffect hooks that reference them
   // Photo Management Functions
-  const fetchGalleryPhotos = async () => {
+  const fetchGalleryPhotos = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/admin/gallery-photos`);
       
@@ -154,9 +119,9 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       console.error('Failed to fetch gallery photos:', error);
       toast.error('Failed to load gallery photos');
     }
-  };
+  }, []);
 
-  const fetchReelPhotos = async () => {
+  const fetchReelPhotos = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/admin/reel-photos`);
       
@@ -166,7 +131,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       console.error('Failed to fetch reel photos:', error);
       toast.error('Failed to load photo reel');
     }
-  };
+  }, []);
 
   const uploadGalleryPhoto = async (file) => {
     const formData = new FormData();
@@ -179,7 +144,6 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       fetchGalleryPhotos();
     } catch (error) {
       toast.error('Failed to upload photo');
-      console.error(error);
     } finally {
       setUploadingGalleryPhoto(false);
     }
@@ -195,7 +159,6 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       fetchReelPhotos();
     } catch (error) {
       toast.error('Failed to update photo reel');
-      console.error(error);
     }
   };
 
@@ -208,13 +171,12 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       fetchGalleryPhotos();
     } catch (error) {
       toast.error('Failed to remove photo');
-      console.error(error);
     }
   };
 
   // Load data on component mount and when date changes
 
-  const fetchDailySchedule = async () => {
+  const fetchDailySchedule = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.get(`${API}/admin/daily-schedule?date=${selectedDate}`);
@@ -226,21 +188,19 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       }
     } catch (error) {
       toast.error("Failed to fetch daily schedule");
-      console.error(error);
     }
     setLoading(false);
-  };
+  }, [selectedDate]);
 
-  const fetchWeeklySchedule = async () => {
+  const fetchWeeklySchedule = useCallback(async () => {
     try {
       const startOfWeek = getStartOfWeek(new Date(selectedDate));
       const response = await axios.get(`${API}/admin/weekly-schedule?start_date=${startOfWeek}`);
       setWeeklySchedule(response.data);
     } catch (error) {
       toast.error("Failed to fetch weekly schedule");
-      console.error(error);
     }
-  };
+  }, [selectedDate]);
 
   const getStartOfWeek = (date) => {
     const d = new Date(date);
@@ -328,7 +288,6 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
 
     } catch (error) {
       toast.error("Failed to calculate route");
-      console.error(error);
       
       // Fallback to time-based sorting
       const timeOrdered = [...dailyBookings].sort((a, b) => {
@@ -418,37 +377,32 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
 
   const notifyCustomer = async (bookingId) => {
     try {
-      const response = await axios.post(`${API}/admin/bookings/${bookingId}/notify-customer`);
+      await axios.post(`${API}/admin/bookings/${bookingId}/notify-customer`);
       toast.success("SMS sent to customer with completion photo!");
-      console.log("SMS Result:", response.data);
     } catch (error) {
       toast.error("Failed to send SMS to customer");
-      console.error("SMS Error:", error);
     }
   };
 
   const testSmsPhoto = async (bookingId) => {
     try {
-      const response = await axios.post(`${API}/admin/test-sms-photo/${bookingId}`);
-      toast.success(`SMS photo test completed! Check console for details.`);
-      console.log("SMS Photo Test Result:", response.data);
+      await axios.post(`${API}/admin/test-sms-photo/${bookingId}`);
+      toast.success("SMS photo test completed!");
     } catch (error) {
       toast.error("SMS photo test failed");
-      console.error("SMS Photo Test Error:", error);
     }
   };
 
-  const fetchSmsMessages = async () => {
+  const fetchSmsMessages = useCallback(async () => {
     setSmsLoading(true);
     try {
       const response = await axios.get(`${API}/admin/sms-messages`);
       setSmsMessages(response.data.messages || []);
     } catch (error) {
       toast.error("Failed to load SMS messages");
-      console.error('SMS fetch error:', error);
     }
     setSmsLoading(false);
-  };
+  }, []);
 
   const sendSmsMessage = async () => {
     if (!selectedCustomerPhone || !newSmsMessage.trim()) {
@@ -592,14 +546,14 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
   };
 
   // Fetch pending payment bookings
-  const fetchPendingPayments = async () => {
+  const fetchPendingPayments = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/admin/pending-payments`);
       setPendingPayments(response.data);
     } catch (error) {
       console.error('Error fetching pending payments:', error);
     }
-  };
+  }, []);
 
   // Mark booking as paid
   const markAsPaid = async (bookingId) => {
@@ -847,7 +801,6 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       setCalendarData(response.data);
     } catch (error) {
       toast.error("Failed to fetch calendar data");
-      console.error(error);
     }
   };
 
@@ -914,25 +867,58 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
     toast.success('QR Code downloaded!');
   };
 
-  const fetchPendingQuotes = async () => {
+  const fetchPendingQuotes = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/admin/pending-quotes`);
       setPendingQuotes(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Error fetching pending quotes:', error);
-      setPendingQuotes([]); // Set empty array on error
+      setPendingQuotes([]);
       toast.error('Failed to load pending quotes');
     }
-  };
+  }, []);
 
-  const fetchApprovalStats = async () => {
+  const fetchApprovalStats = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/admin/quote-approval-stats`);
       setApprovalStats(response.data);
     } catch (error) {
       console.error('Error fetching approval stats:', error);
     }
-  };
+  }, []);
+
+  // useEffect hooks - MUST be placed AFTER all useCallback functions they reference
+  useEffect(() => {
+    fetchDailySchedule();
+    fetchWeeklySchedule();
+    fetchPendingQuotes();
+    fetchApprovalStats();
+    fetchPendingPayments();
+  }, [selectedDate, fetchDailySchedule, fetchWeeklySchedule, fetchPendingQuotes, fetchApprovalStats, fetchPendingPayments]);
+
+  // Auto-refresh admin data every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchPendingPayments();
+      fetchPendingQuotes();
+      fetchApprovalStats();
+      fetchDailySchedule();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [selectedDate, fetchPendingPayments, fetchPendingQuotes, fetchApprovalStats, fetchDailySchedule]);
+
+  useEffect(() => {
+    if (showSmsCenter) {
+      fetchSmsMessages();
+    }
+  }, [showSmsCenter, fetchSmsMessages]);
+
+  useEffect(() => {
+    if (showPhotoGallery) {
+      fetchGalleryPhotos();
+      fetchReelPhotos();
+    }
+  }, [showPhotoGallery, fetchGalleryPhotos, fetchReelPhotos]);
 
   const handleQuoteApproval = async (quoteId, action, adminNotes = '', approvedPrice = null) => {
     try {
@@ -950,7 +936,6 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       
     } catch (error) {
       toast.error(`Failed to ${action} quote`);
-      console.error(error);
     }
   };
 

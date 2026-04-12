@@ -583,239 +583,106 @@ PRICING_SCALE = {
     20: {"range": (655, 750), "description": "Large house cleanout, estate sale items"}
 }
 # AI-powered pricing logic for ground level and curbside pickup only
+
+# Pricing lookup tables (used by multiple functions)
+MIN_PRICE_BY_COUNT = {1: 50.0, 2: 65.0, 3: 80.0, 4: 95.0, 5: 115.0}
+MAX_PRICE_BY_COUNT = {1: 175.0, 2: 205.0, 3: 235.0, 4: 270.0, 5: 310.0}
+MIN_SCALE_BY_COUNT = {1: 3, 2: 4, 3: 5, 4: 6, 5: 7}
+MAX_SCALE_BY_COUNT = {1: 9, 2: 10, 3: 11, 4: 12, 5: 20}
+VOLUME_BY_SIZE = {"small": 8, "medium": 25, "large": 60}
+
+# Scale thresholds for price-to-scale conversion (upper price bound → scale)
+PRICE_TO_SCALE_THRESHOLDS = [
+    (20, 1), (45, 2), (70, 3), (85, 4), (105, 5), (125, 6),
+    (150, 7), (175, 8), (205, 9), (235, 10), (270, 11), (310, 12),
+]
+
+
+def _estimate_item_volume(items: List[JunkItem]) -> float:
+    """Estimate total volume in cubic feet from item list."""
+    return sum(VOLUME_BY_SIZE.get(item.size.lower(), 25) * item.quantity for item in items)
+
+
+def _price_to_scale(price: float) -> int:
+    """Convert a price to the corresponding scale level (1-20)."""
+    for threshold, scale in PRICE_TO_SCALE_THRESHOLDS:
+        if price <= threshold:
+            return scale
+    return min(20, max(13, int(price / 40)))
+
+
 def validate_pricing_logic(items: List[JunkItem], ai_price: float, ai_scale: Optional[int]) -> tuple[float, Optional[int]]:
-    """
-    ENHANCED validation for 100% pricing accuracy:
-    1. Strict minimum pricing based on item count and size
-    2. Conservative ceiling validation  
-    3. Volume-based validation rules
-    4. Safety margins to prevent undercharging
-    """
-    item_count = len(items)
-    
-    # Calculate estimated minimum volume based on items
-    estimated_volume = 0
-    for item in items:
-        # Conservative volume estimates by size and type
-        base_volume = {"small": 8, "medium": 25, "large": 60}
-        item_volume = base_volume.get(item.size.lower(), 25) * item.quantity
-        estimated_volume += item_volume
-    
-    # Business Rule 1: Stricter minimum pricing with volume consideration
-    min_price_by_count = {
-        1: 50.0,  # Single item minimum (Scale 3+) - increased for safety
-        2: 65.0,  # Two items minimum (Scale 4+) 
-        3: 80.0,  # Three items minimum (Scale 5+)
-        4: 95.0,  # Four items minimum (Scale 6+)
-        5: 115.0  # Five+ items minimum (Scale 7+)
-    }
-    
-    # Volume-based minimum pricing (more conservative)
-    volume_min_price = max(45.0, estimated_volume * 2.5)  # $2.50 per cubic foot minimum
-    
-    min_price = max(
-        min_price_by_count.get(item_count, min_price_by_count[5]),
-        volume_min_price
-    )
-    
-    # Business Rule 2: Maximum pricing caps to prevent AI pricing inconsistencies
-    max_price_by_count = {
-        1: 175.0,  # Single item maximum (Scale 9)
-        2: 205.0,  # Two items maximum (Scale 10)
-        3: 235.0,  # Three items maximum (Scale 11)
-        4: 270.0,  # Four items maximum (Scale 12)
-        5: 310.0   # Five+ items maximum (Scale 13+)
-    }
-    
-    max_price = max_price_by_count.get(item_count, 750.0)  # Scale 20 maximum
-    
-    # Business Rule 3: Scale level should correlate with item count
-    min_scale_by_count = {
-        1: 3,   # Single item: minimum Scale 3
-        2: 4,   # Two items: minimum Scale 4  
-        3: 5,   # Three items: minimum Scale 5
-        4: 6,   # Four items: minimum Scale 6
-        5: 7    # Five+ items: minimum Scale 7+
-    }
-    
-    max_scale_by_count = {
-        1: 9,   # Single item: maximum Scale 9
-        2: 10,  # Two items: maximum Scale 10
-        3: 11,  # Three items: maximum Scale 11
-        4: 12,  # Four items: maximum Scale 12
-        5: 20   # Five+ items: maximum Scale 20
-    }
-    
-    # Validate and adjust price
+    """Validate and clamp AI pricing within business rules."""
+    count = min(len(items), 5)
+    estimated_volume = _estimate_item_volume(items)
+
+    # Price bounds
+    volume_min = max(45.0, estimated_volume * 2.5)
+    min_price = max(MIN_PRICE_BY_COUNT.get(count, 115.0), volume_min)
+    max_price = MAX_PRICE_BY_COUNT.get(count, 750.0)
     validated_price = max(min_price, min(ai_price, max_price))
-    
-    # Validate and adjust scale level
-    min_scale = min_scale_by_count.get(item_count, min_scale_by_count[5])
-    max_scale = max_scale_by_count.get(item_count, max_scale_by_count[5])
-    
-    validated_scale = min_scale  # Initialize with safe default
-    
+
+    # Scale bounds
+    min_scale = MIN_SCALE_BY_COUNT.get(count, 7)
+    max_scale = MAX_SCALE_BY_COUNT.get(count, 20)
+
     if ai_scale is not None:
         validated_scale = max(min_scale, min(ai_scale, max_scale))
     else:
-        # Estimate scale based on validated price
-        if validated_price <= 20:
-            validated_scale = 1
-        elif validated_price <= 45:
-            validated_scale = 2
-        elif validated_price <= 70:
-            validated_scale = 3
-        elif validated_price <= 85:
-            validated_scale = 4
-        elif validated_price <= 105:
-            validated_scale = 5
-        elif validated_price <= 125:
-            validated_scale = 6
-        elif validated_price <= 150:
-            validated_scale = 7
-        elif validated_price <= 175:
-            validated_scale = 8
-        elif validated_price <= 205:
-            validated_scale = 9
-        elif validated_price <= 235:
-            validated_scale = 10
-        elif validated_price <= 270:
-            validated_scale = 11
-        elif validated_price <= 310:
-            validated_scale = 12
-        else:
-            validated_scale = min(20, max(13, int(validated_price / 40)))
-    
+        validated_scale = max(min_scale, min(_price_to_scale(validated_price), max_scale))
+
     return validated_price, validated_scale
+
+def _build_text_pricing_prompt(items_summary: str, description: str) -> str:
+    """Build the AI prompt for text-based pricing (no image)."""
+    return (
+        "You are a professional junk removal pricing expert for Text2toss — "
+        "GROUND LEVEL and CURBSIDE PICKUP ONLY in Flagstaff, AZ.\n\n"
+        "JUNK ITEMS TO REMOVE:\n" + items_summary + "\n\n"
+        "ADDITIONAL DETAILS:\n" + (description or "None") + "\n\n"
+        "PRICING SCALE (by total volume):\n"
+        "1:$15|2:$20|3:$45-55|4:$55-70|5:$70-85|6:$85-105|7:$105-125|8:$125-150|"
+        "9:$150-175|10:$175-205|11:$205-235|12:$235-270|13:$270-310|14:$310-355|"
+        "15:$355-405|16:$405-460|17:$460-520|18:$520-585|19:$585-655|20:$655-750\n\n"
+        "Rules:\n"
+        "- Calculate TOTAL cubic feet for all items combined\n"
+        "- Overestimate 15-20%. Heavy items (metal/appliances) +20%\n"
+        "- E-waste +$15-35/item. Hazardous +$25-50\n"
+        "- Ground level only — no stairs/upper floors\n"
+        "- If uncertain, round UP to next scale\n\n"
+        'JSON only:\n'
+        '{"total_price":150.00,"scale_level":5,'
+        '"breakdown":{"base_price":"140.00","volume_assessment":"Medium load",'
+        '"items":[{"name":"Table","size":"large","estimated_cost":80.00}],'
+        '"factors":["Ground level"],"additional_charges":10.00,"total":150.00},'
+        '"explanation":"Scale 5 - table and chairs."}'
+    )
+
+
+def _parse_ai_pricing_response(response_text: str) -> tuple[float, str, Optional[int], Optional[dict]]:
+    """Parse and extract pricing data from AI JSON response."""
+    text = response_text.strip()
+    json_match = re.search(r'\{.*\}', text, re.DOTALL)
+    if json_match:
+        text = json_match.group(0)
+
+    pricing_data = json.loads(text)
+    return (
+        float(pricing_data.get("total_price", 0)),
+        pricing_data.get("explanation", "AI-generated pricing estimate"),
+        pricing_data.get("scale_level"),
+        pricing_data.get("breakdown"),
+    )
+
 
 async def calculate_ai_price(items: List[JunkItem], description: str) -> tuple[float, str, Optional[int], Optional[dict]]:
     """Use AI to analyze junk description and provide intelligent pricing for ground level/curbside pickup only"""
     
-    # Prepare item descriptions for AI
-    items_text = []
-    for item in items:
-        items_text.append(f"- {item.quantity}x {item.name} ({item.size} size)")
-        if item.description:
-            items_text.append(f"  Description: {item.description}")
-    
+    items_text = [f"- {item.quantity}x {item.name} ({item.size} size)"
+                  + (f"\n  Description: {item.description}" if item.description else "")
+                  for item in items]
     items_summary = "\n".join(items_text)
-    
-    # Create AI prompt for pricing analysis
-    ai_prompt = f"""You are a professional junk removal pricing expert for Text2toss - a GROUND LEVEL and CURBSIDE PICKUP ONLY service in Flagstaff, AZ. 
-
-CRITICAL ACCURACY REQUIREMENTS:
-- You MUST provide consistent, accurate pricing
-- NEVER underestimate - better to slightly overestimate than undercharge
-- Consider ALL items in the list when calculating volume
-- Use conservative volume estimates to avoid disputes
-
-SERVICE LIMITATIONS (IMPORTANT):
-- We ONLY provide ground level pickup (no stairs, no upper floors)
-- Items must be accessible at ground level or placed curbside
-- No basement, attic, or upper floor removals
-- No carrying items up or down stairs
-- If customer mentions stairs/upper floors, note they must move items first
-
-JUNK ITEMS TO REMOVE:
-{items_summary}
-
-ADDITIONAL DETAILS:
-{description}
-
-PRICING FACTORS TO CONSIDER:
-- Total volume calculation (most important factor)
-- Item weight and bulkiness for ground level handling
-- Material type (furniture, appliances, electronics, metal, etc.)
-- Disposal costs (landfill vs recycling vs hazardous)
-- Loading difficulty and time requirements
-- Transportation space needed
-
-VOLUME-BASED PRICING SCALE (Ground Level Only):
-**CRITICAL**: Base pricing on TOTAL ESTIMATED CUBIC FEET, not just item count
-
-SCALE 1: $15 - 15-gallon trash bag or smaller
-SCALE 2: $20 - Small box, single small item
-SCALE 3: $45-55 - Large trash bag, small electronics
-SCALE 4: $55-70 - Multiple bags, small appliances
-SCALE 5: $70-85 - Microwave, toaster oven sized items
-SCALE 6: $85-105 - Small chair, end table
-SCALE 7: $105-125 - Multiple small furniture pieces
-SCALE 8: $125-150 - Office chair, small dresser
-SCALE 9: $150-175 - Large chair, coffee table
-SCALE 10: $175-205 - Love seat, medium dresser
-SCALE 11: $205-235 - Dining table, bookshelf
-SCALE 12: $235-270 - Sofa, large dresser
-SCALE 13: $270-310 - Sectional sofa, wardrobe
-SCALE 14: $310-355 - Bedroom set, multiple large items
-SCALE 15: $355-405 - Living room set
-SCALE 16: $405-460 - Multiple room furniture
-SCALE 17: $460-520 - Small apartment cleanout
-SCALE 18: $520-585 - Large apartment cleanout
-SCALE 19: $585-655 - Small house cleanout
-SCALE 20: $655-750 - Large house cleanout, estate sale items
-
-**CRITICAL VOLUME ESTIMATION RULES:**
-- Always calculate TOTAL COMBINED VOLUME of all items
-- Use actual dimensions: Length × Width × Height in feet
-- Common item volume references:
-  * Sofa: ~8ft × 3ft × 3ft = 72 cubic feet (Scale 12-13)  
-  * Dining table: ~6ft × 3ft × 3ft = 54 cubic feet (Scale 10-11)
-  * Mattress: ~6ft × 4ft × 1ft = 24 cubic feet (Scale 8-9)
-  * Refrigerator: ~3ft × 3ft × 6ft = 54 cubic feet (Scale 11-12)
-  * Office chair: ~2ft × 2ft × 4ft = 16 cubic feet (Scale 6-7)
-- For multiple similar items: multiply volume by quantity
-- Add 20% buffer for irregular shapes and packing space
-- NEVER underestimate - round UP to next scale level if uncertain
-
-Additional charges may apply for:
-- Hazardous materials disposal: +$25-50
-- Electronic waste recycling: +$15-35 per item  
-- Extra heavy items requiring special handling: +$20-40
-
-NO service fee - price includes all ground level pickup and loading
-
-Since this is ground level/curbside service only, there are NO charges for stairs, upper floors, or difficult access.
-
-If the description mentions stairs, upper floors, basements, or difficult access, note in explanation that customer needs to move items to ground level/curbside first.
-
-MANDATORY PRICING PROCESS:
-1. Calculate EXACT total volume in cubic feet for ALL items combined
-2. Match volume to appropriate scale level (use higher scale if between levels)
-3. Start with MID-RANGE price for that scale level
-4. Adjust UP (never down) based on:
-   - Heavy items (+10-20%)
-   - Difficult disposal materials (+15-25%)
-   - Multiple trip requirements (+20-30%)
-   - Electronic waste (+$15-35 per item)
-5. Add mandatory additional charges when applicable
-6. FINAL RULE: If total seems low, move up one scale level
-
-CONSISTENCY REQUIREMENTS:
-- Same items should always get similar pricing (±$10)
-- Similar volumes should always use same scale level
-- Never price below minimum for calculated volume
-
-Respond ONLY with a JSON object in this exact format:
-{{
-  "total_price": 150.00,
-  "scale_level": 5,
-  "breakdown": {{
-    "base_price": "140.00",
-    "volume_assessment": "Medium load - dining room furniture",
-    "items": [
-      {{"name": "Dining table", "size": "large", "estimated_cost": 80.00}},
-      {{"name": "4 chairs", "size": "medium", "estimated_cost": 60.00}}
-    ],
-    "factors": [
-      "Ground level pickup only",
-      "Standard disposal fees included",
-      "No hazardous materials"
-    ],
-    "additional_charges": 10.00,
-    "total": 150.00
-  }},
-  "explanation": "Scale 5 load (9x9x9 cubic feet) - dining table and chairs. Pricing includes ground level pickup, loading, and responsible disposal."
-}}"""
+    ai_prompt = _build_text_pricing_prompt(items_summary, description)
 
     try:
         # Initialize AI chat
@@ -829,20 +696,7 @@ Respond ONLY with a JSON object in this exact format:
         user_message = UserMessage(text=ai_prompt)
         response = await chat.send_message(user_message)
         
-        # Parse AI response
-        response_text = response.strip()
-        
-        # Extract JSON from response (in case there's extra text)
-        json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
-        if json_match:
-            response_text = json_match.group(0)
-        
-        pricing_data = json.loads(response_text)
-        
-        total_price = float(pricing_data.get("total_price", 0))
-        explanation = pricing_data.get("explanation", "AI-generated pricing estimate")
-        scale_level = pricing_data.get("scale_level")
-        breakdown = pricing_data.get("breakdown")
+        total_price, explanation, scale_level, breakdown = _parse_ai_pricing_response(response)
         
         # CRITICAL: Validate AI pricing for accuracy and consistency
         validated_price, validated_scale = validate_pricing_logic(items, total_price, scale_level)
@@ -888,50 +742,25 @@ Respond ONLY with a JSON object in this exact format:
         }
         return validated_price, "Basic pricing applied with business logic validation (AI temporarily unavailable)", validated_scale, fallback_breakdown
 
-# Fallback basic pricing function using new 1-20 scale
+# Volume thresholds for basic pricing (max_volume → scale)
+VOLUME_TO_SCALE = [
+    (1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (7, 7),
+    (10, 10), (15, 12), (20, 15), (30, 17),
+]
+
+
 def calculate_basic_price(items: List[JunkItem]) -> float:
-    # Estimate scale based on items using new pricing system
-    total_volume_estimate = 0
-    
-    # Volume estimation factors
-    volume_factors = {
-        "small": 1,    # Scale 1-3 equivalent
-        "medium": 5,   # Scale 5-8 equivalent  
-        "large": 12    # Scale 12-15 equivalent
-    }
-    
-    for item in items:
-        factor = volume_factors.get(item.size, 5)
-        total_volume_estimate += factor * item.quantity
-    
-    # Determine scale level (1-20) using PRICING_SCALE
-    if total_volume_estimate <= 1:
-        scale = 1
-    elif total_volume_estimate <= 2:
-        scale = 2
-    elif total_volume_estimate <= 3:
-        scale = 3
-    elif total_volume_estimate <= 4:
-        scale = 4
-    elif total_volume_estimate <= 5:
-        scale = 5
-    elif total_volume_estimate <= 7:
-        scale = 7
-    elif total_volume_estimate <= 10:
-        scale = 10
-    elif total_volume_estimate <= 15:
-        scale = 12
-    elif total_volume_estimate <= 20:
-        scale = 15
-    elif total_volume_estimate <= 30:
-        scale = 17
-    else:
-        scale = 20
-    
-    # Get price range from PRICING_SCALE
+    """Fallback pricing when AI is unavailable — uses volume estimation + PRICING_SCALE."""
+    volume_factors = {"small": 1, "medium": 5, "large": 12}
+    total_volume = sum(volume_factors.get(item.size, 5) * item.quantity for item in items)
+
+    scale = 20  # default for large volumes
+    for max_vol, s in VOLUME_TO_SCALE:
+        if total_volume <= max_vol:
+            scale = s
+            break
+
     price_range = PRICING_SCALE[scale]["range"]
-    
-    # Use middle of price range for fallback
     return round((price_range[0] + price_range[1]) / 2, 2)
 
 # AI Vision Analysis for Image-based Quotes
@@ -1278,6 +1107,122 @@ async def get_quote(quote_id: str):
     quote_doc = parse_from_mongo(quote_doc)
     return PriceQuote(**quote_doc)
 
+def _build_admin_booking_notification(booking, quote_doc, requires_approval):
+    """Build the admin notification HTML email for a new booking."""
+    status_class = 'approval-required' if requires_approval else 'ready-to-pay'
+    status_text = 'PENDING APPROVAL' if requires_approval else 'READY FOR PAYMENT'
+    action_html = (
+        '<div style="background:#fef3c7;border-left:4px solid #f59e0b;padding:15px;margin:20px 0;border-radius:5px;">'
+        '<strong>Action Required:</strong> This quote requires your approval before the customer can proceed with payment.</div>'
+        if requires_approval else
+        '<div style="background:#d1fae5;border-left:4px solid #10b981;padding:15px;margin:20px 0;border-radius:5px;">'
+        '<strong>Ready:</strong> Customer can proceed with payment.</div>'
+    )
+    instructions_html = (
+        f'<div class="detail-row"><span class="detail-label">Special Instructions:</span>'
+        f'<span class="detail-value">{booking.special_instructions}</span></div>'
+        if booking.special_instructions else ''
+    )
+    return f"""<!DOCTYPE html><html><head><style>
+body{{font-family:Arial,sans-serif;line-height:1.6;color:#333}}
+.container{{max-width:600px;margin:0 auto;padding:20px;background:#fff}}
+.header{{background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:30px;text-align:center;border-radius:10px 10px 0 0}}
+.content{{background:#f9fafb;padding:30px;border-radius:0 0 10px 10px}}
+.booking-details{{background:#fff;padding:20px;margin:20px 0;border-radius:8px;border:2px solid #10b981}}
+.detail-row{{padding:10px 0;border-bottom:1px solid #e5e7eb}}
+.detail-label{{font-weight:bold;color:#374151}}
+.detail-value{{color:#1f2937}}
+.status-badge{{display:inline-block;padding:6px 12px;border-radius:20px;font-size:14px;font-weight:600}}
+.{status_class}{{background:#fef3c7;color:#92400e;border:2px solid #f59e0b}}
+</style></head><body><div class="container">
+<div class="header"><h1 style="margin:0">New Booking Received!</h1></div>
+<div class="content"><div class="booking-details">
+<h2 style="margin-top:0;color:#10b981">Booking Information</h2>
+<div class="detail-row"><span class="detail-label">Status:</span>
+<span class="status-badge {status_class}">{status_text}</span></div>
+<div class="detail-row"><span class="detail-label">Customer Email:</span>
+<span class="detail-value">{booking.email}</span></div>
+<div class="detail-row"><span class="detail-label">Phone:</span>
+<span class="detail-value">{booking.phone}</span></div>
+<div class="detail-row"><span class="detail-label">Address:</span>
+<span class="detail-value">{booking.address}</span></div>
+<div class="detail-row"><span class="detail-label">Pickup Date:</span>
+<span class="detail-value">{booking.pickup_date.strftime('%B %d, %Y')}</span></div>
+<div class="detail-row"><span class="detail-label">Pickup Time:</span>
+<span class="detail-value">{booking.pickup_time}</span></div>
+<div class="detail-row"><span class="detail-label">Quote Amount:</span>
+<span class="detail-value" style="font-size:24px;font-weight:bold;color:#10b981">${quote_doc.get('total_price',0):.2f}</span></div>
+{instructions_html}
+<div class="detail-row" style="border-bottom:none"><span class="detail-label">Curbside Confirmed:</span>
+<span class="detail-value">{'Yes' if booking.curbside_confirmed else 'No'}</span></div>
+</div>{action_html}
+<div style="text-align:center;margin-top:30px">
+<p style="color:#6b7280;font-size:14px;margin:0">Booking ID: {booking.id}</p>
+<p style="color:#6b7280;font-size:12px;margin-top:5px">Received: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}</p>
+</div></div></div></body></html>"""
+
+
+def _build_under_review_email(booking, quote_doc):
+    """Build the 'quote under review' HTML email sent to the customer."""
+    return f"""<!DOCTYPE html><html><head><style>
+body{{font-family:'Segoe UI',Arial,sans-serif;line-height:1.7;color:#333;background:#f5f5f5}}
+.container{{max-width:600px;margin:0 auto;padding:20px;background:#fff}}
+.header{{background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:40px 30px;text-align:center;border-radius:10px 10px 0 0}}
+.content{{background:#fff;padding:40px 30px}}
+.highlight{{background:#dbeafe;border-left:4px solid #3b82f6;padding:20px;margin:25px 0;border-radius:5px}}
+.details{{background:#f9fafb;padding:20px;margin:20px 0;border-radius:8px;border:1px solid #e5e7eb}}
+.steps{{background:#fef3c7;border-left:4px solid #f59e0b;padding:20px;margin:25px 0;border-radius:5px}}
+.info-box{{background:#f0fdf4;border:1px solid #bbf7d0;padding:20px;margin:20px 0;border-radius:8px}}
+.footer{{text-align:center;color:#6b7280;font-size:14px;margin-top:40px;padding-top:20px;border-top:1px solid #e5e7eb}}
+.status{{display:inline-block;background:#3b82f6;color:#fff;padding:6px 16px;border-radius:20px;font-size:14px;font-weight:600}}
+</style></head><body><div class="container">
+<div class="header">
+<h1 style="margin:0;font-size:28px">Quote Successfully Submitted</h1>
+<p style="margin:15px 0 0;opacity:0.95;font-size:16px">Thank you for choosing Text2toss Junk Removal</p>
+</div>
+<div class="content">
+<p style="font-size:16px;margin-bottom:20px">Dear Valued Customer,</p>
+<p>Thank you for submitting your junk removal quote request. Your quote is currently <span class="status">Under Review</span> by our professional team.</p>
+<div class="highlight">
+<h3 style="margin-top:0;color:#1e40af">Response Timeline</h3>
+<p style="margin:0;font-size:15px">You will receive an email response with your <strong>approved quote within 24 hours</strong>.</p>
+</div>
+<div class="details">
+<h3>Your Quote Request Details:</h3>
+<table style="width:100%;border-collapse:collapse">
+<tr><td style="padding:8px 0;font-weight:600;color:#4b5563">Quote ID:</td>
+<td style="padding:8px 0;font-family:monospace;background:#f3f4f6;padding:4px 8px;border-radius:4px">{booking.quote_id}</td></tr>
+<tr><td style="padding:8px 0;font-weight:600;color:#4b5563">Pickup Date:</td>
+<td style="padding:8px 0">{booking.pickup_date.strftime('%B %d, %Y')}</td></tr>
+<tr><td style="padding:8px 0;font-weight:600;color:#4b5563">Pickup Time:</td>
+<td style="padding:8px 0">{booking.pickup_time}</td></tr>
+<tr><td style="padding:8px 0;font-weight:600;color:#4b5563">Service Address:</td>
+<td style="padding:8px 0">{booking.address}</td></tr>
+<tr><td style="padding:8px 0;font-weight:600;color:#4b5563">Estimated Price:</td>
+<td style="padding:8px 0;font-weight:600">${quote_doc.get('total_price',0):.2f} <span style="font-size:13px;color:#6b7280;font-weight:normal">(subject to review)</span></td></tr>
+</table>
+</div>
+<div class="steps">
+<h3 style="margin-top:0;color:#92400e">Next Steps</h3>
+<ol style="margin:10px 0 0;padding-left:20px">
+<li style="margin-bottom:12px"><strong>Quote Review:</strong> Our team will assess your requirements and finalize pricing.</li>
+<li style="margin-bottom:12px"><strong>Email Notification:</strong> You will receive your approved quote via email within 24 hours.</li>
+<li style="margin-bottom:12px"><strong>Payment:</strong> Once you receive and approve the quote, complete the payment step.</li>
+<li style="margin-bottom:0"><strong>Booking Confirmed:</strong> After payment, your service is officially scheduled.</li>
+</ol>
+</div>
+<div class="info-box">
+<p style="margin:0;font-size:15px"><strong>Important:</strong> No payment is required at this time. You will only be charged <strong>after</strong> you review and approve the final quote.</p>
+</div>
+<p style="margin-top:30px">If you have any questions, please feel free to contact us!</p>
+<p style="margin-top:25px;color:#4b5563">Best regards,<br><strong style="color:#1f2937">The Text2toss Team</strong></p>
+<div class="footer">
+<p style="margin-bottom:10px"><strong>Text2toss Junk Removal</strong></p>
+<p style="margin:5px 0;color:#9ca3af">Professional &bull; Reliable &bull; Eco-Friendly</p>
+</div>
+</div></div></body></html>"""
+
+
 @api_router.post("/bookings", response_model=Booking)
 async def create_booking(booking_data: BookingCreate, token: str = None):
     user_id = "anonymous"
@@ -1350,201 +1295,22 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
     if is_email_enabled():
         try:
             admin_email = os.environ.get('EMAIL_FROM', 'text2toss@gmail.com')
-            admin_email_subject = f"🔔 New Booking Received - ${quote_doc.get('total_price', 0):.2f}"
-            admin_email_html = f"""
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <style>
-                    body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
-                    .container {{ max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; }}
-                    .header {{ background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
-                    .content {{ background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }}
-                    .booking-details {{ background: white; padding: 20px; margin: 20px 0; border-radius: 8px; border: 2px solid #10b981; }}
-                    .detail-row {{ padding: 10px 0; border-bottom: 1px solid #e5e7eb; }}
-                    .detail-label {{ font-weight: bold; color: #374151; }}
-                    .detail-value {{ color: #1f2937; }}
-                    .status-badge {{ display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; }}
-                    .approval-required {{ background: #fef3c7; color: #92400e; border: 2px solid #f59e0b; }}
-                    .ready-to-pay {{ background: #d1fae5; color: #065f46; border: 2px solid #10b981; }}
-                    .action-button {{ display: inline-block; background: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; margin-top: 20px; }}
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <div class="header">
-                        <div style="font-size: 48px; margin-bottom: 10px;">🔔</div>
-                        <h1 style="margin: 0;">New Booking Received!</h1>
-                        <p style="margin: 10px 0 0 0; opacity: 0.95;">Action may be required</p>
-                    </div>
-                    <div class="content">
-                        <div class="booking-details">
-                            <h2 style="margin-top: 0; color: #10b981;">Booking Information</h2>
-                            
-                            <div class="detail-row">
-                                <span class="detail-label">Status:</span>
-                                <span class="status-badge {'approval-required' if quote_requires_approval else 'ready-to-pay'}">
-                                    {'⏳ PENDING APPROVAL' if quote_requires_approval else '💳 READY FOR PAYMENT'}
-                                </span>
-                            </div>
-                            
-                            <div class="detail-row">
-                                <span class="detail-label">Customer Email:</span>
-                                <span class="detail-value">{booking.email}</span>
-                            </div>
-                            
-                            <div class="detail-row">
-                                <span class="detail-label">Phone:</span>
-                                <span class="detail-value">{booking.phone}</span>
-                            </div>
-                            
-                            <div class="detail-row">
-                                <span class="detail-label">Address:</span>
-                                <span class="detail-value">{booking.address}</span>
-                            </div>
-                            
-                            <div class="detail-row">
-                                <span class="detail-label">Pickup Date:</span>
-                                <span class="detail-value">{booking.pickup_date.strftime('%B %d, %Y')}</span>
-                            </div>
-                            
-                            <div class="detail-row">
-                                <span class="detail-label">Pickup Time:</span>
-                                <span class="detail-value">{booking.pickup_time}</span>
-                            </div>
-                            
-                            <div class="detail-row">
-                                <span class="detail-label">Quote Amount:</span>
-                                <span class="detail-value" style="font-size: 24px; font-weight: bold; color: #10b981;">${quote_doc.get('total_price', 0):.2f}</span>
-                            </div>
-                            
-                            {f'<div class="detail-row"><span class="detail-label">Special Instructions:</span><span class="detail-value">{booking.special_instructions}</span></div>' if booking.special_instructions else ''}
-                            
-                            <div class="detail-row" style="border-bottom: none;">
-                                <span class="detail-label">Curbside Confirmed:</span>
-                                <span class="detail-value">{'✅ Yes' if booking.curbside_confirmed else '❌ No'}</span>
-                            </div>
-                        </div>
-                        
-                        {'<div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 5px;"><strong>⚠️ Action Required:</strong> This quote requires your approval before the customer can proceed with payment. Review and approve/reject in the admin dashboard.</div>' if quote_requires_approval else '<div style="background: #d1fae5; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0; border-radius: 5px;"><strong>✅ Ready:</strong> Customer can proceed with payment. Booking will appear on your schedule once payment is confirmed.</div>'}
-                        
-                        <div style="text-align: center; margin-top: 30px;">
-                            <p style="color: #6b7280; font-size: 14px; margin: 0;">Booking ID: {booking.id}</p>
-                            <p style="color: #6b7280; font-size: 12px; margin-top: 5px;">Received: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}</p>
-                        </div>
-                    </div>
-                </div>
-            </body>
-            </html>
-            """
-            
+            admin_email_subject = f"New Booking Received - ${quote_doc.get('total_price', 0):.2f}"
+            admin_email_html = _build_admin_booking_notification(booking, quote_doc, quote_requires_approval)
             await send_email(admin_email, admin_email_subject, admin_email_html)
             logging.info(f"Admin notification email sent to {admin_email} for booking {booking.id}")
         except Exception as admin_email_error:
             logging.error(f"Failed to send admin notification email: {str(admin_email_error)}")
-            # Don't fail booking if admin email fails
     
     # Send appropriate email based on approval status
     if is_email_enabled() and booking.email:
         logging.info(f"Email enabled, attempting to send email to {booking.email}")
         if quote_requires_approval:
             logging.info("Quote requires approval - sending 'Under Review' email")
-            # Send "Under Review" email for quotes needing approval
-            email_html = f"""
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <style>
-                    body {{ font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.7; color: #333; background-color: #f5f5f5; }}
-                    .container {{ max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; }}
-                    .header {{ background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 40px 30px; text-align: center; border-radius: 10px 10px 0 0; }}
-                    .content {{ background: #ffffff; padding: 40px 30px; }}
-                    .highlight {{ background: #dbeafe; border-left: 4px solid #3b82f6; padding: 20px; margin: 25px 0; border-radius: 5px; }}
-                    .info-box {{ background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; margin: 20px 0; border-radius: 8px; }}
-                    .steps {{ background: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; margin: 25px 0; border-radius: 5px; }}
-                    .details {{ background: #f9fafb; padding: 20px; margin: 20px 0; border-radius: 8px; border: 1px solid #e5e7eb; }}
-                    .footer {{ text-align: center; color: #6b7280; font-size: 14px; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; }}
-                    h1 {{ margin: 0; font-size: 28px; }}
-                    h2 {{ color: #1f2937; font-size: 20px; margin-top: 0; }}
-                    h3 {{ color: #374151; font-size: 18px; margin-bottom: 15px; }}
-                    .status {{ display: inline-block; background: #3b82f6; color: white; padding: 6px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; }}
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <div class="header">
-                        <div style="font-size: 48px; margin-bottom: 10px;">✓</div>
-                        <h1>Quote Successfully Submitted</h1>
-                        <p style="margin: 15px 0 0 0; opacity: 0.95; font-size: 16px;">Thank you for choosing Text2toss Junk Removal</p>
-                    </div>
-                    <div class="content">
-                        <p style="font-size: 16px; margin-bottom: 20px;">Dear Valued Customer,</p>
-                        
-                        <p>Thank you for submitting your junk removal quote request. Your quote is currently <span class="status">Under Review</span> by our professional team.</p>
-                        
-                        <div class="highlight">
-                            <h3 style="margin-top: 0; color: #1e40af;">📧 Response Timeline</h3>
-                            <p style="margin: 0; font-size: 15px;">You will receive an email response with your <strong>approved quote within 24 hours</strong>. Our team is carefully reviewing your requirements to ensure accurate pricing.</p>
-                        </div>
-                        
-                        <div class="details">
-                            <h3>Your Quote Request Details:</h3>
-                            <table style="width: 100%; border-collapse: collapse;">
-                                <tr>
-                                    <td style="padding: 8px 0; font-weight: 600; color: #4b5563;">Quote ID:</td>
-                                    <td style="padding: 8px 0; color: #1f2937; font-family: monospace; background: #f3f4f6; padding: 4px 8px; border-radius: 4px;">{booking.quote_id}</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 8px 0; font-weight: 600; color: #4b5563;">Pickup Date:</td>
-                                    <td style="padding: 8px 0; color: #1f2937;">{booking.pickup_date.strftime('%B %d, %Y')}</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 8px 0; font-weight: 600; color: #4b5563;">Pickup Time:</td>
-                                    <td style="padding: 8px 0; color: #1f2937;">{booking.pickup_time}</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 8px 0; font-weight: 600; color: #4b5563;">Service Address:</td>
-                                    <td style="padding: 8px 0; color: #1f2937;">{booking.address}</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 8px 0; font-weight: 600; color: #4b5563;">Estimated Price:</td>
-                                    <td style="padding: 8px 0; color: #1f2937; font-weight: 600;">${quote_doc.get('total_price', 0):.2f} <span style="font-size: 13px; color: #6b7280; font-weight: normal;">(subject to review)</span></td>
-                                </tr>
-                            </table>
-                        </div>
-                        
-                        <div class="steps">
-                            <h3 style="margin-top: 0; color: #92400e;">📋 Next Steps - What to Expect</h3>
-                            <ol style="margin: 10px 0 0 0; padding-left: 20px;">
-                                <li style="margin-bottom: 12px; color: #1f2937;"><strong>Quote Review:</strong> Our team will assess your requirements and finalize pricing.</li>
-                                <li style="margin-bottom: 12px; color: #1f2937;"><strong>Email Notification:</strong> You will receive your approved quote via email within 24 hours.</li>
-                                <li style="margin-bottom: 12px; color: #1f2937;"><strong>Step 3 - Payment:</strong> Once you receive and approve the quote, you will complete the payment step to confirm your booking.</li>
-                                <li style="margin-bottom: 0; color: #1f2937;"><strong>Booking Confirmed:</strong> After payment, your junk removal service will be officially scheduled.</li>
-                            </ol>
-                        </div>
-                        
-                        <div class="info-box">
-                            <p style="margin: 0; font-size: 15px;"><strong>💡 Important:</strong> No payment is required at this time. You will only be charged <strong>after</strong> you review and approve the final quote. Your booking will be confirmed once Step 3 (Payment) is completed.</p>
-                        </div>
-                        
-                        <p style="margin-top: 30px;">If you have any questions or need to make changes to your request, please feel free to contact us. We're here to help!</p>
-                        
-                        <p style="margin-top: 25px; color: #4b5563;">Best regards,<br>
-                        <strong style="color: #1f2937;">The Text2toss Team</strong></p>
-                        
-                        <div class="footer">
-                            <p style="margin-bottom: 10px;"><strong>Text2toss Junk Removal</strong></p>
-                            <p style="margin: 5px 0; color: #9ca3af;">Professional • Reliable • Eco-Friendly</p>
-                            <p style="margin: 15px 0 0 0; font-size: 13px; color: #9ca3af;">Thank you for choosing our service!</p>
-                        </div>
-                    </div>
-                </div>
-            </body>
-            </html>
-            """
+            email_html = _build_under_review_email(booking, quote_doc)
             email_result = await send_email(
                 to_email=booking.email,
-                subject="✓ Quote Submitted - Under Review | Text2toss",
+                subject="Quote Submitted - Under Review | Text2toss",
                 html_content=email_html
             )
             logging.info(f"Quote under review email sent to {booking.email}: {email_result}")
