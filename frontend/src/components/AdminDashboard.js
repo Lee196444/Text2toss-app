@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import QRCode from 'qrcode';
 import { GoogleMap, Marker, DirectionsRenderer, useJsApiLoader } from '@react-google-maps/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
@@ -832,39 +831,30 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
     return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
   };
 
-  // Generate Marketing QR Code
-  const generateMarketingQR = async () => {
-    try {
-      // Use text2toss.com when deployed, preview URL for development
-      const websiteUrl = 'https://text2toss.com'; // Change to actual domain after deployment
-      
-      const qrCodeDataUrl = await QRCode.toDataURL(websiteUrl, {
-        width: 800,
-        margin: 2,
-        color: {
-          dark: '#000000',
-          light: '#ffffff'
-        }
-      });
-      
-      setMarketingQRCode(qrCodeDataUrl);
-      setShowQRModal(true);
-      toast.success('QR Code generated successfully!');
-    } catch (error) {
-      console.error('Error generating QR code:', error);
-      toast.error('Failed to generate QR code');
-    }
+  // Marketing QR Code - use the pre-built branded version
+  const generateMarketingQR = () => {
+    const qrUrl = `${API}/images/quote_images/qr_truck_outline.png`;
+    setMarketingQRCode(qrUrl);
+    setShowQRModal(true);
+    toast.success('QR Code ready!');
   };
 
   // Download QR Code
-  const downloadQRCode = () => {
-    const link = document.createElement('a');
-    link.href = marketingQRCode;
-    link.download = 'Text2toss-Marketing-QR-Code.png';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success('QR Code downloaded!');
+  const downloadQRCode = async () => {
+    try {
+      const response = await fetch(marketingQRCode);
+      const blob = await response.blob();
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'Text2toss-QR-Code.png';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+      toast.success('QR Code downloaded!');
+    } catch {
+      toast.error('Failed to download QR code');
+    }
   };
 
   const fetchPendingQuotes = useCallback(async () => {
@@ -2849,24 +2839,24 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
                 </Button>
               </div>
               <CardDescription className="text-white/90 mt-2">
-                Scan this QR code to visit Text2toss.com instantly!
+                Scan this QR code to visit tinyurl.com/text2toss
               </CardDescription>
             </CardHeader>
             <CardContent className="p-8">
               <div className="space-y-6">
                 {/* QR Code Display */}
                 <div className="flex flex-col items-center">
-                  <div className="bg-white p-6 rounded-xl shadow-lg border-4 border-purple-200">
+                  <div className="bg-white p-6 rounded-xl shadow-lg border-4 border-emerald-200">
                     {marketingQRCode && (
                       <img 
                         src={marketingQRCode} 
-                        alt="Text2toss Marketing QR Code" 
-                        className="w-80 h-80"
+                        alt="Text2toss QR Code" 
+                        className="w-80 h-80 object-contain"
                       />
                     )}
                   </div>
                   <p className="text-center mt-4 text-gray-700 font-medium">
-                    🌐 Scan to visit: <span className="text-purple-600 font-bold">text2toss.com</span>
+                    Scan to visit: <span className="text-emerald-600 font-bold">tinyurl.com/text2toss</span>
                   </p>
                 </div>
 
