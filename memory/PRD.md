@@ -55,7 +55,13 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Python `is`/`==` review: confirmed all `is None`/`is not None` are correct idiomatic Python (review false positives)
 - React hook deps review: confirmed flagged hooks reference module-level constants (`axios`, `API`, `toast`) and stable React setters — no real stale-closure risk; build compiles cleanly
 - Verified: **57/57 backend tests pass** (50 regression + 7 new refactor coverage)
-- Pre-existing notes (NOT introduced here): slot conflict triggers only on `scheduled`/`in_progress` status (intentional — paid bookings reserve slots); image cache keys only on the compressed image (description ignored on cache hit)
+- Pre-existing notes (NOT introduced here): slot conflict triggers only on `scheduled`/`in_progress` status (intentional — paid bookings reserve slots); image cache keys only on the compressed image (description ignored on cache hit) — **FIXED below**
+
+## Description-aware AI quote cache (Apr 26, 2026 — late session)
+- `analyze_image_for_quote` now hashes `image_bytes + normalized_description` together as the cache key
+- Added `cache_key` field + Mongo index on `db.image_cache.cache_key`
+- Verified end-to-end: same image w/ no description → $15; same image + "heavy items with stairs" → $93.60. Both cache on second call (0s vs 2s)
+- Customers typing meaningful hints now get accurate quotes instead of stale-cached zero-effort prices
 
 
 ## P1 Backlog

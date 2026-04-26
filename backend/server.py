@@ -63,7 +63,10 @@ async def create_indexes():
         # Users collection indexes
         await db.users.create_index([("email", 1)], unique=True)
         await db.users.create_index([("id", 1)], unique=True)
-        
+
+        # Image quote cache — fast lookup on (image+description) hash
+        await db.image_cache.create_index([("cache_key", 1)])
+
         logger.info("✅ Database indexes created successfully")
     except Exception as e:
         logger.warning(f"⚠️ Index creation warning (indexes may already exist): {str(e)}")
@@ -784,11 +787,17 @@ async def analyze_image_for_quote(image_path: str, description: str) -> tuple[Li
         with open(compressed_path, "rb") as f:
             image_hash = hashlib.sha256(f.read()).hexdigest()
 
-        cached = await _check_image_cache(image_hash, compressed_path, image_path, t0)
+        # Description is now part of the cache key so a customer hint like
+        # "with stairs" or "extra heavy" causes a fresh AI pass instead of
+        # silently returning a description-less quote.
+        desc_norm = (description or "").strip().lower()
+        cache_key = hashlib.sha256(f"{image_hash}|{desc_norm}".encode()).hexdigest()
+
+        cached = await _check_image_cache(cache_key, image_hash, compressed_path, image_path, t0)
         if cached is not None:
             return cached
 
-        logger.info(f"Cache MISS for image {image_hash[:8]} - sending to AI")
+        logger.info(f"Cache MISS for image {image_hash[:8]} desc={desc_norm[:40]!r} - sending to AI")
         response_text = await _request_ai_vision_quote(compressed_path, description, image_hash, t0)
 
         # Clean up compressed file
@@ -798,7 +807,7 @@ async def analyze_image_for_quote(image_path: str, description: str) -> tuple[Li
         items, total_price, explanation, scale_level, breakdown = _parse_ai_quote_response(response_text)
 
         # Cache the result for consistency
-        await _cache_quote_analysis(image_hash, items, total_price, explanation, scale_level, breakdown)
+        await _cache_quote_analysis(cache_key, image_hash, desc_norm, items, total_price, explanation, scale_level, breakdown)
         return items, total_price, explanation, scale_level, breakdown
 
     except Exception as e:
@@ -830,10 +839,10 @@ def _compress_image_for_ai(image_path: str, t0: float) -> str:
         return image_path
 
 
-async def _check_image_cache(image_hash: str, compressed_path: str, image_path: str, t0: float):
-    """Return the cached analysis tuple if we've seen this image before, else None."""
+async def _check_image_cache(cache_key: str, image_hash: str, compressed_path: str, image_path: str, t0: float):
+    """Return the cached analysis tuple if we've seen this (image+description) combo before, else None."""
     import time as _time
-    cached_quote = await db.image_cache.find_one({"image_hash": image_hash})
+    cached_quote = await db.image_cache.find_one({"cache_key": cache_key})
     if not cached_quote:
         return None
     logger.info(f"Cache HIT for image {image_hash[:8]} (total {_time.monotonic()-t0:.1f}s)")
@@ -905,9 +914,11 @@ def _parse_ai_quote_response(response_text: str):
     return items, total_price, explanation, scale_level, breakdown
 
 
-async def _cache_quote_analysis(image_hash, items, total_price, explanation, scale_level, breakdown):
+async def _cache_quote_analysis(cache_key, image_hash, desc_norm, items, total_price, explanation, scale_level, breakdown):
     cache_data = {
+        "cache_key": cache_key,
         "image_hash": image_hash,
+        "description_norm": desc_norm,
         "items": [item.dict() for item in items],
         "total_price": total_price,
         "explanation": explanation,
@@ -917,7 +928,7 @@ async def _cache_quote_analysis(image_hash, items, total_price, explanation, sca
     }
     try:
         await db.image_cache.insert_one(cache_data)
-        logger.info(f"Cached analysis for image {image_hash[:8]}")
+        logger.info(f"Cached analysis for image {image_hash[:8]} desc={desc_norm[:40]!r}")
     except Exception as cache_error:
         logger.warning(f"Failed to cache analysis: {cache_error}")
 
