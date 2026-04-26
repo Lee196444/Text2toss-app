@@ -1,0 +1,40 @@
+{
+  "summary": "Backend-only regression + new MarketingSettings.timezone field testing. All 18 prior marketing tests pass, all 15 prior push tests pass, and 4 new timezone tests pass — total 37/37. Default GET returns 'timezone':'UTC'; valid IANA tz ('America/Phoenix') persists round-trip; >64 char tz returns 422; invalid tz string ('Not/Real_TZ') is accepted by the model (no IANA validation enforced — by design) and does NOT crash adjacent endpoints — /api/admin/push/send-test still returned 200 with clean JSON. Backend logs confirm '[push] daily-reminder scheduler started' on startup and zero '_send_daily_reminder error' lines were observed during the run, validating the zoneinfo→UTC fallback path.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_marketing.py",
+    "/app/backend/tests/test_push.py",
+    "/app/backend/tests/test_marketing_timezone.py",
+    "/app/test_reports/pytest/pytest_results_iter10.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "MarketingSettings.timezone has no IANA validation — invalid strings like 'Not/Real_TZ' silently persist. The scheduler safely falls back to UTC, but if you want stricter UX, validate against zoneinfo.available_timezones() in a Pydantic field_validator (or, at minimum, log a warning at save time so admins notice the typo).",
+    "server.py is now ~3670 lines. Marketing/Push/Scheduler logic should be split into routers/services modules (admin, marketing, push, jobs) for maintainability — already flagged in iter 9, no progress yet.",
+    "MarketingSettings.dict() is deprecated in Pydantic v2 (server.py L3407, L3423, L3426) — prefer .model_dump(). Same note applies to PushSubscriptionKeys.dict() (already flagged iter 9).",
+    "The scheduler stores tz_name in push_reminder_log but the idempotency key (date) is derived from now_local in the saved tz; if an admin changes timezone mid-day, the same calendar date in the new tz could re-trigger a send. Low-risk, but worth a comment.",
+    "save_marketing_settings does a full $set of every field — there is no patch/merge endpoint, so any partial-update client must always send the full document (already required because of Pydantic's MarketingSettings schema). Acceptable, just document for FE."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_marketing.py (added 'timezone' assertion in test_get_settings_returns_object)",
+    "/app/backend/tests/test_marketing_timezone.py (new — 4 tests)"
+  ],
+  "success_rate": {
+    "backend": "100% (37/37: 18 marketing + 15 push + 4 timezone)",
+    "frontend": "skipped per request"
+  },
+  "test_credentials": "admin lrobe / L1964c10$ via POST /api/admin/login (httpOnly admin_session cookie)",
+  "seed_data_creation": "Tests temporarily set marketing_settings to TEST_/invalid values then restore the original singleton snapshot (or neutral defaults) via a module-scoped autouse fixture in test_marketing_timezone.py. test_marketing.py also resets to neutral defaults after its save test. No persistent test data left behind.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Timezone backend coverage now lives in /app/backend/tests/test_marketing_timezone.py (4 tests). Total suite: 37 tests across test_marketing.py + test_push.py + test_marketing_timezone.py. The model intentionally does NOT validate IANA names — scheduler handles bad tz via except→UTC fallback. Do NOT add timing-based assertions on _send_daily_reminder (60s tick); rely on the '[push] daily-reminder scheduler started' log line and the absence of '_send_daily_reminder error' entries. Frontend MarketingQRModal.js refactor was not tested (backend-only request).",
+  "rca of the issue": "N/A — no issues found. All review-request acceptance criteria pass: (1) timezone defaults to 'UTC' on GET, (2) America/Phoenix persists round-trip, (3) 65-char timezone is rejected with 422 by Pydantic max_length=64, (4) invalid IANA tz with reminder_enabled=true does NOT break /api/admin/push/send-test (returned 200 with clean JSON), (5) startup log shows '[push] daily-reminder scheduler started', (6) all 33 prior tests still pass — refactor is safe."
+}

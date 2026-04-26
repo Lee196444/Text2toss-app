@@ -3356,6 +3356,7 @@ class MarketingSettings(BaseModel):
     deal_active: bool = False
     reminder_enabled: bool = False
     reminder_hour: int = Field(10, ge=0, le=23)
+    timezone: str = Field("UTC", max_length=64)
 
 
 @api_router.post("/admin/marketing/share-event")
@@ -3409,7 +3410,8 @@ async def get_marketing_settings():
         "deal_text": doc.get("deal_text", ""),
         "deal_active": bool(doc.get("deal_active", False)),
         "reminder_enabled": bool(doc.get("reminder_enabled", False)),
-        "reminder_hour": int(doc.get("reminder_hour", 10))
+        "reminder_hour": int(doc.get("reminder_hour", 10)),
+        "timezone": doc.get("timezone") or "UTC"
     }
 
 
@@ -3531,7 +3533,7 @@ async def send_test_push():
 
 async def _send_daily_reminder():
     """Background job: every minute, check the saved reminder_hour and send
-    a push if we haven't already sent one today."""
+    a push if we haven't already sent one today (in the saved timezone)."""
     try:
         settings = await db.marketing_settings.find_one(
             {"_id": "singleton"}, {"_id": 0}
@@ -3539,13 +3541,21 @@ async def _send_daily_reminder():
         if not settings or not settings.get("reminder_enabled"):
             return
 
-        now = datetime.now(timezone.utc)
+        # Resolve the user's timezone (falls back to UTC if invalid)
+        tz_name = settings.get("timezone") or "UTC"
+        try:
+            from zoneinfo import ZoneInfo
+            tz = ZoneInfo(tz_name)
+        except Exception:
+            tz = timezone.utc
+        now_local = datetime.now(tz)
+
         target_hour = int(settings.get("reminder_hour", 10))
-        if now.hour != target_hour:
+        if now_local.hour != target_hour:
             return
 
-        # Idempotency: only one push per day per admin
-        today_key = now.strftime("%Y-%m-%d")
+        # Idempotency: only one push per day per admin (in local-time date)
+        today_key = now_local.strftime("%Y-%m-%d")
         marker = await db.push_reminder_log.find_one({"date": today_key})
         if marker:
             return
@@ -3576,9 +3586,10 @@ async def _send_daily_reminder():
         await db.push_reminder_log.insert_one({
             "date": today_key,
             "sent": sent,
-            "created_at": now.isoformat()
+            "tz": tz_name,
+            "created_at": datetime.now(timezone.utc).isoformat()
         })
-        logger.info(f"[push] daily reminder sent to {sent} device(s)")
+        logger.info(f"[push] daily reminder sent to {sent} device(s) at {target_hour}:00 {tz_name}")
     except Exception as exc:
         logger.error(f"[push] _send_daily_reminder error: {exc}")
 

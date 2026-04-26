@@ -159,6 +159,9 @@ class TestMarketingSettings:
         assert isinstance(data.get("reminder_enabled"), bool)
         assert isinstance(data.get("reminder_hour"), int)
         assert 0 <= data["reminder_hour"] <= 23
+        # New: timezone field always present, default "UTC"
+        assert isinstance(data.get("timezone"), str)
+        assert len(data["timezone"]) > 0
         assert "_id" not in data
 
     def test_save_and_persist_settings(self, admin_session):
