@@ -24,12 +24,22 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - ✅ Marketing modal: Share Post (Web Share API native), Facebook share intent, Copy Caption
 - ✅ Marketing analytics + reminder + deal toggle: 4 endpoints + UI
 - ✅ True background Web Push reminders via Service Worker + pywebpush + APScheduler
-- ✅ **Timezone-aware reminder (NEW)**: `MarketingSettings.timezone` field (zoneinfo); scheduler now compares LOCAL hour, frontend auto-detects browser tz with `Intl.DateTimeFormat`. Falls back to UTC for invalid strings.
-- ✅ **AdminDashboard decomposed (NEW)**: extracted `MarketingQRModal` + push subscription logic into `/app/frontend/src/components/marketing/MarketingQRModal.js`. AdminDashboard.js: 3349 → 2803 lines (-16%).
+- ✅ Timezone-aware reminder via `MarketingSettings.timezone` (auto-detected from browser)
+- ✅ **Push delivery health widget (NEW)** — `/api/admin/push/health` endpoint, last-sent display, Resubscribe button inside MarketingQRModal
+- ✅ **AdminDashboard further decomposed (NEW)**:
+  - `/app/frontend/src/components/admin/RouteOptimizerModal.js`
+  - `/app/frontend/src/components/admin/PendingApprovalsModal.js`
+  - `/app/frontend/src/components/admin/PaymentRemindersModal.js`
+  - AdminDashboard.js: 3349 → **2345** lines (–30% from baseline, –1004 lines total)
+- ✅ **App.js decomposed (NEW)**:
+  - `/app/frontend/src/pages/LandingPage.js` (customer landing + quote flow)
+  - `/app/frontend/src/components/booking/BookingModal.js`, `VenmoPaymentModal.js`
+  - `/app/frontend/src/components/customer/PhotoCarousel.js`
+  - App.js: 1719 → **52 lines** (router shell only)
+- ✅ Tested: **40/40 backend tests pass** + frontend extracted-component coverage all green
 
 ## P1 Backlog
-- Decompose `AdminDashboard.js` (~3100 lines) into `MarketingPanel`, `PendingApprovals`, `PaymentReminders`, `GalleryManager`, `RouteOptimizer`
-- Decompose `App.js` (~1700 lines): split landing page from quote/booking flow
+- (Optional) Further decompose AdminDashboard.js into hooks/sections (e.g., calendar, bin manager, photo gallery, email center) to bring it under 1500 lines
 
 ## P2 Backlog
 - Twilio SMS — code present, awaiting user API credentials
