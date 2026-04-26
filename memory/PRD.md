@@ -22,11 +22,14 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - ✅ Ref-#4-style "white truck on black + green accents" magnet — `magnet_white_green.png`
 - ✅ Branded TEXT2TOSS QR JPG installed in admin Marketing modal (`text2toss_branded_qr.jpg`)
 - ✅ Marketing modal: Share Post (Web Share API native), Facebook share intent, Copy Caption
-- ✅ **Marketing analytics + reminder + deal toggle (NEW)**:
-  - Endpoints: `POST /api/admin/marketing/share-event`, `GET /api/admin/marketing/stats`, `GET/POST /api/admin/marketing/settings`
-  - UI inside QR modal: weekly + total counters, "Today's deal" text+toggle that prepends to caption, daily browser-notification reminder at chosen hour
-  - Auto-tracking on share/copy/download
-  - Tested: 18/18 pytest cases pass (`/app/backend/tests/test_marketing.py`)
+- ✅ Marketing analytics + reminder + deal toggle: 4 endpoints + UI in QR modal
+- ✅ **True background Web Push reminders (NEW)**:
+  - VAPID keys generated & stored in backend/.env (VAPID_PUBLIC_KEY/PRIVATE_KEY/SUBJECT)
+  - `/app/frontend/public/service-worker.js` handles push + notificationclick
+  - Endpoints: `GET /api/push/vapid-public-key` (public), `POST /api/admin/push/subscribe`, `POST /api/admin/push/unsubscribe`, `POST /api/admin/push/send-test`
+  - APScheduler runs every minute checking saved reminder_hour and dispatches pywebpush; idempotent via push_reminder_log per-day marker
+  - Frontend toggling reminder registers SW + subscribes via PushManager; "Send Test Push Now" button included
+  - Tested: 33/33 backend tests pass (15 new + 18 marketing regression)
 
 ## P1 Backlog
 - Decompose `AdminDashboard.js` (~3100 lines) into `MarketingPanel`, `PendingApprovals`, `PaymentReminders`, `GalleryManager`, `RouteOptimizer`
