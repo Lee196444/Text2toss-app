@@ -46,6 +46,18 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
   - Tested: **50/50 backend tests pass** (10 new + 40 prior regression)
 - ✅ Bug fix: `DELETE /api/admin/gallery-photo` now actually removes the file on disk for modern URLs (was leaking files)
 
+## Code Quality Review Fixes (Apr 26, 2026 — late session)
+- Silent error handling in `MarketingQRModal.js`: 6 `catch { /* silent */ }` blocks replaced with `console.error/warn` + user-visible toast where appropriate
+- Console.log sweep: extracted shared `/app/frontend/src/lib/toast.js`; removed 14 duplicated `console.log` toast-fallbacks across 7 files (LandingPage, AdminDashboard, PhotoCarousel, BookingModal, VenmoPaymentModal, PhotoGalleryModal, MarketingQRModal)
+- Backend complexity reduction:
+  - `analyze_image_for_quote()` (153 lines, complexity 19) split into 7 helpers: `_compress_image_for_ai`, `_check_image_cache`, `_build_vision_prompt`, `_request_ai_vision_quote`, `_parse_ai_quote_response`, `_cache_quote_analysis`, `_enhanced_text_fallback`
+  - `create_booking()` (119 lines, complexity 18) split into 5 helpers: `_resolve_user_id`, `_validate_pickup_request`, `_build_booking`, `_send_post_booking_emails`, `_send_post_booking_sms`
+- Python `is`/`==` review: confirmed all `is None`/`is not None` are correct idiomatic Python (review false positives)
+- React hook deps review: confirmed flagged hooks reference module-level constants (`axios`, `API`, `toast`) and stable React setters — no real stale-closure risk; build compiles cleanly
+- Verified: **57/57 backend tests pass** (50 regression + 7 new refactor coverage)
+- Pre-existing notes (NOT introduced here): slot conflict triggers only on `scheduled`/`in_progress` status (intentional — paid bookings reserve slots); image cache keys only on the compressed image (description ignored on cache hit)
+
+
 ## P1 Backlog
 - (Optional) Further decompose AdminDashboard.js into hooks/sections (e.g., calendar, bin manager, photo gallery, email center) to bring it under 1500 lines
 
