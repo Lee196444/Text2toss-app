@@ -4,11 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-
-const toast = {
-  success: (m) => (window.showToast ? window.showToast("success", m) : console.log("SUCCESS:", m)),
-  error: (m) => (window.showToast ? window.showToast("error", m) : console.log("ERROR:", m))
-};
+import { toast } from "../../lib/toast";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -71,7 +67,10 @@ const MarketingQRModal = ({ open, onClose }) => {
           timezone: c.data?.timezone || detectTimezone()
         });
         setHealth(h.data || { subscriptions: 0, last_event: null, last_daily: null });
-      } catch { /* silent */ }
+      } catch (err) {
+        console.error("Marketing modal: failed to load stats/settings/health", err);
+        toast.error("Couldn't load marketing data — try reopening the modal");
+      }
     })();
   }, [open]);
 
@@ -79,14 +78,19 @@ const MarketingQRModal = ({ open, onClose }) => {
     try {
       const { data } = await axios.get(`${API}/admin/marketing/stats`);
       setStats(data);
-    } catch { /* silent */ }
+    } catch (err) {
+      console.warn("Marketing modal: refreshStats failed", err);
+    }
   };
 
   const logShareEvent = async (channel) => {
     try {
       await axios.post(`${API}/admin/marketing/share-event`, { channel });
       await refreshStats();
-    } catch { /* silent */ }
+    } catch (err) {
+      // Tracking is non-critical — don't interrupt the user's flow
+      console.warn("Marketing modal: share-event tracking failed", err);
+    }
   };
 
   const buildCaption = () => {
@@ -210,7 +214,9 @@ Text2Toss makes junk removal effortless — snap a photo, get an instant AI quot
         });
         await sub.unsubscribe();
       }
-    } catch { /* silent */ }
+    } catch (err) {
+      console.warn("Marketing modal: disableBackgroundPush failed", err);
+    }
   };
 
   const sendTestPush = async () => {
@@ -229,7 +235,9 @@ Text2Toss makes junk removal effortless — snap a photo, get an instant AI quot
     try {
       const { data } = await axios.get(`${API}/admin/push/health`);
       setHealth(data);
-    } catch { /* silent */ }
+    } catch (err) {
+      console.warn("Marketing modal: refreshHealth failed", err);
+    }
   };
 
   const resubscribeDevice = async () => {

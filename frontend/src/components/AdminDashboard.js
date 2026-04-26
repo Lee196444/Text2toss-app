@@ -16,11 +16,7 @@ import CalendarModal from "./admin/CalendarModal";
 import AllJobsModal from "./admin/AllJobsModal";
 import EmailCenterModal from "./admin/EmailCenterModal";
 import PhotoGalleryModal from "./admin/PhotoGalleryModal";
-// Use global toast function as fallback
-const toast = {
-  success: (message) => window.showToast ? window.showToast('success', message) : console.log('SUCCESS:', message),
-  error: (message) => window.showToast ? window.showToast('error', message) : console.log('ERROR:', message)
-};
+import { toast } from "../lib/toast";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;

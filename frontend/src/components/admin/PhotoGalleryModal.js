@@ -3,14 +3,10 @@ import axios from "axios";
 import Cropper from "react-easy-crop";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
+import { toast } from "../../lib/toast";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
-
-const toast = {
-  success: (m) => (window.showToast ? window.showToast("success", m) : console.log("SUCCESS:", m)),
-  error: (m) => (window.showToast ? window.showToast("error", m) : console.log("ERROR:", m))
-};
 
 const SlotCard = ({
   index, photo,

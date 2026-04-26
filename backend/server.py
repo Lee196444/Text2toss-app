@@ -765,12 +765,51 @@ def calculate_basic_price(items: List[JunkItem]) -> float:
 
 # AI Vision Analysis for Image-based Quotes
 async def analyze_image_for_quote(image_path: str, description: str) -> tuple[List[JunkItem], float, str, Optional[int], Optional[dict]]:
-    """Use AI vision to analyze uploaded image and identify junk items for pricing"""
+    """Use AI vision to analyze uploaded image and identify junk items for pricing.
+
+    Implementation is broken down into helpers:
+      - _compress_image_for_ai     → speed up upload & hashing
+      - _check_image_cache          → return cached analysis if seen before
+      - _build_vision_prompt        → centralizes the pricing prompt
+      - _parse_ai_quote_response    → JSON extraction & item construction
+      - _enhanced_text_fallback     → description-based fallback when vision fails
+    """
     import time as _time
     t0 = _time.monotonic()
-    
-    # Compress image aggressively for fast AI processing (768px, quality 50)
-    compressed_path = image_path
+
+    compressed_path = _compress_image_for_ai(image_path, t0)
+
+    try:
+        import hashlib
+        with open(compressed_path, "rb") as f:
+            image_hash = hashlib.sha256(f.read()).hexdigest()
+
+        cached = await _check_image_cache(image_hash, compressed_path, image_path, t0)
+        if cached is not None:
+            return cached
+
+        logger.info(f"Cache MISS for image {image_hash[:8]} - sending to AI")
+        response_text = await _request_ai_vision_quote(compressed_path, description, image_hash, t0)
+
+        # Clean up compressed file
+        if compressed_path != image_path and Path(compressed_path).exists():
+            Path(compressed_path).unlink()
+
+        items, total_price, explanation, scale_level, breakdown = _parse_ai_quote_response(response_text)
+
+        # Cache the result for consistency
+        await _cache_quote_analysis(image_hash, items, total_price, explanation, scale_level, breakdown)
+        return items, total_price, explanation, scale_level, breakdown
+
+    except Exception as e:
+        logger.error(f"AI vision analysis error: {e}")
+        return await _enhanced_text_fallback(description)
+
+
+def _compress_image_for_ai(image_path: str, t0: float) -> str:
+    """Resize/compress image to 768px JPEG for fast hashing + AI upload.
+    Falls back to the original path if compression fails."""
+    import time as _time
     try:
         from PIL import Image as PILImage
         img = PILImage.open(image_path)
@@ -779,14 +818,39 @@ async def analyze_image_for_quote(image_path: str, description: str) -> tuple[Li
             ratio = max_dim / max(img.size)
             new_size = (int(img.size[0] * ratio), int(img.size[1] * ratio))
             img = img.resize(new_size, PILImage.LANCZOS)
-        compressed_path = image_path.rsplit('.', 1)[0] + '_compressed.jpg'
-        img.convert('RGB').save(compressed_path, 'JPEG', quality=50, optimize=True)
-        logger.info(f"Compressed image: {Path(image_path).stat().st_size // 1024}KB -> {Path(compressed_path).stat().st_size // 1024}KB ({_time.monotonic()-t0:.1f}s)")
+        compressed_path = image_path.rsplit(".", 1)[0] + "_compressed.jpg"
+        img.convert("RGB").save(compressed_path, "JPEG", quality=50, optimize=True)
+        logger.info(
+            f"Compressed image: {Path(image_path).stat().st_size // 1024}KB -> "
+            f"{Path(compressed_path).stat().st_size // 1024}KB ({_time.monotonic()-t0:.1f}s)"
+        )
+        return compressed_path
     except Exception as e:
         logger.warning(f"Image compression failed, using original: {e}")
-        compressed_path = image_path
-    
-    ai_prompt = (
+        return image_path
+
+
+async def _check_image_cache(image_hash: str, compressed_path: str, image_path: str, t0: float):
+    """Return the cached analysis tuple if we've seen this image before, else None."""
+    import time as _time
+    cached_quote = await db.image_cache.find_one({"image_hash": image_hash})
+    if not cached_quote:
+        return None
+    logger.info(f"Cache HIT for image {image_hash[:8]} (total {_time.monotonic()-t0:.1f}s)")
+    if compressed_path != image_path and Path(compressed_path).exists():
+        Path(compressed_path).unlink()
+    return (
+        [JunkItem(**item) for item in cached_quote["items"]],
+        cached_quote["total_price"],
+        cached_quote["explanation"],
+        cached_quote.get("scale_level"),
+        cached_quote.get("breakdown")
+    )
+
+
+def _build_vision_prompt(description: str) -> str:
+    """Centralized pricing prompt for the vision call."""
+    return (
         f"Junk removal pricing expert — Text2toss, Flagstaff AZ. GROUND LEVEL/CURBSIDE ONLY.\n\n"
         f"Customer note: {description or 'None'}\n\n"
         "SCALE (by total volume):\n"
@@ -801,123 +865,87 @@ async def analyze_image_for_quote(image_path: str, description: str) -> tuple[Li
         '"explanation":"Scale 5 - table and chairs."}'
     )
 
+
+async def _request_ai_vision_quote(compressed_path: str, description: str, image_hash: str, t0: float) -> str:
+    """Send compressed image + prompt to Gemini and return the raw text response."""
+    import time as _time
+    image_file = FileContentWithMimeType(file_path=compressed_path, mime_type="image/jpeg")
+    chat = LlmChat(
+        api_key=os.environ.get("EMERGENT_LLM_KEY"),
+        session_id=f"vision_{image_hash}",
+        system_message="Junk removal pricing expert. Respond with valid JSON only."
+    ).with_model("gemini", "gemini-2.0-flash")
+    user_message = UserMessage(text=_build_vision_prompt(description), file_contents=[image_file])
+    t_ai = _time.monotonic()
+    response = await chat.send_message(user_message)
+    logger.info(f"AI response in {_time.monotonic()-t_ai:.1f}s (total {_time.monotonic()-t0:.1f}s)")
+    return response.strip()
+
+
+def _parse_ai_quote_response(response_text: str):
+    """Extract JSON, build JunkItems, return the 5-tuple."""
+    json_match = re.search(r"\{.*\}", response_text, re.DOTALL)
+    if json_match:
+        response_text = json_match.group(0)
+    analysis_data = json.loads(response_text)
+
+    items = [
+        JunkItem(
+            name=item_data.get("name", "Unknown item"),
+            quantity=item_data.get("quantity", 1),
+            size=item_data.get("size", "medium"),
+            description=item_data.get("description", "")
+        )
+        for item_data in analysis_data.get("items", [])
+    ]
+    total_price = float(analysis_data.get("total_price", 0))
+    explanation = analysis_data.get("explanation", "AI vision analysis of uploaded image")
+    scale_level = analysis_data.get("scale_level")
+    breakdown = analysis_data.get("breakdown")
+    return items, total_price, explanation, scale_level, breakdown
+
+
+async def _cache_quote_analysis(image_hash, items, total_price, explanation, scale_level, breakdown):
+    cache_data = {
+        "image_hash": image_hash,
+        "items": [item.dict() for item in items],
+        "total_price": total_price,
+        "explanation": explanation,
+        "scale_level": scale_level,
+        "breakdown": breakdown,
+        "cached_at": datetime.now(timezone.utc).isoformat()
+    }
     try:
-        import hashlib
-        # Hash the compressed image (much smaller = faster hash)
-        with open(compressed_path, 'rb') as f:
-            image_hash = hashlib.sha256(f.read()).hexdigest()
-        
-        # Check cache
-        cached_quote = await db.image_cache.find_one({"image_hash": image_hash})
-        if cached_quote:
-            logger.info(f"Cache HIT for image {image_hash[:8]} (total {_time.monotonic()-t0:.1f}s)")
-            # Clean up compressed file
-            if compressed_path != image_path and Path(compressed_path).exists():
-                Path(compressed_path).unlink()
-            return (
-                [JunkItem(**item) for item in cached_quote["items"]],
-                cached_quote["total_price"],
-                cached_quote["explanation"],
-                cached_quote.get("scale_level"),
-                cached_quote.get("breakdown")
-            )
-        
-        logger.info(f"Cache MISS for image {image_hash[:8]} - sending to AI")
-        
-        image_file = FileContentWithMimeType(
-            file_path=compressed_path,
-            mime_type="image/jpeg"
-        )
-        
-        t_ai = _time.monotonic()
-        chat = LlmChat(
-            api_key=os.environ.get('EMERGENT_LLM_KEY'),
-            session_id=f"vision_{image_hash}",
-            system_message="Junk removal pricing expert. Respond with valid JSON only."
-        ).with_model("gemini", "gemini-2.0-flash")
-        
-        user_message = UserMessage(
-            text=ai_prompt,
-            file_contents=[image_file]
-        )
-        
-        response = await chat.send_message(user_message)
-        logger.info(f"AI response in {_time.monotonic()-t_ai:.1f}s (total {_time.monotonic()-t0:.1f}s)")
-        
-        # Clean up compressed file
-        if compressed_path != image_path and Path(compressed_path).exists():
-            Path(compressed_path).unlink()
-        
-        # Parse AI response
-        response_text = response.strip()
-        
-        # Extract JSON from response
-        json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
-        if json_match:
-            response_text = json_match.group(0)
-        
-        analysis_data = json.loads(response_text)
-        
-        # Extract items
-        items = []
-        for item_data in analysis_data.get("items", []):
-            items.append(JunkItem(
-                name=item_data.get("name", "Unknown item"),
-                quantity=item_data.get("quantity", 1),
-                size=item_data.get("size", "medium"),
-                description=item_data.get("description", "")
-            ))
-        
-        total_price = float(analysis_data.get("total_price", 0))
-        explanation = analysis_data.get("explanation", "AI vision analysis of uploaded image")
-        scale_level = analysis_data.get("scale_level")
-        breakdown = analysis_data.get("breakdown")
-        
-        # Cache the result for consistency
-        cache_data = {
-            "image_hash": image_hash,
-            "items": [item.dict() for item in items],
-            "total_price": total_price,
-            "explanation": explanation,
-            "scale_level": scale_level,
-            "breakdown": breakdown,
-            "cached_at": datetime.now(timezone.utc).isoformat()
-        }
-        
+        await db.image_cache.insert_one(cache_data)
+        logger.info(f"Cached analysis for image {image_hash[:8]}")
+    except Exception as cache_error:
+        logger.warning(f"Failed to cache analysis: {cache_error}")
+
+
+async def _enhanced_text_fallback(description: str):
+    """Two-tier fallback: description-based AI pricing → flat estimate."""
+    if description and description.strip():
+        logger.info(f"Attempting text-AI fallback with description: {description[:80]}")
         try:
-            await db.image_cache.insert_one(cache_data)
-            print(f"✅ Cached analysis for image {image_hash[:8]}")
-        except Exception as cache_error:
-            print(f"⚠️ Failed to cache analysis: {cache_error}")
-        
-        return items, total_price, explanation, scale_level, breakdown
-        
-    except Exception as e:
-        print(f"AI vision analysis error: {str(e)}")
-        # Enhanced fallback - use text-based AI pricing with description if available
-        if description and description.strip():
-            print(f"Attempting enhanced fallback with description: {description}")
-            try:
-                # Create items based on description for enhanced fallback
-                fallback_items = [JunkItem(name="Items from image description", quantity=1, size="large", description=description)]
-                
-                # Use text-based AI pricing with the description
-                fallback_price, fallback_explanation, scale_level, breakdown = await calculate_ai_price(fallback_items, f"Image analysis unavailable. Based on description: {description}")
-                
-                print(f"Enhanced fallback successful: ${fallback_price}, scale: {scale_level}")
-                return fallback_items, fallback_price, f"Image analysis temporarily unavailable. Pricing based on description: {fallback_explanation}", scale_level, breakdown
-                
-            except Exception as text_ai_error:
-                print(f"Text-based fallback also failed: {str(text_ai_error)}")
-        else:
-            print(f"No description provided for enhanced fallback: '{description}'")
-        
-        # Basic fallback if description-based pricing also fails
-        print("Using basic fallback pricing")
-        fallback_items = [JunkItem(name="Unidentified items from image", quantity=1, size="medium")]
-        fallback_price = 75.0
-        fallback_explanation = "Image analysis temporarily unavailable. Basic estimate provided - please describe items for accurate pricing."
-        return fallback_items, fallback_price, fallback_explanation, None, None
+            fallback_items = [JunkItem(name="Items from image description", quantity=1, size="large", description=description)]
+            fallback_price, fallback_explanation, scale_level, breakdown = await calculate_ai_price(
+                fallback_items, f"Image analysis unavailable. Based on description: {description}"
+            )
+            return (
+                fallback_items, fallback_price,
+                f"Image analysis temporarily unavailable. Pricing based on description: {fallback_explanation}",
+                scale_level, breakdown
+            )
+        except Exception as text_ai_error:
+            logger.warning(f"Text-based fallback also failed: {text_ai_error}")
+
+    # Basic flat-rate fallback when nothing else works
+    fallback_items = [JunkItem(name="Unidentified items from image", quantity=1, size="medium")]
+    return (
+        fallback_items, 75.0,
+        "Image analysis temporarily unavailable. Basic estimate provided - please describe items for accurate pricing.",
+        None, None
+    )
 
 # Authentication helpers
 def hash_password(password: str) -> str:
@@ -1225,51 +1253,79 @@ body{{font-family:'Segoe UI',Arial,sans-serif;line-height:1.7;color:#333;backgro
 
 @api_router.post("/bookings", response_model=Booking)
 async def create_booking(booking_data: BookingCreate, token: str = None):
-    user_id = "anonymous"
-    if token:
-        try:
-            user_id = await get_current_user(token)
-        except Exception:
-            pass
-    
-    # Verify quote exists
+    """Create a booking from an existing quote.
+
+    Implementation broken down into focused helpers:
+      - _resolve_user_id            → optionally look up authenticated user
+      - _validate_pickup_request    → ensures Mon-Thu + slot availability
+      - _build_booking              → constructs the Booking object
+      - _send_post_booking_emails   → admin + customer notifications
+      - _send_post_booking_sms      → optional confirmation SMS
+    """
+    user_id = await _resolve_user_id(token)
+
     quote_doc = await db.quotes.find_one({"id": booking_data.quote_id})
     if not quote_doc:
         raise HTTPException(status_code=404, detail="Quote not found")
-    
-    # Parse pickup datetime
+
+    pickup_datetime = await _validate_pickup_request(booking_data)
+
+    booking = _build_booking(booking_data, pickup_datetime, quote_doc, user_id)
+    await db.bookings.insert_one(prepare_for_mongo(booking.dict()))
+
+    quote_requires_approval = quote_doc.get("requires_approval", False)
+    logging.info(
+        f"Booking created: {booking.id}, Quote ID: {booking.quote_id}, "
+        f"Requires Approval: {quote_requires_approval}, Email: {booking.email}"
+    )
+
+    await _send_post_booking_emails(booking, quote_doc, quote_requires_approval)
+    await _send_post_booking_sms(booking)
+    return booking
+
+
+async def _resolve_user_id(token: Optional[str]) -> str:
+    """Best-effort: resolve user id from token; falls back to anonymous."""
+    if not token:
+        return "anonymous"
+    try:
+        return await get_current_user(token)
+    except Exception:
+        return "anonymous"
+
+
+async def _validate_pickup_request(booking_data: BookingCreate) -> datetime:
+    """Parse pickup datetime, enforce Mon-Thu, and ensure the slot is free."""
     pickup_datetime = datetime.fromisoformat(booking_data.pickup_date)
-    
-    # Validate pickup date (Monday-Thursday only)
-    day_of_week = pickup_datetime.weekday()  # 0=Monday, 6=Sunday
-    if day_of_week > 3:  # Thursday is 3
+
+    # 0=Mon ... 6=Sun. We allow Monday-Thursday only.
+    if pickup_datetime.weekday() > 3:
         raise HTTPException(
-            status_code=400, 
+            status_code=400,
             detail="Pickup not available on Fridays or weekends. Please select Monday-Thursday."
         )
-    
-    # Check if time slot is already booked
+
     existing_booking = await db.bookings.find_one({
-        "pickup_date": {
-            "$regex": f"^{booking_data.pickup_date}"
-        },
+        "pickup_date": {"$regex": f"^{booking_data.pickup_date}"},
         "pickup_time": booking_data.pickup_time,
         "status": {"$in": ["scheduled", "in_progress"]}
     })
-    
     if existing_booking:
         raise HTTPException(
-            status_code=409, 
+            status_code=409,
             detail=f"Time slot {booking_data.pickup_time} is already booked for {booking_data.pickup_date}"
         )
-    
-    # Use the quote image path directly (images are now stored permanently in quote_images/)
-    permanent_image_path = quote_doc.get("temp_image_path")
-    
-    # Set status based on whether quote requires approval
-    booking_status = "pending_customer_approval" if quote_doc.get("requires_approval", False) else "pending_payment"
-    
-    booking = Booking(
+    return pickup_datetime
+
+
+def _build_booking(booking_data: BookingCreate, pickup_datetime: datetime, quote_doc: dict, user_id: str) -> "Booking":
+    """Assemble the Booking object, including initial status based on approval rules."""
+    booking_status = (
+        "pending_customer_approval"
+        if quote_doc.get("requires_approval", False)
+        else "pending_payment"
+    )
+    return Booking(
         user_id=user_id,
         quote_id=booking_data.quote_id,
         pickup_date=pickup_datetime,
@@ -1280,70 +1336,62 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
         special_instructions=booking_data.special_instructions,
         curbside_confirmed=booking_data.curbside_confirmed,
         email_notifications=booking_data.email_notifications,
-        image_path=permanent_image_path,
+        image_path=quote_doc.get("temp_image_path"),
         status=booking_status
     )
-    
-    booking_mongo = prepare_for_mongo(booking.dict())
-    await db.bookings.insert_one(booking_mongo)
-    
-    # Check if quote requires approval
-    quote_requires_approval = quote_doc.get("requires_approval", False)
-    logging.info(f"Booking created: {booking.id}, Quote ID: {booking.quote_id}, Requires Approval: {quote_requires_approval}, Email: {booking.email}")
-    
-    # Send admin notification email for new booking
-    if is_email_enabled():
-        try:
-            admin_email = os.environ.get('EMAIL_FROM', 'text2toss@gmail.com')
-            admin_email_subject = f"New Booking Received - ${quote_doc.get('total_price', 0):.2f}"
-            admin_email_html = _build_admin_booking_notification(booking, quote_doc, quote_requires_approval)
-            await send_email(admin_email, admin_email_subject, admin_email_html)
-            logging.info(f"Admin notification email sent to {admin_email} for booking {booking.id}")
-        except Exception as admin_email_error:
-            logging.error(f"Failed to send admin notification email: {str(admin_email_error)}")
-    
-    # Send appropriate email based on approval status
-    if is_email_enabled() and booking.email:
-        logging.info(f"Email enabled, attempting to send email to {booking.email}")
-        if quote_requires_approval:
-            logging.info("Quote requires approval - sending 'Under Review' email")
-            email_html = _build_under_review_email(booking, quote_doc)
-            email_result = await send_email(
-                to_email=booking.email,
-                subject="Quote Submitted - Under Review | Text2toss",
-                html_content=email_html
-            )
-            logging.info(f"Quote under review email sent to {booking.email}: {email_result}")
-        else:
-            logging.info("Quote auto-approved - sending standard booking confirmation")
-            # Send standard booking confirmation email for auto-approved quotes
-            email_html = create_booking_confirmation_email(booking.dict(), quote_doc)
-            email_result = await send_email(
-                to_email=booking.email,
-                subject=f"🎉 Booking Confirmed - {booking.pickup_date.strftime('%B %d, %Y')}",
-                html_content=email_html
-            )
-            logging.info(f"Booking confirmation email sent to {booking.email}: {email_result}")
+
+
+async def _send_post_booking_emails(booking: "Booking", quote_doc: dict, quote_requires_approval: bool):
+    """Send admin notification + customer email (under-review or confirmation)."""
+    if not is_email_enabled():
+        logging.warning("Email NOT sent - email is disabled in environment")
+        return
+
+    # Admin notification — never blocks customer flow
+    try:
+        admin_email = os.environ.get("EMAIL_FROM", "text2toss@gmail.com")
+        admin_subject = f"New Booking Received - ${quote_doc.get('total_price', 0):.2f}"
+        admin_html = _build_admin_booking_notification(booking, quote_doc, quote_requires_approval)
+        await send_email(admin_email, admin_subject, admin_html)
+        logging.info(f"Admin notification email sent to {admin_email} for booking {booking.id}")
+    except Exception as admin_email_error:
+        logging.error(f"Failed to send admin notification email: {admin_email_error}")
+
+    # Customer email
+    if not booking.email:
+        logging.warning(f"Email NOT sent - no email address provided for booking {booking.id}")
+        return
+
+    if quote_requires_approval:
+        logging.info("Quote requires approval - sending 'Under Review' email")
+        email_html = _build_under_review_email(booking, quote_doc)
+        subject = "Quote Submitted - Under Review | Text2toss"
     else:
-        if not is_email_enabled():
-            logging.warning("Email NOT sent - email is disabled in environment")
-        if not booking.email:
-            logging.warning(f"Email NOT sent - no email address provided for booking {booking.id}")
-    
-    # Optional: Send SMS if enabled
-    if is_sms_enabled():
-        phone = booking.phone.replace('(', '').replace(')', '').replace(' ', '').replace('-', '')
-        if phone and not phone.startswith('+'):
-            phone = '+1' + phone
-        
-        if phone:
-            pickup_date_str = booking.pickup_date.strftime('%B %d, %Y')
-            confirmation_message = f"✅ Text2toss Confirmed: Junk removal scheduled for {pickup_date_str} between {booking.pickup_time} at {booking.address}. Check your email for details!"
-            
-            sms_result = await send_sms(phone, confirmation_message)
-            logging.info(f"Booking confirmation SMS sent: {sms_result}")
-    
-    return booking
+        logging.info("Quote auto-approved - sending standard booking confirmation")
+        email_html = create_booking_confirmation_email(booking.dict(), quote_doc)
+        subject = f"🎉 Booking Confirmed - {booking.pickup_date.strftime('%B %d, %Y')}"
+    email_result = await send_email(to_email=booking.email, subject=subject, html_content=email_html)
+    logging.info(f"Booking email sent to {booking.email}: {email_result}")
+
+
+async def _send_post_booking_sms(booking: "Booking"):
+    """Send a confirmation SMS if SMS is enabled and the phone number is usable."""
+    if not is_sms_enabled():
+        return
+
+    phone = (booking.phone or "").replace("(", "").replace(")", "").replace(" ", "").replace("-", "")
+    if not phone:
+        return
+    if not phone.startswith("+"):
+        phone = "+1" + phone
+
+    pickup_date_str = booking.pickup_date.strftime("%B %d, %Y")
+    confirmation_message = (
+        f"✅ Text2toss Confirmed: Junk removal scheduled for {pickup_date_str} "
+        f"between {booking.pickup_time} at {booking.address}. Check your email for details!"
+    )
+    sms_result = await send_sms(phone, confirmation_message)
+    logging.info(f"Booking confirmation SMS sent: {sms_result}")
 
 @api_router.get("/bookings/lookup")
 async def lookup_bookings(email: str):

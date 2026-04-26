@@ -10,11 +10,7 @@ import { Badge } from "../components/ui/badge";
 import PhotoCarousel from "../components/customer/PhotoCarousel";
 import BookingModal from "../components/booking/BookingModal";
 import VenmoPaymentModal from "../components/booking/VenmoPaymentModal";
-
-const toast = {
-  success: (m) => (window.showToast ? window.showToast("success", m) : console.log("SUCCESS:", m)),
-  error: (m) => (window.showToast ? window.showToast("error", m) : console.log("ERROR:", m))
-};
+import { toast } from "../lib/toast";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;

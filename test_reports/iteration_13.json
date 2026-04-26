@@ -1,0 +1,56 @@
+{
+  "summary": "Backend-only regression + targeted coverage for the analyze_image_for_quote / create_booking refactors. Authored /app/backend/tests/test_quote_booking_refactor.py with 7 tests covering: (a) full /api/quotes/image happy-path return contract, (b) non-image rejection, (c) image cache hit (same JPEG twice -> identical items/total + 2nd call meaningfully faster), (d) booking creation happy-path, (e) Friday weekday rejection (400), (f) slot-conflict path (after promoting seed booking to 'scheduled' via admin PATCH the duplicate slot returns 409), (g) unknown quote_id (404). Combined run against the public REACT_APP_BACKEND_URL: 57/57 PASSED — full prior regression (10 photo_reel_crop + 18 marketing + 15 push + 4 marketing_timezone + 3 push_health = 50) untouched plus 7 new refactor tests. Refactor preserves public signatures and return shapes — no observable behavior change detected.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "POST /api/bookings",
+        "issue": "_validate_pickup_request slot-conflict guard filters bookings by status {'scheduled','in_progress'} only. New bookings start in 'pending_payment'/'pending_customer_approval', so two consecutive customer bookings on the same Mon-Thu slot both succeed with 200 until an admin PATCHes the first to 'scheduled'. Confirmed via git history (commit 05354c4) this is intentional product behavior (only PAID bookings reserve slots) — but the review_request implies '409 on second booking' which is NOT the actual public-API contract. Pre-existing, NOT introduced by this PR; flagged for clarity."
+      },
+      {
+        "endpoint": "POST /api/quotes/image — _check_image_cache",
+        "issue": "Cache lookup is keyed on SHA-256 of the COMPRESSED 768px JPEG, not the original upload. Same source image with a different description still returns the cached items/total — meaning a customer's textual hint ('with stairs', 'heavy items') is silently ignored on cache hit. Pre-existing; surfaces only because the refactor isolated this behavior into a named helper."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_quote_booking_refactor.py",
+    "/app/backend/tests/test_photo_reel_crop.py",
+    "/app/backend/tests/test_marketing.py",
+    "/app/backend/tests/test_push.py",
+    "/app/backend/tests/test_marketing_timezone.py",
+    "/app/backend/tests/test_push_health.py",
+    "/app/test_reports/pytest/pytest_results_iter13.xml"
+  ],
+  "action_items": [
+    "(Doc/Clarify) Update review_request expectation for slot-conflict 409: it triggers only after an admin promotes the seed booking to 'scheduled'. If the intent is for two consecutive public bookings to clash, expand the status filter in _validate_pickup_request to include 'pending_payment'/'pending_customer_approval'.",
+    "(Optional) Consider keying the image cache on (image_hash, description_hash) so a different customer description re-runs the AI vision pass instead of returning the prior cached quote."
+  ],
+  "critical_code_review_comments": [
+    "_resolve_user_id swallows ALL exceptions from get_current_user() and returns 'anonymous'. A malformed/expired token therefore silently downgrades the booking to anonymous instead of returning 401 — fine for 'token optional' design but worth a comment so future devs don't add 401-style assumptions on top of it.",
+    "_validate_pickup_request uses {'$regex': f'^{booking_data.pickup_date}'} on a string field. booking_data.pickup_date is user-supplied and unvalidated for regex metachars. If a caller submits 'a.*' as pickup_date, datetime.fromisoformat will raise first (mitigation), but it's still safer to switch to a $gte/$lt range query on the parsed datetime.isoformat() prefix or to re.escape() the value before injecting.",
+    "_compress_image_for_ai writes the compressed JPEG to image_path.rsplit('.',1)[0] + '_compressed.jpg' WITHOUT collision protection. Two near-simultaneous identical filenames (very unlikely with quote_<uuid> naming, but possible if a custom filename ever leaks into image_path) would race on the same temp path. Use NamedTemporaryFile(dir=...) instead.",
+    "_request_ai_vision_quote builds session_id=f'vision_{image_hash}'. Reusing the same session_id across calls with identical hashes can produce response coupling on Gemini's side; if the cache check fails for any reason (e.g. db.image_cache write failure) the next request will re-use the same conversation thread. Append an attempt counter or uuid suffix.",
+    "_send_post_booking_emails / _send_post_booking_sms are awaited sequentially after the insert. If either raises, the booking is already persisted but the customer never gets confirmation. Wrap each in try/except and log the failure (or move to BackgroundTasks) so a transient SES/Twilio outage doesn't bubble a 500 to the customer.",
+    "server.py is now 3865 lines and growing. The booking + quote helpers (~150 lines) plus the photo-reel module flagged in iter12 are obvious extraction candidates into routers/bookings.py and routers/quotes.py.",
+    "_parse_ai_quote_response uses re.search(r'\\{.*\\}', text, re.DOTALL) which is greedy and picks the OUTERMOST braces. If Gemini ever returns markdown with multiple JSON-looking blocks (e.g. ```json ... ``` followed by an explanation that includes '{...}'), the greedy match concatenates them and json.loads raises — falling through to _enhanced_text_fallback even though the response was valid. Switch to a non-greedy + balanced scan."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_quote_booking_refactor.py (new — 7 tests)"
+  ],
+  "success_rate": {
+    "backend": "100% (57/57: 7 new refactor coverage + 50 prior regression)",
+    "frontend": "not tested (review_request testing_type = backend only)"
+  },
+  "test_credentials": "admin lrobe / L1964c10$ via POST /api/admin/login (httpOnly admin_session cookie)",
+  "seed_data_creation": "test_quote_booking_refactor.py inserts up to 5 bookings (1 happy-path, 2 conflict-test, 1 friday-rejected = doesn't insert, 1 unknown-quote = doesn't insert) and 3 quotes (one per unique image) into MongoDB. Bookings are NOT torn down (no public DELETE endpoint and admin DELETE wasn't part of this PR's scope); they live on a future Monday and don't pollute today's state. Quotes occupy ~3 rows in db.quotes and ~3 rows in db.image_cache.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Backend regression suite is now 57 tests across 6 files: test_photo_reel_crop.py (10) + test_marketing.py (18) + test_push.py (15) + test_marketing_timezone.py (4) + test_push_health.py (3) + test_quote_booking_refactor.py (7). All green. Run with: pytest tests/test_photo_reel_crop.py tests/test_marketing.py tests/test_push.py tests/test_marketing_timezone.py tests/test_push_health.py tests/test_quote_booking_refactor.py -v. New helpers introduced by this PR: analyze_image_for_quote -> {_compress_image_for_ai, _check_image_cache, _build_vision_prompt, _request_ai_vision_quote, _parse_ai_quote_response, _cache_quote_analysis, _enhanced_text_fallback}; create_booking -> {_resolve_user_id, _validate_pickup_request, _build_booking, _send_post_booking_emails, _send_post_booking_sms}. Public POST signatures + Booking/PriceQuote return shapes UNCHANGED. Slot-conflict path requires admin-PATCH-to-scheduled (see fixture in test_booking_slot_conflict_returns_409) — keep that pattern when adding more booking tests. Legacy test files test_admin_cookie_auth.py / test_new_features.py / test_quote_image_storage.py / test_text2toss_api.py still have pre-existing failures from iter11 — do not run them as part of regression.",
+  "rca of the issue": "N/A — the refactor is behavior-preserving. The only test that initially failed (slot conflict) was due to a misalignment between the review_request wording and the actual product contract (status filter excludes pending_payment); test was adjusted to promote the booking to 'scheduled' via admin PATCH first, after which 409 fires correctly."
+}
