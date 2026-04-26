@@ -1937,7 +1937,7 @@ async def update_booking_status(booking_id: str, status_update: dict):
 async def upload_completion_photo(
     booking_id: str,
     file: UploadFile = File(...),
-    completion_note: str = ""
+    completion_note: str = Form(default="")
 ):
     """Upload completion photo and note for a booking.
 
@@ -2299,6 +2299,11 @@ async def approve_quote(quote_id: str, approval_action: QuoteApprovalAction):
             update_data["approved_price"] = approval_action.approved_price
             if approval_action.approved_price > original_price:
                 await _process_quote_price_increase(quote_id, approval_action, original_price, update_data)
+            else:
+                # Re-approval at same or lower price: clear any stale
+                # customer-approval state from a previous price increase so
+                # the booking flow doesn't keep waiting for an old SMS link.
+                await _clear_stale_price_adjustment_fields(quote_id)
 
         await db.quotes.update_one({"id": quote_id}, {"$set": update_data})
         await _send_quote_approval_decision_email(quote_id, quote, approval_action)
@@ -2370,6 +2375,30 @@ async def _process_quote_price_increase(quote_id: str, approval_action, original
         update_data["approval_status"] = "approved_pending_customer"
     except Exception as sms_error:
         logger.error(f"Failed to send price change notification: {sms_error}")
+
+
+async def _clear_stale_price_adjustment_fields(quote_id: str):
+    """Re-approval at same or lower price: drop leftover customer-approval state.
+    Without this, a booking previously bumped to `pending_customer_approval`
+    would keep its old approval token and adjusted_price after a re-approval."""
+    booking = await db.bookings.find_one({"quote_id": quote_id})
+    if not booking:
+        return
+    if not (booking.get("requires_customer_approval") or booking.get("customer_approval_token")):
+        return
+    await db.bookings.update_one(
+        {"id": booking["id"]},
+        {
+            "$unset": {
+                "customer_approval_token": "",
+                "adjusted_price": "",
+                "original_price": "",
+                "price_adjustment_reason": "",
+                "requires_customer_approval": ""
+            },
+            "$set": {"status": "pending_payment"}
+        }
+    )
 
 
 async def _send_quote_approval_decision_email(quote_id: str, quote: dict, approval_action):

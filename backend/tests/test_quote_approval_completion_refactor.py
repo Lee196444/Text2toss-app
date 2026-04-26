@@ -284,12 +284,11 @@ class TestCompletionPhotoUpload:
         booking_id = _seed_booking_for_quote(quote_id, status="completed")
         note = f"All clear {uuid.uuid4().hex[:6]}"
         files = {"file": ("done.jpg", _make_jpeg_bytes(color=(20, 100, 200)), "image/jpeg")}
-        # NOTE: completion_note is declared `str = ""` (no Form()), so FastAPI
-        # treats it as a query parameter, not multipart form data. Pass as
-        # query string to actually populate it.
+        # iter15 fix: completion_note is now `Form(default="")` so multipart-
+        # form data clients can populate it correctly.
         r = admin_session.post(
             f"{BASE_URL}/api/admin/bookings/{booking_id}/completion",
-            params={"completion_note": note},
+            data={"completion_note": note},
             files=files,
             timeout=60,
         )

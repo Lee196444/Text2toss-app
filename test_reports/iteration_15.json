@@ -1,0 +1,51 @@
+{
+  "summary": "Backend regression + targeted coverage for iter15 follow-up fixes (completion_note Form binding + new _clear_stale_price_adjustment_fields helper). Authored /app/backend/tests/test_iter15_form_and_stale_clear.py (6 tests, all PASS): TestCompletionNoteFormBinding (2 — note now persists when sent as multipart form data; default '' still works when omitted), TestClearStalePriceAdjustment (4 — re-approval at LOWER price clears stale token/adjusted_price/requires_customer_approval and reverts status to pending_payment; re-approval at SAME price also clears stale state when present; approve with NO booking attached + lower price succeeds without error; approve at lower price when booking has no stale fields leaves booking untouched). Also updated existing test_completion_upload_success_persists_path_and_note in test_quote_approval_completion_refactor.py to use data= (multipart) instead of params= (query) — confirms the form-binding fix end-to-end. Combined regression run: 74/75 PASSED (6 iter15 + 11 iter14 + 7 iter13 + 50 prior). Single failure is a pre-existing flaky AI-cache test (TestDescriptionAwareImageCache.test_same_image_different_description_is_cache_miss) — passed on individual retry; not related to iter15 changes.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "POST /api/quotes/image",
+        "issue": "test_same_image_different_description_is_cache_miss is flaky in suite mode but passes on retry (PRE-EXISTING from iter14, not iter15 regression). Symptom: hit.total_price (95.0) != miss.total_price (150.0). RCA hypothesis: AI returns variable prices for similar images and the cache-miss path stores the FIRST AI response while a subsequent identical request occasionally re-runs the AI before the cache row is committed. Re-running the test alone passes consistently. Consider deterministic fixture price or polling on cache_key insert before issuing the second call."
+      },
+      {
+        "endpoint": "POST /api/admin/quotes/{quote_id}/approve",
+        "issue": "Pre-existing from iter14: _process_quote_price_increase still swallows ALL send_sms exceptions while flipping booking to pending_customer_approval. Customer waits for SMS that never arrives. Iter15 did not address this."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter15_form_and_stale_clear.py",
+    "/app/backend/tests/test_quote_approval_completion_refactor.py",
+    "/app/test_reports/pytest/pytest_results_iter15.xml"
+  ],
+  "action_items": [
+    "(Optional) Stabilize TestDescriptionAwareImageCache.test_same_image_different_description_is_cache_miss — currently flaky in suite mode. Either await db.image_cache.find_one({cache_key:...}) before issuing the HIT request, or stub AI to deterministic price for the same (image_hash, description_norm).",
+    "(Optional, carried over from iter14) Surface SMS failures in _process_quote_price_increase rather than warn-logging — booking is otherwise stranded in pending_customer_approval forever."
+  ],
+  "critical_code_review_comments": [
+    "_clear_stale_price_adjustment_fields is correctly scoped: looks up booking by quote_id, returns silently if no booking, returns silently if no stale fields, otherwise $unsets the five stale fields and $sets status='pending_payment'. Verified all four branches end-to-end. One nit: the helper hard-codes status='pending_payment' but never validates the previous booking status — if the booking was in some other terminal state (cancelled, refunded), this would clobber it. Realistically the only path to having stale customer_approval_token is via _process_quote_price_increase which sets status='pending_customer_approval', so this is currently safe, but a tighter guard ({'status':'pending_customer_approval'} in the update filter) would future-proof it.",
+    "approve_quote refactor double-fetches the booking: _process_quote_price_increase OR _clear_stale_price_adjustment_fields each do their own db.bookings.find_one({quote_id}), then _send_quote_approval_decision_email does a THIRD identical lookup. Three round-trips per approval — pass the booking down or memoize.",
+    "completion_note: str = Form(default='') fix is correct. Note that File(...) and Form(...) annotations together force FastAPI to treat the request body as multipart, which is exactly what the frontend sends.",
+    "Pre-existing carry-overs: server.py is now 3907 lines (was 3878 in iter14, 3865 in iter13). The two helpers added in iter15 are 22 lines net but the file continues to grow. Approve_quote helpers (~170 lines) + completion helpers (~80 lines) + the 4 quote_*_html builders (~250 lines) are obvious extraction candidates into routers/quotes.py and routers/bookings.py.",
+    "_save_completion_photo still uses datetime.now() (naive local time) for the filename suffix — two completions in the same wall-clock second overwrite each other. Carry-over from iter14."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter15_form_and_stale_clear.py (new — 6 tests)",
+    "/app/backend/tests/test_quote_approval_completion_refactor.py (updated test_completion_upload_success_persists_path_and_note: params= → data= now that Form() fix is live)"
+  ],
+  "success_rate": {
+    "backend": "98.7% (74/75: 6 new iter15 + 11 iter14 + 7 iter13 + 50 prior; 1 pre-existing flaky AI-cache test)",
+    "frontend": "not tested (review_request testing_type = backend only)"
+  },
+  "test_credentials": "admin lrobe / L1964c10$ via POST /api/admin/login (httpOnly admin_session cookie)",
+  "seed_data_creation": "test_iter15_form_and_stale_clear.py creates ~7 quote rows in db.quotes (each promoted to pending_approval via direct Mongo write), 6 booking rows in db.bookings (status=completed/scheduled/pending_customer_approval) tied to those quotes, and 2 completion photos under /app/backend/static/completion_photos. All seeded data uses uuid-suffixed identifiers and lives on a future Monday — no production data modified.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend regression suite is now 75 tests across 8 files: test_photo_reel_crop.py (10) + test_marketing.py (18) + test_push.py (15) + test_marketing_timezone.py (4) + test_push_health.py (3) + test_quote_booking_refactor.py (7) + test_quote_approval_completion_refactor.py (12) + test_iter15_form_and_stale_clear.py (6). Run: `pytest tests/test_photo_reel_crop.py tests/test_marketing.py tests/test_push.py tests/test_marketing_timezone.py tests/test_push_health.py tests/test_quote_booking_refactor.py tests/test_quote_approval_completion_refactor.py tests/test_iter15_form_and_stale_clear.py -v`. Iter15 changes: completion_note now uses Form(default='') in upload_completion_photo signature (line 1940); new _clear_stale_price_adjustment_fields helper (line 2380) called from approve_quote when approved_price <= original_price. Re-approving requires manually flipping db.quotes.approval_status back to 'pending_approval' since approve_quote rejects non-pending quotes. Legacy test files test_admin_cookie_auth.py / test_new_features.py / test_quote_image_storage.py / test_text2toss_api.py still have pre-existing failures from iter11 — do not run them as part of regression. The flaky AI-cache test (TestDescriptionAwareImageCache.test_same_image_different_description_is_cache_miss) passes on individual retry — re-run alone if the suite reports it failed.",
+  "rca of the issue": "N/A — both iter15 fixes verified working end-to-end. (1) Multipart form clients now correctly populate completion_note thanks to the Form(default='') annotation. (2) The new _clear_stale_price_adjustment_fields helper correctly removes the five stale customer-approval fields and reverts booking status to 'pending_payment' when admin re-approves a quote at the same or lower price."
+}
