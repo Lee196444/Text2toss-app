@@ -1,78 +1,52 @@
-# Text2toss Junk Removal App - PRD
+# Text2Toss — Product Requirements
 
-## Overview
-Full-stack junk removal booking application for Flagstaff, AZ. Customers upload photos of junk, get AI-powered instant quotes (via Google Gemini), and book pickup services. Admin dashboard for managing bookings, approving high-value quotes, and optimizing routes.
+## Original Problem Statement
+A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instant AI-generated quote (Gemini 2.0 Flash Vision), and book pickup. Admin (lrobe) manages bookings, payments, scheduling, and now markets the business via in-app share tools and printed magnets.
 
 ## Tech Stack
-- **Frontend:** React (CRA), Tailwind CSS, Shadcn UI
-- **Backend:** FastAPI (Python), Motor (async MongoDB driver)
-- **Database:** MongoDB
-- **AI:** Google Gemini 2.0 Flash (via emergentintegrations) — optimized for speed
-- **Email:** Gmail SMTP (aiosmtplib)
-- **SMS:** Twilio (configured, needs credentials)
+- Frontend: React + Tailwind + Shadcn UI, axios with `withCredentials=true`
+- Backend: FastAPI + Motor (async Mongo) + JWT-in-httpOnly-cookie admin auth
+- AI: emergentintegrations + Gemini 2.0 Flash (vision quote in ~2s)
+- Payments: Venmo QR (image), Stripe wired
+- Static assets: Pillow-generated magnets/QRs at `/api/images/quote_images/...`
 
-## Core Features (Implemented)
-- AI image analysis for junk quote generation (1-20 scale)
-- Auto-approval for scale 1-8, admin approval required for scale 9-20
-- Customer booking flow with date/time selection (Mon-Thu only)
-- Admin dashboard with job bins, calendar, route optimization
-- Quote approval/rejection with price adjustments
-- Email notifications (customer + admin)
-- Permanent image storage for ALL quote photos
-- Admin authentication via httpOnly cookies (JWT session, secure, samesite=lax)
-- Admin auth middleware protecting all /api/admin/* endpoints
-- Health check endpoint at `/api/health`
-- Customer booking lookup at `/track`
-- Admin bulk reject — reject individual or all pending payments
-- Auto-refresh admin data every 30 seconds
-- Google Reviews link in contact section
+## Auth
+- Admin uses `username` + `password` -> JWT in httpOnly cookie `admin_session` (path=/api, max_age=8h, secure, samesite=lax). Middleware guards all `/api/admin/*` except `/login` and `/init`.
+- Test creds: `lrobe` / `L1964c10$` (see `/app/memory/test_credentials.md`)
 
-## Security Hardening (Completed April 2026)
-- httpOnly cookie-based admin sessions (no localStorage tokens)
-- All admin endpoints protected by server-side middleware
-- SHA-256 hashing (no MD5)
-- No hardcoded secrets in code — environment variables only
-- Python and JS linting fully clean
-- No eslint-disable comments remaining
+## Implemented (Apr 26, 2026)
+- ✅ Admin auth migrated to httpOnly cookie
+- ✅ AI quote ~25s → ~2s (Gemini 2.0 Flash + aggressive image compression)
+- ✅ React `useEffect` deps fixed; backend monoliths split (validate_pricing_logic, create_booking, calculate_ai_price)
+- ✅ 5 themed 12"x12" vehicle-magnet PNGs (300 DPI): outline, gold, purple, green, vintage — `/app/scripts/generate_magnet_themes.py`
+- ✅ Ref-#4-style "white truck on black + green accents" magnet — `magnet_white_green.png`
+- ✅ Branded TEXT2TOSS QR JPG installed in admin Marketing modal (`text2toss_branded_qr.jpg`)
+- ✅ Marketing modal: Share Post (Web Share API native), Facebook share intent, Copy Caption
+- ✅ **Marketing analytics + reminder + deal toggle (NEW)**:
+  - Endpoints: `POST /api/admin/marketing/share-event`, `GET /api/admin/marketing/stats`, `GET/POST /api/admin/marketing/settings`
+  - UI inside QR modal: weekly + total counters, "Today's deal" text+toggle that prepends to caption, daily browser-notification reminder at chosen hour
+  - Auto-tracking on share/copy/download
+  - Tested: 18/18 pytest cases pass (`/app/backend/tests/test_marketing.py`)
 
-## Code Quality Improvements (Completed April 2026)
-- **Backend refactoring:** Extracted helper functions (_estimate_item_volume, _price_to_scale, _build_text_pricing_prompt, _parse_ai_pricing_response, _build_admin_booking_notification, _build_under_review_email). Reduced validate_pricing_logic from 103→33 lines, calculate_basic_price from 40→15 lines.
-- **Frontend hooks:** All fetch functions wrapped in useCallback with proper dependency arrays. Zero eslint-disable comments.
-- **Console cleanup:** Removed debug console.log statements, kept descriptive error logs only.
-- **Array keys:** Fixed index-as-key anti-pattern in ImprovedQuoteFlow.
-- **Error handling:** All catch blocks have proper error logging.
-- **Removed:** App_backup.js (dead code)
+## P1 Backlog
+- Decompose `AdminDashboard.js` (~3100 lines) into `MarketingPanel`, `PendingApprovals`, `PaymentReminders`, `GalleryManager`, `RouteOptimizer`
+- Decompose `App.js` (~1700 lines): split landing page from quote/booking flow
 
-## Performance (Completed April 2026)
-- AI quote generation: ~2s (was ~25s) — 12x faster
-- Client-side image compression before upload (5-10MB → ~150KB)
-- gemini-2.0-flash model (was 2.5-flash thinking model)
-- Image hash caching for repeat photos
-- Background cleanup tasks (non-blocking)
+## P2 Backlog
+- Twilio SMS — code present, awaiting user API credentials
+- Lock final magnet variant; export 12"×24" landscape door-magnet version
+- Service Worker for true background-push reminders (current Notification API only fires while dashboard tab is open)
+- Multi-admin attribution on `marketing_shares` records
 
-## Key Endpoints
-- `POST /api/quotes/image` — Create quote from image
-- `POST /api/bookings` — Create booking
-- `GET /api/bookings/lookup?email=` — Customer booking lookup
-- `GET /api/admin/pending-quotes` — Quotes awaiting approval
-- `POST /api/admin/quotes/{id}/approve` — Approve/reject quote
-- `GET /api/admin/pending-payments` — Unpaid bookings
-- `POST /api/admin/login` — Sets httpOnly cookie
-- `POST /api/admin/logout` — Clears httpOnly cookie
-- `GET /api/admin/verify` — Verifies cookie, returns admin info
-- `GET /api/health` — Healthcheck
+## DB Collections
+- `quotes` { id, temp_image_path, requires_approval, approval_status, total_price, ... }
+- `bookings` { id, quote_id, email, name, phone, address, status, payment_status, ... }
+- `admin_users` { username, display_name, password_hash }
+- `marketing_shares` { id, channel, created_at }  (NEW)
+- `marketing_settings` { _id:"singleton", deal_text, deal_active, reminder_enabled, reminder_hour }  (NEW)
 
-## Admin Credentials
-- Username: lrobe
-- Password: L1964c10$
-
-## Status: Stable (April 2026)
-- All core flows tested and working (iteration_7: 19/19 tests passed)
-- Security hardening complete
-- Code quality review fixes applied
-
-## Backlog
-- P1: Decompose AdminDashboard.js (2900+ lines) into sub-components (SmsCenter, PhotoGallery, AllJobsModal)
-- P1: Decompose App.js (1700+ lines) into route-specific components
-- P2: Before/after photo gallery on homepage
-- P3: SMS via Twilio (code exists, needs credentials)
+## Key API Endpoints (Marketing)
+- `POST /api/admin/marketing/share-event { channel: "native"|"facebook"|"copy"|"download" }`
+- `GET  /api/admin/marketing/stats -> { this_week, total, by_channel }`
+- `GET  /api/admin/marketing/settings -> MarketingSettings`
+- `POST /api/admin/marketing/settings <- MarketingSettings`
