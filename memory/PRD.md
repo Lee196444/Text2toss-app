@@ -18,18 +18,14 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - ✅ Admin auth migrated to httpOnly cookie
 - ✅ AI quote ~25s → ~2s (Gemini 2.0 Flash + aggressive image compression)
 - ✅ React `useEffect` deps fixed; backend monoliths split (validate_pricing_logic, create_booking, calculate_ai_price)
-- ✅ 5 themed 12"x12" vehicle-magnet PNGs (300 DPI): outline, gold, purple, green, vintage — `/app/scripts/generate_magnet_themes.py`
-- ✅ Ref-#4-style "white truck on black + green accents" magnet — `magnet_white_green.png`
-- ✅ Branded TEXT2TOSS QR JPG installed in admin Marketing modal (`text2toss_branded_qr.jpg`)
+- ✅ 5 themed 12"x12" vehicle-magnet PNGs (300 DPI): outline, gold, purple, green, vintage
+- ✅ Ref-#4-style "white truck on black + green accents" magnet
+- ✅ Branded TEXT2TOSS QR JPG installed in admin Marketing modal
 - ✅ Marketing modal: Share Post (Web Share API native), Facebook share intent, Copy Caption
-- ✅ Marketing analytics + reminder + deal toggle: 4 endpoints + UI in QR modal
-- ✅ **True background Web Push reminders (NEW)**:
-  - VAPID keys generated & stored in backend/.env (VAPID_PUBLIC_KEY/PRIVATE_KEY/SUBJECT)
-  - `/app/frontend/public/service-worker.js` handles push + notificationclick
-  - Endpoints: `GET /api/push/vapid-public-key` (public), `POST /api/admin/push/subscribe`, `POST /api/admin/push/unsubscribe`, `POST /api/admin/push/send-test`
-  - APScheduler runs every minute checking saved reminder_hour and dispatches pywebpush; idempotent via push_reminder_log per-day marker
-  - Frontend toggling reminder registers SW + subscribes via PushManager; "Send Test Push Now" button included
-  - Tested: 33/33 backend tests pass (15 new + 18 marketing regression)
+- ✅ Marketing analytics + reminder + deal toggle: 4 endpoints + UI
+- ✅ True background Web Push reminders via Service Worker + pywebpush + APScheduler
+- ✅ **Timezone-aware reminder (NEW)**: `MarketingSettings.timezone` field (zoneinfo); scheduler now compares LOCAL hour, frontend auto-detects browser tz with `Intl.DateTimeFormat`. Falls back to UTC for invalid strings.
+- ✅ **AdminDashboard decomposed (NEW)**: extracted `MarketingQRModal` + push subscription logic into `/app/frontend/src/components/marketing/MarketingQRModal.js`. AdminDashboard.js: 3349 → 2803 lines (-16%).
 
 ## P1 Backlog
 - Decompose `AdminDashboard.js` (~3100 lines) into `MarketingPanel`, `PendingApprovals`, `PaymentReminders`, `GalleryManager`, `RouteOptimizer`
