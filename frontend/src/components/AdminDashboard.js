@@ -1006,6 +1006,81 @@ Text2Toss makes junk removal effortless — snap a photo, get an instant AI quot
     return false;
   };
 
+  // ============ Web Push (true background reminders) ============
+  // Convert URL-safe base64 VAPID key to Uint8Array
+  const urlBase64ToUint8Array = (b64) => {
+    const padding = '='.repeat((4 - (b64.length % 4)) % 4);
+    const base64 = (b64 + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const raw = window.atob(base64);
+    return Uint8Array.from(raw, (c) => c.charCodeAt(0));
+  };
+
+  // Register the service worker and subscribe this browser to push.
+  // Called when the user enables the daily reminder.
+  const enableBackgroundPush = async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      toast.error('Background push is not supported in this browser.');
+      return false;
+    }
+    try {
+      const reg = await navigator.serviceWorker.register('/service-worker.js');
+      await navigator.serviceWorker.ready;
+
+      // Reuse existing subscription when possible
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) {
+        const { data } = await axios.get(`${API}/push/vapid-public-key`);
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(data.publicKey)
+        });
+      }
+      const json = sub.toJSON();
+      await axios.post(`${API}/admin/push/subscribe`, {
+        endpoint: json.endpoint,
+        keys: { p256dh: json.keys.p256dh, auth: json.keys.auth }
+      });
+      return true;
+    } catch (err) {
+      console.error('enableBackgroundPush failed', err);
+      toast.error('Could not enable background push: ' + (err.message || err));
+      return false;
+    }
+  };
+
+  const disableBackgroundPush = async () => {
+    if (!('serviceWorker' in navigator)) return;
+    try {
+      const reg = await navigator.serviceWorker.getRegistration();
+      const sub = reg && (await reg.pushManager.getSubscription());
+      if (sub) {
+        const json = sub.toJSON();
+        await axios.post(`${API}/admin/push/unsubscribe`, {
+          endpoint: json.endpoint,
+          keys: { p256dh: json.keys.p256dh, auth: json.keys.auth }
+        });
+        await sub.unsubscribe();
+      }
+    } catch (err) {
+      console.error('disableBackgroundPush failed', err);
+    }
+  };
+
+  const sendTestPush = async () => {
+    try {
+      const { data } = await axios.post(`${API}/admin/push/send-test`);
+      if (data.sent > 0) {
+        toast.success(`Test push sent to ${data.sent} device(s)`);
+      } else if (data.subscriptions === 0) {
+        toast.error('No devices subscribed yet — enable the reminder first.');
+      } else {
+        toast.error('Push delivery failed. Check browser permissions.');
+      }
+    } catch {
+      toast.error('Could not send test push');
+    }
+  };
+
   // Load marketing settings once at mount so the reminder works across the dashboard
   useEffect(() => {
     (async () => {
@@ -3158,6 +3233,11 @@ Text2Toss makes junk removal effortless — snap a photo, get an instant AI quot
                                   toast.error('Browser notifications are blocked. Allow them to receive reminders.');
                                   return;
                                 }
+                                // Register Service Worker + push subscription for true background delivery
+                                const subscribed = await enableBackgroundPush();
+                                if (!subscribed) return;
+                              } else {
+                                await disableBackgroundPush();
                               }
                               setMarketingSettings({ ...marketingSettings, reminder_enabled: enabled });
                             }}
@@ -3184,9 +3264,17 @@ Text2Toss makes junk removal effortless — snap a photo, get an instant AI quot
                           ))}
                         </select>
                         <span className="text-[11px] text-purple-700/80">
-                          (browser notification while dashboard is open)
+                          (true background push — works after dashboard is closed)
                         </span>
                       </div>
+                      <Button
+                        onClick={sendTestPush}
+                        data-testid="send-test-push-btn"
+                        disabled={!marketingSettings.reminder_enabled}
+                        className="mt-3 w-full bg-fuchsia-100 hover:bg-fuchsia-200 text-fuchsia-900 border border-fuchsia-300 font-semibold py-2"
+                      >
+                        🔔 Send Test Push Now
+                      </Button>
                     </div>
 
                     <Button

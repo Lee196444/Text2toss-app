@@ -3424,6 +3424,187 @@ async def save_marketing_settings(settings: MarketingSettings):
     return {"success": True, **settings.dict()}
 
 
+# ===================== Web Push (Service Worker) =====================
+# True background reminders: the admin browser registers a Service Worker, the
+# SW subscribes to the Push API using our VAPID public key, and we POST the
+# subscription to /admin/push/subscribe. A 60-second background scheduler
+# checks the saved reminder_hour and sends pushes once per day.
+
+VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "")
+VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY", "")
+VAPID_SUBJECT = os.environ.get("VAPID_SUBJECT", "mailto:text2toss@gmail.com")
+
+
+class PushSubscriptionKeys(BaseModel):
+    p256dh: str
+    auth: str
+
+
+class PushSubscriptionPayload(BaseModel):
+    endpoint: str
+    keys: PushSubscriptionKeys
+
+
+@api_router.get("/push/vapid-public-key")
+async def get_vapid_public_key():
+    """Public endpoint — frontend needs this to subscribe."""
+    if not VAPID_PUBLIC_KEY:
+        raise HTTPException(status_code=503, detail="VAPID keys not configured")
+    return {"publicKey": VAPID_PUBLIC_KEY}
+
+
+@api_router.post("/admin/push/subscribe")
+async def subscribe_push(sub: PushSubscriptionPayload):
+    """Save (or replace) a push subscription for the admin browser."""
+    doc = {
+        "endpoint": sub.endpoint,
+        "keys": sub.keys.dict(),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.push_subscriptions.update_one(
+        {"endpoint": sub.endpoint},
+        {"$set": doc},
+        upsert=True
+    )
+    return {"success": True}
+
+
+@api_router.post("/admin/push/unsubscribe")
+async def unsubscribe_push(sub: PushSubscriptionPayload):
+    """Remove a push subscription."""
+    result = await db.push_subscriptions.delete_one({"endpoint": sub.endpoint})
+    return {"success": True, "deleted": result.deleted_count}
+
+
+def _send_webpush(subscription_doc, title, body, url):
+    """Synchronous helper used inside the scheduler thread."""
+    from pywebpush import webpush, WebPushException
+    try:
+        payload = json.dumps({"title": title, "body": body, "url": url})
+        webpush(
+            subscription_info={
+                "endpoint": subscription_doc["endpoint"],
+                "keys": subscription_doc["keys"]
+            },
+            data=payload,
+            vapid_private_key=VAPID_PRIVATE_KEY,
+            vapid_claims={"sub": VAPID_SUBJECT}
+        )
+        return True, None
+    except WebPushException as exc:
+        status = getattr(getattr(exc, "response", None), "status_code", None)
+        return False, status
+    except Exception as exc:
+        # Catches malformed subscription keys, network errors, etc.
+        logger.warning(f"[push] send failed: {exc}")
+        return False, None
+
+
+@api_router.post("/admin/push/send-test")
+async def send_test_push():
+    """Send an immediate test push to all stored subscriptions."""
+    if not VAPID_PRIVATE_KEY:
+        raise HTTPException(status_code=503, detail="VAPID keys not configured")
+    subs = await db.push_subscriptions.find({}, {"_id": 0}).to_list(50)
+    sent = 0
+    failed = 0
+    expired_endpoints = []
+    for sub in subs:
+        ok, status = _send_webpush(
+            sub,
+            "Text2Toss test push 📲",
+            "If you see this, background reminders are working.",
+            "/admin"
+        )
+        if ok:
+            sent += 1
+        else:
+            failed += 1
+            if status in (404, 410):
+                expired_endpoints.append(sub["endpoint"])
+    if expired_endpoints:
+        await db.push_subscriptions.delete_many(
+            {"endpoint": {"$in": expired_endpoints}}
+        )
+    return {"sent": sent, "failed": failed, "subscriptions": len(subs)}
+
+
+async def _send_daily_reminder():
+    """Background job: every minute, check the saved reminder_hour and send
+    a push if we haven't already sent one today."""
+    try:
+        settings = await db.marketing_settings.find_one(
+            {"_id": "singleton"}, {"_id": 0}
+        )
+        if not settings or not settings.get("reminder_enabled"):
+            return
+
+        now = datetime.now(timezone.utc)
+        target_hour = int(settings.get("reminder_hour", 10))
+        if now.hour != target_hour:
+            return
+
+        # Idempotency: only one push per day per admin
+        today_key = now.strftime("%Y-%m-%d")
+        marker = await db.push_reminder_log.find_one({"date": today_key})
+        if marker:
+            return
+
+        subs = await db.push_subscriptions.find({}, {"_id": 0}).to_list(50)
+        if not subs:
+            return
+
+        deal_text = settings.get("deal_text") if settings.get("deal_active") else ""
+        body = (deal_text + " — Tap to share today's QR.") if deal_text \
+            else "Tap to open the QR & post to your socials."
+
+        expired_endpoints = []
+        sent = 0
+        for sub in subs:
+            ok, status = _send_webpush(
+                sub, "Text2Toss daily reminder 📣", body, "/admin"
+            )
+            if ok:
+                sent += 1
+            elif status in (404, 410):
+                expired_endpoints.append(sub["endpoint"])
+
+        if expired_endpoints:
+            await db.push_subscriptions.delete_many(
+                {"endpoint": {"$in": expired_endpoints}}
+            )
+        await db.push_reminder_log.insert_one({
+            "date": today_key,
+            "sent": sent,
+            "created_at": now.isoformat()
+        })
+        logger.info(f"[push] daily reminder sent to {sent} device(s)")
+    except Exception as exc:
+        logger.error(f"[push] _send_daily_reminder error: {exc}")
+
+
+@app.on_event("startup")
+async def _start_push_scheduler():
+    """Start the background scheduler that checks for the daily reminder."""
+    if not VAPID_PRIVATE_KEY:
+        logger.warning("[push] VAPID keys missing — scheduler disabled")
+        return
+    from apscheduler.schedulers.asyncio import AsyncIOScheduler
+    sched = AsyncIOScheduler(timezone="UTC")
+    sched.add_job(_send_daily_reminder, "interval", minutes=1,
+                  id="t2t_daily_reminder", replace_existing=True)
+    sched.start()
+    app.state.push_scheduler = sched
+    logger.info("[push] daily-reminder scheduler started")
+
+
+@app.on_event("shutdown")
+async def _stop_push_scheduler():
+    sched = getattr(app.state, "push_scheduler", None)
+    if sched:
+        sched.shutdown(wait=False)
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
