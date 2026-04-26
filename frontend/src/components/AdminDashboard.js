@@ -833,7 +833,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
 
   // Marketing QR Code - use the pre-built branded version
   const generateMarketingQR = () => {
-    const qrUrl = `${API}/images/quote_images/qr_truck_outline.png`;
+    const qrUrl = `${API}/images/quote_images/text2toss_branded_qr.jpg`;
     setMarketingQRCode(qrUrl);
     setShowQRModal(true);
     toast.success('QR Code ready!');
@@ -846,7 +846,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       const blob = await response.blob();
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = 'Text2toss-QR-Code.png';
+      link.download = 'Text2Toss-QR-Code.jpg';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -2846,11 +2846,12 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
               <div className="space-y-6">
                 {/* QR Code Display */}
                 <div className="flex flex-col items-center">
-                  <div className="bg-white p-6 rounded-xl shadow-lg border-4 border-emerald-200">
+                  <div className="bg-black p-4 rounded-xl shadow-lg border-4 border-emerald-500">
                     {marketingQRCode && (
                       <img 
                         src={marketingQRCode} 
-                        alt="Text2toss QR Code" 
+                        alt="Text2Toss Branded QR Code" 
+                        data-testid="marketing-qr-image"
                         className="w-80 h-80 object-contain"
                       />
                     )}
@@ -2889,9 +2890,10 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
                 <div className="flex gap-4">
                   <Button 
                     onClick={downloadQRCode}
+                    data-testid="download-qr-btn"
                     className="flex-1 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white py-6 text-lg font-semibold shadow-lg"
                   >
-                    ⬇️ Download QR Code (PNG)
+                    ⬇️ Download QR Code
                   </Button>
                   <Button 
                     onClick={() => setShowQRModal(false)}
