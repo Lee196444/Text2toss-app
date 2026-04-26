@@ -2975,39 +2975,65 @@ async def get_admin_reel_photos():
 
 @api_router.post("/admin/upload-gallery-photo")
 async def upload_gallery_photo(photo: UploadFile = File(...)):
-    """Upload a photo to the gallery"""
+    """Upload a photo to the gallery.
+
+    Hardened to:
+      - accept HEIC / HEIF (iPhone default) by registering pillow-heif
+      - auto-convert any input format to a web-renderable JPEG
+      - cap longest edge at 2000px (so phone photos stay under ~500KB)
+      - reject non-image uploads with a clear 400 error
+      - log the actual exception so we can debug failures from the client
+    """
     try:
-        # Read and save the uploaded file
         contents = await photo.read()
-        
-        # Create unique filename
-        file_extension = photo.filename.split('.')[-1] if '.' in photo.filename else 'jpg'
-        filename = f"gallery_{uuid.uuid4()}.{file_extension}"
-        
-        # Save to static directory
+        if not contents:
+            raise HTTPException(status_code=400, detail="Empty file")
+
+        # Register HEIC/HEIF support (no-op if already registered)
+        try:
+            import pillow_heif
+            pillow_heif.register_heif_opener()
+        except Exception:
+            pass
+
+        # Decode the image with Pillow — this also validates the file is an image
+        from PIL import Image, ImageOps
+        from io import BytesIO
+        try:
+            img = Image.open(BytesIO(contents))
+            img = ImageOps.exif_transpose(img)  # respect phone rotation
+            img = img.convert("RGB")
+        except Exception as exc:
+            logger.warning(f"Gallery upload: invalid image ({exc})")
+            raise HTTPException(status_code=400, detail="Unsupported or corrupted image file")
+
+        # Resize so longest edge <= 2000px (preserves aspect ratio)
+        max_dim = 2000
+        if max(img.size) > max_dim:
+            img.thumbnail((max_dim, max_dim), Image.LANCZOS)
+
+        # Always store as JPEG so the browser renders it everywhere
+        filename = f"gallery_{uuid.uuid4()}.jpg"
         file_path = f"/app/static/gallery/{filename}"
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        
-        with open(file_path, "wb") as f:
-            f.write(contents)
-        
-        # Create URL for the photo - use API endpoint for reliable serving
-        backend_url = os.environ.get('REACT_APP_BACKEND_URL')
+        img.save(file_path, "JPEG", quality=85, optimize=True)
+
+        backend_url = os.environ.get("REACT_APP_BACKEND_URL", "")
         photo_url = f"{backend_url}/api/images/gallery/{filename}"
-        
-        # Save to database
+
         photo_doc = {
             "url": photo_url,
             "filename": filename,
             "uploaded_at": datetime.now(timezone.utc).isoformat()
         }
         await db.gallery_photos.insert_one(photo_doc)
-        
         return {"message": "Photo uploaded successfully", "url": photo_url}
-        
+
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Failed to upload photo: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to upload photo")
+        logger.error(f"Failed to upload gallery photo: {e}")
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)[:120]}")
 
 @api_router.post("/admin/update-reel-photo")
 async def update_reel_photo(request: dict):

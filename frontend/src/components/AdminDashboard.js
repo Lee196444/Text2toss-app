@@ -141,16 +141,33 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
   }, []);
 
   const uploadGalleryPhoto = async (file) => {
+    // Validate basic constraints up front so the user gets immediate feedback
+    if (!file) return;
+    const isImage = file.type ? file.type.startsWith("image/") : /\.(jpe?g|png|gif|webp|heic|heif|bmp|tiff?)$/i.test(file.name || "");
+    if (!isImage) {
+      toast.error(`"${file.name || "file"}" is not an image — skipped`);
+      return;
+    }
+    const MAX_BYTES = 25 * 1024 * 1024; // 25 MB cap (the backend also resizes)
+    if (file.size > MAX_BYTES) {
+      toast.error(`"${file.name}" is ${(file.size / 1048576).toFixed(1)} MB — must be under 25 MB`);
+      return;
+    }
+
     const formData = new FormData();
-    formData.append('photo', file);
-    
+    formData.append("photo", file);
+
     setUploadingGalleryPhoto(true);
     try {
-      const response = await axios.post(`${API}/admin/upload-gallery-photo`, formData);
-      toast.success('Photo uploaded successfully');
+      await axios.post(`${API}/admin/upload-gallery-photo`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        timeout: 60000
+      });
+      toast.success(`Uploaded: ${file.name}`);
       fetchGalleryPhotos();
     } catch (error) {
-      toast.error('Failed to upload photo');
+      const detail = error?.response?.data?.detail || error?.message || "Unknown error";
+      toast.error(`Upload failed: ${detail}`);
     } finally {
       setUploadingGalleryPhoto(false);
     }
