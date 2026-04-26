@@ -1939,82 +1939,85 @@ async def upload_completion_photo(
     file: UploadFile = File(...),
     completion_note: str = ""
 ):
-    """Upload completion photo and note for a booking"""
-    
-    # Verify booking exists and is completed
-    booking = await db.bookings.find_one({"id": booking_id})
-    if not booking:
-        raise HTTPException(status_code=404, detail="Booking not found")
-    
-    if booking.get("status") != "completed":
-        raise HTTPException(status_code=400, detail="Can only add completion photos to completed bookings")
-    
-    # Validate file type
-    if not file.content_type.startswith('image/'):
-        raise HTTPException(status_code=400, detail="Only image files are allowed")
-    
-    # Create completion photos directory
-    completion_dir = Path("/app/backend/static/completion_photos")
-    completion_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Save completion photo
-    file_extension = Path(file.filename).suffix or '.jpg'
-    photo_filename = f"completion_{booking_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}{file_extension}"
-    photo_path = completion_dir / photo_filename
-    
+    """Upload completion photo and note for a booking.
+
+    Refactored helpers:
+      - _validate_completion_upload    → booking + file checks
+      - _save_completion_photo         → write to disk, return path
+      - _persist_completion_metadata   → DB update
+      - _notify_customer_completion    → SMS w/ photo (opt-in)
+    """
+    booking = await _validate_completion_upload(booking_id, file)
+    photo_path = await _save_completion_photo(booking_id, file)
+
     try:
-        # Save uploaded file
-        async with aiofiles.open(photo_path, 'wb') as f:
-            content = await file.read()
-            await f.write(content)
-        
-        # Update booking with completion photo and note
-        update_data = {
-            "completion_photo_path": str(photo_path),
-            "completion_note": completion_note
-        }
-        
-        result = await db.bookings.update_one(
-            {"id": booking_id},
-            {"$set": update_data}
-        )
-        
-        if result.matched_count == 0:
-            raise HTTPException(status_code=404, detail="Booking not found")
-        
-        # Send SMS with completion photo
-        phone = booking.get('phone', '').replace('(', '').replace(')', '').replace(' ', '').replace('-', '')
-        if phone and not phone.startswith('+'):
-            phone = '+1' + phone  # Assume US number if no country code
-        
-        if phone:
-            # Create public URL for the image accessible by SMS
-            backend_url = os.environ.get('REACT_APP_BACKEND_URL')
-            photo_url = f"{backend_url}/api/public/completion-photo/{booking_id}"
-            
-            completion_message = f"📸 Text2toss Complete: Your junk has been removed from {booking['address']}. "
-            if completion_note:
-                completion_message += f"Note: {completion_note} "
-            completion_message += "See attached photo of the cleaned area!"
-            
-            # Only send SMS if customer opted in for notifications
-            if booking.get('sms_notifications', False):
-                sms_result = await send_sms(phone, completion_message, photo_url)
-                logging.info(f"Completion SMS sent for booking {booking_id}: {sms_result}")
-            else:
-                logging.info(f"Completion SMS not sent for booking {booking_id}: Customer opted out of notifications")
-        
+        await _persist_completion_metadata(booking_id, photo_path, completion_note)
+        await _notify_customer_completion(booking, booking_id, completion_note)
         return {
             "message": "Completion photo uploaded and customer notified with photo",
             "photo_path": str(photo_path),
             "completion_note": completion_note
         }
-        
-    except Exception as e:
-        # Clean up file on error
+    except Exception:
+        # Clean up file on any post-save error so we don't leak partial state
         if photo_path.exists():
             photo_path.unlink()
-        raise e
+        raise
+
+
+async def _validate_completion_upload(booking_id: str, file: UploadFile) -> dict:
+    """Confirm the booking is completed and the upload is an image."""
+    booking = await db.bookings.find_one({"id": booking_id})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    if booking.get("status") != "completed":
+        raise HTTPException(status_code=400, detail="Can only add completion photos to completed bookings")
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Only image files are allowed")
+    return booking
+
+
+async def _save_completion_photo(booking_id: str, file: UploadFile) -> Path:
+    """Persist the uploaded file under /completion_photos and return its path."""
+    completion_dir = Path("/app/backend/static/completion_photos")
+    completion_dir.mkdir(parents=True, exist_ok=True)
+    file_extension = Path(file.filename).suffix or ".jpg"
+    photo_filename = f"completion_{booking_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}{file_extension}"
+    photo_path = completion_dir / photo_filename
+    async with aiofiles.open(photo_path, "wb") as f:
+        await f.write(await file.read())
+    return photo_path
+
+
+async def _persist_completion_metadata(booking_id: str, photo_path: Path, completion_note: str):
+    result = await db.bookings.update_one(
+        {"id": booking_id},
+        {"$set": {"completion_photo_path": str(photo_path), "completion_note": completion_note}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Booking not found")
+
+
+async def _notify_customer_completion(booking: dict, booking_id: str, completion_note: str):
+    """SMS the customer the completion photo if they opted in."""
+    raw_phone = (booking.get("phone") or "").replace("(", "").replace(")", "").replace(" ", "").replace("-", "")
+    if not raw_phone:
+        return
+    phone = raw_phone if raw_phone.startswith("+") else "+1" + raw_phone
+
+    backend_url = os.environ.get("REACT_APP_BACKEND_URL")
+    photo_url = f"{backend_url}/api/public/completion-photo/{booking_id}"
+
+    message = f"📸 Text2toss Complete: Your junk has been removed from {booking['address']}. "
+    if completion_note:
+        message += f"Note: {completion_note} "
+    message += "See attached photo of the cleaned area!"
+
+    if booking.get("sms_notifications", False):
+        sms_result = await send_sms(phone, message, photo_url)
+        logging.info(f"Completion SMS sent for booking {booking_id}: {sms_result}")
+    else:
+        logging.info(f"Completion SMS not sent for booking {booking_id}: customer opted out")
 
 @api_router.get("/admin/booking-image/{booking_id}")
 async def get_booking_image(booking_id: str):
@@ -2279,243 +2282,242 @@ async def get_pending_quotes():
 
 @api_router.post("/admin/quotes/{quote_id}/approve")
 async def approve_quote(quote_id: str, approval_action: QuoteApprovalAction):
-    """Approve or reject a quote"""
+    """Approve or reject a quote.
+
+    Refactored from a 240-line/complexity-24 monolith into focused helpers:
+      - _validate_quote_for_approval         → fetches & checks state
+      - _build_quote_update                  → status / notes / approved_price
+      - _process_quote_price_increase        → SMS path when admin raises price
+      - _send_quote_approval_decision_email  → approval / rejection email
+    """
     try:
-        quote = await db.quotes.find_one({"id": quote_id})
-        if not quote:
-            raise HTTPException(status_code=404, detail="Quote not found")
-        
-        if quote.get("approval_status") not in ["pending_approval"]:
-            raise HTTPException(status_code=400, detail="Quote is not pending approval")
-        
-        # Prepare update data
-        update_data = {
-            "approval_status": "approved" if approval_action.action == "approve" else "rejected",
-            "admin_notes": approval_action.admin_notes,
-            "approved_by": "admin",  # You can enhance this with actual admin user
-            "approved_at": datetime.now(timezone.utc).isoformat()
-        }
-        
-        # Handle price adjustments and customer approval requirements
+        quote = await _validate_quote_for_approval(quote_id)
+        update_data = _build_quote_update(approval_action)
         original_price = quote.get("total_price", 0)
-        
+
         if approval_action.approved_price is not None:
             update_data["approved_price"] = approval_action.approved_price
-            
-            # If price is increased, require customer approval
             if approval_action.approved_price > original_price:
-                # Find any existing booking for this quote
-                existing_booking = await db.bookings.find_one({"quote_id": quote_id})
-                
-                if existing_booking:
-                    # Generate approval token for customer
-                    approval_token = str(uuid.uuid4())
-                    
-                    # Update booking to require customer approval
-                    booking_update = {
-                        "status": "pending_customer_approval",
-                        "original_price": original_price,
-                        "adjusted_price": approval_action.approved_price,
-                        "price_adjustment_reason": approval_action.admin_notes or "Price adjustment by admin",
-                        "customer_approval_token": approval_token,
-                        "requires_customer_approval": True
-                    }
-                    
-                    await db.bookings.update_one(
-                        {"id": existing_booking["id"]},
-                        {"$set": booking_update}
-                    )
-                    
-                    # Send SMS notification to customer about price change
-                    try:
-                        price_increase = approval_action.approved_price - original_price
-                        backend_url = os.environ.get('REACT_APP_BACKEND_URL')
-                        approval_url = f"{backend_url}/customer-approval/{approval_token}"
-                        
-                        message = f"""🔔 Text2toss Price Update
-                        
-Your quote has been updated from ${original_price:.2f} to ${approval_action.approved_price:.2f} (+${price_increase:.2f}).
+                await _process_quote_price_increase(quote_id, approval_action, original_price, update_data)
 
-Reason: {approval_action.admin_notes or 'Price adjustment after review'}
+        await db.quotes.update_one({"id": quote_id}, {"$set": update_data})
+        await _send_quote_approval_decision_email(quote_id, quote, approval_action)
 
-Please review and approve: {approval_url}
-
-Your job is on hold until you approve the new price."""
-                        
-                        await send_sms(existing_booking["phone"], message)
-                        
-                        # Update status to reflect customer notification sent
-                        update_data["approval_status"] = "approved_pending_customer"
-                        
-                    except Exception as sms_error:
-                        logger.error(f"Failed to send price change notification: {str(sms_error)}")
-        
-        # Update quote
-        await db.quotes.update_one(
-            {"id": quote_id},
-            {"$set": update_data}
-        )
-        
-        # Send email notification to customer
-        if is_email_enabled():
-            # Check if there's a booking for this quote to get customer email
-            booking = await db.bookings.find_one({"quote_id": quote_id})
-            
-            if booking and booking.get("email"):
-                customer_email = booking.get("email")
-                customer_name = booking.get("name", "Valued Customer")
-                
-                try:
-                    if approval_action.action == "approve":
-                        # Send approval email
-                        approved_price = approval_action.approved_price or quote.get("total_price")
-                        
-                        email_subject = "✅ Your Quote Has Been Approved - Text2toss"
-                        email_html = f"""
-                        <!DOCTYPE html>
-                        <html>
-                        <head>
-                            <style>
-                                body {{ font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.7; color: #333; background-color: #f5f5f5; }}
-                                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; }}
-                                .header {{ background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 40px 30px; text-align: center; border-radius: 10px 10px 0 0; }}
-                                .content {{ background: #ffffff; padding: 40px 30px; }}
-                                .price-box {{ background: #d1fae5; border: 2px solid #10b981; padding: 20px; margin: 25px 0; border-radius: 8px; text-align: center; }}
-                                .price {{ font-size: 36px; font-weight: bold; color: #059669; margin: 10px 0; }}
-                                .info-box {{ background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; margin: 20px 0; border-radius: 8px; }}
-                                .cta-button {{ display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }}
-                                .footer {{ text-align: center; color: #6b7280; font-size: 14px; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; }}
-                                h1 {{ margin: 0; font-size: 28px; }}
-                            </style>
-                        </head>
-                        <body>
-                            <div class="container">
-                                <div class="header">
-                                    <div style="font-size: 48px; margin-bottom: 10px;">✅</div>
-                                    <h1>Quote Approved!</h1>
-                                    <p style="margin: 15px 0 0 0; opacity: 0.95; font-size: 16px;">Great news! Your junk removal quote has been approved.</p>
-                                </div>
-                                <div class="content">
-                                    <p>Hi {customer_name},</p>
-                                    
-                                    <p>We're excited to let you know that your junk removal quote has been <strong>approved</strong> and is ready to proceed!</p>
-                                    
-                                    <div class="price-box">
-                                        <div style="font-size: 16px; color: #059669; font-weight: 600;">
-                                            {'Updated Price (Admin Adjusted)' if approval_action.approved_price and approval_action.approved_price != quote.get("total_price") else 'Approved Quote'}
-                                        </div>
-                                        <div class="price">${approved_price:.2f}</div>
-                                        {f'<div style="font-size: 14px; color: #6b7280; margin-top: 10px;"><s>Original: ${quote.get("total_price"):.2f}</s></div>' if approval_action.approved_price and approval_action.approved_price != quote.get("total_price") else ''}
-                                    </div>
-                                    
-                                    {f'<div class="info-box"><strong>Admin Notes:</strong><br>{approval_action.admin_notes}</div>' if approval_action.admin_notes else ''}
-                                    
-                                    <div class="info-box">
-                                        <h3 style="margin-top: 0; color: #059669;">✅ Ready to Complete Your Booking!</h3>
-                                        <p style="margin: 10px 0;">Your quote is approved and ready for payment. Click the button below to complete your booking and confirm your pickup date.</p>
-                                    </div>
-                                    
-                                    <div style="text-align: center; margin: 30px 0;">
-                                        <a href="{os.environ.get('REACT_APP_BACKEND_URL', 'https://junkai-platform.emergent.host')}" class="cta-button" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 16px 48px; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 18px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
-                                            💳 Complete Payment Now
-                                        </a>
-                                        <p style="font-size: 12px; color: #6b7280; margin-top: 15px;">Click to return to Text2toss and complete your booking</p>
-                                    </div>
-                                    
-                                    <div class="info-box">
-                                        <h3 style="margin-top: 0; color: #059669;">What Happens Next:</h3>
-                                        <ol style="margin: 10px 0; padding-left: 20px;">
-                                            <li><strong>Complete Payment:</strong> Click the button above and pay via Venmo to confirm</li>
-                                            <li><strong>Booking Confirmed:</strong> You'll receive immediate confirmation</li>
-                                            <li><strong>Pickup Scheduled:</strong> Your job is added to our schedule</li>
-                                            <li><strong>We Arrive:</strong> Our team will be there at your scheduled time!</li>
-                                        </ol>
-                                    </div>
-                                    
-                                    <p style="margin-top: 30px; font-size: 14px; color: #6b7280; text-align: center;">Questions? Reply to this email or call us at 928-853-9619</p>
-                                </div>
-                                <div class="footer">
-                                    <p>Text2toss Junk Removal<br>Professional Junk Removal Services</p>
-                                    <p style="margin-top: 10px; font-size: 12px; color: #9ca3af;">This is an automated notification. Please do not reply to this email.</p>
-                                </div>
-                            </div>
-                        </body>
-                        </html>
-                        """
-                        
-                        await send_email(customer_email, email_subject, email_html)
-                        logging.info(f"Approval email sent to {customer_email}")
-                        
-                    else:  # reject
-                        # Send rejection email
-                        email_subject = "Quote Decision - Text2toss"
-                        email_html = f"""
-                        <!DOCTYPE html>
-                        <html>
-                        <head>
-                            <style>
-                                body {{ font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.7; color: #333; background-color: #f5f5f5; }}
-                                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; }}
-                                .header {{ background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 40px 30px; text-align: center; border-radius: 10px 10px 0 0; }}
-                                .content {{ background: #ffffff; padding: 40px 30px; }}
-                                .info-box {{ background: #fef3c7; border: 1px solid #fbbf24; padding: 20px; margin: 20px 0; border-radius: 8px; }}
-                                .footer {{ text-align: center; color: #6b7280; font-size: 14px; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; }}
-                                h1 {{ margin: 0; font-size: 28px; }}
-                            </style>
-                        </head>
-                        <body>
-                            <div class="container">
-                                <div class="header">
-                                    <div style="font-size: 48px; margin-bottom: 10px;">📋</div>
-                                    <h1>Quote Update</h1>
-                                    <p style="margin: 15px 0 0 0; opacity: 0.95; font-size: 16px;">Regarding your junk removal request</p>
-                                </div>
-                                <div class="content">
-                                    <p>Hi {customer_name},</p>
-                                    
-                                    <p>Thank you for considering Text2toss for your junk removal needs. After reviewing your request, we're unable to proceed with this particular job at this time.</p>
-                                    
-                                    {f'<div class="info-box"><strong>Reason:</strong><br>{approval_action.admin_notes}</div>' if approval_action.admin_notes else ''}
-                                    
-                                    <div class="info-box">
-                                        <p style="margin: 0;"><strong>We're here to help!</strong></p>
-                                        <p style="margin: 10px 0 0 0;">If you have questions or would like to discuss alternative options, please feel free to contact us. We may be able to assist with a modified request.</p>
-                                    </div>
-                                    
-                                    <p style="margin-top: 30px;">We appreciate your understanding and hope to serve you in the future.</p>
-                                    
-                                    <p style="margin-top: 20px;">Best regards,<br>Text2toss Team</p>
-                                </div>
-                                <div class="footer">
-                                    <p>Text2toss Junk Removal<br>Professional Junk Removal Services</p>
-                                    <p style="margin-top: 10px; font-size: 12px; color: #9ca3af;">This is an automated notification. Please do not reply to this email.</p>
-                                </div>
-                            </div>
-                        </body>
-                        </html>
-                        """
-                        
-                        await send_email(customer_email, email_subject, email_html)
-                        logging.info(f"Rejection email sent to {customer_email}")
-                        
-                except Exception as email_error:
-                    logging.error(f"Failed to send approval/rejection email: {str(email_error)}")
-                    # Don't fail the approval process if email fails
-        
-        # Get updated quote for response
         updated_quote = await db.quotes.find_one({"id": quote_id})
-        if "_id" in updated_quote:
+        if updated_quote and "_id" in updated_quote:
             del updated_quote["_id"]
         updated_quote = parse_from_mongo(updated_quote)
-        
-        return {
-            "message": f"Quote {approval_action.action}d successfully",
-            "quote": updated_quote
-        }
-        
+
+        return {"message": f"Quote {approval_action.action}d successfully", "quote": updated_quote}
+
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error approving quote: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to process quote approval")
+
+
+async def _validate_quote_for_approval(quote_id: str) -> dict:
+    """Fetch the quote and ensure it is currently pending approval."""
+    quote = await db.quotes.find_one({"id": quote_id})
+    if not quote:
+        raise HTTPException(status_code=404, detail="Quote not found")
+    if quote.get("approval_status") not in ["pending_approval"]:
+        raise HTTPException(status_code=400, detail="Quote is not pending approval")
+    return quote
+
+
+def _build_quote_update(approval_action) -> dict:
+    """Build the base $set payload (no price-adjustment logic)."""
+    return {
+        "approval_status": "approved" if approval_action.action == "approve" else "rejected",
+        "admin_notes": approval_action.admin_notes,
+        "approved_by": "admin",
+        "approved_at": datetime.now(timezone.utc).isoformat()
+    }
+
+
+async def _process_quote_price_increase(quote_id: str, approval_action, original_price: float, update_data: dict):
+    """Customer needs to re-confirm a higher price → mark booking pending and SMS them."""
+    existing_booking = await db.bookings.find_one({"quote_id": quote_id})
+    if not existing_booking:
+        return
+
+    approval_token = str(uuid.uuid4())
+    booking_update = {
+        "status": "pending_customer_approval",
+        "original_price": original_price,
+        "adjusted_price": approval_action.approved_price,
+        "price_adjustment_reason": approval_action.admin_notes or "Price adjustment by admin",
+        "customer_approval_token": approval_token,
+        "requires_customer_approval": True
+    }
+    await db.bookings.update_one({"id": existing_booking["id"]}, {"$set": booking_update})
+
+    try:
+        price_increase = approval_action.approved_price - original_price
+        backend_url = os.environ.get("REACT_APP_BACKEND_URL")
+        approval_url = f"{backend_url}/customer-approval/{approval_token}"
+        message = (
+            "🔔 Text2toss Price Update\n\n"
+            f"Your quote has been updated from ${original_price:.2f} to "
+            f"${approval_action.approved_price:.2f} (+${price_increase:.2f}).\n\n"
+            f"Reason: {approval_action.admin_notes or 'Price adjustment after review'}\n\n"
+            f"Please review and approve: {approval_url}\n\n"
+            "Your job is on hold until you approve the new price."
+        )
+        await send_sms(existing_booking["phone"], message)
+        update_data["approval_status"] = "approved_pending_customer"
+    except Exception as sms_error:
+        logger.error(f"Failed to send price change notification: {sms_error}")
+
+
+async def _send_quote_approval_decision_email(quote_id: str, quote: dict, approval_action):
+    """Send the customer the approve/reject email (best effort, never blocks)."""
+    if not is_email_enabled():
+        return
+    booking = await db.bookings.find_one({"quote_id": quote_id})
+    if not booking or not booking.get("email"):
+        return
+
+    customer_email = booking["email"]
+    customer_name = booking.get("name", "Valued Customer")
+    try:
+        if approval_action.action == "approve":
+            approved_price = approval_action.approved_price or quote.get("total_price")
+            html = _build_quote_approval_email_html(quote, approval_action, customer_name, approved_price)
+            await send_email(customer_email, "✅ Your Quote Has Been Approved - Text2toss", html)
+            logging.info(f"Approval email sent to {customer_email}")
+        else:
+            html = _build_quote_rejection_email_html(approval_action, customer_name)
+            await send_email(customer_email, "Quote Decision - Text2toss", html)
+            logging.info(f"Rejection email sent to {customer_email}")
+    except Exception as email_error:
+        logging.error(f"Failed to send approval/rejection email: {email_error}")
+        # Don't fail the approval process if email fails
+
+
+def _build_quote_approval_email_html(quote: dict, approval_action, customer_name: str, approved_price: float) -> str:
+    """HTML for the customer 'Quote Approved' email."""
+    is_adjusted = (
+        approval_action.approved_price is not None
+        and approval_action.approved_price != quote.get("total_price")
+    )
+    badge = "Updated Price (Admin Adjusted)" if is_adjusted else "Approved Quote"
+    original_strike = (
+        f'<div style="font-size: 14px; color: #6b7280; margin-top: 10px;">'
+        f'<s>Original: ${quote.get("total_price"):.2f}</s></div>'
+        if is_adjusted else ""
+    )
+    notes_block = (
+        f'<div class="info-box"><strong>Admin Notes:</strong><br>{approval_action.admin_notes}</div>'
+        if approval_action.admin_notes else ""
+    )
+    backend_url = os.environ.get("REACT_APP_BACKEND_URL", "https://junkai-platform.emergent.host")
+    return f"""<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body {{ font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.7; color: #333; background-color: #f5f5f5; }}
+  .container {{ max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; }}
+  .header {{ background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 40px 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+  .content {{ background: #ffffff; padding: 40px 30px; }}
+  .price-box {{ background: #d1fae5; border: 2px solid #10b981; padding: 20px; margin: 25px 0; border-radius: 8px; text-align: center; }}
+  .price {{ font-size: 36px; font-weight: bold; color: #059669; margin: 10px 0; }}
+  .info-box {{ background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; margin: 20px 0; border-radius: 8px; }}
+  .cta-button {{ display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }}
+  .footer {{ text-align: center; color: #6b7280; font-size: 14px; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; }}
+  h1 {{ margin: 0; font-size: 28px; }}
+</style></head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div style="font-size: 48px; margin-bottom: 10px;">✅</div>
+      <h1>Quote Approved!</h1>
+      <p style="margin: 15px 0 0 0; opacity: 0.95; font-size: 16px;">Great news! Your junk removal quote has been approved.</p>
+    </div>
+    <div class="content">
+      <p>Hi {customer_name},</p>
+      <p>We're excited to let you know that your junk removal quote has been <strong>approved</strong> and is ready to proceed!</p>
+      <div class="price-box">
+        <div style="font-size: 16px; color: #059669; font-weight: 600;">{badge}</div>
+        <div class="price">${approved_price:.2f}</div>
+        {original_strike}
+      </div>
+      {notes_block}
+      <div class="info-box">
+        <h3 style="margin-top: 0; color: #059669;">✅ Ready to Complete Your Booking!</h3>
+        <p style="margin: 10px 0;">Your quote is approved and ready for payment. Click the button below to complete your booking and confirm your pickup date.</p>
+      </div>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="{backend_url}" class="cta-button" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 16px 48px; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 18px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+          💳 Complete Payment Now
+        </a>
+        <p style="font-size: 12px; color: #6b7280; margin-top: 15px;">Click to return to Text2toss and complete your booking</p>
+      </div>
+      <div class="info-box">
+        <h3 style="margin-top: 0; color: #059669;">What Happens Next:</h3>
+        <ol style="margin: 10px 0; padding-left: 20px;">
+          <li><strong>Complete Payment:</strong> Click the button above and pay via Venmo to confirm</li>
+          <li><strong>Booking Confirmed:</strong> You'll receive immediate confirmation</li>
+          <li><strong>Pickup Scheduled:</strong> Your job is added to our schedule</li>
+          <li><strong>We Arrive:</strong> Our team will be there at your scheduled time!</li>
+        </ol>
+      </div>
+      <p style="margin-top: 30px; font-size: 14px; color: #6b7280; text-align: center;">Questions? Reply to this email or call us at 928-853-9619</p>
+    </div>
+    <div class="footer">
+      <p>Text2toss Junk Removal<br>Professional Junk Removal Services</p>
+      <p style="margin-top: 10px; font-size: 12px; color: #9ca3af;">This is an automated notification. Please do not reply to this email.</p>
+    </div>
+  </div>
+</body>
+</html>"""
+
+
+def _build_quote_rejection_email_html(approval_action, customer_name: str) -> str:
+    """HTML for the customer 'Quote Decision' (rejection) email."""
+    notes_block = (
+        f'<div class="info-box"><strong>Reason:</strong><br>{approval_action.admin_notes}</div>'
+        if approval_action.admin_notes else ""
+    )
+    return f"""<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body {{ font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.7; color: #333; background-color: #f5f5f5; }}
+  .container {{ max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; }}
+  .header {{ background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 40px 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+  .content {{ background: #ffffff; padding: 40px 30px; }}
+  .info-box {{ background: #fef3c7; border: 1px solid #fbbf24; padding: 20px; margin: 20px 0; border-radius: 8px; }}
+  .footer {{ text-align: center; color: #6b7280; font-size: 14px; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; }}
+  h1 {{ margin: 0; font-size: 28px; }}
+</style></head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div style="font-size: 48px; margin-bottom: 10px;">📋</div>
+      <h1>Quote Update</h1>
+      <p style="margin: 15px 0 0 0; opacity: 0.95; font-size: 16px;">Regarding your junk removal request</p>
+    </div>
+    <div class="content">
+      <p>Hi {customer_name},</p>
+      <p>Thank you for considering Text2toss for your junk removal needs. After reviewing your request, we're unable to proceed with this particular job at this time.</p>
+      {notes_block}
+      <div class="info-box">
+        <p style="margin: 0;"><strong>We're here to help!</strong></p>
+        <p style="margin: 10px 0 0 0;">If you have questions or would like to discuss alternative options, please feel free to contact us. We may be able to assist with a modified request.</p>
+      </div>
+      <p style="margin-top: 30px;">We appreciate your understanding and hope to serve you in the future.</p>
+      <p style="margin-top: 20px;">Best regards,<br>Text2toss Team</p>
+    </div>
+    <div class="footer">
+      <p>Text2toss Junk Removal<br>Professional Junk Removal Services</p>
+      <p style="margin-top: 10px; font-size: 12px; color: #9ca3af;">This is an automated notification. Please do not reply to this email.</p>
+    </div>
+  </div>
+</body>
+</html>"""
 
 @api_router.get("/admin/quote-approval-stats")
 async def get_quote_approval_stats():

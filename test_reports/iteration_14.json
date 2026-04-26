@@ -1,0 +1,58 @@
+{
+  "summary": "Backend-only regression + targeted coverage for iter14 refactors: approve_quote(), upload_completion_photo(), and description-aware AI image cache. Authored /app/backend/tests/test_quote_approval_completion_refactor.py with 12 tests across three suites: TestApproveQuoteEndpoint (5 — approve no-price-change, reject, 404, 400-not-pending, higher-price → booking flips to pending_customer_approval with token + original/adjusted price), TestCompletionPhotoUpload (4 — 404 missing booking, 400 wrong status, 400 non-image, success persists photo + note under /app/backend/static/completion_photos), TestDescriptionAwareImageCache (3 — same image+desc HITS, same image with different desc MISSES (creates a 2nd image_cache row keyed on cache_key), and refactor introduced cache_key field + index). Combined regression run against public REACT_APP_BACKEND_URL: 69/69 PASSED (50 prior + 7 iter13 + 12 new). Refactor preserves all observable behavior. ONE pre-existing backend bug surfaced while writing tests: `completion_note: str = \"\"` on the upload_completion_photo signature lacks `Form()` annotation, so FastAPI treats it as a QUERY parameter, not multipart form data. Frontends sending it as form data silently drop the note. Test was adjusted to pass it via params= to validate the success path.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "POST /api/admin/bookings/{booking_id}/completion",
+        "issue": "`completion_note: str = \"\"` parameter is missing the `Form()` annotation, so FastAPI binds it as a QUERY parameter instead of multipart form data. Any client sending it in the multipart body (the obvious choice given file is also multipart) silently drops the note — request still returns 200 but completion_note is stored as ''. PRE-EXISTING (not introduced by iter14 refactor); refactor only moved the same buggy signature into _persist_completion_metadata. Fix: change to `completion_note: str = Form(default=\"\")`."
+      },
+      {
+        "endpoint": "POST /api/admin/quotes/{quote_id}/approve",
+        "issue": "_process_quote_price_increase silently swallows ALL exceptions from send_sms (Twilio outage, bad phone format, etc.) while still flipping the booking to pending_customer_approval. The customer is now waiting for an SMS that will never arrive, with no log alarm beyond a warning line. Consider either (a) propagating a 502 with a 'try again' hint, or (b) queuing a retry job."
+      },
+      {
+        "endpoint": "POST /api/admin/quotes/{quote_id}/approve",
+        "issue": "When approved_price <= original_price, _process_quote_price_increase is skipped — but the existing booking is left untouched (no original_price, no token). If the same quote was previously price-increased (and the booking is in pending_customer_approval), then re-approved at the original price, the stale customer_approval_token + adjusted_price fields remain in the booking. Add an explicit 'clear price-adjustment fields' branch on the equal-or-lower path."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_quote_approval_completion_refactor.py",
+    "/app/backend/tests/test_quote_booking_refactor.py",
+    "/app/test_reports/pytest/pytest_results_iter14.xml"
+  ],
+  "action_items": [
+    "Fix completion_note parameter binding: change to `completion_note: str = Form(default=\"\")` in upload_completion_photo signature so multipart-form clients can actually populate it.",
+    "(Optional) On approve_quote with approved_price <= original, explicitly $unset booking.customer_approval_token / adjusted_price / original_price / requires_customer_approval to avoid stale state on re-approval.",
+    "(Optional) Surface SMS failures in _process_quote_price_increase to the caller rather than warn-logging — the customer is otherwise stranded in pending_customer_approval forever."
+  ],
+  "critical_code_review_comments": [
+    "approve_quote refactor is clean and idiomatic; helpers are correctly scoped. Minor: _build_quote_update sets approval_status='approved' even when the booking-price branch will then overwrite it to 'approved_pending_customer'. The first write is wasted but harmless — consider either computing the final status up-front or moving update_data['approval_status'] = 'approved_pending_customer' onto a return value of _process_quote_price_increase to keep the data flow explicit.",
+    "_send_quote_approval_decision_email reads `booking = await db.bookings.find_one({\"quote_id\": quote_id})` independently from _process_quote_price_increase which already did the same lookup. Two DB round-trips per approval; pass the booking down or memoize.",
+    "_save_completion_photo uses `datetime.now()` (naive local time) for the filename suffix, while the rest of server.py uses `datetime.now(timezone.utc).isoformat()`. Two completions in the same wall-clock second will overwrite each other (rare but real). Use uuid.uuid4().hex[:8] in the filename or include microseconds.",
+    "_save_completion_photo + _persist_completion_metadata are NOT transactional. If the DB update fails for any reason (race, connection drop), the file is now left orphaned on disk. The wrapper try/except cleans up only when _persist_completion_metadata raises HTTPException — `update_one` returning `matched_count==0` does raise 404 (good), but a connection error would propagate up the wrapper and trigger photo_path.unlink() (also good). Verified the cleanup branch is correct.",
+    "Description-aware cache key uses sha256(image_hash + '|' + desc_norm). desc_norm only does .strip().lower() — no Unicode NFC normalization, no whitespace collapse. 'heavy items' and 'heavy  items' (double space) will MISS and re-bill the AI. Apply re.sub(r'\\s+', ' ', desc).strip().lower() for deterministic keying.",
+    "_check_image_cache deletes the local compressed file on a HIT but the SAME file is unlinked AGAIN at line ~805 in analyze_image_for_quote on the MISS-then-success path. Currently fine because the cache HIT returns early, but if a future refactor moves the unlink earlier the second call will FileNotFoundError. Centralize compressed-file cleanup in a try/finally.",
+    "image_cache documents now retain `description_norm` plus the full `breakdown` payload — these are unbounded in size. Add a TTL index (e.g. 90 days) so the collection doesn't grow forever; the iter14 PR added a `cache_key` index but no TTL.",
+    "server.py is now 3878 lines (was 3865 in iter13). Approve_quote helpers (~150 lines) + completion helpers (~80 lines) + the 4 quote_*_html builders (~250 lines) are now obvious extraction candidates into routers/quotes.py and routers/bookings.py + emails/templates.py."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_quote_approval_completion_refactor.py (new — 12 tests)"
+  ],
+  "success_rate": {
+    "backend": "100% (69/69: 12 new iter14 + 7 iter13 refactor + 50 prior regression)",
+    "frontend": "not tested (review_request testing_type = backend only)"
+  },
+  "test_credentials": "admin lrobe / L1964c10$ via POST /api/admin/login (httpOnly admin_session cookie)",
+  "seed_data_creation": "test_quote_approval_completion_refactor.py creates ~10 quote rows in db.quotes (each promoted to pending_approval via direct Mongo write), 5 booking rows in db.bookings (status=completed/scheduled/pending_customer_approval) tied to those quotes, and ~3 completion photos under /app/backend/static/completion_photos. All seeded data uses uuid-suffixed identifiers and lives on a future Monday — no production data modified.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend regression suite is now 69 tests across 7 files: test_photo_reel_crop.py (10) + test_marketing.py (18) + test_push.py (15) + test_marketing_timezone.py (4) + test_push_health.py (3) + test_quote_booking_refactor.py (7) + test_quote_approval_completion_refactor.py (12). All green. Run with: `pytest tests/test_photo_reel_crop.py tests/test_marketing.py tests/test_push.py tests/test_marketing_timezone.py tests/test_push_health.py tests/test_quote_booking_refactor.py tests/test_quote_approval_completion_refactor.py -v`. New helpers introduced by iter14 PR: approve_quote -> {_validate_quote_for_approval, _build_quote_update, _process_quote_price_increase, _send_quote_approval_decision_email, _build_quote_approval_email_html, _build_quote_rejection_email_html}; upload_completion_photo -> {_validate_completion_upload, _save_completion_photo, _persist_completion_metadata, _notify_customer_completion}; analyze_image_for_quote cache key is now sha256(image_hash + '|' + desc_norm) stored in image_cache.cache_key (indexed). To create a quote in pending_approval state for tests, seed via /api/quotes/image and direct-Mongo-update {approval_status:'pending_approval', requires_approval:true}. To test completion upload, direct-Mongo-insert a booking with status='completed'. The completion_note query-param vs form bug is real — pass via params= until backend is fixed. Legacy test files test_admin_cookie_auth.py / test_new_features.py / test_quote_image_storage.py / test_text2toss_api.py still have pre-existing failures from iter11 — do not run them as part of regression.",
+  "rca of the issue": "test_completion_upload_success_persists_path_and_note initially failed because completion_note arrived as '' even though the test sent data={'completion_note': note}. Root cause: in /app/backend/server.py line 1940 the parameter is declared `completion_note: str = \"\"` without a `Form()` marker. FastAPI's body-parsing logic only treats parameters as form fields when explicitly annotated; otherwise (and with another non-body param like `booking_id` already in the path), it falls back to query-parameter binding. Mitigation in the test: send via `params=` instead of `data=`. Mitigation in production: add `from fastapi import Form` and annotate `completion_note: str = Form(default=\"\")`."
+}
