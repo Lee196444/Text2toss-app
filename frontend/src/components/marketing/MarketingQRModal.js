@@ -50,15 +50,17 @@ const MarketingQRModal = ({ open, onClose }) => {
     timezone: detectTimezone()
   });
   const [saving, setSaving] = useState(false);
+  const [health, setHealth] = useState({ subscriptions: 0, last_event: null, last_daily: null });
 
   // Load stats + settings whenever the modal opens
   useEffect(() => {
     if (!open) return;
     (async () => {
       try {
-        const [s, c] = await Promise.all([
+        const [s, c, h] = await Promise.all([
           axios.get(`${API}/admin/marketing/stats`),
-          axios.get(`${API}/admin/marketing/settings`)
+          axios.get(`${API}/admin/marketing/settings`),
+          axios.get(`${API}/admin/push/health`)
         ]);
         setStats(s.data || { this_week: 0, total: 0, by_channel: {} });
         setSettings({
@@ -68,6 +70,7 @@ const MarketingQRModal = ({ open, onClose }) => {
           reminder_hour: c.data?.reminder_hour ?? 10,
           timezone: c.data?.timezone || detectTimezone()
         });
+        setHealth(h.data || { subscriptions: 0, last_event: null, last_daily: null });
       } catch { /* silent */ }
     })();
   }, [open]);
@@ -216,8 +219,25 @@ Text2Toss makes junk removal effortless — snap a photo, get an instant AI quot
       if (data.sent > 0) toast.success(`Test push sent to ${data.sent} device(s)`);
       else if (data.subscriptions === 0) toast.error("No devices subscribed yet — enable the reminder first.");
       else toast.error("Push delivery failed. Check browser permissions.");
+      await refreshHealth();
     } catch {
       toast.error("Could not send test push");
+    }
+  };
+
+  const refreshHealth = async () => {
+    try {
+      const { data } = await axios.get(`${API}/admin/push/health`);
+      setHealth(data);
+    } catch { /* silent */ }
+  };
+
+  const resubscribeDevice = async () => {
+    await disableBackgroundPush();
+    const ok = await enableBackgroundPush();
+    if (ok) {
+      toast.success("This device has been resubscribed.");
+      await refreshHealth();
     }
   };
 
@@ -419,6 +439,48 @@ Text2Toss makes junk removal effortless — snap a photo, get an instant AI quot
                   >
                     🔔 Send Test Push Now
                   </Button>
+
+                  {/* 📊 Push delivery health */}
+                  <div className="mt-3 bg-slate-50 rounded-md border border-slate-200 p-3" data-testid="push-health-widget">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-semibold text-slate-700">📊 Push delivery health</span>
+                      <span data-testid="push-health-subs" className="text-xs font-mono bg-white px-2 py-0.5 rounded border border-slate-200">
+                        {health.subscriptions} device{health.subscriptions === 1 ? "" : "s"}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-600">
+                      <div className="bg-white rounded px-2 py-1.5 border border-slate-100">
+                        <div className="uppercase tracking-wide text-slate-500 text-[9px]">Last event</div>
+                        <div className="font-semibold text-slate-800 truncate" data-testid="push-health-last-event">
+                          {health.last_event
+                            ? `${health.last_event.kind === "test" ? "🧪 Test" : "⏰ Daily"} • ${new Date(health.last_event.created_at).toLocaleString()}`
+                            : "—"}
+                        </div>
+                        {health.last_event && (
+                          <div className="text-slate-500 mt-0.5">
+                            sent {health.last_event.sent ?? 0}
+                            {typeof health.last_event.failed === "number" ? ` · failed ${health.last_event.failed}` : ""}
+                          </div>
+                        )}
+                      </div>
+                      <div className="bg-white rounded px-2 py-1.5 border border-slate-100">
+                        <div className="uppercase tracking-wide text-slate-500 text-[9px]">Last daily</div>
+                        <div className="font-semibold text-slate-800 truncate" data-testid="push-health-last-daily">
+                          {health.last_daily ? new Date(health.last_daily.created_at).toLocaleString() : "—"}
+                        </div>
+                        {health.last_daily?.tz && (
+                          <div className="text-slate-500 mt-0.5">{health.last_daily.tz}</div>
+                        )}
+                      </div>
+                    </div>
+                    <Button
+                      onClick={resubscribeDevice}
+                      data-testid="resubscribe-device-btn"
+                      className="mt-2 w-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium py-1.5 text-xs"
+                    >
+                      🔄 Resubscribe this device
+                    </Button>
+                  </div>
                 </div>
 
                 <Button

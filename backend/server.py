@@ -3528,7 +3528,32 @@ async def send_test_push():
         await db.push_subscriptions.delete_many(
             {"endpoint": {"$in": expired_endpoints}}
         )
+    # Log test result for the health widget
+    await db.push_reminder_log.insert_one({
+        "kind": "test",
+        "sent": sent,
+        "failed": failed,
+        "subscriptions": len(subs),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
     return {"sent": sent, "failed": failed, "subscriptions": len(subs)}
+
+
+@api_router.get("/admin/push/health")
+async def push_health():
+    """Return delivery health info for the marketing/push widget."""
+    sub_count = await db.push_subscriptions.count_documents({})
+    last = await db.push_reminder_log.find_one(
+        {}, {"_id": 0}, sort=[("created_at", -1)]
+    )
+    last_daily = await db.push_reminder_log.find_one(
+        {"kind": {"$ne": "test"}}, {"_id": 0}, sort=[("created_at", -1)]
+    )
+    return {
+        "subscriptions": sub_count,
+        "last_event": last,        # most recent test or daily reminder
+        "last_daily": last_daily   # most recent scheduled daily reminder only
+    }
 
 
 async def _send_daily_reminder():

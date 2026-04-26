@@ -8,6 +8,9 @@ import { Badge } from "./ui/badge";
 import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import MarketingQRModal from "./marketing/MarketingQRModal";
+import RouteOptimizerModal from "./admin/RouteOptimizerModal";
+import PendingApprovalsModal from "./admin/PendingApprovalsModal";
+import PaymentRemindersModal from "./admin/PaymentRemindersModal";
 // Use global toast function as fallback
 const toast = {
   success: (message) => window.showToast ? window.showToast('success', message) : console.log('SUCCESS:', message),
@@ -1446,142 +1449,15 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
         </div>
       )}
 
-      {/* Route Modal */}
-      {showRouteModal && selectedRouteBooking && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
-          <Card className="w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
-            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-              <div className="min-w-0 flex-1">
-                <CardTitle className="text-lg sm:text-xl">🗺️ Route to Pickup Location</CardTitle>
-                <CardDescription className="text-sm break-words">{selectedRouteBooking.address}</CardDescription>
-              </div>
-              <Button 
-                onClick={closeRouteModal} 
-                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white w-full sm:w-auto px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium"
-              >
-                <span className="mr-2">✕</span>
-                Close
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {/* Job Info */}
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <strong>Customer:</strong> {selectedRouteBooking.phone}
-                    </div>
-                    <div>
-                      <strong>Time:</strong> {formatTime(selectedRouteBooking.pickup_time)}
-                    </div>
-                    <div className="col-span-2">
-                      <strong>Items:</strong> {selectedRouteBooking.quote_details?.items.map(item => 
-                        `${item.quantity}x ${item.name}`
-                      ).join(', ')}
-                    </div>
-                    {selectedRouteBooking.special_instructions && (
-                      <div className="col-span-2">
-                        <strong>Notes:</strong> {selectedRouteBooking.special_instructions}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Map */}
-                <div className="h-96 bg-gray-100 rounded-lg overflow-hidden">
-                  {!GOOGLE_MAPS_API_KEY ? (
-                    <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-                      <div className="mb-4">
-                        <h3 className="text-lg font-semibold mb-2">📍 Navigation Options</h3>
-                        <p className="text-gray-600 mb-4">Choose your preferred navigation app:</p>
-                      </div>
-                      <div className="space-y-3 w-full max-w-xs">
-                        <Button 
-                          onClick={() => {
-                            const address = encodeURIComponent(selectedRouteBooking.address);
-                            window.open(`https://www.google.com/maps/dir/?api=1&destination=${address}`, '_blank');
-                          }}
-                          className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium"
-                        >
-                          <span className="mr-2">🗺️</span>
-                          Google Maps
-                        </Button>
-                        <Button 
-                          onClick={() => {
-                            const address = encodeURIComponent(selectedRouteBooking.address);
-                            window.open(`https://maps.apple.com/?daddr=${address}`, '_blank');
-                          }}
-                          className="w-full bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300 text-gray-700 hover:text-gray-900 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium"
-                        >
-                          <span className="mr-2">🍎</span>
-                          Apple Maps
-                        </Button>
-                        <Button 
-                          onClick={() => {
-                            const address = encodeURIComponent(selectedRouteBooking.address);
-                            window.open(`waze://ul?q=${address}&navigate=yes`, '_blank');
-                          }}
-                          className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium"
-                        >
-                          <span className="mr-2">🚗</span>
-                          Waze
-                        </Button>
-                      </div>
-                      <div className="mt-4 p-3 bg-yellow-50 rounded border border-yellow-200">
-                        <p className="text-sm text-yellow-800">
-                          <strong>Address:</strong> {selectedRouteBooking.address}
-                        </p>
-                      </div>
-                    </div>
-                  ) : isLoaded ? (
-                    <GoogleMap
-                      mapContainerStyle={{ width: '100%', height: '100%' }}
-                      center={mapCenter}
-                      zoom={13}
-                    >
-                      {routeDirections && <DirectionsRenderer directions={routeDirections} />}
-                    </GoogleMap>
-                  ) : (
-                    <div className="flex items-center justify-center h-full">
-                      <div className="text-center">
-                        <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-2"></div>
-                        <p>Loading map...</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Route Info */}
-                {routeDirections && (
-                  <div className="bg-green-50 p-4 rounded-lg">
-                    <h4 className="font-semibold text-green-800 mb-2">📍 Route Information</h4>
-                    <div className="grid grid-cols-2 gap-4 text-sm text-green-700">
-                      <div>
-                        <strong>Distance:</strong> {routeDirections.routes[0].legs[0].distance.text}
-                      </div>
-                      <div>
-                        <strong>Duration:</strong> {routeDirections.routes[0].legs[0].duration.text}
-                      </div>
-                    </div>
-                    <div className="mt-2">
-                      <Button 
-                        size="sm"
-                        onClick={() => {
-                          const address = encodeURIComponent(selectedRouteBooking.address);
-                          window.open(`https://www.google.com/maps/dir/?api=1&destination=${address}`, '_blank');
-                        }}
-                        className="bg-green-600 hover:bg-green-700 text-xs"
-                      >
-                        🚗 Start Navigation
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      <RouteOptimizerModal
+        open={showRouteModal && !!selectedRouteBooking}
+        booking={selectedRouteBooking}
+        routeDirections={routeDirections}
+        mapCenter={mapCenter}
+        isLoaded={isLoaded}
+        formatTime={formatTime}
+        onClose={closeRouteModal}
+      />
 
       {/* Completion Photo Modal */}
       {showCompletionModal && selectedBooking && (
@@ -2234,250 +2110,16 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
         </div>
       )}
 
-      {/* Quote Approval Modal */}
-      {showQuoteApproval && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
-          <Card className="w-full max-w-4xl max-h-[85vh] sm:max-h-[90vh] overflow-hidden mx-2 sm:mx-0 my-4 sm:my-0">
-            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 px-4 py-3 sm:px-6 sm:py-4">
-              <div className="min-w-0 flex-1">
-                <CardTitle className="text-lg sm:text-2xl flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                  <span className="flex items-center gap-2">
-                    📋 Quote Approval
-                    {pendingQuotes.length > 0 && (
-                      <Badge variant="destructive" className="text-xs">{pendingQuotes.length}</Badge>
-                    )}
-                  </span>
-                </CardTitle>
-                <CardDescription className="text-xs sm:text-sm mt-1">
-                  Review high-value quotes (Scale 9-20) before payment
-                </CardDescription>
-              </div>
-              <Button 
-                onClick={() => setShowQuoteApproval(false)}
-                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium text-sm self-end sm:self-auto"
-              >
-                <span className="mr-1 sm:mr-2">✕</span>
-                Close
-              </Button>
-            </CardHeader>
-            <CardContent className="overflow-y-auto max-h-[70vh]">
-              {pendingQuotes.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="text-gray-500 text-lg">✅ No quotes pending approval</div>
-                  <p className="text-gray-400 mt-2">All high-value quotes have been reviewed</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {(pendingQuotes || []).map((quote) => (
-                    <Card key={quote.id} className="border-l-4 border-l-orange-400">
-                      <CardHeader className="pb-3">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <CardTitle className="text-lg flex items-center gap-2">
-                              Quote ${quote.total_price}
-                              <Badge variant="outline">Scale {quote.scale_level}</Badge>
-                              <Badge className="bg-orange-100 text-orange-800">Pending Review</Badge>
-                            </CardTitle>
-                            <CardDescription className="text-sm">
-                              Created: {new Date(quote.created_at).toLocaleDateString()} • ID: {quote.id}
-                            </CardDescription>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          {/* Quote Details */}
-                          <div className="bg-gray-50 p-4 rounded-lg">
-                            <h4 className="font-semibold mb-2">Job Description:</h4>
-                            <p className="text-sm text-gray-700 mb-3">{quote.description}</p>
-                            
-                            {quote.items && quote.items.length > 0 && (
-                              <>
-                                <h4 className="font-semibold mb-2">Items:</h4>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
-                                  {quote.items.map((item, index) => (
-                                    <div key={`${item.name}-${item.size}-${index}`} className="text-sm bg-white p-2 rounded border">
-                                      {item.quantity}x {item.name} ({item.size})
-                                    </div>
-                                  ))}
-                                </div>
-                              </>
-                            )}
-                            
-                            {quote.ai_explanation && (
-                              <div>
-                                <h4 className="font-semibold mb-2">AI Analysis:</h4>
-                                <p className="text-sm text-gray-600">{quote.ai_explanation}</p>
-                              </div>
-                            )}
-                            
-                            <div className="mt-4">
-                              <h4 className="font-semibold mb-2 flex items-center gap-2">
-                                Customer Photo:
-                                {quote.temp_image_path ? (
-                                  <Badge className="bg-blue-100 text-blue-800" data-testid="photo-uploaded-badge">Uploaded</Badge>
-                                ) : (
-                                  <Badge className="bg-gray-100 text-gray-600">No Photo</Badge>
-                                )}
-                              </h4>
-                              {quote.temp_image_path ? (
-                                <div className="bg-white border-2 border-gray-200 rounded-lg p-3">
-                                  {failedQuoteImages.has(quote.id) ? (
-                                    <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 text-center">
-                                      <p className="text-sm font-semibold text-yellow-800 mb-2">Photo No Longer Available</p>
-                                      <p className="text-xs text-yellow-700">Only the last 30 quote photos are retained.</p>
-                                    </div>
-                                  ) : (
-                                    <>
-                                      <img 
-                                        src={(() => {
-                                          if (quote.temp_image_path.startsWith('http')) {
-                                            return quote.temp_image_path;
-                                          }
-                                          const filename = quote.temp_image_path.split('/').pop();
-                                          const folder = filename.startsWith('quote_') ? 'quote_images' 
-                                            : filename.startsWith('approval_') ? 'approval_quotes' 
-                                            : 'temp_uploads';
-                                          return `${process.env.REACT_APP_BACKEND_URL}/api/images/${folder}/${filename}`;
-                                        })()}
-                                        alt="Customer uploaded photo for quote" 
-                                        className="max-w-full h-auto max-h-64 rounded-lg border border-gray-300 cursor-pointer hover:opacity-90 transition-opacity"
-                                        data-testid="quote-photo-img"
-                                        onClick={() => {
-                                          let imageUrl;
-                                          if (quote.temp_image_path.startsWith('http')) {
-                                            imageUrl = quote.temp_image_path;
-                                          } else {
-                                            const filename = quote.temp_image_path.split('/').pop();
-                                            const folder = filename.startsWith('quote_') ? 'quote_images' 
-                                              : filename.startsWith('approval_') ? 'approval_quotes' 
-                                              : 'temp_uploads';
-                                            imageUrl = `${process.env.REACT_APP_BACKEND_URL}/api/images/${folder}/${filename}`;
-                                          }
-                                          window.open(imageUrl, '_blank');
-                                        }}
-                                        onError={() => {
-                                          setFailedQuoteImages(prev => new Set([...prev, quote.id]));
-                                        }}
-                                      />
-                                      <div className="mt-2 text-xs text-gray-500 text-center">
-                                        Click image to view full size
-                                      </div>
-                                    </>
-                                  )}
-                                </div>
-                              ) : (
-                                <div className="bg-gray-50 border-2 border-gray-200 rounded-lg p-4 text-center">
-                                  <div className="text-3xl mb-2">📷</div>
-                                  <p className="text-sm text-gray-600">No photo uploaded for this quote</p>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Approval Actions */}
-                          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
-                            <div className="flex-1">
-                              <Label className="text-sm font-medium">Adjust Price (Optional)</Label>
-                              <Input
-                                type="number"
-                                placeholder={quote.total_price}
-                                id={`price-${quote.id}`}
-                                className="mt-1"
-                                step="0.01"
-                              />
-                            </div>
-                            <div className="flex-1">
-                              <Label className="text-sm font-medium">Admin Notes</Label>
-                              <Input
-                                placeholder="Optional notes for customer"
-                                id={`notes-${quote.id}`}
-                                className="mt-1"
-                              />
-                            </div>
-                          </div>
-                          
-                          <div className="flex flex-col sm:flex-row gap-3">
-                            {quote.temp_image_path && (
-                              <Button 
-                                data-testid="view-full-photo-btn"
-                                onClick={() => {
-                                  let imageUrl;
-                                  if (quote.temp_image_path.startsWith('http')) {
-                                    imageUrl = quote.temp_image_path;
-                                  } else {
-                                    const filename = quote.temp_image_path.split('/').pop();
-                                    const folder = filename.startsWith('quote_') ? 'quote_images' 
-                                      : filename.startsWith('approval_') ? 'approval_quotes' 
-                                      : 'temp_uploads';
-                                    imageUrl = `${process.env.REACT_APP_BACKEND_URL}/api/images/${folder}/${filename}`;
-                                  }
-                                  window.open(imageUrl, '_blank');
-                                }}
-                                variant="outline"
-                                className="border-blue-400 text-blue-700 hover:bg-blue-50 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium"
-                              >
-                                <span className="mr-2">🔍</span>
-                                View Full Photo
-                              </Button>
-                            )}
-                            <Button 
-                              onClick={() => {
-                                const adjustedPrice = document.getElementById(`price-${quote.id}`).value;
-                                const notes = document.getElementById(`notes-${quote.id}`).value;
-                                handleQuoteApproval(
-                                  quote.id, 
-                                  'approve', 
-                                  notes,
-                                  adjustedPrice ? parseFloat(adjustedPrice) : null
-                                );
-                              }}
-                              className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white flex-1 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium"
-                            >
-                              <span className="mr-2">✅</span>
-                              Approve Quote
-                            </Button>
-                            <Button 
-                              onClick={() => {
-                                const notes = document.getElementById(`notes-${quote.id}`).value;
-                                handleQuoteApproval(quote.id, 'reject', notes || 'Quote rejected by admin');
-                              }}
-                              className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white flex-1 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium"
-                            >
-                              <span className="mr-2">❌</span>
-                              Reject Quote
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-              
-              {/* Approval Statistics */}
-              <div className="mt-4 sm:mt-6 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 pt-4 sm:pt-6 border-t">
-                <div className="bg-orange-50 p-2 sm:p-3 rounded-lg text-center">
-                  <div className="text-lg sm:text-xl font-bold text-orange-600">{approvalStats.pending_approval || 0}</div>
-                  <div className="text-xs text-orange-800">Pending</div>
-                </div>
-                <div className="bg-green-50 p-2 sm:p-3 rounded-lg text-center">
-                  <div className="text-lg sm:text-xl font-bold text-green-600">{approvalStats.approved || 0}</div>
-                  <div className="text-xs text-green-800">Approved</div>
-                </div>
-                <div className="bg-red-50 p-2 sm:p-3 rounded-lg text-center">
-                  <div className="text-lg sm:text-xl font-bold text-red-600">{approvalStats.rejected || 0}</div>
-                  <div className="text-xs text-red-800">Rejected</div>
-                </div>
-                <div className="bg-blue-50 p-2 sm:p-3 rounded-lg text-center">
-                  <div className="text-lg sm:text-xl font-bold text-blue-600">{approvalStats.auto_approved || 0}</div>
-                  <div className="text-xs text-blue-800">Auto-Approved</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      <PendingApprovalsModal
+        open={showQuoteApproval}
+        pendingQuotes={pendingQuotes}
+        approvalStats={approvalStats}
+        failedQuoteImages={failedQuoteImages}
+        onMarkImageFailed={(id) => setFailedQuoteImages(prev => new Set([...prev, id]))}
+        onApprove={(id, notes, price) => handleQuoteApproval(id, 'approve', notes, price)}
+        onReject={(id, notes) => handleQuoteApproval(id, 'reject', notes)}
+        onClose={() => setShowQuoteApproval(false)}
+      />
 
       {/* Photo Gallery Management Modal */}
       {showPhotoGallery && (
@@ -2687,114 +2329,14 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
         </div>
       )}
 
-      {/* Pending Payment Modal */}
-      {showPendingPayments && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden">
-            <CardHeader className="bg-gradient-to-r from-red-500 to-red-600 text-white">
-              <div className="flex justify-between items-center">
-                <CardTitle className="text-xl flex items-center gap-2">
-                  💳 Pending Payment - {pendingPayments.length} Bookings
-                </CardTitle>
-                <Button 
-                  onClick={() => setShowPendingPayments(false)}
-                  className="bg-white/20 hover:bg-white/30 text-white border-0"
-                  size="sm"
-                >
-                  Close
-                </Button>
-              </div>
-              <div className="flex items-center justify-between">
-                <CardDescription className="text-white/90">
-                  Customers who booked but haven't paid yet
-                </CardDescription>
-                {pendingPayments.length > 0 && (
-                  <Button
-                    onClick={rejectAllPendingPayments}
-                    size="sm"
-                    className="bg-white/20 hover:bg-white/30 text-white border border-white/30"
-                    data-testid="reject-all-payments-btn"
-                  >
-                    Reject All ({pendingPayments.length})
-                  </Button>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent className="overflow-y-auto max-h-[70vh] p-4">
-              {pendingPayments.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="text-gray-500 text-lg">✅ All bookings are paid</div>
-                  <p className="text-gray-400 mt-2">No pending payments</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {pendingPayments.map((booking) => (
-                    <Card key={booking.id} className="border-l-4 border-l-red-400">
-                      <CardHeader className="pb-3">
-                        <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
-                          <div>
-                            <CardTitle className="text-lg">
-                              ${booking.quote_details?.total_price || 0} - {booking.pickup_time}
-                            </CardTitle>
-                            <CardDescription className="text-sm">
-                              {new Date(booking.pickup_date).toLocaleDateString()} • ID: {booking.id.substring(0, 8)}
-                            </CardDescription>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button 
-                              onClick={() => markAsPaid(booking.id)}
-                              className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
-                              data-testid="mark-paid-btn"
-                            >
-                              ✅ Mark as Paid
-                            </Button>
-                            <Button 
-                              onClick={() => rejectPayment(booking.id)}
-                              variant="outline"
-                              className="bg-red-50 hover:bg-red-100 text-red-600 border-red-300"
-                              data-testid="reject-payment-btn"
-                            >
-                              Reject
-                            </Button>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <p className="text-sm font-semibold">Customer:</p>
-                            <p className="text-sm">{booking.email || 'No email'}</p>
-                            <p className="text-sm">{booking.phone}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm font-semibold">Address:</p>
-                            <p className="text-sm">{booking.address}</p>
-                          </div>
-                        </div>
-                        {booking.quote_details && (
-                          <div className="mt-3 p-3 bg-gray-50 rounded">
-                            <p className="text-sm font-semibold mb-1">Items:</p>
-                            <p className="text-xs text-gray-600">
-                              {booking.quote_details.items?.map(item => 
-                                `${item.quantity}x ${item.name} (${item.size})`
-                              ).join(', ')}
-                            </p>
-                          </div>
-                        )}
-                        <div className="mt-3 p-3 bg-red-50 rounded border border-red-200">
-                          <p className="text-sm text-red-800">
-                            ⏳ Awaiting Venmo payment - Once received, click "Mark as Paid" to add to calendar
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      <PaymentRemindersModal
+        open={showPendingPayments}
+        pendingPayments={pendingPayments}
+        onClose={() => setShowPendingPayments(false)}
+        onMarkPaid={markAsPaid}
+        onReject={rejectPayment}
+        onRejectAll={rejectAllPendingPayments}
+      />
 
       <MarketingQRModal open={showQRModal} onClose={() => setShowQRModal(false)} />
     </div>
