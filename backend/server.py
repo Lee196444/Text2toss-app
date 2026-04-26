@@ -3066,6 +3066,101 @@ async def update_reel_photo(request: dict):
         logger.error(f"Failed to update reel photo: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to update photo reel")
 
+
+class ReelReorderPayload(BaseModel):
+    photos: List[Optional[str]]
+
+
+@api_router.post("/admin/reorder-reel")
+async def reorder_reel(payload: ReelReorderPayload):
+    """Persist a new order for the 6 reel slots."""
+    photos = payload.photos
+    if len(photos) != 6:
+        raise HTTPException(status_code=400, detail="Reel must have exactly 6 slots")
+    await db.photo_reel.update_one(
+        {"type": "main_reel"},
+        {"$set": {"photos": photos}},
+        upsert=True
+    )
+    return {"message": "Reel order saved", "photos": photos}
+
+
+class CropArea(BaseModel):
+    """Pixel-space crop coordinates (relative to the source image)."""
+    x: int
+    y: int
+    width: int
+    height: int
+
+
+class CropReelPayload(BaseModel):
+    slot_index: int = Field(..., ge=0, le=5)
+    photo_url: str
+    crop: CropArea
+
+
+@api_router.post("/admin/crop-reel-photo")
+async def crop_reel_photo(payload: CropReelPayload):
+    """Crop the source photo at `photo_url` according to `payload.crop`,
+    save the result to /app/static/gallery/, and update the reel slot."""
+    from PIL import Image
+    from io import BytesIO
+
+    src_url = payload.photo_url
+    # Resolve to a local file path when the URL points at our own server
+    backend_url = os.environ.get("REACT_APP_BACKEND_URL", "")
+    local_path = None
+    if backend_url and src_url.startswith(f"{backend_url}/api/images/gallery/"):
+        filename = src_url.rsplit("/", 1)[-1]
+        local_path = f"/app/static/gallery/{filename}"
+
+    try:
+        if local_path and os.path.exists(local_path):
+            img = Image.open(local_path).convert("RGB")
+        else:
+            # Fallback: fetch the remote image
+            import urllib.request
+            with urllib.request.urlopen(src_url, timeout=15) as resp:
+                img = Image.open(BytesIO(resp.read())).convert("RGB")
+    except Exception as exc:
+        logger.warning(f"crop-reel-photo: cannot read source: {exc}")
+        raise HTTPException(status_code=400, detail="Source photo could not be loaded")
+
+    c = payload.crop
+    w, h = img.size
+    left = max(0, min(c.x, w))
+    top = max(0, min(c.y, h))
+    right = max(left + 1, min(c.x + c.width, w))
+    bottom = max(top + 1, min(c.y + c.height, h))
+    cropped = img.crop((left, top, right, bottom))
+
+    # Save the new cropped JPEG
+    new_filename = f"gallery_crop_{uuid.uuid4()}.jpg"
+    new_path = f"/app/static/gallery/{new_filename}"
+    os.makedirs(os.path.dirname(new_path), exist_ok=True)
+    cropped.save(new_path, "JPEG", quality=88, optimize=True)
+    new_url = f"{backend_url}/api/images/gallery/{new_filename}"
+
+    # Add to gallery DB so it appears in the gallery grid
+    await db.gallery_photos.insert_one({
+        "url": new_url,
+        "filename": new_filename,
+        "uploaded_at": datetime.now(timezone.utc).isoformat(),
+        "kind": "crop"
+    })
+
+    # Replace the slot in the reel
+    reel = await db.photo_reel.find_one({"type": "main_reel"})
+    if not reel:
+        reel = {"type": "main_reel", "photos": [None] * 6}
+    reel["photos"][payload.slot_index] = new_url
+    await db.photo_reel.update_one(
+        {"type": "main_reel"},
+        {"$set": {"photos": reel["photos"]}},
+        upsert=True
+    )
+    return {"message": "Cropped & saved", "url": new_url, "slot_index": payload.slot_index}
+
 @api_router.delete("/admin/gallery-photo")
 async def remove_gallery_photo(request: dict):
     """Remove a photo from the gallery"""
