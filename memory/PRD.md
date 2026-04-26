@@ -38,6 +38,13 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
   - App.js: 1719 → **52 lines** (router shell only)
 - ✅ Tested: **40/40 backend tests pass** + frontend extracted-component coverage all green
 - ✅ **Further AdminDashboard decomposition (NEW)**: extracted `BinModal`, `CalendarModal`, `AllJobsModal`, `EmailCenterModal`, `PhotoGalleryModal` to `/app/frontend/src/components/admin/`. AdminDashboard.js: **1591 lines** (–53% from baseline of 3349)
+- ✅ **Photo upload hardened**: HEIC/HEIF support via pillow-heif, auto-convert to JPEG, EXIF-orientation, max-2000px resize, helpful client-side error messages
+- ✅ **Photo reel: drag-to-reorder + inline crop (NEW)**:
+  - HTML5 drag-and-drop reordering of the 6 reel slots, persists via `POST /api/admin/reorder-reel`
+  - `react-easy-crop` modal with grid + zoom slider; Pillow does the server-side crop via `POST /api/admin/crop-reel-photo`
+  - Cropped JPEGs land in the gallery + replace the slot URL atomically
+  - Tested: **50/50 backend tests pass** (10 new + 40 prior regression)
+- ✅ Bug fix: `DELETE /api/admin/gallery-photo` now actually removes the file on disk for modern URLs (was leaking files)
 
 ## P1 Backlog
 - (Optional) Further decompose AdminDashboard.js into hooks/sections (e.g., calendar, bin manager, photo gallery, email center) to bring it under 1500 lines

@@ -3163,35 +3163,36 @@ async def crop_reel_photo(payload: CropReelPayload):
 
 @api_router.delete("/admin/gallery-photo")
 async def remove_gallery_photo(request: dict):
-    """Remove a photo from the gallery"""
+    """Remove a photo from the gallery (DB row + file on disk)."""
     try:
-        photo_url = request.get("photo_url")
-        
+        photo_url = request.get("photo_url") or ""
+
         # Remove from database
         result = await db.gallery_photos.delete_one({"url": photo_url})
-        
         if result.deleted_count == 0:
             raise HTTPException(status_code=404, detail="Photo not found")
-        
-        # Try to remove file from filesystem
+
+        # Resolve the on-disk path. Modern uploads use:
+        #   {BACKEND_URL}/api/images/gallery/<filename>
+        # Legacy uploads used "/static/gallery/<filename>" or "/files/gallery/<filename>".
         try:
-            if photo_url.startswith("/static/gallery/") or photo_url.startswith("/files/gallery/"):
-                # Convert to actual file path
-                if photo_url.startswith("/static/gallery/"):
-                    file_path = f"/app{photo_url}"
-                elif photo_url.startswith("/files/gallery/"):
-                    file_path = f"/app/static{photo_url.replace('/files', '')}"
-                else:
-                    backend_url = os.environ.get('REACT_APP_BACKEND_URL')
-                    file_path = photo_url.replace(f"{backend_url}/files", "/app/static")
-                
-                if os.path.exists(file_path):
-                    os.remove(file_path)
+            file_path = None
+            if "/api/images/gallery/" in photo_url:
+                file_path = "/app/static/gallery/" + photo_url.rsplit("/", 1)[-1]
+            elif photo_url.startswith("/static/gallery/"):
+                file_path = f"/app{photo_url}"
+            elif photo_url.startswith("/files/gallery/"):
+                file_path = f"/app/static{photo_url.replace('/files', '')}"
+            elif "/files/gallery/" in photo_url:
+                file_path = "/app/static/gallery/" + photo_url.rsplit("/", 1)[-1]
+
+            if file_path and os.path.exists(file_path):
+                os.remove(file_path)
         except Exception as file_error:
-            logger.warning(f"Failed to remove file {photo_url}: {str(file_error)}")
-        
+            logger.warning(f"Failed to remove file {photo_url}: {file_error}")
+
         return {"message": "Photo removed successfully"}
-        
+
     except HTTPException:
         raise
     except Exception as e:
