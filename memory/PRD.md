@@ -57,7 +57,16 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Verified: **57/57 backend tests pass** (50 regression + 7 new refactor coverage)
 - Pre-existing notes (NOT introduced here): slot conflict triggers only on `scheduled`/`in_progress` status (intentional — paid bookings reserve slots); image cache keys only on the compressed image (description ignored on cache hit) — **FIXED below**
 
-## Description-aware AI quote cache (Apr 26, 2026 — late session)
+## Code Quality Review Round 2 (Apr 26, 2026 — late session)
+- **`approve_quote()`** (was complexity 24, ~240 lines) refactored into 6 helpers
+- **`upload_completion_photo()`** refactored into 4 helpers
+- **Bug fix**: `completion_note` now bound as `Form(default="")` — notes actually persist
+- **Bug fix**: stale `customer_approval_token`/`adjusted_price`/`requires_customer_approval` cleared on re-approval at same-or-lower price
+- **Description-aware AI quote cache**: cache_key = `sha256(image_bytes + normalized_description)` so meaningful customer hints get a fresh AI pass instead of a cached zero-effort price. Verified $15 vs $93.60 on same image with vs without "heavy items with stairs" description.
+- Items skipped (false positives): all flagged `is`/`==` are `is None`; flagged React hook deps reference stable refs
+- **Verified: 74/75 backend tests pass**
+
+
 - `analyze_image_for_quote` now hashes `image_bytes + normalized_description` together as the cache key
 - Added `cache_key` field + Mongo index on `db.image_cache.cache_key`
 - Verified end-to-end: same image w/ no description → $15; same image + "heavy items with stairs" → $93.60. Both cache on second call (0s vs 2s)
