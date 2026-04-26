@@ -11,6 +11,11 @@ import MarketingQRModal from "./marketing/MarketingQRModal";
 import RouteOptimizerModal from "./admin/RouteOptimizerModal";
 import PendingApprovalsModal from "./admin/PendingApprovalsModal";
 import PaymentRemindersModal from "./admin/PaymentRemindersModal";
+import BinModal from "./admin/BinModal";
+import CalendarModal from "./admin/CalendarModal";
+import AllJobsModal from "./admin/AllJobsModal";
+import EmailCenterModal from "./admin/EmailCenterModal";
+import PhotoGalleryModal from "./admin/PhotoGalleryModal";
 // Use global toast function as fallback
 const toast = {
   success: (message) => window.showToast ? window.showToast('success', message) : console.log('SUCCESS:', message),
@@ -1207,247 +1212,21 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       </div>
 
       {/* Bin View Modal */}
-      {selectedBin && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-center justify-center p-2 sm:p-4">
-          <Card className="w-full max-w-6xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
-            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
-              <div>
-                <CardTitle className="text-lg sm:text-2xl flex items-center gap-2">
-                  {selectedBin === 'new' && '🆕 New Jobs'}
-                  {selectedBin === 'upcoming' && '📅 Upcoming Jobs'}
-                  {selectedBin === 'inProgress' && '🚛 Jobs In Progress'}
-                  {selectedBin === 'completed' && '✅ Completed Jobs'}
-                  {selectedBin === 'details' && '📋 Job Details'}
-                  <span className="text-sm font-normal">({binBookings.length})</span>
-                </CardTitle>
-                <CardDescription className="text-sm">
-                  Total Revenue: {formatPrice(binBookings.reduce((sum, booking) => sum + (booking.quote_details?.total_price || 0), 0))}
-                </CardDescription>
-              </div>
-              <Button 
-                variant="outline" 
-                onClick={closeBin} 
-                className="bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300 text-gray-600 hover:text-gray-800 w-full sm:w-auto px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium"
-              >
-                <span className="mr-2">✕</span>
-                Close
-              </Button>
-            </CardHeader>
-            <CardContent className="overflow-y-auto max-h-[70vh]">
-              {binBookings.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  No jobs in this category
-                </div>
-              ) : (
-                <div className="space-y-3 sm:space-y-4">
-                  {/* Sort jobs by pickup date descending */}
-                  {binBookings
-                    .sort((a, b) => new Date(b.pickup_date) - new Date(a.pickup_date))
-                    .map((booking, index) => (
-                    <div key={booking.id} className="border rounded-lg p-3 sm:p-4 space-y-3 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
-                      {/* Header Row */}
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                        <div className="flex flex-wrap items-center gap-1 sm:gap-2">
-                          <Badge variant="secondary" className="text-xs">#{index + 1}</Badge>
-                          <Badge 
-                            variant={
-                              booking.status === 'completed' ? 'success' : 
-                              booking.status === 'in_progress' ? 'warning' : 
-                              booking.status === 'pending_customer_approval' ? 'destructive' :
-                              'default'
-                            }
-                            className={`text-xs ${
-                              booking.status === 'pending_customer_approval' ? 'bg-orange-500 text-white' : ''
-                            }`}
-                          >
-                            {booking.status === 'pending_customer_approval' ? 'AWAITING CUSTOMER APPROVAL' : 
-                             booking.status.replace('_', ' ').toUpperCase()}
-                          </Badge>
-                          {/* Date Badge */}
-                          <Badge variant="outline" className="bg-gray-100 text-gray-700 text-xs">
-                            📅 {new Date(booking.pickup_date).toLocaleDateString('en-US', { 
-                              month: 'short', 
-                              day: 'numeric',
-                              year: 'numeric'
-                            })}
-                          </Badge>
-                          {booking.pickup_time && (
-                            <Badge variant="outline" className="bg-indigo-100 text-indigo-700 text-xs">
-                              🕐 {formatTime(booking.pickup_time)}
-                            </Badge>
-                          )}
-                          {booking.image_path && (
-                            <Badge variant="outline" className="text-blue-600 text-xs hidden sm:inline-flex">
-                              📸 Has Photo
-                            </Badge>
-                          )}
-                          {booking.status !== 'scheduled' && (
-                            <Badge variant="outline" className="text-green-600 text-xs hidden sm:inline-flex">
-                              📱 SMS Sent
-                            </Badge>
-                          )}
-                          {booking.quote_details?.total_price && (
-                            <div className="text-lg font-bold text-emerald-600">
-                              ${booking.quote_details.total_price}
-                            </div>
-                          )}
-                        </div>
-                        <div className="text-xs sm:text-sm text-gray-500 text-right">
-                          ID: {booking.id.substring(0, 8)}...
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
-                        {/* Booking Details */}
-                        <div className="md:col-span-2">
-                          <div className="text-xs sm:text-sm space-y-1">
-                            <p className="font-medium text-gray-900 break-words">{booking.address}</p>
-                            <p className="text-gray-600">📞 {booking.phone}</p>
-                            <p className="text-gray-600">📅 {new Date(booking.pickup_date).toLocaleDateString()}</p>
-                            {booking.quote_details && (
-                              <p className="text-gray-600 break-words">
-                                📦 Items: {booking.quote_details.items.map(item => 
-                                  `${item.quantity}x ${item.name}`
-                                ).join(', ')}
-                              </p>
-                            )}
-                            {booking.special_instructions && (
-                              <p className="text-gray-600 break-words">📝 {booking.special_instructions}</p>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Photos */}
-                        <div className="space-y-2">
-                          {booking.image_path && (
-                            <div>
-                              <p className="text-xs font-medium text-blue-800 mb-1">Customer Photo:</p>
-                              <img 
-                                src={`${API}/admin/booking-image/${booking.id}`}
-                                alt="Customer items"
-                                className="w-full h-20 object-cover rounded border"
-                                onError={(e) => e.target.style.display = 'none'}
-                              />
-                            </div>
-                          )}
-                          {booking.completion_photo_path && (
-                            <div>
-                              <p className="text-xs font-medium text-green-800 mb-1">Completion Photo:</p>
-                              <img 
-                                src={`${API}/admin/completion-photo/${booking.id}`}
-                                alt="Completed job"
-                                className="w-full h-20 object-cover rounded border"
-                                onError={(e) => e.target.style.display = 'none'}
-                              />
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Modern Action Buttons */}
-                      <div className="pt-3 border-t border-gray-100">
-                        <div className="flex flex-wrap gap-2">
-                          {/* Universal Route Button */}
-                          <Button 
-                            size="sm" 
-                            onClick={() => startRoute(booking)}
-                            className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 flex-shrink-0"
-                          >
-                            <span className="mr-1">🗺️</span>
-                            Route
-                          </Button>
-                          
-                          {/* Customer Photo View Button */}
-                          {booking.image_path && (
-                            <Button 
-                              size="sm" 
-                              onClick={() => handleViewCustomerPhoto(booking)}
-                              className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 flex-shrink-0"
-                            >
-                              <span className="mr-1">📷</span>
-                              View Photo
-                            </Button>
-                          )}
-                          
-                          {/* Status-specific Action Buttons */}
-                          <div className="flex flex-wrap gap-2 flex-1">
-                            {booking.status === 'scheduled' && (
-                              <Button 
-                                size="sm" 
-                                onClick={() => updateBookingStatus(booking.id, 'in_progress')}
-                                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                              >
-                                <span className="mr-1">▶️</span>
-                                Start Job
-                              </Button>
-                            )}
-                            
-                            {booking.status === 'in_progress' && (
-                              <>
-                                <Button 
-                                  size="sm" 
-                                  onClick={() => updateBookingStatus(booking.id, 'completed')}
-                                  className="bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                                >
-                                  <span className="mr-1">✅</span>
-                                  Complete
-                                </Button>
-                                <Button 
-                                  size="sm" 
-                                  onClick={() => handleCompleteWithPhoto(booking)}
-                                  className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                                >
-                                  <span className="mr-1">📸</span>
-                                  + Photo
-                                </Button>
-                              </>
-                            )}
-                            
-                            {booking.status === 'completed' && (
-                              <div className="flex flex-wrap gap-2">
-                                {!booking.completion_photo_path && (
-                                  <Button 
-                                    size="sm" 
-                                    onClick={() => handleCompleteWithPhoto(booking)}
-                                    className="bg-white border-2 border-green-400 text-green-700 hover:bg-green-50 hover:border-green-500 text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                                  >
-                                    <span className="mr-1">📸</span>
-                                    Add Photo
-                                  </Button>
-                                )}
-                                {booking.completion_photo_path && (
-                                  <>
-                                    <Button 
-                                      size="sm" 
-                                      onClick={() => notifyCustomer(booking.id)}
-                                      className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                                    >
-                                      <span className="mr-1">📱</span>
-                                      SMS
-                                    </Button>
-                                    <Button 
-                                      size="sm" 
-                                      onClick={() => testSmsPhoto(booking.id)}
-                                      className="bg-white border-2 border-blue-400 text-blue-700 hover:bg-blue-50 hover:border-blue-500 text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                                    >
-                                      <span className="mr-1">🧪</span>
-                                      Test
-                                    </Button>
-                                  </>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      <BinModal
+        open={!!selectedBin}
+        selectedBin={selectedBin}
+        binBookings={binBookings}
+        jobs={allJobs}
+        formatPrice={formatPrice}
+        formatTime={formatTime}
+        closeBin={closeBin}
+        startRoute={startRoute}
+        notifyCustomer={notifyCustomer}
+        updateBookingStatus={updateBookingStatus}
+        handleCompleteWithPhoto={handleCompleteWithPhoto}
+        handleViewCustomerPhoto={handleViewCustomerPhoto}
+        testSmsPhoto={testSmsPhoto}
+      />
 
       <RouteOptimizerModal
         open={showRouteModal && !!selectedRouteBooking}
@@ -1534,320 +1313,35 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       )}
 
       {/* Calendar Modal */}
-      {showCalendar && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
-          <Card className="w-full max-w-6xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
-            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
-              <div>
-                <CardTitle className="text-lg sm:text-2xl flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                  📅 Monthly Schedule
-                  <span className="text-base sm:text-lg font-normal">
-                    {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                  </span>
-                </CardTitle>
-                <CardDescription className="text-sm">
-                  Click on any date to see scheduled jobs for that day
-                </CardDescription>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => changeMonth(-1)}
-                  className="bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300 text-gray-600 hover:text-gray-800 text-xs sm:text-sm px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium"
-                >
-                  <span className="mr-1">←</span>
-                  Prev
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => changeMonth(1)}
-                  className="bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300 text-gray-600 hover:text-gray-800 text-xs sm:text-sm px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium"
-                >
-                  Next
-                  <span className="ml-1">→</span>
-                </Button>
-                <Button 
-                  onClick={closeCalendar} 
-                  className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white text-xs sm:text-sm px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium"
-                >
-                  <span className="mr-1">✕</span>
-                  Close
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="overflow-y-auto max-h-[70vh]">
-              <div className="calendar-grid">
-                {/* Calendar Header */}
-                <div className="grid grid-cols-7 gap-px sm:gap-1 mb-2">
-                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                    <div key={day} className="p-1 sm:p-2 text-center font-semibold text-gray-700 bg-gray-100 rounded text-xs sm:text-sm">
-                      {day}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Calendar Days */}
-                <div className="grid grid-cols-7 gap-px sm:gap-1">
-                  {(() => {
-                    const daysInMonth = getDaysInMonth(currentMonth);
-                    const firstDayOfWeek = getFirstDayOfWeek(currentMonth);
-                    const today = new Date().toISOString().split('T')[0];
-                    const selectedDay = selectedDate;
-                    
-                    const cells = [];
-                    
-                    // Empty cells for days before the first day of the month
-                    for (let i = 0; i < firstDayOfWeek; i++) {
-                      cells.push(
-                        <div key={`empty-${i}`} className="h-16 sm:h-24 bg-gray-50 rounded border"></div>
-                      );
-                    }
-                    
-                    // Days of the month
-                    for (let day = 1; day <= daysInMonth; day++) {
-                      const dateStr = formatCalendarDate(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-                      const dayJobs = calendarData[dateStr] || [];
-                      const isToday = dateStr === today;
-                      const isSelected = dateStr === selectedDay;
-                      
-                      cells.push(
-                        <div 
-                          key={day}
-                          className={`h-16 sm:h-24 p-1 border rounded cursor-pointer transition-all hover:bg-blue-50 ${
-                            isToday ? 'bg-yellow-50 border-yellow-300' : 
-                            isSelected ? 'bg-blue-50 border-blue-300' : 
-                            'bg-white border-gray-200'
-                          }`}
-                          onClick={() => {
-                            setSelectedCalendarDate(dateStr);
-                            setShowDateJobsModal(true);
-                          }}
-                        >
-                          <div className={`text-xs sm:text-sm font-semibold mb-1 ${
-                            isToday ? 'text-yellow-800' : 
-                            isSelected ? 'text-blue-800' : 
-                            'text-gray-700'
-                          }`}>
-                            {day}
-                          </div>
-                          
-                          {/* Jobs for this day */}
-                          <div className="space-y-px">
-                            {dayJobs.slice(0, window.innerWidth < 640 ? 2 : 3).map((job, index) => (
-                              <div 
-                                key={job.id}
-                                className={`text-xs p-0.5 sm:p-1 rounded truncate cursor-pointer hover:opacity-80 transition-all duration-200 ${
-                                  job.status === 'completed' ? 'bg-green-100 text-green-800 hover:bg-green-200' :
-                                  job.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' :
-                                  'bg-blue-100 text-blue-800 hover:bg-blue-200'
-                                }`}
-                                title={`Click to view details: ${job.pickup_time} - ${job.address} - $${job.quote_details?.total_price || 0}`}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  openJobDetails(job);
-                                }}
-                              >
-                                <span className="hidden sm:inline">{job.pickup_time.split('-')[0]} </span>${job.quote_details?.total_price || 0}
-                              </div>
-                            ))}
-                            {dayJobs.length > (window.innerWidth < 640 ? 2 : 3) && (
-                              <div className="text-xs text-gray-600 text-center">
-                                +{dayJobs.length - (window.innerWidth < 640 ? 2 : 3)} more
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    }
-                    
-                    return cells;
-                  })()}
-                </div>
-
-                {/* Legend */}
-                <div className="mt-4 flex justify-center gap-6 text-sm">
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 bg-blue-100 border border-blue-300 rounded"></div>
-                    <span>Scheduled</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 bg-yellow-100 border border-yellow-300 rounded"></div>
-                    <span>In Progress</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 bg-green-100 border border-green-300 rounded"></div>
-                    <span>Completed</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 bg-yellow-50 border border-yellow-400 rounded"></div>
-                    <span>Today</span>
-                  </div>
-                </div>
-
-                {/* Monthly Summary */}
-                <div className="mt-4 sm:mt-6 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-                  <div className="bg-blue-50 p-3 sm:p-4 rounded-lg text-center">
-                    <div className="text-xl sm:text-2xl font-bold text-blue-600">
-                      {Object.values(calendarData).flat().length}
-                    </div>
-                    <div className="text-xs sm:text-sm text-blue-800">Total Jobs</div>
-                  </div>
-                  <div className="bg-green-50 p-3 sm:p-4 rounded-lg text-center">
-                    <div className="text-xl sm:text-2xl font-bold text-green-600">
-                      {Object.values(calendarData).flat().filter(j => j.status === 'completed').length}
-                    </div>
-                    <div className="text-xs sm:text-sm text-green-800">Completed</div>
-                  </div>
-                  <div className="bg-emerald-50 p-3 sm:p-4 rounded-lg text-center">
-                    <div className="text-xl sm:text-2xl font-bold text-emerald-600">
-                      {formatPrice(Object.values(calendarData).flat().filter(j => j.status === 'completed').reduce((sum, job) => sum + (job.quote_details?.total_price || 0), 0))}
-                    </div>
-                    <div className="text-xs sm:text-sm text-emerald-800">Revenue</div>
-                  </div>
-                  <div className="bg-orange-50 p-3 sm:p-4 rounded-lg text-center">
-                    <div className="text-xl sm:text-2xl font-bold text-orange-600">
-                      {Object.values(calendarData).flat().filter(j => j.status === 'scheduled').length}
-                    </div>
-                    <div className="text-xs sm:text-sm text-orange-800">Upcoming</div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      <CalendarModal
+        open={showCalendar}
+        currentMonth={currentMonth}
+        calendarData={calendarData}
+        jobs={allJobs}
+        selectedDate={selectedDate}
+        formatPrice={formatPrice}
+        formatCalendarDate={formatCalendarDate}
+        getDaysInMonth={getDaysInMonth}
+        getFirstDayOfWeek={getFirstDayOfWeek}
+        changeMonth={changeMonth}
+        closeCalendar={closeCalendar}
+        openJobDetails={openJobDetails}
+        setSelectedCalendarDate={setSelectedCalendarDate}
+        setShowDateJobsModal={setShowDateJobsModal}
+      />
 
       {/* Date Jobs Modal - Show all jobs for selected date */}
       {/* All Jobs Modal with Search */}
-      {showAllJobsModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-          <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden">
-            <CardHeader className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
-              <div className="flex justify-between items-center">
-                <div>
-                  <CardTitle className="text-2xl">
-                    📚 All Jobs History
-                  </CardTitle>
-                  <CardDescription className="text-white/80 mt-1">
-                    Search and view all jobs
-                  </CardDescription>
-                </div>
-                <Button 
-                  onClick={() => setShowAllJobsModal(false)}
-                  variant="ghost"
-                  className="text-white hover:bg-white/20"
-                >
-                  ✕
-                </Button>
-              </div>
-            </CardHeader>
-            
-            <CardContent className="p-6">
-              {/* Search Bar */}
-              <div className="mb-6">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search by Job #, Email, Phone, or Address..."
-                    value={jobSearchQuery}
-                    onChange={(e) => handleJobSearch(e.target.value)}
-                    className="w-full px-4 py-3 pr-10 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none text-base"
-                  />
-                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl">
-                    🔍
-                  </span>
-                </div>
-                {jobSearchQuery && (
-                  <p className="text-sm text-gray-600 mt-2">
-                    Found {filteredJobs.length} job(s)
-                  </p>
-                )}
-              </div>
-
-              {/* Jobs List */}
-              <div className="overflow-y-auto max-h-[50vh] space-y-3">
-                {filteredJobs.length === 0 ? (
-                  <div className="text-center py-12">
-                    <div className="text-6xl mb-4">📭</div>
-                    <p className="text-gray-500 text-lg">
-                      {jobSearchQuery ? 'No jobs found matching your search' : 'Loading jobs...'}
-                    </p>
-                  </div>
-                ) : (
-                  filteredJobs.map((job, index) => (
-                    <Card 
-                      key={job.id}
-                      className={`cursor-pointer hover:shadow-lg transition-all border-2 ${
-                        job.status === 'completed' ? 'border-green-300 bg-green-50/50' :
-                        job.status === 'in_progress' ? 'border-yellow-300 bg-yellow-50/50' :
-                        job.status === 'cancelled' ? 'border-red-300 bg-red-50/50' :
-                        'border-blue-300 bg-blue-50/50'
-                      }`}
-                      onClick={() => {
-                        openJobDetails(job);
-                        setShowAllJobsModal(false);
-                      }}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2 flex-wrap">
-                              <h3 className="font-bold text-base text-gray-800">
-                                Job #{job.id.substring(0, 8)}...
-                              </h3>
-                              <Badge className={
-                                job.status === 'completed' ? 'bg-green-500' :
-                                job.status === 'in_progress' ? 'bg-yellow-500' :
-                                job.status === 'cancelled' ? 'bg-red-500' :
-                                'bg-blue-500'
-                              }>
-                                {job.status === 'completed' ? '✓' :
-                                 job.status === 'in_progress' ? '⏳' :
-                                 job.status === 'cancelled' ? '✕' :
-                                 '📅'} {job.status}
-                              </Badge>
-                              {job.email && (
-                                <Button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    openEmailCenter(job.email);
-                                  }}
-                                  className="bg-indigo-500 hover:bg-indigo-600 text-white text-xs px-2 py-1 rounded"
-                                >
-                                  📧 Email
-                                </Button>
-                              )}
-                            </div>
-                            
-                            <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
-                              <div>📅 {new Date(job.pickup_date).toLocaleDateString()}</div>
-                              <div>⏰ {job.pickup_time}</div>
-                              <div>📧 {job.email || 'N/A'}</div>
-                              <div>📱 {job.phone || 'N/A'}</div>
-                              <div className="col-span-2">📍 {job.address}</div>
-                            </div>
-                          </div>
-                          
-                          <div className="text-right ml-4">
-                            <div className="text-xl font-bold text-emerald-600">
-                              ${job.quote_details?.total_price || 0}
-                            </div>
-                            <div className="text-xs text-gray-500 mt-1">
-                              {job.payment_status}
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      <AllJobsModal
+        open={showAllJobsModal}
+        jobs={allJobs}
+        filteredJobs={filteredJobs}
+        jobSearchQuery={jobSearchQuery}
+        handleJobSearch={handleJobSearch}
+        openJobDetails={openJobDetails}
+        openEmailCenter={openEmailCenter}
+        setShowAllJobsModal={setShowAllJobsModal}
+      />
 
       {showDateJobsModal && selectedCalendarDate && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
@@ -1967,148 +1461,15 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       )}
 
       {/* Email Notification Center Modal */}
-      {showSmsCenter && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-start sm:items-center justify-center p-2 sm:p-4 pt-16 sm:pt-4 pb-safe-area-inset-bottom">
-          <Card className="w-full max-w-4xl mx-2 sm:mx-0 my-4 sm:my-0 max-h-[90vh] overflow-hidden">
-            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 px-4 py-3 sm:px-6 sm:py-4">
-              <div className="min-w-0 flex-1">
-                <CardTitle className="text-lg sm:text-2xl flex items-center gap-2">
-                  📧 Email Notification Center
-                </CardTitle>
-                <CardDescription className="text-xs sm:text-sm mt-1">
-                  Manage email notifications and customer communications
-                </CardDescription>
-              </div>
-              <Button 
-                onClick={() => setShowSmsCenter(false)}
-                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium text-sm self-end sm:self-auto"
-              >
-                <span className="mr-1 sm:mr-2">✕</span>
-                Close
-              </Button>
-            </CardHeader>
-            
-            <CardContent className="max-h-[70vh] overflow-y-auto p-4 sm:p-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Compose Email Section */}
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg flex items-center gap-2">
-                    ✉️ Compose Email
-                  </h3>
-                  
-                  <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        To Email:
-                      </label>
-                      <input
-                        type="email"
-                        value={emailCompose.to}
-                        onChange={(e) => setEmailCompose({...emailCompose, to: e.target.value})}
-                        placeholder="customer@example.com"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Subject:
-                      </label>
-                      <input
-                        type="text"
-                        value={emailCompose.subject}
-                        onChange={(e) => setEmailCompose({...emailCompose, subject: e.target.value})}
-                        placeholder="Email subject"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Message:
-                      </label>
-                      <textarea
-                        value={emailCompose.message}
-                        onChange={(e) => setEmailCompose({...emailCompose, message: e.target.value})}
-                        placeholder="Type your message here..."
-                        rows={6}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none resize-none"
-                      />
-                    </div>
-                    
-                    <Button
-                      onClick={sendCustomEmail}
-                      disabled={sendingEmail}
-                      className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium"
-                    >
-                      {sendingEmail ? '⏳ Sending...' : '📤 Send Email'}
-                    </Button>
-                  </div>
-                  
-                  {/* Quick Actions */}
-                  <div className="mt-6 space-y-3">
-                    <h3 className="font-semibold text-lg flex items-center gap-2">
-                      ⚡ Quick Actions
-                    </h3>
-                    <Button
-                      onClick={sendBulkEmailReminder}
-                      className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium"
-                    >
-                      <span className="mr-2">📧</span>
-                      Send Bulk Payment Reminders
-                    </Button>
-                  </div>
-                </div>
-                
-                {/* Email Templates */}
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg flex items-center gap-2">
-                    📝 Email Templates
-                  </h3>
-                  
-                  <div className="space-y-3">
-                    <div className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                      <h4 className="font-medium text-gray-900">Job Completion Notification</h4>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Automatically sent when a job is marked as completed with photo
-                      </p>
-                      <div className="flex items-center mt-2">
-                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                          ✅ Active
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                      <h4 className="font-medium text-gray-900">Booking Confirmation</h4>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Sent when a customer's booking is confirmed
-                      </p>
-                      <div className="flex items-center mt-2">
-                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                          ✅ Active
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                      <h4 className="font-medium text-gray-900">Quote Approval</h4>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Sent when a quote requires customer approval
-                      </p>
-                      <div className="flex items-center mt-2">
-                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                          ✅ Active
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      <EmailCenterModal
+        open={showSmsCenter}
+        emailCompose={emailCompose}
+        setEmailCompose={setEmailCompose}
+        sendingEmail={sendingEmail}
+        sendCustomEmail={sendCustomEmail}
+        sendBulkEmailReminder={sendBulkEmailReminder}
+        setShowSmsCenter={setShowSmsCenter}
+      />
 
       <PendingApprovalsModal
         open={showQuoteApproval}
@@ -2122,130 +1483,15 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       />
 
       {/* Photo Gallery Management Modal */}
-      {showPhotoGallery && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-          <Card className="w-full max-w-6xl max-h-[95vh] overflow-hidden">
-            <CardHeader className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
-              <div className="flex justify-between items-center">
-                <div>
-                  <CardTitle className="text-xl font-bold flex items-center gap-2">
-                    📸 Photo Upload & Management
-                  </CardTitle>
-                  <CardDescription className="text-purple-100">
-                    Upload photos and manage customer page photo reel (6 slots)
-                  </CardDescription>
-                </div>
-                <Button 
-                  variant="ghost" 
-                  onClick={() => setShowPhotoGallery(false)}
-                  className="text-white hover:bg-white/20 h-8 w-8 p-0 rounded-full"
-                >
-                  ×
-                </Button>
-              </div>
-            </CardHeader>
-            
-            <CardContent className="p-6 overflow-y-auto max-h-[calc(95vh-120px)]">
-              {/* Photo Upload Section */}
-              <div className="mb-8">
-                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  📤 Upload New Photos
-                </h3>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={(e) => {
-                      Array.from(e.target.files).forEach(file => uploadGalleryPhoto(file));
-                    }}
-                    className="hidden"
-                    id="photo-upload"
-                  />
-                  <label htmlFor="photo-upload" className="cursor-pointer">
-                    <div className="text-4xl mb-2">📷</div>
-                    <p className="text-lg font-medium">Click to upload photos</p>
-                    <p className="text-sm text-gray-500">Supports multiple image files</p>
-                  </label>
-                </div>
-              </div>
-
-              {/* Photo Reel Slots */}
-              <div className="mb-8">
-                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  🎭 Customer Page Photo Reel (6 Slots)
-                </h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                  {reelPhotos.map((photo, index) => (
-                    <div key={`reel-slot-${index}`} className="border rounded-lg p-2 bg-gray-50">
-                      <div className="text-center text-sm font-medium mb-2">Slot {index + 1}</div>
-                      {photo ? (
-                        <div className="relative">
-                          <img src={photo} alt={`Reel ${index + 1}`} className="w-full h-24 object-cover rounded" />
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => updateReelPhoto(index, null)}
-                            className="absolute top-1 right-1 h-6 w-6 p-0 text-xs"
-                          >
-                            ×
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="w-full h-24 bg-gray-200 rounded flex items-center justify-center text-gray-400">
-                          Empty
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Gallery Photos */}
-              <div>
-                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  🖼️ Gallery Photos (Click to add to reel)
-                </h3>
-                {galleryPhotos.length === 0 ? (
-                  <div className="text-center text-gray-500 py-8">
-                    <div className="text-4xl mb-2">📷</div>
-                    <p>No gallery photos uploaded yet</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    {galleryPhotos.map((photo, index) => (
-                      <div key={`gallery-${photo.substring(photo.lastIndexOf('/') + 1, photo.lastIndexOf('/') + 12)}-${index}`} className="relative group">
-                        <img 
-                          src={photo} 
-                          alt={`Gallery ${index + 1}`} 
-                          className="w-full h-24 object-cover rounded cursor-pointer hover:opacity-75 transition-opacity"
-                          onClick={() => {
-                            // Find first empty slot
-                            const emptyIndex = reelPhotos.findIndex(slot => slot === null);
-                            if (emptyIndex !== -1) {
-                              updateReelPhoto(emptyIndex, photo);
-                            } else {
-                              toast.error('All photo reel slots are full');
-                            }
-                          }}
-                        />
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => removeGalleryPhoto(photo)}
-                          className="absolute top-1 right-1 h-6 w-6 p-0 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          🗑️
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      <PhotoGalleryModal
+        open={showPhotoGallery}
+        galleryPhotos={galleryPhotos}
+        reelPhotos={reelPhotos}
+        uploadGalleryPhoto={uploadGalleryPhoto}
+        removeGalleryPhoto={removeGalleryPhoto}
+        updateReelPhoto={updateReelPhoto}
+        setShowPhotoGallery={setShowPhotoGallery}
+      />
 
       {/* Customer Photo Viewing Modal */}
       {showCustomerPhoto && currentCustomerPhoto && (

@@ -37,6 +37,7 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
   - `/app/frontend/src/components/customer/PhotoCarousel.js`
   - App.js: 1719 → **52 lines** (router shell only)
 - ✅ Tested: **40/40 backend tests pass** + frontend extracted-component coverage all green
+- ✅ **Further AdminDashboard decomposition (NEW)**: extracted `BinModal`, `CalendarModal`, `AllJobsModal`, `EmailCenterModal`, `PhotoGalleryModal` to `/app/frontend/src/components/admin/`. AdminDashboard.js: **1591 lines** (–53% from baseline of 3349)
 
 ## P1 Backlog
 - (Optional) Further decompose AdminDashboard.js into hooks/sections (e.g., calendar, bin manager, photo gallery, email center) to bring it under 1500 lines
