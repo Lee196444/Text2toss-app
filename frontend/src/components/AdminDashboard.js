@@ -857,6 +857,80 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
     }
   };
 
+  // Pre-filled marketing caption for social posts
+  const buildMarketingCaption = () => (
+`📱 Got junk? Just text us!
+
+Text2Toss makes junk removal effortless — snap a photo, get an instant AI quote, and we haul it away. Fast. Easy. Hassle Free.
+
+✅ Free instant quotes
+✅ Same-day pickup available
+✅ Flagstaff, Arizona
+
+📲 Scan the QR or visit tinyurl.com/text2toss
+
+#Text2Toss #JunkRemoval #FlagstaffAZ #Arizona #DeclutterYourLife #JunkBeGone #LocalBusiness #SmallBusiness`
+  );
+
+  // Share QR + caption via native share sheet (Web Share API).
+  // On phones this opens the OS share sheet (Instagram, Facebook, Messages, etc.).
+  // On desktop / unsupported browsers, falls back to copying the caption and
+  // downloading the QR so the user can paste-and-attach manually.
+  const shareMarketingPost = async () => {
+    const caption = buildMarketingCaption();
+    try {
+      const response = await fetch(marketingQRCode);
+      const blob = await response.blob();
+      const file = new File([blob], 'Text2Toss-QR.jpg', { type: blob.type || 'image/jpeg' });
+
+      const sharePayload = {
+        title: 'Text2Toss — Junk Removal',
+        text: caption,
+        files: [file]
+      };
+
+      if (navigator.canShare && navigator.canShare(sharePayload) && navigator.share) {
+        await navigator.share(sharePayload);
+        toast.success('Share sheet opened!');
+        return;
+      }
+
+      // Fallback: copy caption + download QR
+      try {
+        await navigator.clipboard.writeText(caption);
+        toast.success('Caption copied! Downloading QR — paste & attach in your post.');
+      } catch {
+        toast.error('Could not copy caption. Downloading QR instead.');
+      }
+      await downloadQRCode();
+    } catch (err) {
+      if (err && err.name === 'AbortError') return; // user cancelled native share
+      toast.error('Share failed. Downloaded QR + copied caption as fallback.');
+      try { await navigator.clipboard.writeText(caption); } catch { /* ignore */ }
+      await downloadQRCode();
+    }
+  };
+
+  // Quick web-intent shares (fallback / desktop convenience)
+  const shareToFacebook = () => {
+    const url = encodeURIComponent('https://tinyurl.com/text2toss');
+    const quote = encodeURIComponent(buildMarketingCaption());
+    window.open(
+      `https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${quote}`,
+      '_blank',
+      'noopener,noreferrer,width=600,height=600'
+    );
+  };
+
+  const copyCaption = async () => {
+    try {
+      await navigator.clipboard.writeText(buildMarketingCaption());
+      toast.success('Caption copied to clipboard!');
+    } catch {
+      toast.error('Could not copy caption');
+    }
+  };
+
   const fetchPendingQuotes = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/admin/pending-quotes`);
@@ -2859,6 +2933,45 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
                   <p className="text-center mt-4 text-gray-700 font-medium">
                     Scan to visit: <span className="text-emerald-600 font-bold">tinyurl.com/text2toss</span>
                   </p>
+
+                  {/* One-tap social share */}
+                  <div className="w-full mt-6 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl border border-emerald-200 p-5">
+                    <div className="flex items-start gap-3 mb-4">
+                      <span className="text-2xl">📣</span>
+                      <div>
+                        <h4 className="font-bold text-emerald-900">Share to Social</h4>
+                        <p className="text-xs text-emerald-800/80">
+                          Pre-filled caption + QR image. Tap once to post to Instagram, Facebook, or anywhere.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <Button
+                        onClick={shareMarketingPost}
+                        data-testid="share-marketing-post-btn"
+                        className="bg-gradient-to-r from-fuchsia-500 via-rose-500 to-amber-500 hover:opacity-90 text-white font-semibold py-5 shadow-md"
+                      >
+                        📲 Share Post
+                      </Button>
+                      <Button
+                        onClick={shareToFacebook}
+                        data-testid="share-facebook-btn"
+                        className="bg-[#1877F2] hover:bg-[#1462c4] text-white font-semibold py-5 shadow-md"
+                      >
+                        f  Facebook
+                      </Button>
+                      <Button
+                        onClick={copyCaption}
+                        data-testid="copy-caption-btn"
+                        className="bg-white hover:bg-gray-50 text-gray-800 border border-gray-300 font-semibold py-5 shadow-sm"
+                      >
+                        📋 Copy Caption
+                      </Button>
+                    </div>
+                    <p className="mt-3 text-[11px] text-emerald-900/70">
+                      Tip: on phones, "Share Post" opens your native share sheet so you can post directly to Instagram Stories, Reels, Messages, or any installed app.
+                    </p>
+                  </div>
                 </div>
 
                 {/* Instructions */}
