@@ -33,6 +33,14 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [showQRModal, setShowQRModal] = useState(false);
   const [marketingQRCode, setMarketingQRCode] = useState('');
+  const [marketingStats, setMarketingStats] = useState({ this_week: 0, total: 0, by_channel: {} });
+  const [marketingSettings, setMarketingSettings] = useState({
+    deal_text: '',
+    deal_active: false,
+    reminder_enabled: false,
+    reminder_hour: 10
+  });
+  const [savingMarketingSettings, setSavingMarketingSettings] = useState(false);
   const [completionPhoto, setCompletionPhoto] = useState(null);
   const [completionNote, setCompletionNote] = useState("");
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -832,11 +840,58 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
   };
 
   // Marketing QR Code - use the pre-built branded version
-  const generateMarketingQR = () => {
+  const generateMarketingQR = async () => {
     const qrUrl = `${API}/images/quote_images/text2toss_branded_qr.jpg`;
     setMarketingQRCode(qrUrl);
     setShowQRModal(true);
     toast.success('QR Code ready!');
+    // Fetch latest stats + settings whenever the modal opens
+    try {
+      const [statsRes, setRes] = await Promise.all([
+        axios.get(`${API}/admin/marketing/stats`),
+        axios.get(`${API}/admin/marketing/settings`)
+      ]);
+      setMarketingStats(statsRes.data || { this_week: 0, total: 0, by_channel: {} });
+      setMarketingSettings(setRes.data || marketingSettings);
+    } catch {
+      // Silent: modal still works without stats
+    }
+  };
+
+  // Log a share/copy/download event so we can show counts
+  const logShareEvent = async (channel) => {
+    try {
+      await axios.post(`${API}/admin/marketing/share-event`, { channel });
+      const { data } = await axios.get(`${API}/admin/marketing/stats`);
+      setMarketingStats(data);
+    } catch {
+      // Silent: tracking shouldn't break the share flow
+    }
+  };
+
+  // Save marketing settings (deal text + reminder toggle)
+  const saveMarketingSettings = async (next) => {
+    setSavingMarketingSettings(true);
+    try {
+      const payload = { ...marketingSettings, ...next };
+      const { data } = await axios.post(`${API}/admin/marketing/settings`, payload);
+      const cleaned = {
+        deal_text: data.deal_text ?? '',
+        deal_active: !!data.deal_active,
+        reminder_enabled: !!data.reminder_enabled,
+        reminder_hour: data.reminder_hour ?? 10
+      };
+      setMarketingSettings(cleaned);
+      // Persist reminder schedule client-side so the browser can fire it
+      if (cleaned.reminder_enabled) {
+        await ensureNotificationPermission();
+      }
+      toast.success('Marketing settings saved');
+    } catch {
+      toast.error('Could not save settings');
+    } finally {
+      setSavingMarketingSettings(false);
+    }
   };
 
   // Download QR Code
@@ -851,15 +906,20 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(link.href);
+      logShareEvent('download');
       toast.success('QR Code downloaded!');
     } catch {
       toast.error('Failed to download QR code');
     }
   };
 
-  // Pre-filled marketing caption for social posts
-  const buildMarketingCaption = () => (
-`📱 Got junk? Just text us!
+  // Pre-filled marketing caption for social posts (deal-aware)
+  const buildMarketingCaption = () => {
+    const dealLine = (marketingSettings.deal_active && marketingSettings.deal_text)
+      ? `🔥 ${marketingSettings.deal_text}\n\n`
+      : '';
+    return (
+`${dealLine}📱 Got junk? Just text us!
 
 Text2Toss makes junk removal effortless — snap a photo, get an instant AI quote, and we haul it away. Fast. Easy. Hassle Free.
 
@@ -870,7 +930,8 @@ Text2Toss makes junk removal effortless — snap a photo, get an instant AI quot
 📲 Scan the QR or visit tinyurl.com/text2toss
 
 #Text2Toss #JunkRemoval #FlagstaffAZ #Arizona #DeclutterYourLife #JunkBeGone #LocalBusiness #SmallBusiness`
-  );
+    );
+  };
 
   // Share QR + caption via native share sheet (Web Share API).
   // On phones this opens the OS share sheet (Instagram, Facebook, Messages, etc.).
@@ -891,6 +952,7 @@ Text2Toss makes junk removal effortless — snap a photo, get an instant AI quot
 
       if (navigator.canShare && navigator.canShare(sharePayload) && navigator.share) {
         await navigator.share(sharePayload);
+        logShareEvent('native');
         toast.success('Share sheet opened!');
         return;
       }
@@ -920,16 +982,71 @@ Text2Toss makes junk removal effortless — snap a photo, get an instant AI quot
       '_blank',
       'noopener,noreferrer,width=600,height=600'
     );
+    logShareEvent('facebook');
   };
 
   const copyCaption = async () => {
     try {
       await navigator.clipboard.writeText(buildMarketingCaption());
+      logShareEvent('copy');
       toast.success('Caption copied to clipboard!');
     } catch {
       toast.error('Could not copy caption');
     }
   };
+
+  // Browser-native daily reminder (best-effort; requires the tab/PWA to be open)
+  const ensureNotificationPermission = async () => {
+    if (!('Notification' in window)) return false;
+    if (Notification.permission === 'granted') return true;
+    if (Notification.permission !== 'denied') {
+      const r = await Notification.requestPermission();
+      return r === 'granted';
+    }
+    return false;
+  };
+
+  // Load marketing settings once at mount so the reminder works across the dashboard
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await axios.get(`${API}/admin/marketing/settings`);
+        setMarketingSettings({
+          deal_text: data.deal_text ?? '',
+          deal_active: !!data.deal_active,
+          reminder_enabled: !!data.reminder_enabled,
+          reminder_hour: data.reminder_hour ?? 10
+        });
+      } catch { /* not fatal */ }
+    })();
+  }, []);
+
+  // Daily reminder: when enabled, fire a browser notification at the chosen hour
+  // (once per day, while the dashboard tab is open).
+  useEffect(() => {
+    if (!marketingSettings.reminder_enabled) return undefined;
+    if (!('Notification' in window) || Notification.permission !== 'granted') return undefined;
+
+    const tick = () => {
+      const now = new Date();
+      const lastKey = `t2t_reminder_${now.toISOString().slice(0, 10)}`;
+      if (now.getHours() === Number(marketingSettings.reminder_hour)
+          && !localStorage.getItem(lastKey)) {
+        try {
+          const n = new Notification('Text2Toss daily share reminder', {
+            body: 'Tap to open the QR & post today\'s deal to social. 📲',
+            icon: '/text2toss-icon.png',
+            tag: lastKey
+          });
+          n.onclick = () => { window.focus(); setShowQRModal(true); };
+          localStorage.setItem(lastKey, '1');
+        } catch { /* ignore */ }
+      }
+    };
+    tick();
+    const id = setInterval(tick, 60 * 1000);
+    return () => clearInterval(id);
+  }, [marketingSettings.reminder_enabled, marketingSettings.reminder_hour]);
 
   const fetchPendingQuotes = useCallback(async () => {
     try {
@@ -2971,6 +3088,115 @@ Text2Toss makes junk removal effortless — snap a photo, get an instant AI quot
                     <p className="mt-3 text-[11px] text-emerald-900/70">
                       Tip: on phones, "Share Post" opens your native share sheet so you can post directly to Instagram Stories, Reels, Messages, or any installed app.
                     </p>
+                  </div>
+
+                  {/* Share stats + deal toggle + daily reminder */}
+                  <div className="w-full mt-6 bg-gradient-to-br from-purple-50 to-fuchsia-50 rounded-xl border border-purple-200 p-5">
+                    <div className="flex items-start justify-between gap-3 mb-4">
+                      <div>
+                        <h4 className="font-bold text-purple-900 flex items-center gap-2">📈 Marketing</h4>
+                        <p className="text-xs text-purple-800/80">
+                          Track your share activity, set a deal, and schedule a daily reminder.
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <div data-testid="share-count-week" className="bg-white rounded-lg px-3 py-2 shadow-sm border border-purple-100 text-center min-w-[70px]">
+                          <div className="text-[10px] uppercase tracking-wide text-purple-600 font-semibold">This week</div>
+                          <div className="text-lg font-bold text-purple-900">{marketingStats.this_week}</div>
+                        </div>
+                        <div data-testid="share-count-total" className="bg-white rounded-lg px-3 py-2 shadow-sm border border-purple-100 text-center min-w-[70px]">
+                          <div className="text-[10px] uppercase tracking-wide text-purple-600 font-semibold">Total</div>
+                          <div className="text-lg font-bold text-purple-900">{marketingStats.total}</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Today's deal */}
+                    <div className="bg-white rounded-lg p-4 border border-purple-100 mb-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <Label htmlFor="deal-text" className="text-sm font-semibold text-purple-900">
+                          🔥 Today's Deal (added to caption)
+                        </Label>
+                        <label className="inline-flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            data-testid="deal-active-toggle"
+                            checked={marketingSettings.deal_active}
+                            onChange={(e) => setMarketingSettings({ ...marketingSettings, deal_active: e.target.checked })}
+                            className="h-4 w-4 accent-purple-600"
+                          />
+                          <span className="text-xs font-medium text-purple-700">
+                            {marketingSettings.deal_active ? 'On' : 'Off'}
+                          </span>
+                        </label>
+                      </div>
+                      <Input
+                        id="deal-text"
+                        data-testid="deal-text-input"
+                        placeholder='e.g. "$25 off any pickup this week"'
+                        maxLength={140}
+                        value={marketingSettings.deal_text}
+                        onChange={(e) => setMarketingSettings({ ...marketingSettings, deal_text: e.target.value })}
+                        className="border-purple-200 focus:border-purple-500"
+                      />
+                    </div>
+
+                    {/* Daily reminder */}
+                    <div className="bg-white rounded-lg p-4 border border-purple-100 mb-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-semibold text-purple-900">⏰ Daily share reminder</span>
+                        <label className="inline-flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            data-testid="reminder-toggle"
+                            checked={marketingSettings.reminder_enabled}
+                            onChange={async (e) => {
+                              const enabled = e.target.checked;
+                              if (enabled) {
+                                const ok = await ensureNotificationPermission();
+                                if (!ok) {
+                                  toast.error('Browser notifications are blocked. Allow them to receive reminders.');
+                                  return;
+                                }
+                              }
+                              setMarketingSettings({ ...marketingSettings, reminder_enabled: enabled });
+                            }}
+                            className="h-4 w-4 accent-purple-600"
+                          />
+                          <span className="text-xs font-medium text-purple-700">
+                            {marketingSettings.reminder_enabled ? 'Enabled' : 'Off'}
+                          </span>
+                        </label>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Label htmlFor="reminder-hour" className="text-xs text-purple-800">Remind me at</Label>
+                        <select
+                          id="reminder-hour"
+                          data-testid="reminder-hour-select"
+                          value={marketingSettings.reminder_hour}
+                          onChange={(e) => setMarketingSettings({ ...marketingSettings, reminder_hour: Number(e.target.value) })}
+                          className="border border-purple-200 rounded-md px-2 py-1 text-sm focus:outline-none focus:border-purple-500"
+                        >
+                          {Array.from({ length: 24 }, (_, h) => (
+                            <option key={h} value={h}>
+                              {h === 0 ? '12 AM' : h < 12 ? `${h} AM` : h === 12 ? '12 PM' : `${h - 12} PM`}
+                            </option>
+                          ))}
+                        </select>
+                        <span className="text-[11px] text-purple-700/80">
+                          (browser notification while dashboard is open)
+                        </span>
+                      </div>
+                    </div>
+
+                    <Button
+                      onClick={() => saveMarketingSettings(marketingSettings)}
+                      disabled={savingMarketingSettings}
+                      data-testid="save-marketing-settings-btn"
+                      className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-4 shadow-md"
+                    >
+                      {savingMarketingSettings ? 'Saving…' : '💾 Save Marketing Settings'}
+                    </Button>
                   </div>
                 </div>
 

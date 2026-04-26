@@ -3345,6 +3345,85 @@ async def health_check():
             }
         )
 
+# ===================== Marketing share tracking & settings =====================
+
+class MarketingShareEvent(BaseModel):
+    channel: str = Field(..., description="One of: native, facebook, copy, download")
+
+
+class MarketingSettings(BaseModel):
+    deal_text: str = Field("", max_length=140)
+    deal_active: bool = False
+    reminder_enabled: bool = False
+    reminder_hour: int = Field(10, ge=0, le=23)
+
+
+@api_router.post("/admin/marketing/share-event")
+async def log_marketing_share(event: MarketingShareEvent):
+    """Record a single share/copy/download event from the QR modal."""
+    allowed = {"native", "facebook", "copy", "download"}
+    if event.channel not in allowed:
+        raise HTTPException(status_code=400, detail="Invalid channel")
+    await db.marketing_shares.insert_one({
+        "id": str(uuid.uuid4()),
+        "channel": event.channel,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    return {"success": True}
+
+
+@api_router.get("/admin/marketing/stats")
+async def get_marketing_stats():
+    """Return share-event totals: this week, all time, by channel."""
+    now = datetime.now(timezone.utc)
+    week_start = (now - timedelta(days=7)).isoformat()
+    week_count = await db.marketing_shares.count_documents(
+        {"created_at": {"$gte": week_start}}
+    )
+    total_count = await db.marketing_shares.count_documents({})
+
+    pipeline = [
+        {"$group": {"_id": "$channel", "count": {"$sum": 1}}}
+    ]
+    by_channel = {}
+    async for row in db.marketing_shares.aggregate(pipeline):
+        by_channel[row["_id"]] = row["count"]
+
+    return {
+        "this_week": week_count,
+        "total": total_count,
+        "by_channel": by_channel
+    }
+
+
+@api_router.get("/admin/marketing/settings")
+async def get_marketing_settings():
+    """Get the current marketing settings (deal text + reminder)."""
+    doc = await db.marketing_settings.find_one(
+        {"_id": "singleton"}, {"_id": 0}
+    )
+    if not doc:
+        return MarketingSettings().dict()
+    # Strip any leftover Mongo fields and ensure defaults
+    return {
+        "deal_text": doc.get("deal_text", ""),
+        "deal_active": bool(doc.get("deal_active", False)),
+        "reminder_enabled": bool(doc.get("reminder_enabled", False)),
+        "reminder_hour": int(doc.get("reminder_hour", 10))
+    }
+
+
+@api_router.post("/admin/marketing/settings")
+async def save_marketing_settings(settings: MarketingSettings):
+    """Save marketing settings (upsert singleton)."""
+    await db.marketing_settings.update_one(
+        {"_id": "singleton"},
+        {"$set": settings.dict()},
+        upsert=True
+    )
+    return {"success": True, **settings.dict()}
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
