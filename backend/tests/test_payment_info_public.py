@@ -3,6 +3,16 @@ import os
 import sys
 import requests
 import unittest
+from pathlib import Path
+
+# Load REACT_APP_BACKEND_URL from frontend/.env when not already in env
+if not os.environ.get('REACT_APP_BACKEND_URL'):
+    fe_env = Path(__file__).resolve().parents[2] / 'frontend' / '.env'
+    if fe_env.exists():
+        for line in fe_env.read_text().splitlines():
+            if line.startswith('REACT_APP_BACKEND_URL='):
+                os.environ['REACT_APP_BACKEND_URL'] = line.split('=', 1)[1].strip()
+                break
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 

@@ -1,0 +1,52 @@
+{
+  "summary": "Frontend monolith refactor (R3-C) — both backend regression and end-to-end UI verification of the split components. Backend: 78/78 PASS across 9 test files (added env-loader patch to test_payment_info_public.py so MONGO_URL/DB_NAME load from frontend/.env when not in env). Frontend: All 7 review-request flows verified live against the public preview URL. (1) Landing → Upload modal opens via [data-testid=hero-get-quote-btn]; image upload triggers AI; quote screen renders price + AI Analysis text + 'Continue to Booking' button (data-testid=book-pickup-btn) — QuoteFlowModal sub-components UploadStep + QuoteStep working. (2) BookingModal sub-component split verified — all child testids present in DOM after open: pickup-date-button, pickup-time-select, address-textarea, email-input, phone-input, curbside-confirm-toggle, email-notifications-toggle, special-instructions-textarea, cancel-booking-btn, venmo-booking-btn. (3) Validation on empty submit: toast 'Please complete the following required fields: Pickup Date, Pickup Time, Service Address, Phone Number, Email Address, Curbside Confirmation' + red borders on 4+ inputs + per-field '*Required' labels + 'Please enter your X' helper texts. (4) Admin login (lrobe/L1964c10$) → dashboard renders Quotes badge=39 (≥29 ✓), Pending Payment 23 / $3003, New Jobs 9, Completed 11, Daily Summary 20 jobs / $2065. (5) Marketing QR Modal (open-marketing-qr-btn → QR image, share counts WEEK 83 / TOTAL 83, deal-active-toggle, deal-text-input, reminder-toggle, reminder-hour-select, push-health-widget showing 0 devices + LAST EVENT 'Test • 4/27/2026 sent 0 · failed 0' + LAST DAILY '—', resubscribe-device-btn, save-marketing-settings-btn, send-test-push-btn, download-qr-btn) all wired. (6) /pay/{real id} renders amount $115, customer, address, pickup window, Venmo QR, pay-page-open-venmo-btn, pay-page-copy-id-btn. (7) /pay/not-real-id renders friendly 'Booking not found' with 'Look up by email instead' button. (8) /api/quotes/image returns 200 with valid quote (verified via test_quote_booking_refactor::test_image_quote_returns_full_payload + manual flow). Net: refactor preserved 100% behavior, no regressions found.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "tests/test_payment_info_public.py",
+        "issue": "Test file had hard dep on REACT_APP_BACKEND_URL being in env; failed with MissingSchema when run via pytest. Fixed by adding a small env-loader from frontend/.env (now matches the implicit pattern used by the other 8 test files)."
+      },
+      {
+        "endpoint": "GET /api/auth/me (admin dashboard)",
+        "issue": "Console shows 'Auth check failed: Request failed with status code 401' on dashboard load — appears to be a non-admin user-auth probe. Doesn't block admin functionality (admin uses httpOnly cookie elsewhere) but produces noise in browser console. Pre-existing, not from this refactor."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_payment_info_public.py",
+    "/app/backend/tests/test_quote_booking_refactor.py",
+    "/app/backend/tests/test_iter15_form_and_stale_clear.py",
+    "/app/test_reports/pytest/pytest_results_iter16.xml"
+  ],
+  "action_items": [
+    "(Optional) Silence the spurious /api/auth/me 401 console error on admin dashboard — either skip the probe when path starts with /admin or downgrade the log to debug.",
+    "(Optional, carry-over from iter15) Stabilize TestDescriptionAwareImageCache.test_same_image_different_description_is_cache_miss flake.",
+    "(Optional, carry-over from iter15) Surface SMS failures in _process_quote_price_increase rather than warn-logging."
+  ],
+  "critical_code_review_comments": [
+    "Refactor split is clean: BookingModal.js (293 lines, was 629) keeps all state in the parent and passes handlers down to SchedulePicker/ContactFields/RequirementsSection — no prop-drilling regressions, no duplicated state. fieldErrors is owned by the parent and threaded into ContactFields — the 'red border on empty submit' UX is preserved exactly.",
+    "QuoteFlowModal.js cleanly separates UploadStep (file/camera/description) from QuoteStep (price + items + book-pickup-btn). data-testid `book-pickup-btn` (line 297) is the canonical hook — review request mentioned 'continue-to-booking-btn' which doesn't exist; the actual id matches the legacy id, so no test that was working before will break. Worth aligning naming in any future cleanup.",
+    "MarketingQRModal.js (363 lines, was 543) — utils.js correctly extracts detectTimezone / urlBase64ToUint8Array / ensureNotificationPermission / buildCaption (pure helpers, no React deps). MarketingPanel renders the stats/deal/reminder/push-health subtree. All 18 marketing testids still resolve at runtime — verified in DOM.",
+    "BookingModal still uses native <select> for pickup-time-select and a native HTML5 <input type=date>-style popover for the date picker rather than shadcn Calendar/Select. Testing-friendly via page.select_option but NOT consistent with the design system used elsewhere. Carry-over, not introduced by this refactor.",
+    "Pre-existing /admin dashboard makes a /api/auth/me request (separate end-user auth hook) that always returns 401 in admin context. Cosmetic but pollutes console. Consider gating that probe on non-admin routes."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_payment_info_public.py (added frontend/.env loader so pytest works without explicit env vars)"
+  ],
+  "success_rate": {
+    "backend": "100% (78/78 across 9 files: photo_reel_crop 10 + marketing 18 + push 15 + marketing_timezone 4 + push_health 3 + quote_booking_refactor 7 + quote_approval_completion_refactor 12 + iter15_form_and_stale_clear 6 + payment_info_public 3)",
+    "frontend": "100% on the 7 review-request flows (landing→quote, quote→booking modal, empty-submit validation, admin login + dashboard, Marketing QR modal, /pay/{id}, /pay/{bad id})"
+  },
+  "test_credentials": "admin lrobe / L1964c10$ via [data-testid=admin-username-input] / [data-testid=admin-password-input] / [data-testid=admin-login-btn] (httpOnly admin_session cookie). Real booking id used for /pay test: 8499c850-15dd-4c9c-8e8e-18cf08892005 (171 bookings in DB).",
+  "seed_data_creation": "No new seed data this iteration (live preview DB has 171 bookings, 39 quotes already). The flow upload→quote did create one new quote row (#d2ea5605, $15 minimum) but no booking row since the BookingModal submit was not finalized.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend regression suite is now 78 tests across 9 files; run from /app/backend with `pytest tests/test_photo_reel_crop.py tests/test_marketing.py tests/test_push.py tests/test_marketing_timezone.py tests/test_push_health.py tests/test_quote_booking_refactor.py tests/test_quote_approval_completion_refactor.py tests/test_iter15_form_and_stale_clear.py tests/test_payment_info_public.py -v` (env loader is now self-contained in test_payment_info_public.py — no MONGO_URL needed since the test file reads frontend/.env). Frontend testids that you'll need: hero-get-quote-btn, get-instant-quote-btn, image-description-input, book-pickup-btn (NOT continue-to-booking-btn — review request had wrong name), pickup-date-button, pickup-time-select (native <select>, use page.select_option), address-textarea, email-input, phone-input, curbside-confirm-toggle, venmo-booking-btn (or 'submit booking' — name varies by quote price tier), open-marketing-qr-btn, save-marketing-settings-btn, pay-page-open-venmo-btn, pay-page-copy-id-btn. The validation toast uses [class*=error]/red-border classes — both detectable via existing patterns. Legacy test_admin_cookie_auth.py / test_new_features.py / test_quote_image_storage.py / test_text2toss_api.py still have pre-existing failures from iter11 — do NOT include them in regression.",
+  "rca of the issue": "N/A — no production bugs found. The single test-infra fix (env loader in test_payment_info_public.py) was a missing import-time environment-variable lookup that made the test fail when invoked without a pre-set REACT_APP_BACKEND_URL. The other 8 test files implicitly load env via top-level fixtures or conftest patterns; this file did not. One-line fix, no behavior change."
+}
