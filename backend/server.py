@@ -25,6 +25,14 @@ import aiofiles
 import shutil
 from twilio.rest import Client
 
+# Register HEIC/HEIF (iPhone default) so any endpoint using PIL can decode it.
+# Safe to call once at import time — register_heif_opener is idempotent.
+try:
+    import pillow_heif
+    pillow_heif.register_heif_opener()
+except Exception:  # pragma: no cover - optional dep
+    pass
+
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

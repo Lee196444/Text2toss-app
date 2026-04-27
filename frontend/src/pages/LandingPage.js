@@ -177,25 +177,69 @@ const LandingPage = () => {
 
   const [analysisStatus, setAnalysisStatus] = useState('');
 
-  // Compress image client-side before uploading (phone photos can be 5-10MB)
+  // Compress image client-side before uploading (phone photos can be 5-10MB).
+  // Resolves to null on any failure so the caller can fall back to uploading
+  // the original file (the backend can decode HEIC/HEIF + odd formats).
   const compressImageForUpload = (file) => {
     return new Promise((resolve) => {
+      // Hard timeout — if the browser can't decode the image (e.g. HEIC on
+      // Chrome/Firefox) onload/onerror may never fire. Don't hang the UI.
+      const timeoutId = setTimeout(() => {
+        cleanup();
+        resolve(null);
+      }, 15000);
+
+      const objectUrl = URL.createObjectURL(file);
       const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const maxDim = 800;
-        let { width, height } = img;
-        if (width > maxDim || height > maxDim) {
-          const ratio = maxDim / Math.max(width, height);
-          width = Math.round(width * ratio);
-          height = Math.round(height * ratio);
-        }
-        canvas.width = width;
-        canvas.height = height;
-        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-        canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.65);
+
+      const cleanup = () => {
+        clearTimeout(timeoutId);
+        try { URL.revokeObjectURL(objectUrl); } catch (_) { /* noop */ }
       };
-      img.src = URL.createObjectURL(file);
+
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          const maxDim = 800;
+          let { width, height } = img;
+          if (!width || !height) {
+            cleanup();
+            resolve(null);
+            return;
+          }
+          if (width > maxDim || height > maxDim) {
+            const ratio = maxDim / Math.max(width, height);
+            width = Math.round(width * ratio);
+            height = Math.round(height * ratio);
+          }
+          canvas.width = width;
+          canvas.height = height;
+          canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+          canvas.toBlob(
+            (blob) => {
+              cleanup();
+              // Reject empty / failed encodes — caller will fall back
+              if (!blob || blob.size < 1024) {
+                resolve(null);
+              } else {
+                resolve(blob);
+              }
+            },
+            'image/jpeg',
+            0.65,
+          );
+        } catch (_) {
+          cleanup();
+          resolve(null);
+        }
+      };
+
+      img.onerror = () => {
+        cleanup();
+        resolve(null);
+      };
+
+      img.src = objectUrl;
     });
   };
 
@@ -219,17 +263,24 @@ const LandingPage = () => {
     }, 2000);
     
     try {
-      // Compress image client-side first (5-10MB → ~100-200KB)
+      // Compress image client-side first (5-10MB → ~100-200KB).
+      // If compression fails (HEIC, decode error, timeout) fall back to the
+      // raw file — the backend will decode + resize it.
       const compressedBlob = await compressImageForUpload(imageFile);
-      
+
       const formData = new FormData();
-      formData.append('file', compressedBlob, 'photo.jpg');
+      if (compressedBlob) {
+        formData.append('file', compressedBlob, 'photo.jpg');
+      } else {
+        formData.append('file', imageFile, imageFile.name || 'photo.jpg');
+      }
       formData.append('description', imageDescription);
 
       const response = await axios.post(`${API}/quotes/image`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
+        timeout: 60000, // 60s — covers slow networks + AI vision call
       });
       
       setQuote(response.data);
@@ -241,7 +292,16 @@ const LandingPage = () => {
       
       // Don't auto-show approval modal - let customers proceed to booking form
     } catch (error) {
-      const errorMsg = error.response?.data?.detail || "Failed to analyze image. Please try again.";
+      let errorMsg = error.response?.data?.detail;
+      if (!errorMsg) {
+        if (error.code === 'ECONNABORTED') {
+          errorMsg = "Upload timed out. Please check your connection and try again.";
+        } else if (error.message?.includes('Network')) {
+          errorMsg = "Network error. Please check your connection and try again.";
+        } else {
+          errorMsg = "Failed to analyze image. Please try again.";
+        }
+      }
       setQuoteError(errorMsg);
       toast.error(errorMsg);
     } finally {

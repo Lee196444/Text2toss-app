@@ -15,6 +15,11 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Test creds: `lrobe` / `L1964c10$` (see `/app/memory/test_credentials.md`)
 
 ## Implemented (Apr 26, 2026)
+- ✅ **BUG FIX (Apr 27): Customer "Failed to analyze image" on desktop**
+  - Root cause: `compressImageForUpload` had no `img.onerror` handler and no timeout — if the browser couldn't decode the image (HEIC, corrupt, oversized) the Promise hung silently or returned a null/empty blob, killing the upload.
+  - Fix: added `onerror` + 15s timeout, validates blob size, falls back to uploading the original file when client-side compression fails. Added 60s axios timeout + better error messages (timeout vs network vs server).
+  - Backend: registered `pillow_heif.register_heif_opener()` globally at module load so `/api/quotes/image` (and any other PIL endpoint) can decode HEIC.
+  - Verified: `curl -F file=@test.jpg /api/quotes/image` → 200 OK with quote.
 - ✅ Admin auth migrated to httpOnly cookie
 - ✅ AI quote ~25s → ~2s (Gemini 2.0 Flash + aggressive image compression)
 - ✅ React `useEffect` deps fixed; backend monoliths split (validate_pricing_logic, create_booking, calculate_ai_price)
