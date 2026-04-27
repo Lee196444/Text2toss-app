@@ -15,6 +15,12 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Test creds: `lrobe` / `L1964c10$` (see `/app/memory/test_credentials.md`)
 
 ## Implemented (Apr 26, 2026)
+- ✅ **REFACTOR (Apr 27): Frontend monoliths broken down (R3 — option C)**
+  - `BookingModal.js`: 629 → 293 lines (–53%) — extracted `BookingSuccessScreen`, `SchedulePicker`, `ContactFields`, `RequirementsSection`. State stays in parent; sub-components are pure presentational.
+  - `MarketingQRModal.js`: 543 → 363 lines (–33%) — extracted `MarketingPanel` (stats + Today's Deal + reminder + push health) and pure helpers in `marketing/utils.js`.
+  - `LandingPage.js`: 866 → 665 lines (–23%) — extracted 3-step quote modal into `pages/QuoteFlowModal.js` with internal `UploadStep` + `QuoteStep` components.
+  - `AdminDashboard.js` (1604) — already heavily refactored (3349 → 1604 in earlier iteration); diminishing returns, deferred.
+  - **Verified by `testing_agent_v3_fork` iteration_16: 78/78 backend tests pass, all 7 review-request frontend flows green, no regressions.**
 - ✅ **REFACTOR (Apr 27): Backend complexity reduction (R3)** — broke down 4 dangerous-complexity functions in `server.py`:
   - `calculate_ai_price` → split into `_request_ai_text_pricing`, `_apply_pricing_safety_adjustments`, `_ai_pricing_fallback` (complexity 12 → ~4 each)
   - `get_weekly_schedule` → split into `_resolve_week_start_end`, `_extract_pickup_date_key`, `_attach_quote_details`
