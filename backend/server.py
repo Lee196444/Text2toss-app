@@ -1591,10 +1591,18 @@ async def get_daily_schedule(date: str = None):
                 del quote["_id"]
             booking_data["quote_details"] = parse_from_mongo(quote)
             
-        # Validate Booking data structure
+        # Validate Booking data structure (skip malformed records instead of
+        # 500-ing the whole schedule — old bookings predating user_id may
+        # still be in the DB).
         clean_booking_data = {k: v for k, v in booking_data.items() if k != "quote_details"}
-        Booking(**clean_booking_data)  # Validate only
-        
+        try:
+            Booking(**clean_booking_data)  # Validate only
+        except Exception as ve:
+            logger.warning(
+                f"Skipping malformed booking {booking_data.get('id')} on daily schedule: {ve}"
+            )
+            continue
+
         result.append(booking_data)  # Return raw data instead of Pydantic object
     
     return result

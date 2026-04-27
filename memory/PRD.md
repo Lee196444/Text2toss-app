@@ -15,6 +15,12 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Test creds: `lrobe` / `L1964c10$` (see `/app/memory/test_credentials.md`)
 
 ## Implemented (Apr 26, 2026)
+- ✅ **BUG FIX (Apr 27): Admin "Quotes" / daily-schedule returning 500**
+  - Root cause: `/api/admin/daily-schedule` had a `Booking(**data)` Pydantic validation step that crashed on 32 legacy bookings missing the required `user_id` field — taking the entire schedule down with a 500 even though pending-quotes itself was fine.
+  - Fix:
+    - Wrapped the per-booking validation in `try/except` so a single malformed record is logged + skipped instead of 500-ing the whole endpoint.
+    - One-time DB backfill: `update_many({"user_id": {"$exists": False}}, {"$set": {"user_id": "anonymous"}})` — 32 records updated.
+  - Verified: daily-schedule → 20 bookings, pending-quotes → 29 quotes, admin dashboard renders cleanly via Playwright.
 - ✅ **BUG FIX (Apr 27): Email "Complete Payment Now" button broken**
   - Root cause: `_build_quote_approval_email_html` linked the button to `{backend_url}` (homepage) so customers landed on the marketing page with no way to pay after admin approval.
   - Fix:
