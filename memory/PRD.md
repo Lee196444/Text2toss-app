@@ -15,6 +15,13 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Test creds: `lrobe` / `L1964c10$` (see `/app/memory/test_credentials.md`)
 
 ## Implemented (Apr 26, 2026)
+- ✅ **BUG FIX (Apr 27): Email "Complete Payment Now" button broken**
+  - Root cause: `_build_quote_approval_email_html` linked the button to `{backend_url}` (homepage) so customers landed on the marketing page with no way to pay after admin approval.
+  - Fix:
+    - New public endpoint `GET /api/bookings/{booking_id}/payment-info` returns minimal payment data (amount, customer name, address, pickup, Venmo QR url) — auth-less, same pattern as `/customer-approval/:token` since UUIDs are unguessable.
+    - New frontend route `/pay/:bookingId` (`PayBookingPage.js`) — clean payment page with Venmo QR, deep-link "Open Venmo App", manual pay instructions + copy booking ID, friendly states for already-paid / cancelled bookings.
+    - Email button now links to `{backend_url}/pay/{booking_id}`.
+    - 3 new backend tests in `tests/test_payment_info_public.py` (all pass).
 - ✅ **BUG FIX (Apr 27): Customer "Failed to analyze image" on desktop**
   - Root cause: `compressImageForUpload` had no `img.onerror` handler and no timeout — if the browser couldn't decode the image (HEIC, corrupt, oversized) the Promise hung silently or returned a null/empty blob, killing the upload.
   - Fix: added `onerror` + 15s timeout, validates blob size, falls back to uploading the original file when client-side compression fails. Added 60s axios timeout + better error messages (timeout vs network vs server).

@@ -1440,6 +1440,40 @@ async def lookup_bookings(email: str):
     
     return result
 
+@api_router.get("/bookings/{booking_id}/payment-info")
+async def get_booking_payment_info(booking_id: str):
+    """Public endpoint: minimal payment info for the customer's pay-from-email page.
+
+    Auth-less by design — booking ids are UUIDs (unguessable) and the same
+    pattern is used for `/customer-approval/:token`. Only returns fields the
+    customer needs to complete their Venmo payment.
+    """
+    booking_doc = await db.bookings.find_one({"id": booking_id})
+    if not booking_doc:
+        raise HTTPException(status_code=404, detail="Booking not found")
+
+    quote_doc = await db.quotes.find_one({"id": booking_doc.get("quote_id")}) if booking_doc.get("quote_id") else None
+
+    # Prefer the admin-approved price if set, otherwise fall back to the original quote
+    amount_due = (
+        (quote_doc.get("approved_price") if quote_doc else None)
+        or (quote_doc.get("total_price") if quote_doc else None)
+        or 0
+    )
+
+    return {
+        "booking_id": booking_doc.get("id"),
+        "customer_name": booking_doc.get("name", "Valued Customer"),
+        "address": booking_doc.get("address"),
+        "pickup_date": booking_doc.get("pickup_date"),
+        "pickup_time": booking_doc.get("pickup_time"),
+        "amount_due": float(amount_due) if amount_due else 0,
+        "status": booking_doc.get("status"),
+        "payment_status": booking_doc.get("payment_status", "pending"),
+        "venmo_qr_url": "https://www.paypal.com/qrcodes/venmocs/9f1f97dd-23ed-4676-82b5-3fc2126def65?created=1762118921",
+    }
+
+
 @api_router.get("/bookings", response_model=List[Booking])
 async def get_bookings(token: str = None):
     user_id = await get_current_user(token) if token else "anonymous"
@@ -2419,10 +2453,13 @@ async def _send_quote_approval_decision_email(quote_id: str, quote: dict, approv
 
     customer_email = booking["email"]
     customer_name = booking.get("name", "Valued Customer")
+    booking_id = booking.get("id")
     try:
         if approval_action.action == "approve":
             approved_price = approval_action.approved_price or quote.get("total_price")
-            html = _build_quote_approval_email_html(quote, approval_action, customer_name, approved_price)
+            html = _build_quote_approval_email_html(
+                quote, approval_action, customer_name, approved_price, booking_id
+            )
             await send_email(customer_email, "✅ Your Quote Has Been Approved - Text2toss", html)
             logging.info(f"Approval email sent to {customer_email}")
         else:
@@ -2434,7 +2471,13 @@ async def _send_quote_approval_decision_email(quote_id: str, quote: dict, approv
         # Don't fail the approval process if email fails
 
 
-def _build_quote_approval_email_html(quote: dict, approval_action, customer_name: str, approved_price: float) -> str:
+def _build_quote_approval_email_html(
+    quote: dict,
+    approval_action,
+    customer_name: str,
+    approved_price: float,
+    booking_id: Optional[str] = None,
+) -> str:
     """HTML for the customer 'Quote Approved' email."""
     is_adjusted = (
         approval_action.approved_price is not None
@@ -2451,6 +2494,7 @@ def _build_quote_approval_email_html(quote: dict, approval_action, customer_name
         if approval_action.admin_notes else ""
     )
     backend_url = os.environ.get("REACT_APP_BACKEND_URL", "https://junkai-platform.emergent.host")
+    pay_url = f"{backend_url}/pay/{booking_id}" if booking_id else backend_url
     return f"""<!DOCTYPE html>
 <html>
 <head>
@@ -2487,7 +2531,7 @@ def _build_quote_approval_email_html(quote: dict, approval_action, customer_name
         <p style="margin: 10px 0;">Your quote is approved and ready for payment. Click the button below to complete your booking and confirm your pickup date.</p>
       </div>
       <div style="text-align: center; margin: 30px 0;">
-        <a href="{backend_url}" class="cta-button" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 16px 48px; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 18px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+        <a href="{pay_url}" class="cta-button" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 16px 48px; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 18px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
           💳 Complete Payment Now
         </a>
         <p style="font-size: 12px; color: #6b7280; margin-top: 15px;">Click to return to Text2toss and complete your booking</p>

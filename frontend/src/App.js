@@ -5,6 +5,7 @@ import ProtectedAdmin from "./components/ProtectedAdmin";
 import CustomerApproval from "./components/CustomerApproval";
 import BookingLookup from "./components/BookingLookup";
 import LandingPage from "./pages/LandingPage";
+import PayBookingPage from "./pages/PayBookingPage";
 import PreviewPage from "./PreviewPage";
 
 // Toast notifications - lightweight inline implementation
@@ -42,6 +43,7 @@ function App() {
           <Route path="/preview" element={<PreviewPage />} />
           <Route path="/admin" element={<ProtectedAdmin />} />
           <Route path="/customer-approval/:token" element={<CustomerApproval />} />
+          <Route path="/pay/:bookingId" element={<PayBookingPage />} />
           <Route path="/track" element={<BookingLookup />} />
         </Routes>
       </BrowserRouter>
