@@ -687,71 +687,98 @@ def _parse_ai_pricing_response(response_text: str) -> tuple[float, str, Optional
 
 
 async def calculate_ai_price(items: List[JunkItem], description: str) -> tuple[float, str, Optional[int], Optional[dict]]:
-    """Use AI to analyze junk description and provide intelligent pricing for ground level/curbside pickup only"""
-    
-    items_text = [f"- {item.quantity}x {item.name} ({item.size} size)"
-                  + (f"\n  Description: {item.description}" if item.description else "")
-                  for item in items]
+    """Use AI to analyze junk description and provide intelligent pricing.
+
+    Refactored from a 65-line/complexity-12 monolith into focused helpers:
+      - _build_ai_pricing_prompt        → prompt assembly
+      - _request_ai_text_pricing        → LLM call + parse
+      - _apply_pricing_safety_adjustments → minimum-per-item, scale alignment, floor
+      - _ai_pricing_fallback            → basic pricing when AI fails
+    """
+    items_text = [
+        f"- {item.quantity}x {item.name} ({item.size} size)"
+        + (f"\n  Description: {item.description}" if item.description else "")
+        for item in items
+    ]
     items_summary = "\n".join(items_text)
     ai_prompt = _build_text_pricing_prompt(items_summary, description)
 
     try:
-        # Initialize AI chat
-        chat = LlmChat(
-            api_key=os.environ.get('EMERGENT_LLM_KEY'),
-            session_id=f"pricing_{datetime.now().timestamp()}",
-            system_message="You are a professional junk removal pricing expert. Always respond with valid JSON only."
-        ).with_model("openai", "gpt-4o-mini")
-        
-        # Send message to AI
-        user_message = UserMessage(text=ai_prompt)
-        response = await chat.send_message(user_message)
-        
-        total_price, explanation, scale_level, breakdown = _parse_ai_pricing_response(response)
-        
-        # CRITICAL: Validate AI pricing for accuracy and consistency
-        validated_price, validated_scale = validate_pricing_logic(items, total_price, scale_level)
-        
-        # Additional safety checks for pricing accuracy
-        price_per_item = validated_price / len(items) if items else 0
-        if price_per_item < 25:  # Each item should cost at least $25 on average
-            safety_price = len(items) * 30  # $30 minimum per item
-            if safety_price > validated_price:
-                validated_price = safety_price
-                explanation += " (Safety adjustment applied - minimum $30 per item for business sustainability)"
-        
-        # Scale consistency check
-        if validated_scale != scale_level and scale_level:
-            explanation += f" (Scale adjusted from {scale_level} to {validated_scale} for pricing consistency)"
-        elif validated_price != total_price:
-            explanation += f" (Price adjusted from ${total_price:.2f} to ${validated_price:.2f} for business accuracy)"
-        
-        # Final safety check - never go below absolute minimum
-        absolute_minimum = 45.0
-        if validated_price < absolute_minimum:
-            validated_price = absolute_minimum
-            validated_scale = 3
-            explanation += f" (Applied minimum service charge of ${absolute_minimum})"
-        
-        return validated_price, explanation, validated_scale, breakdown
-        
+        total_price, explanation, scale_level, breakdown = await _request_ai_text_pricing(ai_prompt)
     except Exception as e:
         print(f"AI pricing error: {str(e)}")
-        # Fallback to basic pricing if AI fails
-        fallback_price = calculate_basic_price(items)
-        
-        # Apply business logic validation to fallback pricing too
-        validated_price, validated_scale = validate_pricing_logic(items, fallback_price, None)
-        
-        fallback_breakdown = {
-            "base_price": f"{validated_price:.2f}",
-            "volume_assessment": f"Estimated {len(items)} items",
-            "items": [{"name": item.name, "size": item.size, "estimated_cost": validated_price / len(items)} for item in items],
-            "factors": ["Ground level pickup included", "Business logic validated", "AI analysis unavailable"],
-            "additional_charges": 0,
-            "total": validated_price
-        }
-        return validated_price, "Basic pricing applied with business logic validation (AI temporarily unavailable)", validated_scale, fallback_breakdown
+        return _ai_pricing_fallback(items)
+
+    return _apply_pricing_safety_adjustments(items, total_price, scale_level, explanation, breakdown)
+
+
+async def _request_ai_text_pricing(ai_prompt: str) -> tuple[float, str, Optional[int], Optional[dict]]:
+    """Send the pricing prompt to the LLM and parse the structured response."""
+    chat = LlmChat(
+        api_key=os.environ.get('EMERGENT_LLM_KEY'),
+        session_id=f"pricing_{datetime.now().timestamp()}",
+        system_message="You are a professional junk removal pricing expert. Always respond with valid JSON only."
+    ).with_model("openai", "gpt-4o-mini")
+
+    response = await chat.send_message(UserMessage(text=ai_prompt))
+    return _parse_ai_pricing_response(response)
+
+
+def _apply_pricing_safety_adjustments(
+    items: List[JunkItem],
+    total_price: float,
+    scale_level: Optional[int],
+    explanation: str,
+    breakdown: Optional[dict],
+) -> tuple[float, str, Optional[int], Optional[dict]]:
+    """Run validated pricing through business floors + scale alignment."""
+    validated_price, validated_scale = validate_pricing_logic(items, total_price, scale_level)
+
+    # Per-item minimum so we never underprice tiny but real jobs.
+    if items and (validated_price / len(items)) < 25:
+        safety_price = len(items) * 30
+        if safety_price > validated_price:
+            validated_price = safety_price
+            explanation += " (Safety adjustment applied - minimum $30 per item for business sustainability)"
+
+    # Note any divergence between AI and validated values so the customer/admin
+    # can see why the number changed.
+    if validated_scale != scale_level and scale_level:
+        explanation += f" (Scale adjusted from {scale_level} to {validated_scale} for pricing consistency)"
+    elif validated_price != total_price:
+        explanation += f" (Price adjusted from ${total_price:.2f} to ${validated_price:.2f} for business accuracy)"
+
+    # Absolute service-call floor.
+    absolute_minimum = 45.0
+    if validated_price < absolute_minimum:
+        validated_price = absolute_minimum
+        validated_scale = 3
+        explanation += f" (Applied minimum service charge of ${absolute_minimum})"
+
+    return validated_price, explanation, validated_scale, breakdown
+
+
+def _ai_pricing_fallback(items: List[JunkItem]) -> tuple[float, str, Optional[int], Optional[dict]]:
+    """Basic deterministic pricing when the AI call fails."""
+    fallback_price = calculate_basic_price(items)
+    validated_price, validated_scale = validate_pricing_logic(items, fallback_price, None)
+    fallback_breakdown = {
+        "base_price": f"{validated_price:.2f}",
+        "volume_assessment": f"Estimated {len(items)} items",
+        "items": [
+            {"name": item.name, "size": item.size, "estimated_cost": validated_price / len(items)}
+            for item in items
+        ],
+        "factors": ["Ground level pickup included", "Business logic validated", "AI analysis unavailable"],
+        "additional_charges": 0,
+        "total": validated_price,
+    }
+    return (
+        validated_price,
+        "Basic pricing applied with business logic validation (AI temporarily unavailable)",
+        validated_scale,
+        fallback_breakdown,
+    )
 
 # Volume thresholds for basic pricing (max_volume → scale)
 VOLUME_TO_SCALE = [
@@ -1935,53 +1962,66 @@ async def check_availability_range(start_date: str, end_date: str):
 
 @api_router.patch("/admin/bookings/{booking_id}")
 async def update_booking_status(booking_id: str, status_update: dict):
-    """Update booking status and send SMS notification"""
+    """Update booking status and send SMS notification.
+
+    Refactored helpers:
+      - _build_status_update_data    → derive {status, payment_status, completed_at}
+      - _normalize_us_phone          → strip formatting + add +1
+      - _maybe_notify_status_change  → opt-in SMS dispatch
+    """
     allowed_statuses = ["scheduled", "in_progress", "completed", "cancelled"]
     new_status = status_update.get("status")
-    
     if new_status not in allowed_statuses:
         raise HTTPException(status_code=400, detail="Invalid status")
-    
-    # Get booking details first
+
     booking = await db.bookings.find_one({"id": booking_id})
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
-    
-    update_data = {"status": new_status}
-    
-    # If cancelling, also update payment_status so it's removed from pending payments
+
+    update_data = _build_status_update_data(new_status)
+    await db.bookings.update_one({"id": booking_id}, {"$set": update_data})
+
+    await _maybe_notify_status_change(booking, booking_id, new_status)
+    return {"message": "Booking status updated and customer notified"}
+
+
+def _build_status_update_data(new_status: str) -> dict:
+    """Return the $set payload for a status transition."""
+    update_data: dict = {"status": new_status}
     if new_status == "cancelled":
         update_data["payment_status"] = "cancelled"
-    
-    # If marking as completed, add completion timestamp
-    if new_status == "completed":
+    elif new_status == "completed":
         update_data["completed_at"] = datetime.now(timezone.utc).isoformat()
-    
-    await db.bookings.update_one(
-        {"id": booking_id},
-        {"$set": update_data}
-    )
-    
-    # Send SMS notification based on status
+    return update_data
+
+
+def _normalize_us_phone(raw: str) -> str:
+    """Strip pretty formatting and add +1 country code if missing."""
+    phone = raw.replace("(", "").replace(")", "").replace(" ", "").replace("-", "")
+    if phone and not phone.startswith("+"):
+        phone = "+1" + phone
+    return phone
+
+
+async def _maybe_notify_status_change(booking: dict, booking_id: str, new_status: str) -> None:
+    """Send a status-change SMS only if the customer is opted in."""
     sms_messages = {
         "in_progress": f"🚛 Text2toss Update: Your junk removal team has started working at {booking['address']}. We'll notify you when complete!",
         "completed": f"✅ Text2toss Complete: Your junk removal is finished at {booking['address']}. Thank you for choosing our service!",
-        "cancelled": f"❌ Text2toss Notice: Your junk removal appointment for {booking['address']} has been cancelled. Contact us for rescheduling."
+        "cancelled": f"❌ Text2toss Notice: Your junk removal appointment for {booking['address']} has been cancelled. Contact us for rescheduling.",
     }
-    
-    if new_status in sms_messages:
-        phone = booking.get('phone', '').replace('(', '').replace(')', '').replace(' ', '').replace('-', '')
-        if phone and not phone.startswith('+'):
-            phone = '+1' + phone  # Assume US number if no country code
-        
-        # Only send SMS if customer opted in for notifications
-        if phone and booking.get('sms_notifications', False):
-            sms_result = await send_sms(phone, sms_messages[new_status])
-            logging.info(f"SMS sent for booking {booking_id}: {sms_result}")
-        elif phone and not booking.get('sms_notifications', False):
-            logging.info(f"SMS not sent for booking {booking_id}: Customer opted out of notifications")
-    
-    return {"message": "Booking status updated and customer notified"}
+    if new_status not in sms_messages:
+        return
+
+    phone = _normalize_us_phone(booking.get("phone", ""))
+    if not phone:
+        return
+
+    if booking.get("sms_notifications", False):
+        sms_result = await send_sms(phone, sms_messages[new_status])
+        logging.info(f"SMS sent for booking {booking_id}: {sms_result}")
+    else:
+        logging.info(f"SMS not sent for booking {booking_id}: Customer opted out of notifications")
 
 @api_router.post("/admin/bookings/{booking_id}/completion")
 async def upload_completion_photo(
@@ -2727,77 +2767,83 @@ async def verify_admin_token(request: Request):
 
 @api_router.post("/admin/send-bulk-email-reminder")
 async def send_bulk_email_reminder():
-    """Send payment reminder emails to all bookings with pending payments"""
+    """Send payment reminder emails to all bookings with pending payments.
+
+    Refactored: per-booking work moved into `_send_one_payment_reminder` to
+    flatten nesting and make each step independently testable.
+    """
     try:
-        # Get all pending payment bookings
-        bookings = await db.bookings.find({
-            "payment_status": "pending"
-        }).to_list(1000)
-        
+        bookings = await db.bookings.find({"payment_status": "pending"}).to_list(1000)
         if not bookings:
             return {"success": True, "message": "No pending payments found", "sent_count": 0, "failed_count": 0}
-        
-        # OPTIMIZATION: Batch fetch all quotes to avoid N+1 query problem
-        quote_ids = [booking['quote_id'] for booking in bookings if booking.get('quote_id')]
-        quotes = []
-        if quote_ids:
-            quotes = await db.quotes.find({"id": {"$in": quote_ids}}).to_list(length=1000)
-        
-        # Create quote lookup dictionary for O(1) access
-        quote_dict = {quote['id']: quote for quote in quotes}
-        
+
+        quote_ids = [b["quote_id"] for b in bookings if b.get("quote_id")]
+        quotes = (
+            await db.quotes.find({"id": {"$in": quote_ids}}).to_list(length=1000)
+            if quote_ids else []
+        )
+        quote_dict = {q["id"]: q for q in quotes}
+
         sent_count = 0
         failed_count = 0
-        errors = []
-        
+        errors: list[str] = []
+
         for booking_doc in bookings:
-            try:
-                booking = Booking(**parse_from_mongo(booking_doc))
-                
-                # Skip if no email
-                if not booking.email:
-                    continue
-                
-                # Get quote details from pre-fetched dictionary (no database query)
-                quote_doc = quote_dict.get(booking.quote_id)
-                if not quote_doc:
-                    continue
-                
-                amount = quote_doc.get("total_price", 0)
-                venmo_qr_url = "https://www.paypal.com/qrcodes/venmocs/9f1f97dd-23ed-4676-82b5-3fc2126def65?created=1762118921"
-                
-                # Create and send email
-                if is_email_enabled():
-                    email_html = create_payment_reminder_email(
-                        booking.dict(), 
-                        amount, 
-                        booking.id,
-                        venmo_qr_url
-                    )
-                    
-                    await send_email(
-                        to_email=booking.email,
-                        subject=f"💳 Payment Reminder - Booking {booking.id[:8]}",
-                        html_content=email_html
-                    )
-                    sent_count += 1
-                    logging.info(f"Bulk payment reminder email sent to {booking.email}")
-            except Exception as e:
+            ok, err = await _send_one_payment_reminder(booking_doc, quote_dict)
+            if ok:
+                sent_count += 1
+            elif err:
                 failed_count += 1
-                errors.append(f"Booking {booking_doc.get('id', 'unknown')}: {str(e)}")
-                logging.error(f"Failed to send bulk email to {booking_doc.get('email', 'unknown')}: {str(e)}")
-        
+                errors.append(err)
+
         return {
-            "success": True, 
+            "success": True,
             "sent_count": sent_count,
             "failed_count": failed_count,
             "errors": errors if failed_count > 0 else None,
-            "message": f"Sent {sent_count} email(s), {failed_count} failed"
+            "message": f"Sent {sent_count} email(s), {failed_count} failed",
         }
-        
+
     except Exception as e:
         logger.error(f"Error sending bulk email reminders: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to send bulk emails: {str(e)}")
+
+
+async def _send_one_payment_reminder(booking_doc: dict, quote_dict: dict) -> tuple[bool, Optional[str]]:
+    """Send a payment reminder for a single booking.
+
+    Returns (sent_ok, error_string_if_failed). When the booking lacks an
+    email or quote, returns (False, None) — i.e. silently skipped, not failed.
+    """
+    try:
+        booking = Booking(**parse_from_mongo(booking_doc))
+        if not booking.email:
+            return False, None
+
+        quote_doc = quote_dict.get(booking.quote_id)
+        if not quote_doc:
+            return False, None
+
+        if not is_email_enabled():
+            return False, None
+
+        amount = quote_doc.get("total_price", 0)
+        venmo_qr_url = "https://www.paypal.com/qrcodes/venmocs/9f1f97dd-23ed-4676-82b5-3fc2126def65?created=1762118921"
+
+        email_html = create_payment_reminder_email(booking.dict(), amount, booking.id, venmo_qr_url)
+        await send_email(
+            to_email=booking.email,
+            subject=f"💳 Payment Reminder - Booking {booking.id[:8]}",
+            html_content=email_html,
+        )
+        logging.info(f"Bulk payment reminder email sent to {booking.email}")
+        return True, None
+
+    except Exception as e:
+        booking_id = booking_doc.get("id", "unknown")
+        booking_email = booking_doc.get("email", "unknown")
+        logging.error(f"Failed to send bulk email to {booking_email}: {str(e)}")
+        return False, f"Booking {booking_id}: {str(e)}"
 
 @api_router.post("/admin/send-booking-confirmation-email/{booking_id}")
 async def send_booking_confirmation_email_admin(booking_id: str):

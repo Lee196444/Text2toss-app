@@ -15,6 +15,12 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Test creds: `lrobe` / `L1964c10$` (see `/app/memory/test_credentials.md`)
 
 ## Implemented (Apr 26, 2026)
+- ✅ **REFACTOR (Apr 27): Backend complexity reduction (R3)** — broke down 4 dangerous-complexity functions in `server.py`:
+  - `calculate_ai_price` → split into `_request_ai_text_pricing`, `_apply_pricing_safety_adjustments`, `_ai_pricing_fallback` (complexity 12 → ~4 each)
+  - `get_weekly_schedule` → split into `_resolve_week_start_end`, `_extract_pickup_date_key`, `_attach_quote_details`
+  - `update_booking_status` → split into `_build_status_update_data`, `_normalize_us_phone`, `_maybe_notify_status_change`
+  - `send_bulk_email_reminder` → per-booking work moved into `_send_one_payment_reminder` (flattens nesting from 5 → 2 levels)
+  - Verified with curl smoke tests (all 4 paths green) + 44/46 existing tests pass (2 pre-existing flakes unrelated to refactor).
 - ✅ **BUG FIX (Apr 27): Admin "Quotes" / daily-schedule returning 500**
   - Root cause: `/api/admin/daily-schedule` had a `Booking(**data)` Pydantic validation step that crashed on 32 legacy bookings missing the required `user_id` field — taking the entire schedule down with a 500 even though pending-quotes itself was fine.
   - Fix:
