@@ -5,6 +5,7 @@ import { Input } from '../components/ui/input';
 import { Badge } from '../components/ui/badge';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import BookingJourneyProgress from './customer/BookingJourneyProgress';
 
 const API = process.env.REACT_APP_BACKEND_URL + '/api';
 
@@ -120,7 +121,13 @@ export default function BookingLookup() {
                           <Badge className={`${status.color} border text-xs font-semibold`}>{status.label}</Badge>
                         </div>
                       </CardHeader>
-                      <CardContent className="pt-0">
+                      <CardContent className="pt-0 space-y-4">
+                        <BookingJourneyProgress
+                          status={booking.status}
+                          paymentStatus={booking.payment_status}
+                          approvalStatus={booking.quote_details?.approval_status}
+                          compact
+                        />
                         <div className="grid grid-cols-2 gap-3 text-sm">
                           <div>
                             <span className="text-gray-400">Address</span>

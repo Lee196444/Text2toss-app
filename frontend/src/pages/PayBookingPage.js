@@ -4,6 +4,7 @@ import axios from "axios";
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { toast } from "../lib/toast";
+import BookingJourneyProgress from "../components/customer/BookingJourneyProgress";
 
 const API = process.env.REACT_APP_BACKEND_URL + "/api";
 
@@ -118,6 +119,14 @@ export default function PayBookingPage() {
 
         {!loading && !error && info && (
           <>
+            {/* Journey progress (shown for all states except 404) */}
+            <div className="mb-4">
+              <BookingJourneyProgress
+                status={info.status}
+                paymentStatus={info.payment_status}
+              />
+            </div>
+
             {/* Already paid */}
             {info.payment_status === "paid" && (
               <Card className="border border-emerald-200 bg-emerald-50">

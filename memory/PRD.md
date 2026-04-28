@@ -15,6 +15,13 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Test creds: `lrobe` / `L1964c10$` (see `/app/memory/test_credentials.md`)
 
 ## Implemented (Apr 26, 2026)
+- ✅ **UX (Apr 27): "Quote → Book → Pay → Pickup" journey progress indicator**
+  - New `components/customer/BookingJourneyProgress.js` — 4-stage horizontal stepper with live percent (10/25/50/90/100), checkmarks for done stages, pulsing ring on active stage, gradient progress bar, plus a contextual headline ("Halfway there!", "Almost there!", etc.).
+  - Wired into:
+    - `/pay/{bookingId}` page — full-size widget at top so customers see exactly where they are when they click the email button.
+    - `/track` page (`BookingLookup`) — compact widget on every result card so customers can scan multiple bookings at once.
+  - Logic correctly handles edge case: a booking with `status=scheduled` but `payment_status=pending` shows 50% (Pay) not 90% (Pickup) — money owed always blocks at Pay regardless of scheduling.
+  - Verified live: `/pay/8499c850...` → 50% Halfway there!; `/track` for `64robertson@gmail.com` → 15 bookings each rendering the right percent.
 - ✅ **UX UPGRADE (Apr 27): Multi-step "AI is reviewing your photo" progress overlay**
   - New component `components/customer/QuoteAnalyzingProgress.js` — 5-step animated progress (Inspecting → Identifying → Estimating → Pricing → Finalizing) with rotating tips and live progress bar.
   - **Real values populate as steps complete:** `3 items`, `~98 cu ft`, `$115` badges (not just decorative — pulled from the actual API response).
