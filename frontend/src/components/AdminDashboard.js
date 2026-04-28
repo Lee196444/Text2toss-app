@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import axios from "axios";
+import axiosBase from "axios";
 import { GoogleMap, Marker, DirectionsRenderer, useJsApiLoader } from '@react-google-maps/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
@@ -21,8 +21,12 @@ import { toast } from "../lib/toast";
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// All admin API calls send the httpOnly session cookie automatically
-axios.defaults.withCredentials = true;
+// Local axios instance — admin requests need the httpOnly admin_session
+// cookie. Using a per-module instance instead of `axios.defaults` so we
+// DON'T pollute customer-side requests with credentials (which would force
+// a CORS preflight whose `Access-Control-Allow-Origin: *` response is
+// rejected by browsers when credentials are present — see CORS spec).
+const axios = axiosBase.create({ withCredentials: true });
 
 const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || ""; // Set this in .env file
 

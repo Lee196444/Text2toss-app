@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axiosBase from "axios";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { toast } from "../../lib/toast";
@@ -14,7 +14,10 @@ import {
 } from "./utils";
 import MarketingPanel from "./MarketingPanel";
 
-axios.defaults.withCredentials = true;
+// Local axios instance with credentials — see AdminDashboard.js for why
+// we avoid `axios.defaults.withCredentials = true` (it pollutes customer
+// requests and breaks CORS on custom domains).
+const axios = axiosBase.create({ withCredentials: true });
 
 const MarketingQRModal = ({ open, onClose }) => {
   const [stats, setStats] = useState({ this_week: 0, total: 0, by_channel: {} });

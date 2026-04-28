@@ -3728,13 +3728,27 @@ async def root_health_check():
     except Exception as e:
         return JSONResponse(status_code=503, content={"status": "unhealthy", "error": str(e)})
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# CORS:
+# Browsers REJECT `Access-Control-Allow-Origin: *` whenever the request
+# carries credentials (cookies, Authorization). Admin auth uses an httpOnly
+# cookie, so we MUST echo a specific origin back. We use `allow_origin_regex`
+# (matches any origin) which makes Starlette echo the caller's Origin header
+# instead of returning the literal "*". This keeps the API public while still
+# being credential-safe for admin requests from custom domains
+# (e.g. text2toss.com) and any preview/staging URLs.
+_cors_env = os.environ.get('CORS_ORIGINS', '*').strip()
+_cors_kwargs = {
+    "allow_credentials": True,
+    "allow_methods": ["*"],
+    "allow_headers": ["*"],
+}
+if _cors_env in ('', '*'):
+    _cors_kwargs["allow_origin_regex"] = ".*"
+    _cors_kwargs["allow_origins"] = []
+else:
+    _cors_kwargs["allow_origins"] = [o.strip() for o in _cors_env.split(',') if o.strip()]
+
+app.add_middleware(CORSMiddleware, **_cors_kwargs)
 
 # Configure logging
 logging.basicConfig(
