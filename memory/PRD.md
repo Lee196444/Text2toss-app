@@ -15,6 +15,12 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Test creds: `lrobe` / `L1964c10$` (see `/app/memory/test_credentials.md`)
 
 ## Implemented (Apr 26, 2026)
+- ✅ **UPGRADE (Apr 27): AI quoting model swap to OpenAI `gpt-5-mini`**
+  - Image vision: `gemini-2.0-flash` → `gpt-5-mini` (better item detection — verified on synthetic test image: identified 3/3 items correctly: couch, dresser, bag, scale 6, $114)
+  - Text fallback pricing: `gpt-4o-mini` → `gpt-5-mini`
+  - Code change: switched `FileContentWithMimeType` (file path, Gemini-only) to `ImageContent(image_base64=...)` for OpenAI vision compatibility — read JPEG once and base64-encode in-memory.
+  - Latency note: cold image call ~28s (vs gemini's ~1-2s). Cache hits remain ~1s thanks to existing description-aware SHA-256 cache.
+  - 40/40 backend regression tests pass.
 - ✅ **REFACTOR (Apr 27): Frontend monoliths broken down (R3 — option C)**
   - `BookingModal.js`: 629 → 293 lines (–53%) — extracted `BookingSuccessScreen`, `SchedulePicker`, `ContactFields`, `RequirementsSection`. State stays in parent; sub-components are pure presentational.
   - `MarketingQRModal.js`: 543 → 363 lines (–33%) — extracted `MarketingPanel` (stats + Today's Deal + reminder + push health) and pure helpers in `marketing/utils.js`.

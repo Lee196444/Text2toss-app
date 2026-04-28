@@ -16,7 +16,7 @@ from datetime import datetime, timezone, date, time, timedelta
 import hashlib
 import jwt
 from passlib.context import CryptContext
-from emergentintegrations.llm.chat import LlmChat, UserMessage, FileContentWithMimeType
+from emergentintegrations.llm.chat import LlmChat, UserMessage, FileContentWithMimeType, ImageContent
 import json
 import secrets
 import re
@@ -718,7 +718,7 @@ async def _request_ai_text_pricing(ai_prompt: str) -> tuple[float, str, Optional
         api_key=os.environ.get('EMERGENT_LLM_KEY'),
         session_id=f"pricing_{datetime.now().timestamp()}",
         system_message="You are a professional junk removal pricing expert. Always respond with valid JSON only."
-    ).with_model("openai", "gpt-4o-mini")
+    ).with_model("openai", "gpt-5-mini")
 
     response = await chat.send_message(UserMessage(text=ai_prompt))
     return _parse_ai_pricing_response(response)
@@ -911,15 +911,24 @@ def _build_vision_prompt(description: str) -> str:
 
 
 async def _request_ai_vision_quote(compressed_path: str, description: str, image_hash: str, t0: float) -> str:
-    """Send compressed image + prompt to Gemini and return the raw text response."""
+    """Send compressed image + prompt to OpenAI gpt-5-mini and return the raw text response.
+
+    Note: OpenAI vision requires base64-encoded images (Gemini accepts file paths,
+    OpenAI does not). We read the compressed JPEG once and pass it via
+    ImageContent(image_base64=...).
+    """
     import time as _time
-    image_file = FileContentWithMimeType(file_path=compressed_path, mime_type="image/jpeg")
+
+    with open(compressed_path, "rb") as fh:
+        image_b64 = base64.b64encode(fh.read()).decode("utf-8")
+
+    image_content = ImageContent(image_base64=image_b64)
     chat = LlmChat(
         api_key=os.environ.get("EMERGENT_LLM_KEY"),
         session_id=f"vision_{image_hash}",
         system_message="Junk removal pricing expert. Respond with valid JSON only."
-    ).with_model("gemini", "gemini-2.0-flash")
-    user_message = UserMessage(text=_build_vision_prompt(description), file_contents=[image_file])
+    ).with_model("openai", "gpt-5-mini")
+    user_message = UserMessage(text=_build_vision_prompt(description), file_contents=[image_content])
     t_ai = _time.monotonic()
     response = await chat.send_message(user_message)
     logger.info(f"AI response in {_time.monotonic()-t_ai:.1f}s (total {_time.monotonic()-t0:.1f}s)")
