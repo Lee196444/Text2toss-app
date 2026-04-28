@@ -902,7 +902,7 @@ def _build_vision_prompt(description: str) -> str:
         "Rules: Identify all items. Estimate total cubic feet. Overestimate 15-20%. Heavy items +20%.\n\n"
         'JSON only:\n'
         '{"items":[{"name":"item","quantity":1,"size":"small/medium/large","description":"brief"}],'
-        '"total_price":150.00,"scale_level":5,'
+        '"total_price":150.00,"scale_level":5,"cubic_feet":62,'
         '"breakdown":{"base_price":"140.00","volume_assessment":"Medium load",'
         '"items":[{"name":"Table","size":"large","estimated_cost":80.00}],'
         '"factors":["Ground level"],"additional_charges":10.00,"total":150.00},'
@@ -911,24 +911,21 @@ def _build_vision_prompt(description: str) -> str:
 
 
 async def _request_ai_vision_quote(compressed_path: str, description: str, image_hash: str, t0: float) -> str:
-    """Send compressed image + prompt to OpenAI gpt-5-mini and return the raw text response.
+    """Send compressed image + prompt to Gemini Flash and return the raw text response.
 
-    Note: OpenAI vision requires base64-encoded images (Gemini accepts file paths,
-    OpenAI does not). We read the compressed JPEG once and pass it via
-    ImageContent(image_base64=...).
+    Using `gemini-3-flash-preview` (newer than 2.0-flash, similar low latency
+    ~1-2s) instead of OpenAI vision to keep customer wait times short. Gemini
+    accepts file paths directly via FileContentWithMimeType, so no base64
+    pre-encoding needed.
     """
     import time as _time
-
-    with open(compressed_path, "rb") as fh:
-        image_b64 = base64.b64encode(fh.read()).decode("utf-8")
-
-    image_content = ImageContent(image_base64=image_b64)
+    image_file = FileContentWithMimeType(file_path=compressed_path, mime_type="image/jpeg")
     chat = LlmChat(
         api_key=os.environ.get("EMERGENT_LLM_KEY"),
         session_id=f"vision_{image_hash}",
         system_message="Junk removal pricing expert. Respond with valid JSON only."
-    ).with_model("openai", "gpt-5-mini")
-    user_message = UserMessage(text=_build_vision_prompt(description), file_contents=[image_content])
+    ).with_model("gemini", "gemini-3-flash-preview")
+    user_message = UserMessage(text=_build_vision_prompt(description), file_contents=[image_file])
     t_ai = _time.monotonic()
     response = await chat.send_message(user_message)
     logger.info(f"AI response in {_time.monotonic()-t_ai:.1f}s (total {_time.monotonic()-t0:.1f}s)")
@@ -936,7 +933,8 @@ async def _request_ai_vision_quote(compressed_path: str, description: str, image
 
 
 def _parse_ai_quote_response(response_text: str):
-    """Extract JSON, build JunkItems, return the 5-tuple."""
+    """Extract JSON, build JunkItems, return the 5-tuple. Cubic feet is
+    returned via the `breakdown` dict so the API response shape stays stable."""
     json_match = re.search(r"\{.*\}", response_text, re.DOTALL)
     if json_match:
         response_text = json_match.group(0)
@@ -954,7 +952,15 @@ def _parse_ai_quote_response(response_text: str):
     total_price = float(analysis_data.get("total_price", 0))
     explanation = analysis_data.get("explanation", "AI vision analysis of uploaded image")
     scale_level = analysis_data.get("scale_level")
-    breakdown = analysis_data.get("breakdown")
+    breakdown = analysis_data.get("breakdown") or {}
+    # Surface cubic feet on the breakdown so the customer's progress UI can
+    # show it. Tolerate either string or number from the model.
+    cubic_feet = analysis_data.get("cubic_feet")
+    if cubic_feet is not None and "cubic_feet" not in breakdown:
+        try:
+            breakdown["cubic_feet"] = float(cubic_feet)
+        except (TypeError, ValueError):
+            pass
     return items, total_price, explanation, scale_level, breakdown
 
 

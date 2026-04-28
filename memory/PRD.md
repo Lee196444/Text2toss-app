@@ -15,7 +15,14 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Test creds: `lrobe` / `L1964c10$` (see `/app/memory/test_credentials.md`)
 
 ## Implemented (Apr 26, 2026)
-- ✅ **UPGRADE (Apr 27): AI quoting model swap to OpenAI `gpt-5-mini`**
+- ✅ **UX UPGRADE (Apr 27): Multi-step "AI is reviewing your photo" progress overlay**
+  - New component `components/customer/QuoteAnalyzingProgress.js` — 5-step animated progress (Inspecting → Identifying → Estimating → Pricing → Finalizing) with rotating tips and live progress bar.
+  - **Real values populate as steps complete:** `3 items`, `~98 cu ft`, `$115` badges (not just decorative — pulled from the actual API response).
+  - Backend prompt updated to include `cubic_feet` field; parser surfaces it via `breakdown.cubic_feet`.
+  - **Image vision reverted to `gemini-3-flash-preview`** (newer than 2.0, ~3s vs gpt-5-mini's 28s). Text fallback stays on `gpt-5-mini` (still an upgrade from gpt-4o-mini).
+  - Removed previous flat "Analyzing..." spinner — now overlay sits above QuoteFlowModal during the AI call.
+  - 22/22 backend tests pass; e2e verified via Playwright (couch+dresser+bag → 3 items, 98 cu ft, $115 → quote screen).
+- ✅ **UPGRADE (Apr 27): AI quoting model swap to OpenAI `gpt-5-mini`** *(superseded for vision — kept for text fallback only)*
   - Image vision: `gemini-2.0-flash` → `gpt-5-mini` (better item detection — verified on synthetic test image: identified 3/3 items correctly: couch, dresser, bag, scale 6, $114)
   - Text fallback pricing: `gpt-4o-mini` → `gpt-5-mini`
   - Code change: switched `FileContentWithMimeType` (file path, Gemini-only) to `ImageContent(image_base64=...)` for OpenAI vision compatibility — read JPEG once and base64-encode in-memory.

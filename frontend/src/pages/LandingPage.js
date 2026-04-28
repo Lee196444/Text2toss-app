@@ -8,6 +8,7 @@ import { Textarea } from "../components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Badge } from "../components/ui/badge";
 import PhotoCarousel from "../components/customer/PhotoCarousel";
+import QuoteAnalyzingProgress from "../components/customer/QuoteAnalyzingProgress";
 import BookingModal from "../components/booking/BookingModal";
 import VenmoPaymentModal from "../components/booking/VenmoPaymentModal";
 import QuoteFlowModal from "./QuoteFlowModal";
@@ -28,6 +29,11 @@ const LandingPage = () => {
   const [imageFile, setImageFile] = useState(null);
   const [imageDescription, setImageDescription] = useState("");
   const [imageAnalyzing, setImageAnalyzing] = useState(false);
+  // While analyzing: holds the resolved quote / error so the progress overlay
+  // can populate real values (item count, cubic ft, price) on the relevant
+  // steps before transitioning the customer to the quote screen.
+  const [pendingQuote, setPendingQuote] = useState(null);
+  const [analyzeError, setAnalyzeError] = useState(null);
   const [imageAnalyzed, setImageAnalyzed] = useState(false);
   const [quoteRecalculating, setQuoteRecalculating] = useState(false);
   const [quoteLoading, setQuoteLoading] = useState(false);
@@ -252,17 +258,10 @@ const LandingPage = () => {
     }
 
     setImageAnalyzing(true);
+    setPendingQuote(null);
+    setAnalyzeError(null);
     setQuoteError('');
-    
-    // Cycle through status messages faster since upload is now quicker
-    const messages = ['Compressing photo...', 'Analyzing items...', 'Calculating price...'];
-    let i = 0;
-    setAnalysisStatus(messages[0]);
-    const statusInterval = setInterval(() => {
-      i = Math.min(i + 1, messages.length - 1);
-      setAnalysisStatus(messages[i]);
-    }, 2000);
-    
+
     try {
       // Compress image client-side first (5-10MB → ~100-200KB).
       // If compression fails (HEIC, decode error, timeout) fall back to the
@@ -283,15 +282,10 @@ const LandingPage = () => {
         },
         timeout: 60000, // 60s — covers slow networks + AI vision call
       });
-      
-      setQuote(response.data);
-      // Also populate the items list from AI analysis
-      setItems(response.data.items);
-      setImageAnalyzed(true);
-      setQuoteStep(2); // Move to quote display step
-      toast.success("Quote generated successfully!");
-      
-      // Don't auto-show approval modal - let customers proceed to booking form
+
+      // Hand the response to the progress overlay; it will animate the
+      // remaining steps and call onDone when ready to advance.
+      setPendingQuote(response.data);
     } catch (error) {
       let errorMsg = error.response?.data?.detail;
       if (!errorMsg) {
@@ -303,13 +297,27 @@ const LandingPage = () => {
           errorMsg = "Failed to analyze image. Please try again.";
         }
       }
-      setQuoteError(errorMsg);
-      toast.error(errorMsg);
-    } finally {
-      clearInterval(statusInterval);
-      setAnalysisStatus('');
-      setImageAnalyzing(false);
+      setAnalyzeError(errorMsg);
     }
+  };
+
+  // Called by QuoteAnalyzingProgress when its animation finishes (or when an
+  // error has been surfaced). Advances the wizard to step 2 on success, or
+  // surfaces the error inline on the upload step.
+  const handleAnalyzeOverlayDone = () => {
+    if (pendingQuote) {
+      setQuote(pendingQuote);
+      setItems(pendingQuote.items);
+      setImageAnalyzed(true);
+      setQuoteStep(2);
+      toast.success("Quote generated successfully!");
+    } else if (analyzeError) {
+      setQuoteError(analyzeError);
+      toast.error(analyzeError);
+    }
+    setPendingQuote(null);
+    setAnalyzeError(null);
+    setImageAnalyzing(false);
   };
 
   const getQuote = async () => {
@@ -577,6 +585,15 @@ const LandingPage = () => {
           onCancel={() => { setShowQuote(false); setQuoteStep(1); setImageFile(null); setUploadedImage(null); setQuoteError(''); setImageDescription(''); }}
           onContinueToBooking={() => { setShowBooking(true); setShowQuote(false); }}
           onCloseAfterQuote={() => { setShowQuote(false); setQuoteStep(1); setQuote(null); setImageFile(null); setUploadedImage(null); setImageDescription(''); }}
+        />
+      )}
+
+      {/* AI Analyzing Progress Overlay (sits ABOVE the quote modal while the AI request is in flight) */}
+      {imageAnalyzing && (
+        <QuoteAnalyzingProgress
+          quote={pendingQuote}
+          error={analyzeError}
+          onDone={handleAnalyzeOverlayDone}
         />
       )}
 
