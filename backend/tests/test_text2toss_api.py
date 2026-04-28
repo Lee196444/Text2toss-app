@@ -6,7 +6,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://quote-status-pending.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://booking-tracker-pro-1.preview.emergentagent.com')
 API_URL = f"{BASE_URL.rstrip('/')}/api"
 
 # Admin credentials - read from environment

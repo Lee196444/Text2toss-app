@@ -1,0 +1,33 @@
+# Code Review Ignore Configuration
+# ==================================
+# This file documents categories of automated code-review findings that are
+# considered FALSE POSITIVES for this codebase. Tooling and human reviewers
+# should skip or down-weight these patterns. See CODE_REVIEW_FAQ.md for
+# detailed rationale and examples.
+#
+# Format: one rule per line, free-form. Lines starting with "#" are comments.
+
+# --- Python false positives ---
+python:identity-comparison-antipattern        # `x is None` / `x is not None` are idiomatic and correct
+python:none-comparison                        # PEP 8 explicitly recommends `is None` over `== None`
+python:bare-return                            # `return` (no value) is intentional for early-exit guards
+python:broad-exception-catch:logged           # `except Exception` blocks that log + return safe default are intentional
+python:fastapi-dependency-injection           # `Depends(...)` default args are FastAPI convention, not a mutable default
+
+# --- React / JavaScript false positives ---
+react:stale-closure-risk:stable-deps          # Stable refs/setters intentionally omitted from useEffect/useCallback deps
+react:exhaustive-deps:intentional-omission    # Mount-only effects ([]) and setter-only deps are deliberate
+react:inline-arrow-in-jsx                     # Inline handlers are acceptable in this codebase
+react:hook-deps:setState-stable               # React guarantees setState identity is stable; not required in deps
+
+# --- General false positives ---
+general:cyclomatic-complexity:domain-logic    # Pricing / quoting state machines are inherently branchy by design
+general:long-function:email-template          # HTML email builders are linear and intentionally verbose
+general:magic-number:pricing-tier             # Pricing thresholds (e.g., 50, 150, 250) are product constants
+
+# --- Paths to skip entirely ---
+path:/app/frontend/src/components/ui/         # Vendored shadcn/ui components — do not modify
+path:/app/backend/templates/email_templates.py # Long-by-design HTML strings
+path:/app/frontend/build/                     # Build artefacts
+path:/app/node_modules/
+path:/app/backend/__pycache__/

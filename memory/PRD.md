@@ -15,6 +15,10 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Test creds: `lrobe` / `L1964c10$` (see `/app/memory/test_credentials.md`)
 
 ## Implemented (Apr 26, 2026)
+- ✅ **DOCS (Feb 2026): Code Review Noise Suppression (P1)**
+  - Added `/app/.codereviewignore` listing rule keys + paths to skip (Python `is None`, React stable-deps, FastAPI `Depends`, pricing magic numbers, email templates path, vendored shadcn/ui).
+  - Added `/app/CODE_REVIEW_FAQ.md` documenting **7 categories** of recurring false positives with rationale and code examples (PEP 8 reference, infinite-loop warning for adding stable React deps, etc.).
+  - Future automated review reports should cross-reference the FAQ before any "fix" is applied — these patterns must NOT be changed.
 - ✅ **REFACTOR (Apr 27): R6 — 5 real fixes (skipped 4 false-positive categories)**
   - **Frontend nested ternary cleanup:**
     - `admin/AllJobsModal.js`: extracted `STATUS_BORDER`/`STATUS_BADGE`/`STATUS_ICON` lookup objects (replaces 3 chained ternaries / 6 reported lines).
