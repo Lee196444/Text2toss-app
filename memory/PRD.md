@@ -15,6 +15,13 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Test creds: `lrobe` / `L1964c10$` (see `/app/memory/test_credentials.md`)
 
 ## Implemented (Apr 26, 2026)
+- ✅ **REFACTOR (Apr 27): R4 — frontend complexity + nested ternary cleanup (B + C)**
+  - **C: Nested ternary cleanup** — extracted `stepRowClass`/`stepLabelClass`/`StepStatusIcon` helpers in `QuoteAnalyzingProgress.js`, and `stageDotClass`/`stageLabelClass` helpers in `BookingJourneyProgress.js`. JSX is now flat.
+  - **B: Frontend monolith refactor** —
+    - `AvailabilityCalendar.js`: 255 → 128 lines (–50%) — extracted `availability/CalendarDayCell.js`, `CalendarLegend.js`, `calendarHelpers.js` (pure date-string helpers + getDateStatus).
+    - `CustomerApproval.js`: 284 → 111 lines (–61%) — extracted `approval/ApprovalStatusViews.js` (Loading/Error/Submitted), `PriceAdjustmentCard.js`, `JobDetailsCard.js`, `ApprovalActions.js`.
+  - Verified: 22/22 regression tests pass, lint clean, smoke screenshot of quote modal looks correct, no behavior changes.
+  - Skipped R4 false positives (same as R1/R2/R3): React hook deps, Python `is None`, intentional empty catches, valid `console.error` in catch blocks.
 - ✅ **UX (Apr 27): "Quote → Book → Pay → Pickup" journey progress indicator**
   - New `components/customer/BookingJourneyProgress.js` — 4-stage horizontal stepper with live percent (10/25/50/90/100), checkmarks for done stages, pulsing ring on active stage, gradient progress bar, plus a contextual headline ("Halfway there!", "Almost there!", etc.).
   - Wired into:

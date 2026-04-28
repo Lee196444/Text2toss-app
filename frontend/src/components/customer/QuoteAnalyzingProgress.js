@@ -35,6 +35,47 @@ const TIPS = [
   "Booked Mon-Thu? Your slot is usually confirmed within 24 hours.",
 ];
 
+// Status helpers — keep classNames + visuals out of the JSX where they
+// were nested 2-3 ternaries deep.
+const stepRowClass = ({ isDone, isActive }) => {
+  const base = "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300";
+  if (isActive) return `${base} bg-emerald-50 border border-emerald-200 shadow-sm`;
+  if (isDone) return `${base} bg-white`;
+  return `${base} bg-gray-50/50`;
+};
+
+const stepLabelClass = ({ isDone, isActive }) => {
+  const base = "flex-1 text-sm font-medium transition-colors";
+  if (isActive) return `${base} text-emerald-900`;
+  if (isDone) return `${base} text-gray-700`;
+  return `${base} text-gray-400`;
+};
+
+function StepStatusIcon({ isDone, isActive, icon }) {
+  if (isDone) {
+    return (
+      <div className="w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-sm">
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+    );
+  }
+  if (isActive) {
+    return (
+      <div className="relative">
+        <div className="w-7 h-7 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin"></div>
+        <span className="absolute inset-0 flex items-center justify-center text-base">{icon}</span>
+      </div>
+    );
+  }
+  return (
+    <div className="w-7 h-7 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center text-sm">
+      {icon}
+    </div>
+  );
+}
+
 export default function QuoteAnalyzingProgress({ quote, error, onDone }) {
   const [activeIdx, setActiveIdx] = useState(0);
   const [tipIdx, setTipIdx] = useState(0);
@@ -138,42 +179,13 @@ export default function QuoteAnalyzingProgress({ quote, error, onDone }) {
                 <li
                   key={id}
                   data-testid={`analyze-step-${id}`}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${
-                    isActive
-                      ? "bg-emerald-50 border border-emerald-200 shadow-sm"
-                      : isDone
-                      ? "bg-white"
-                      : "bg-gray-50/50"
-                  }`}
+                  className={stepRowClass({ isDone, isActive })}
                 >
                   <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center">
-                    {isDone ? (
-                      <div className="w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-sm">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                    ) : isActive ? (
-                      <div className="relative">
-                        <div className="w-7 h-7 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin"></div>
-                        <span className="absolute inset-0 flex items-center justify-center text-base">{step.icon}</span>
-                      </div>
-                    ) : (
-                      <div className="w-7 h-7 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center text-sm">
-                        {step.icon}
-                      </div>
-                    )}
+                    <StepStatusIcon isDone={isDone} isActive={isActive} icon={step.icon} />
                   </div>
 
-                  <span
-                    className={`flex-1 text-sm font-medium transition-colors ${
-                      isActive
-                        ? "text-emerald-900"
-                        : isDone
-                        ? "text-gray-700"
-                        : "text-gray-400"
-                    }`}
-                  >
+                  <span className={stepLabelClass({ isDone, isActive })}>
                     {step.label}
                     {isActive && <span className="ml-1 inline-block animate-pulse">…</span>}
                   </span>

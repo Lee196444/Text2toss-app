@@ -57,6 +57,25 @@ function summaryFor(prog) {
   return { headline: "Quote received", sub: "Continue to booking when you're ready." };
 }
 
+// Visual state helpers — flatten 3-deep ternary chains in the JSX.
+const stageDotClass = ({ cancelled, isDone, isComplete, isActive, compact }) => {
+  const size = compact ? "w-8 h-8 text-xs" : "w-9 h-9 text-sm";
+  const base = `relative z-10 ${size} rounded-full border-2 flex items-center justify-center font-bold transition-colors`;
+  if (cancelled) return `${base} bg-gray-100 border-gray-200 text-gray-400`;
+  if (isDone || isComplete) return `${base} bg-emerald-500 border-emerald-500 text-white shadow-sm`;
+  if (isActive) return `${base} bg-white border-emerald-500 text-emerald-600 ring-4 ring-emerald-100`;
+  return `${base} bg-white border-gray-200 text-gray-300`;
+};
+
+const stageLabelClass = ({ cancelled, isDone, isComplete, isActive, compact }) => {
+  const size = compact ? "text-[10px]" : "text-xs";
+  const base = `mt-2 ${size} font-semibold transition-colors`;
+  if (cancelled) return `${base} text-gray-400`;
+  if (isDone || isComplete) return `${base} text-emerald-700`;
+  if (isActive) return `${base} text-emerald-900`;
+  return `${base} text-gray-400`;
+};
+
 export default function BookingJourneyProgress({
   status,
   paymentStatus,
@@ -109,23 +128,14 @@ export default function BookingJourneyProgress({
             const isDone = idx < prog.completedThrough && !prog.cancelled;
             const isActive = idx === prog.currentIdx && !prog.cancelled && prog.percent < 100;
             const isComplete = prog.percent >= 100 && idx === 3;
+            const dotProps = { cancelled: prog.cancelled, isDone, isComplete, isActive, compact };
             return (
               <div
                 key={stage.id}
                 className="flex flex-col items-center"
                 data-testid={`journey-stage-${stage.id}`}
               >
-                <div
-                  className={`relative z-10 ${compact ? "w-8 h-8 text-xs" : "w-9 h-9 text-sm"} rounded-full border-2 flex items-center justify-center font-bold transition-colors ${
-                    prog.cancelled
-                      ? "bg-gray-100 border-gray-200 text-gray-400"
-                      : isDone || isComplete
-                      ? "bg-emerald-500 border-emerald-500 text-white shadow-sm"
-                      : isActive
-                      ? "bg-white border-emerald-500 text-emerald-600 ring-4 ring-emerald-100"
-                      : "bg-white border-gray-200 text-gray-300"
-                  }`}
-                >
+                <div className={stageDotClass(dotProps)}>
                   {isDone || isComplete ? (
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
@@ -138,17 +148,7 @@ export default function BookingJourneyProgress({
                     <span className="absolute inset-0 rounded-full border-2 border-emerald-400 animate-ping opacity-50"></span>
                   )}
                 </div>
-                <span
-                  className={`mt-2 ${compact ? "text-[10px]" : "text-xs"} font-semibold transition-colors ${
-                    prog.cancelled
-                      ? "text-gray-400"
-                      : isDone || isComplete
-                      ? "text-emerald-700"
-                      : isActive
-                      ? "text-emerald-900"
-                      : "text-gray-400"
-                  }`}
-                >
+                <span className={stageLabelClass(dotProps)}>
                   {stage.label}
                 </span>
               </div>
