@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -10,6 +10,17 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const BinModal = ({ open, selectedBin, binBookings, jobs, formatPrice, formatTime, closeBin, startRoute, notifyCustomer, updateBookingStatus, handleCompleteWithPhoto, handleViewCustomerPhoto, testSmsPhoto }) => {
+  // Sort on a *copy* (previous code mutated the prop!) and memoize to avoid
+  // re-sorting on every render.
+  const sortedBookings = useMemo(
+    () => [...binBookings].sort((a, b) => new Date(b.pickup_date) - new Date(a.pickup_date)),
+    [binBookings],
+  );
+  const totalRevenue = useMemo(
+    () => binBookings.reduce((sum, booking) => sum + (booking.quote_details?.total_price || 0), 0),
+    [binBookings],
+  );
+
   if (!open) return null;
   return (
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-center justify-center p-2 sm:p-4">
@@ -25,7 +36,7 @@ const BinModal = ({ open, selectedBin, binBookings, jobs, formatPrice, formatTim
                 <span className="text-sm font-normal">({binBookings.length})</span>
               </CardTitle>
               <CardDescription className="text-sm">
-                Total Revenue: {formatPrice(binBookings.reduce((sum, booking) => sum + (booking.quote_details?.total_price || 0), 0))}
+                Total Revenue: {formatPrice(totalRevenue)}
               </CardDescription>
             </div>
             <Button 

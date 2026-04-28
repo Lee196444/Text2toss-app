@@ -15,6 +15,12 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Test creds: `lrobe` / `L1964c10$` (see `/app/memory/test_credentials.md`)
 
 ## Implemented (Apr 26, 2026)
+- ✅ **REFACTOR (Apr 27): R5 — 3 real actionable fixes (skipped 5 false positives)**
+  - **BinModal `.sort()` mutation bug fix + useMemo**: `binBookings.sort(...)` was mutating the prop array on every render. Wrapped in `useMemo([...binBookings].sort(...))` + memoized total-revenue reduce. No more mutation, no more re-sort per render.
+  - **Email templates extracted** to `/app/backend/templates/email_templates.py` (374 lines of pure HTML rendering). Replaced 5 inline builders in `server.py` (`create_booking_confirmation_email`, `create_payment_reminder_email`, `_build_under_review_email`, `_build_quote_approval_email_html`, `_build_quote_rejection_email_html`) with thin 2-line wrappers that delegate to the template module.
+  - **Result:** `server.py` shrunk **4035 → 3726 lines (–309 lines, –7.7%)**. Emails have a single source of truth. Zero-side-effect functions = easy to unit test.
+  - **Verified:** bulk payment reminder sent 34/34 emails (0 failed), API smoke + 40/40 regression tests pass, lint clean.
+  - **Skipped R5 false positives** (same as R1-R4): React hook deps, Python `is None`, intentional empty catches, valid `console.error` in catch blocks.
 - ✅ **REFACTOR (Apr 27): R4 — backend nesting/complexity (early returns + extract helpers)**
   - `check_availability_range`: 71 lines, **5 levels deep → 1 level** — extracted `_resolve_day_availability`, `_restricted_day_payload`, `_availability_pipeline`, `_slot_status_for`. Added 400 guard for invalid date strings.
   - `get_calendar_data`: 67 lines → flat — extracted `_calendar_pipeline`, `_strip_mongo_ids`, `_group_bookings_by_date`.
