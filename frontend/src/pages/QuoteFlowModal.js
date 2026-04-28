@@ -163,7 +163,7 @@ function UploadStep({
               <Input type="file" accept="image/*" onChange={onImageUpload} className="hidden" data-testid="gallery-input" />
             </label>
 
-            <p className="text-xs text-gray-400 text-center">PNG, JPG, HEIC up to 10MB</p>
+            <p className="text-xs text-gray-400 text-center">PNG, JPG, HEIC — any size, we'll shrink it</p>
           </div>
         ) : (
           <div className="relative rounded-xl overflow-hidden">

@@ -167,10 +167,12 @@ const LandingPage = () => {
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
-      // Validate file size (max 10MB)
-      if (file.size > 10 * 1024 * 1024) {
-        setQuoteError("Image must be less than 10MB");
-        toast.error("Image must be less than 10MB");
+      // Sanity cap on raw upload — we compress to ~150KB before sending, so
+      // anything under 50MB is fine. Modern phones (esp. Samsung HQ mode)
+      // routinely produce 12-25MB photos.
+      if (file.size > 50 * 1024 * 1024) {
+        setQuoteError("Image must be less than 50MB");
+        toast.error("Image must be less than 50MB");
         return;
       }
       setImageFile(file);
