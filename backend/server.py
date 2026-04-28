@@ -1128,64 +1128,72 @@ async def create_quote_from_image(
     file: UploadFile = File(...),
     description: str = Form(default="")
 ):
-    """Create quote by analyzing uploaded image with AI vision"""
-    
+    """Create quote by analyzing uploaded image with AI vision.
+
+    Refactored helpers:
+      - _validate_image_upload     → guard clause + 400 on bad mimetype
+      - _save_image_permanently    → write the file, return its path
+      - _build_quote_record        → assemble the PriceQuote pydantic object
+    """
     print(f"Image quote endpoint received description: '{description}'")
-    
-    # Validate file type
-    if not file.content_type.startswith('image/'):
-        raise HTTPException(status_code=400, detail="Only image files are allowed")
-    
-    # Save uploaded file directly to permanent quote_images directory
-    quote_images_dir = Path("/app/static/quote_images")
-    quote_images_dir.mkdir(parents=True, exist_ok=True)
-    
-    file_extension = Path(file.filename).suffix or '.jpg'
-    permanent_filename = f"quote_{uuid.uuid4()}{file_extension}"
-    file_path = quote_images_dir / permanent_filename
-    
+
+    _validate_image_upload(file)
+    file_path = await _save_image_permanently(file)
+
     try:
-        # Save uploaded file permanently
-        async with aiofiles.open(file_path, 'wb') as f:
-            content = await file.read()
-            await f.write(content)
-        
-        # Analyze image with AI
-        items, total_price, ai_explanation, scale_level, breakdown = await analyze_image_for_quote(str(file_path), description)
-        
-        # Determine if quote requires approval (Scale 9-20)
-        requires_approval = scale_level is not None and scale_level >= 9
-        approval_status = "pending_approval" if requires_approval else "auto_approved"
-        
-        # Create quote with permanent image path
-        quote = PriceQuote(
-            user_id="anonymous",
-            items=items,
-            total_price=total_price,
-            scale_level=scale_level,
-            breakdown=breakdown,
-            description=f"Image analysis: {description}" if description else "Image-based quote",
-            ai_explanation=ai_explanation,
-            temp_image_path=str(file_path),
-            requires_approval=requires_approval,
-            approval_status=approval_status
+        items, total_price, ai_explanation, scale_level, breakdown = await analyze_image_for_quote(
+            str(file_path), description
         )
-        
-        quote_mongo = prepare_for_mongo(quote.dict())
-        await db.quotes.insert_one(quote_mongo)
-        
-        logger.info(f"Quote created: id={quote.id}, scale={scale_level}, requires_approval={requires_approval}, approval_status={approval_status}, image={permanent_filename}")
-        
-        # Cleanup old images in background (don't block the response)
+        quote = _build_quote_record(items, total_price, scale_level, breakdown, ai_explanation, description, file_path)
+        await db.quotes.insert_one(prepare_for_mongo(quote.dict()))
+
+        logger.info(
+            f"Quote created: id={quote.id}, scale={scale_level}, "
+            f"requires_approval={quote.requires_approval}, approval_status={quote.approval_status}, "
+            f"image={file_path.name}"
+        )
         background_tasks.add_task(cleanup_old_quote_images, 30)
-        
         return quote
-        
-    except Exception as e:
-        # Clean up file on error
+
+    except Exception:
+        # Clean up the saved file on any failure so we don't leak orphans.
         if file_path.exists():
             file_path.unlink()
-        raise e
+        raise
+
+
+def _validate_image_upload(file: UploadFile) -> None:
+    """Guard clause — only accept image/* uploads."""
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Only image files are allowed")
+
+
+async def _save_image_permanently(file: UploadFile) -> Path:
+    """Persist the upload to /app/static/quote_images and return its path."""
+    quote_images_dir = Path("/app/static/quote_images")
+    quote_images_dir.mkdir(parents=True, exist_ok=True)
+    file_extension = Path(file.filename).suffix or ".jpg"
+    file_path = quote_images_dir / f"quote_{uuid.uuid4()}{file_extension}"
+    async with aiofiles.open(file_path, "wb") as f:
+        await f.write(await file.read())
+    return file_path
+
+
+def _build_quote_record(items, total_price, scale_level, breakdown, ai_explanation, description, file_path) -> PriceQuote:
+    """Assemble the PriceQuote — including the requires_approval threshold (>=9)."""
+    requires_approval = scale_level is not None and scale_level >= 9
+    return PriceQuote(
+        user_id="anonymous",
+        items=items,
+        total_price=total_price,
+        scale_level=scale_level,
+        breakdown=breakdown,
+        description=f"Image analysis: {description}" if description else "Image-based quote",
+        ai_explanation=ai_explanation,
+        temp_image_path=str(file_path),
+        requires_approval=requires_approval,
+        approval_status="pending_approval" if requires_approval else "auto_approved",
+    )
 
 @api_router.get("/quotes/{quote_id}", response_model=PriceQuote)
 async def get_quote(quote_id: str):
@@ -1765,73 +1773,66 @@ async def get_weekly_schedule(start_date: str = None):
 
 @api_router.get("/admin/calendar-data")
 async def get_calendar_data(start_date: str, end_date: str):
-    """Get calendar data for a month range showing all PAID scheduled jobs (excludes pending_payment bookings)"""
+    """Get calendar data for a month range showing all PAID scheduled jobs.
+
+    Refactored helpers:
+      - _calendar_pipeline       → mongo aggregation
+      - _strip_mongo_ids         → drop _id from booking + nested quote
+      - _group_bookings_by_date  → bucket by pickup_date_only
+    """
     try:
-        # Query bookings within the date range - ONLY paid bookings
-        pipeline = [
-            {
-                "$match": {
-                    "status": {"$in": ["scheduled", "in_progress", "completed"]}  # Exclude pending_payment
-                }
-            },
-            {
-                "$addFields": {
-                    "pickup_date_only": {
-                        "$dateToString": {
-                            "format": "%Y-%m-%d",
-                            "date": {"$dateFromString": {"dateString": "$pickup_date"}}
-                        }
-                    }
-                }
-            },
-            {
-                "$match": {
-                    "pickup_date_only": {
-                        "$gte": start_date,
-                        "$lte": end_date
-                    }
-                }
-            },
-            {
-                "$lookup": {
-                    "from": "quotes",
-                    "localField": "quote_id",
-                    "foreignField": "id",
-                    "as": "quote_details"
-                }
-            },
-            {
-                "$unwind": {
-                    "path": "$quote_details",
-                    "preserveNullAndEmptyArrays": True
-                }
-            },
-            {"$sort": {"pickup_date": 1, "pickup_time": 1}}
-        ]
-        
-        bookings_cursor = db.bookings.aggregate(pipeline)
-        bookings = await bookings_cursor.to_list(length=2000)  # Reasonable limit for calendar month
-        
-        # Group bookings by date
-        calendar_data = {}
-        for booking in bookings:
-            # Remove MongoDB _id fields to avoid serialization issues
-            if "_id" in booking:
-                del booking["_id"]
-            if "quote_details" in booking and "_id" in booking["quote_details"]:
-                del booking["quote_details"]["_id"]
-            
-            booking = parse_from_mongo(booking)
-            date_key = booking['pickup_date_only']
-            if date_key not in calendar_data:
-                calendar_data[date_key] = []
-            calendar_data[date_key].append(booking)
-        
-        return calendar_data
-        
+        bookings = await db.bookings.aggregate(
+            _calendar_pipeline(start_date, end_date)
+        ).to_list(length=2000)
+        return _group_bookings_by_date(bookings)
     except Exception as e:
         logger.error(f"Error fetching calendar data: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to fetch calendar data")
+
+
+def _calendar_pipeline(start_date: str, end_date: str) -> list:
+    """Mongo aggregation: PAID bookings in [start_date, end_date] joined with their quotes."""
+    return [
+        {"$match": {"status": {"$in": ["scheduled", "in_progress", "completed"]}}},
+        {
+            "$addFields": {
+                "pickup_date_only": {
+                    "$dateToString": {
+                        "format": "%Y-%m-%d",
+                        "date": {"$dateFromString": {"dateString": "$pickup_date"}},
+                    }
+                }
+            }
+        },
+        {"$match": {"pickup_date_only": {"$gte": start_date, "$lte": end_date}}},
+        {
+            "$lookup": {
+                "from": "quotes",
+                "localField": "quote_id",
+                "foreignField": "id",
+                "as": "quote_details",
+            }
+        },
+        {"$unwind": {"path": "$quote_details", "preserveNullAndEmptyArrays": True}},
+        {"$sort": {"pickup_date": 1, "pickup_time": 1}},
+    ]
+
+
+def _strip_mongo_ids(booking: dict) -> None:
+    """Drop _id from booking + nested quote_details so the response is JSON-safe."""
+    booking.pop("_id", None)
+    if "quote_details" in booking and isinstance(booking["quote_details"], dict):
+        booking["quote_details"].pop("_id", None)
+
+
+def _group_bookings_by_date(bookings: list) -> dict:
+    calendar_data: dict = {}
+    for booking in bookings:
+        _strip_mongo_ids(booking)
+        parsed = parse_from_mongo(booking)
+        date_key = parsed["pickup_date_only"]
+        calendar_data.setdefault(date_key, []).append(parsed)
+    return calendar_data
 
 @api_router.get("/availability/{date}")
 async def check_availability(date: str):
@@ -1903,77 +1904,83 @@ async def check_availability(date: str):
 
 @api_router.get("/availability-range")
 async def check_availability_range(start_date: str, end_date: str):
-    """Check availability for a date range - used for calendar view"""
+    """Check availability for a date range — used for calendar view.
+
+    Refactored from a 71-line/5-deep monolith into focused helpers:
+      - _restricted_day_payload      → static "weekend/Friday closed" record
+      - _availability_pipeline       → mongo aggregation per date
+      - _slot_status_for             → 0/1-2/3+ → status string
+    """
     try:
         start = datetime.fromisoformat(start_date).date()
         end = datetime.fromisoformat(end_date).date()
-        
-        availability_data = {}
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=400, detail="Invalid date format")
+
+    try:
+        availability_data: dict = {}
         current_date = start
-        
         while current_date <= end:
             date_str = current_date.isoformat()
-            
-            # Check if date is restricted (Friday, Saturday, Sunday)
-            if current_date.weekday() >= 4:
-                availability_data[date_str] = {
-                    "available_count": 0,
-                    "total_slots": 5,
-                    "is_restricted": True,
-                    "status": "restricted"
-                }
-            else:
-                # Get PAID bookings for this date (only count scheduled/in_progress/completed)
-                pipeline = [
-                    {
-                        "$match": {
-                            "status": {"$in": ["scheduled", "in_progress", "completed"]}  # Only count paid bookings
-                        }
-                    },
-                    {
-                        "$addFields": {
-                            "pickup_date_only": {
-                                "$dateToString": {
-                                    "format": "%Y-%m-%d",
-                                    "date": {"$dateFromString": {"dateString": "$pickup_date"}}
-                                }
-                            }
-                        }
-                    },
-                    {
-                        "$match": {
-                            "pickup_date_only": date_str
-                        }
-                    }
-                ]
-                
-                bookings_cursor = db.bookings.aggregate(pipeline)
-                bookings = await bookings_cursor.to_list(length=2000)  # Reasonable limit for calendar month
-                
-                booked_count = len(bookings)
-                available_count = 5 - booked_count  # 5 total time slots
-                
-                if available_count == 0:
-                    status = "fully_booked"
-                elif available_count <= 2:
-                    status = "limited"
-                else:
-                    status = "available"
-                
-                availability_data[date_str] = {
-                    "available_count": available_count,
-                    "total_slots": 5,
-                    "is_restricted": False,
-                    "status": status
-                }
-            
+            availability_data[date_str] = await _resolve_day_availability(current_date, date_str)
             current_date += timedelta(days=1)
-        
         return availability_data
-        
     except Exception as e:
         logging.error(f"Error checking availability range: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to check availability range")
+
+
+async def _resolve_day_availability(current_date, date_str: str) -> dict:
+    """Build the per-day availability record. Early-returns on restricted days."""
+    # Pickups are Mon-Thu only (weekday >= 4 means Fri/Sat/Sun)
+    if current_date.weekday() >= 4:
+        return _restricted_day_payload()
+
+    bookings = await db.bookings.aggregate(_availability_pipeline(date_str)).to_list(length=2000)
+    booked_count = len(bookings)
+    available_count = 5 - booked_count  # 5 total time slots
+    return {
+        "available_count": available_count,
+        "total_slots": 5,
+        "is_restricted": False,
+        "status": _slot_status_for(available_count),
+    }
+
+
+def _restricted_day_payload() -> dict:
+    """Static record for weekend / Friday days when no pickups happen."""
+    return {
+        "available_count": 0,
+        "total_slots": 5,
+        "is_restricted": True,
+        "status": "restricted",
+    }
+
+
+def _availability_pipeline(date_str: str) -> list:
+    """Mongo aggregation that counts PAID bookings for `date_str`."""
+    return [
+        {"$match": {"status": {"$in": ["scheduled", "in_progress", "completed"]}}},
+        {
+            "$addFields": {
+                "pickup_date_only": {
+                    "$dateToString": {
+                        "format": "%Y-%m-%d",
+                        "date": {"$dateFromString": {"dateString": "$pickup_date"}},
+                    }
+                }
+            }
+        },
+        {"$match": {"pickup_date_only": date_str}},
+    ]
+
+
+def _slot_status_for(available_count: int) -> str:
+    if available_count <= 0:
+        return "fully_booked"
+    if available_count <= 2:
+        return "limited"
+    return "available"
 
 @api_router.patch("/admin/bookings/{booking_id}")
 async def update_booking_status(booking_id: str, status_update: dict):

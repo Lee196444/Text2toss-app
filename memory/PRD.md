@@ -15,6 +15,11 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Test creds: `lrobe` / `L1964c10$` (see `/app/memory/test_credentials.md`)
 
 ## Implemented (Apr 26, 2026)
+- ✅ **REFACTOR (Apr 27): R4 — backend nesting/complexity (early returns + extract helpers)**
+  - `check_availability_range`: 71 lines, **5 levels deep → 1 level** — extracted `_resolve_day_availability`, `_restricted_day_payload`, `_availability_pipeline`, `_slot_status_for`. Added 400 guard for invalid date strings.
+  - `get_calendar_data`: 67 lines → flat — extracted `_calendar_pipeline`, `_strip_mongo_ids`, `_group_bookings_by_date`.
+  - `create_quote_from_image`: 62 lines → linear with guard clauses — extracted `_validate_image_upload` (early-return 400), `_save_image_permanently`, `_build_quote_record`. Try/except still cleans up orphan files on failure.
+  - **Verified live:** 4 smoke curls pass (`/availability-range` 200 + 400, `/quotes/image` 200 + 400, `/admin/calendar-data` 200 with 20 bookings + joined quote_details). 40/40 backend regression tests pass. Lint clean.
 - ✅ **REFACTOR (Apr 27): R4 — frontend complexity + nested ternary cleanup (B + C)**
   - **C: Nested ternary cleanup** — extracted `stepRowClass`/`stepLabelClass`/`StepStatusIcon` helpers in `QuoteAnalyzingProgress.js`, and `stageDotClass`/`stageLabelClass` helpers in `BookingJourneyProgress.js`. JSX is now flat.
   - **B: Frontend monolith refactor** —
