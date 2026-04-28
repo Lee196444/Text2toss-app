@@ -15,6 +15,16 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Test creds: `lrobe` / `L1964c10$` (see `/app/memory/test_credentials.md`)
 
 ## Implemented (Apr 26, 2026)
+- ✅ **REFACTOR (Apr 27): R6 — 5 real fixes (skipped 4 false-positive categories)**
+  - **Frontend nested ternary cleanup:**
+    - `admin/AllJobsModal.js`: extracted `STATUS_BORDER`/`STATUS_BADGE`/`STATUS_ICON` lookup objects (replaces 3 chained ternaries / 6 reported lines).
+    - `admin/CalendarModal.js`: extracted `getCellClass`/`getDayNumberClass` helpers + `JOB_PILL_CLASS` map (replaces 3 chained ternaries).
+  - **Backend complexity reduction:**
+    - `send_sms` (56 lines, complexity 11): split into `send_sms` (dispatcher), `_simulate_sms_send`, `_check_image_url_reachable`, `_send_real_sms`. Each helper now ≤20 lines, single-responsibility.
+    - `get_all_bookings` (complexity 11, nesting 5): extracted `_fetch_quotes_for_bookings` (batch query) + `_attach_quote_details_inplace` (early-returns on misses). Also fixed a pre-existing dangling `except` block from a long-removed function.
+    - `remove_gallery_photo` (complexity 12, nesting 6): extracted `_resolve_gallery_file_path` (URL→path mapping with all 4 modern+legacy formats) + `_delete_disk_file_silently`. Main function is now linear with guard clauses.
+  - **Verified:** `/api/admin/all-bookings` returns 210 bookings with quote_details joined (smoke test), 40/40 regression tests pass, ruff + eslint 100% clean.
+  - **Skipped R6 false positives** (6th review now — same items as R1-R5): React hook deps, Python `is None`, intentional empty catches, valid `console.error` in catch blocks, "undefined Python variables" with no specifics provided.
 - ✅ **REFACTOR (Apr 27): R5 — 3 real actionable fixes (skipped 5 false positives)**
   - **BinModal `.sort()` mutation bug fix + useMemo**: `binBookings.sort(...)` was mutating the prop array on every render. Wrapped in `useMemo([...binBookings].sort(...))` + memoized total-revenue reduce. No more mutation, no more re-sort per render.
   - **Email templates extracted** to `/app/backend/templates/email_templates.py` (374 lines of pure HTML rendering). Replaced 5 inline builders in `server.py` (`create_booking_confirmation_email`, `create_payment_reminder_email`, `_build_under_review_email`, `_build_quote_approval_email_html`, `_build_quote_rejection_email_html`) with thin 2-line wrappers that delegate to the template module.

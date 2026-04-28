@@ -9,6 +9,26 @@ import { Badge } from "../ui/badge";
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// Pure helpers for the calendar's status → className lookups. Replaces the
+// chained ternaries that lived inline in the JSX.
+const getCellClass = (isToday, isSelected) => {
+  if (isToday) return "bg-yellow-50 border-yellow-300";
+  if (isSelected) return "bg-blue-50 border-blue-300";
+  return "bg-white border-gray-200";
+};
+
+const getDayNumberClass = (isToday, isSelected) => {
+  if (isToday) return "text-yellow-800";
+  if (isSelected) return "text-blue-800";
+  return "text-gray-700";
+};
+
+const JOB_PILL_CLASS = {
+  completed: "bg-green-100 text-green-800 hover:bg-green-200",
+  in_progress: "bg-yellow-100 text-yellow-800 hover:bg-yellow-200",
+};
+const DEFAULT_JOB_PILL = "bg-blue-100 text-blue-800 hover:bg-blue-200";
+
 const CalendarModal = ({ open, currentMonth, calendarData, jobs, formatPrice, formatCalendarDate, getDaysInMonth, getFirstDayOfWeek, changeMonth, closeCalendar, openJobDetails, setSelectedCalendarDate, setShowDateJobsModal, selectedDate }) => {
   if (!open) return null;
   return (
@@ -92,21 +112,13 @@ const CalendarModal = ({ open, currentMonth, calendarData, jobs, formatPrice, fo
                     cells.push(
                       <div 
                         key={day}
-                        className={`h-16 sm:h-24 p-1 border rounded cursor-pointer transition-all hover:bg-blue-50 ${
-                          isToday ? 'bg-yellow-50 border-yellow-300' : 
-                          isSelected ? 'bg-blue-50 border-blue-300' : 
-                          'bg-white border-gray-200'
-                        }`}
+                        className={`h-16 sm:h-24 p-1 border rounded cursor-pointer transition-all hover:bg-blue-50 ${getCellClass(isToday, isSelected)}`}
                         onClick={() => {
                           setSelectedCalendarDate(dateStr);
                           setShowDateJobsModal(true);
                         }}
                       >
-                        <div className={`text-xs sm:text-sm font-semibold mb-1 ${
-                          isToday ? 'text-yellow-800' : 
-                          isSelected ? 'text-blue-800' : 
-                          'text-gray-700'
-                        }`}>
+                        <div className={`text-xs sm:text-sm font-semibold mb-1 ${getDayNumberClass(isToday, isSelected)}`}>
                           {day}
                         </div>
                         
@@ -115,11 +127,7 @@ const CalendarModal = ({ open, currentMonth, calendarData, jobs, formatPrice, fo
                           {dayJobs.slice(0, window.innerWidth < 640 ? 2 : 3).map((job, index) => (
                             <div 
                               key={job.id}
-                              className={`text-xs p-0.5 sm:p-1 rounded truncate cursor-pointer hover:opacity-80 transition-all duration-200 ${
-                                job.status === 'completed' ? 'bg-green-100 text-green-800 hover:bg-green-200' :
-                                job.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' :
-                                'bg-blue-100 text-blue-800 hover:bg-blue-200'
-                              }`}
+                              className={`text-xs p-0.5 sm:p-1 rounded truncate cursor-pointer hover:opacity-80 transition-all duration-200 ${JOB_PILL_CLASS[job.status] || DEFAULT_JOB_PILL}`}
                               title={`Click to view details: ${job.pickup_time} - ${job.address} - $${job.quote_details?.total_price || 0}`}
                               onClick={(e) => {
                                 e.stopPropagation();

@@ -9,6 +9,26 @@ import { Badge } from "../ui/badge";
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// Status → visual style maps. Replaces 3 chained ternaries below.
+const STATUS_BORDER = {
+  completed: "border-green-300 bg-green-50/50",
+  in_progress: "border-yellow-300 bg-yellow-50/50",
+  cancelled: "border-red-300 bg-red-50/50",
+};
+const STATUS_BADGE = {
+  completed: "bg-green-500",
+  in_progress: "bg-yellow-500",
+  cancelled: "bg-red-500",
+};
+const STATUS_ICON = {
+  completed: "✓",
+  in_progress: "⏳",
+  cancelled: "✕",
+};
+const DEFAULT_BORDER = "border-blue-300 bg-blue-50/50";
+const DEFAULT_BADGE = "bg-blue-500";
+const DEFAULT_ICON = "📅";
+
 const AllJobsModal = ({ open, jobs, filteredJobs, jobSearchQuery, handleJobSearch, openJobDetails, openEmailCenter, setShowAllJobsModal }) => {
   if (!open) return null;
   return (
@@ -69,12 +89,7 @@ const AllJobsModal = ({ open, jobs, filteredJobs, jobSearchQuery, handleJobSearc
                 filteredJobs.map((job, index) => (
                   <Card 
                     key={job.id}
-                    className={`cursor-pointer hover:shadow-lg transition-all border-2 ${
-                      job.status === 'completed' ? 'border-green-300 bg-green-50/50' :
-                      job.status === 'in_progress' ? 'border-yellow-300 bg-yellow-50/50' :
-                      job.status === 'cancelled' ? 'border-red-300 bg-red-50/50' :
-                      'border-blue-300 bg-blue-50/50'
-                    }`}
+                    className={`cursor-pointer hover:shadow-lg transition-all border-2 ${STATUS_BORDER[job.status] || DEFAULT_BORDER}`}
                     onClick={() => {
                       openJobDetails(job);
                       setShowAllJobsModal(false);
@@ -87,16 +102,8 @@ const AllJobsModal = ({ open, jobs, filteredJobs, jobSearchQuery, handleJobSearc
                             <h3 className="font-bold text-base text-gray-800">
                               Job #{job.id.substring(0, 8)}...
                             </h3>
-                            <Badge className={
-                              job.status === 'completed' ? 'bg-green-500' :
-                              job.status === 'in_progress' ? 'bg-yellow-500' :
-                              job.status === 'cancelled' ? 'bg-red-500' :
-                              'bg-blue-500'
-                            }>
-                              {job.status === 'completed' ? '✓' :
-                               job.status === 'in_progress' ? '⏳' :
-                               job.status === 'cancelled' ? '✕' :
-                               '📅'} {job.status}
+                            <Badge className={STATUS_BADGE[job.status] || DEFAULT_BADGE}>
+                              {STATUS_ICON[job.status] || DEFAULT_ICON} {job.status}
                             </Badge>
                             {job.email && (
                               <Button

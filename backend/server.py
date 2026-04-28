@@ -104,59 +104,68 @@ def get_twilio_client():
     return Client(account_sid, auth_token)
 
 async def send_sms(to_phone: str, message: str, image_url: str = None):
-    """Send SMS with optional image attachment"""
+    """Send SMS with optional image attachment.
+
+    Refactored helpers:
+      - _simulate_sms_send  → console output when Twilio isn't configured
+      - _send_real_sms      → actual Twilio API call
+    """
     client = get_twilio_client()
-    
     if not client:
-        logging.warning("Twilio not configured - SMS simulation mode")
-        print("\n--- SMS SIMULATION ---")
-        print(f"To: {to_phone}")
-        print(f"Message: {message}")
-        if image_url:
-            print(f"Photo URL: {image_url}")
-            # Test if image URL is accessible
-            try:
-                import requests
-                response = requests.head(image_url, timeout=5)
-                if response.status_code == 200:
-                    print(f"✅ Photo URL is accessible (Status: {response.status_code})")
-                else:
-                    print(f"❌ Photo URL returned status: {response.status_code}")
-            except Exception as e:
-                print(f"❌ Photo URL test failed: {str(e)}")
-        print("--- END SIMULATION ---\n")
-        
-        return {
-            "status": "simulated", 
-            "message": "SMS simulated (Twilio not configured)",
-            "to_phone": to_phone,
-            "has_photo": bool(image_url),
-            "photo_url": image_url if image_url else None
-        }
-    
+        return _simulate_sms_send(to_phone, message, image_url)
+    return _send_real_sms(client, to_phone, message, image_url)
+
+
+def _simulate_sms_send(to_phone: str, message: str, image_url: str = None) -> dict:
+    """Local-dev SMS simulator. Logs the message + tests image URL reachability."""
+    logging.warning("Twilio not configured - SMS simulation mode")
+    print("\n--- SMS SIMULATION ---")
+    print(f"To: {to_phone}")
+    print(f"Message: {message}")
+    if image_url:
+        print(f"Photo URL: {image_url}")
+        _check_image_url_reachable(image_url)
+    print("--- END SIMULATION ---\n")
+    return {
+        "status": "simulated",
+        "message": "SMS simulated (Twilio not configured)",
+        "to_phone": to_phone,
+        "has_photo": bool(image_url),
+        "photo_url": image_url if image_url else None,
+    }
+
+
+def _check_image_url_reachable(image_url: str) -> None:
+    """Best-effort HEAD probe — used only by the SMS simulator."""
     try:
-        twilio_phone = os.environ.get('TWILIO_PHONE_NUMBER', '+1234567890')
-        
+        import requests
+        response = requests.head(image_url, timeout=5)
+        if response.status_code == 200:
+            print(f"✅ Photo URL is accessible (Status: {response.status_code})")
+        else:
+            print(f"❌ Photo URL returned status: {response.status_code}")
+    except Exception as e:
+        print(f"❌ Photo URL test failed: {str(e)}")
+
+
+def _send_real_sms(client, to_phone: str, message: str, image_url: str = None) -> dict:
+    """Actual Twilio API call."""
+    try:
         message_params = {
-            'body': message,
-            'from_': twilio_phone,
-            'to': to_phone
+            "body": message,
+            "from_": os.environ.get("TWILIO_PHONE_NUMBER", "+1234567890"),
+            "to": to_phone,
         }
-        
-        # Add image if provided
         if image_url:
-            message_params['media_url'] = [image_url]
-        
+            message_params["media_url"] = [image_url]
         message_obj = client.messages.create(**message_params)
-        
         return {
             "status": "sent",
             "message_sid": message_obj.sid,
             "message": "SMS sent successfully",
             "to_phone": to_phone,
-            "has_photo": bool(image_url)
+            "has_photo": bool(image_url),
         }
-        
     except Exception as e:
         logging.error(f"SMS send error: {str(e)}")
         return {"status": "error", "message": f"SMS failed: {str(e)}"}
@@ -2704,49 +2713,47 @@ async def optimize_route():
 
 @api_router.get("/admin/all-bookings")
 async def get_all_bookings():
-    """Get all bookings (history and present) with quote details"""
+    """Get all bookings (history + present) with quote details.
+
+    Refactored: extracted `_attach_quote_details_inplace` helper to flatten
+    the inner nesting and use early-continue on missing ids.
+    """
     try:
-        # Fetch all bookings sorted by created_at descending (newest first)
         bookings = await db.bookings.find({}).sort("created_at", -1).to_list(10000)
-        
-        # OPTIMIZATION: Batch fetch all quotes to avoid N+1 query problem
-        quote_ids = [booking['quote_id'] for booking in bookings if booking.get('quote_id')]
-        quotes = []
-        if quote_ids:
-            quotes = await db.quotes.find({"id": {"$in": quote_ids}}).to_list(length=10000)
-        
-        # Create quote lookup dictionary for O(1) access
-        quote_dict = {quote['id']: quote for quote in quotes}
-        
+        quote_dict = await _fetch_quotes_for_bookings(bookings)
+
         result = []
         for booking in bookings:
-            if "_id" in booking:
-                del booking["_id"]
+            booking.pop("_id", None)
             booking_data = parse_from_mongo(booking)
-            
-            # Add quote details from pre-fetched dictionary (no database query)
-            if booking_data.get("quote_id"):
-                quote = quote_dict.get(booking_data["quote_id"])
-                if quote:
-                    if "_id" in quote:
-                        del quote["_id"]
-                    booking_data["quote_details"] = parse_from_mongo(quote)
-            
+            _attach_quote_details_inplace(booking_data, quote_dict)
             result.append(booking_data)
-        
         return result
-        
     except Exception as e:
         logger.error(f"Error fetching all bookings: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to fetch bookings")
-        
-    except Exception as e:
-        logger.error(f"Route optimization failed: {str(e)}")
-        return {
-            "message": f"Route optimization failed: {str(e)}",
-            "optimized": False,
-            "error": str(e)
-        }
+
+
+async def _fetch_quotes_for_bookings(bookings: list) -> dict:
+    """Batch-fetch all quotes referenced by `bookings` to avoid N+1."""
+    quote_ids = [b["quote_id"] for b in bookings if b.get("quote_id")]
+    if not quote_ids:
+        return {}
+    quotes = await db.quotes.find({"id": {"$in": quote_ids}}).to_list(length=10000)
+    return {q["id"]: q for q in quotes}
+
+
+def _attach_quote_details_inplace(booking_data: dict, quote_dict: dict) -> None:
+    """Mutate booking_data with parsed quote_details, if any. Early-returns on misses."""
+    quote_id = booking_data.get("quote_id")
+    if not quote_id:
+        return
+    quote = quote_dict.get(quote_id)
+    if not quote:
+        return
+    quote.pop("_id", None)
+    booking_data["quote_details"] = parse_from_mongo(quote)
+
 
 async def calculate_optimized_route(addresses: list, api_key: str):
     """Calculate optimized route using Google Maps Distance Matrix API"""
@@ -3073,33 +3080,22 @@ async def crop_reel_photo(payload: CropReelPayload):
 
 @api_router.delete("/admin/gallery-photo")
 async def remove_gallery_photo(request: dict):
-    """Remove a photo from the gallery (DB row + file on disk)."""
+    """Remove a photo from the gallery (DB row + file on disk).
+
+    Refactored helpers:
+      - _resolve_gallery_file_path  → handles all 4 URL formats (modern + legacy)
+      - _delete_disk_file_silently  → unlink + log on any error
+    """
     try:
         photo_url = request.get("photo_url") or ""
 
-        # Remove from database
         result = await db.gallery_photos.delete_one({"url": photo_url})
         if result.deleted_count == 0:
             raise HTTPException(status_code=404, detail="Photo not found")
 
-        # Resolve the on-disk path. Modern uploads use:
-        #   {BACKEND_URL}/api/images/gallery/<filename>
-        # Legacy uploads used "/static/gallery/<filename>" or "/files/gallery/<filename>".
-        try:
-            file_path = None
-            if "/api/images/gallery/" in photo_url:
-                file_path = "/app/static/gallery/" + photo_url.rsplit("/", 1)[-1]
-            elif photo_url.startswith("/static/gallery/"):
-                file_path = f"/app{photo_url}"
-            elif photo_url.startswith("/files/gallery/"):
-                file_path = f"/app/static{photo_url.replace('/files', '')}"
-            elif "/files/gallery/" in photo_url:
-                file_path = "/app/static/gallery/" + photo_url.rsplit("/", 1)[-1]
-
-            if file_path and os.path.exists(file_path):
-                os.remove(file_path)
-        except Exception as file_error:
-            logger.warning(f"Failed to remove file {photo_url}: {file_error}")
+        file_path = _resolve_gallery_file_path(photo_url)
+        if file_path:
+            _delete_disk_file_silently(file_path, photo_url)
 
         return {"message": "Photo removed successfully"}
 
@@ -3108,6 +3104,31 @@ async def remove_gallery_photo(request: dict):
     except Exception as e:
         logger.error(f"Failed to remove photo: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to remove photo")
+
+
+def _resolve_gallery_file_path(photo_url: str) -> Optional[str]:
+    """Map a photo URL (modern or legacy format) to an on-disk file path.
+
+    Returns None when the URL doesn't match any known pattern.
+    """
+    if "/api/images/gallery/" in photo_url:
+        return "/app/static/gallery/" + photo_url.rsplit("/", 1)[-1]
+    if photo_url.startswith("/static/gallery/"):
+        return f"/app{photo_url}"
+    if photo_url.startswith("/files/gallery/"):
+        return f"/app/static{photo_url.replace('/files', '')}"
+    if "/files/gallery/" in photo_url:
+        return "/app/static/gallery/" + photo_url.rsplit("/", 1)[-1]
+    return None
+
+
+def _delete_disk_file_silently(file_path: str, photo_url: str) -> None:
+    """Best-effort unlink — never raises; only logs on failure."""
+    try:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+    except Exception as file_error:
+        logger.warning(f"Failed to remove file {photo_url}: {file_error}")
 
 # Image serving endpoint (due to Kubernetes routing all non-/api requests to frontend)
 @api_router.get("/images/{folder}/{filename}")
