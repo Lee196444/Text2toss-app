@@ -1,9 +1,10 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import { Input } from "../ui/input";
 import { buildImageUrl, STATUS_BADGE, formatDate } from "./bucketShared";
+import { useSharedFilter } from "./FilterContext";
+import StickyFilterInput from "./StickyFilterInput";
 
 /**
  * Pending Payment Modal — bookings the customer submitted but hasn't paid
@@ -18,7 +19,7 @@ const PaymentRemindersModal = ({
   onReject,
   onRejectAll,
 }) => {
-  const [filter, setFilter] = useState("");
+  const [filter] = useSharedFilter();
 
   const totalDue = useMemo(
     () => (pendingPayments || []).reduce((s, b) => s + (b.quote_details?.total_price || 0), 0),
@@ -89,13 +90,9 @@ const PaymentRemindersModal = ({
 
         <CardContent className="overflow-y-auto max-h-[78vh] p-3 sm:p-4">
           <div className="mb-3 sm:mb-4">
-            <Input
-              type="text"
+            <StickyFilterInput
               placeholder="Search by item, address, phone, email…"
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              data-testid="pending-payments-search-input"
-              className="w-full"
+              testId="pending-payments-search-input"
             />
           </div>
 

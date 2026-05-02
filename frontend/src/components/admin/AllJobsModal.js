@@ -1,7 +1,6 @@
 import React, { useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
-import { Input } from "../ui/input";
 import { Badge } from "../ui/badge";
 import {
   buildImageUrl,
@@ -10,24 +9,43 @@ import {
   formatDate,
   formatStatus,
 } from "./bucketShared";
+import { useSharedFilter } from "./FilterContext";
+import StickyFilterInput from "./StickyFilterInput";
 
 /**
- * "All Jobs History" modal — every booking ever, searchable. Card design
- * matches the other admin "buckets": photo on the left, items + customer
- * details on the right, status pill, click-through to job details.
+ * "All Jobs History" modal. Filters its own list off the sticky shared
+ * filter so typing here (or in any other bucket modal) stays in sync.
  */
 const AllJobsModal = ({
   open,
-  filteredJobs,
-  jobSearchQuery,
-  handleJobSearch,
+  allJobs,
   openJobDetails,
   openEmailCenter,
   setShowAllJobsModal,
 }) => {
+  const [filter] = useSharedFilter();
+
+  const visibleJobs = useMemo(() => {
+    const q = filter.trim().toLowerCase();
+    if (!q) return allJobs || [];
+    return (allJobs || []).filter((job) => {
+      const haystack = [
+        job.id,
+        job.email,
+        job.phone,
+        job.address,
+        ...(job.quote_details?.items || []).map((i) => `${i.name} ${i.size}`),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [allJobs, filter]);
+
   const totalRevenue = useMemo(
-    () => (filteredJobs || []).reduce((s, j) => s + (j.quote_details?.total_price || 0), 0),
-    [filteredJobs],
+    () => visibleJobs.reduce((s, j) => s + (j.quote_details?.total_price || 0), 0),
+    [visibleJobs],
   );
 
   if (!open) return null;
@@ -40,9 +58,7 @@ const AllJobsModal = ({
             <div className="min-w-0">
               <CardTitle className="text-lg sm:text-2xl flex items-center gap-2 flex-wrap">
                 📚 All Jobs History
-                <Badge className="bg-white/20 text-white border-0">
-                  {(filteredJobs || []).length}
-                </Badge>
+                <Badge className="bg-white/20 text-white border-0">{visibleJobs.length}</Badge>
               </CardTitle>
               <CardDescription className="text-white/85 text-xs sm:text-sm mt-1">
                 Search by job ID, address, phone, or email · Total revenue in view: <strong>${totalRevenue.toFixed(2)}</strong>
@@ -61,26 +77,22 @@ const AllJobsModal = ({
 
         <CardContent className="overflow-y-auto max-h-[78vh] p-3 sm:p-4">
           <div className="mb-3 sm:mb-4">
-            <Input
-              type="text"
+            <StickyFilterInput
               placeholder="Search by Job #, Email, Phone, or Address..."
-              value={jobSearchQuery}
-              onChange={(e) => handleJobSearch(e.target.value)}
-              data-testid="all-jobs-search-input"
-              className="w-full"
+              testId="all-jobs-search-input"
             />
           </div>
 
-          {(filteredJobs || []).length === 0 ? (
+          {visibleJobs.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-3xl mb-2">📭</div>
               <p className="text-gray-500">
-                {jobSearchQuery ? "No jobs match your search." : "Loading jobs..."}
+                {filter ? "No jobs match your search." : "Loading jobs..."}
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
-              {filteredJobs.map((job) => {
+              {visibleJobs.map((job) => {
                 const imgUrl = buildImageUrl(job.image_path);
                 const items = job.quote_details?.items || [];
                 return (

@@ -4,6 +4,8 @@ import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { Input } from "../ui/input";
 import { buildImageUrl, STATUS_BADGE, formatDate } from "./bucketShared";
+import { useSharedFilter } from "./FilterContext";
+import StickyFilterInput from "./StickyFilterInput";
 
 /**
  * Read-only review modal for auto-approved quotes.
@@ -21,7 +23,7 @@ const AutoApprovedQuotesModal = ({
   onClose,
   onRefresh,
 }) => {
-  const [filter, setFilter] = useState("");
+  const [filter] = useSharedFilter();
   const [bookedOnly, setBookedOnly] = useState(false);
 
   const visibleQuotes = useMemo(() => {
@@ -93,14 +95,12 @@ const AutoApprovedQuotesModal = ({
         <CardContent className="overflow-y-auto max-h-[75vh] p-3 sm:p-4">
           {/* Filters */}
           <div className="flex flex-col sm:flex-row gap-2 mb-3 sm:mb-4">
-            <Input
-              type="text"
-              placeholder="Search by item, address, phone, email…"
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              data-testid="auto-approved-search-input"
-              className="flex-1"
-            />
+            <div className="flex-1">
+              <StickyFilterInput
+                placeholder="Search by item, address, phone, email…"
+                testId="auto-approved-search-input"
+              />
+            </div>
             <Button
               variant={bookedOnly ? "default" : "outline"}
               onClick={() => setBookedOnly((v) => !v)}

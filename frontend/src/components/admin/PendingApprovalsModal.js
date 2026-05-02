@@ -5,6 +5,8 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Badge } from "../ui/badge";
 import { buildImageUrl, formatDate } from "./bucketShared";
+import { useSharedFilter } from "./FilterContext";
+import StickyFilterInput from "./StickyFilterInput";
 
 /**
  * Pending Quote Approval modal — matches the new admin "bucket" visual
@@ -21,7 +23,7 @@ const PendingApprovalsModal = ({
   onReject,
   onClose,
 }) => {
-  const [filter, setFilter] = useState("");
+  const [filter] = useSharedFilter();
   const [draftPrices, setDraftPrices] = useState({});
   const [draftNotes, setDraftNotes] = useState({});
 
@@ -76,13 +78,9 @@ const PendingApprovalsModal = ({
 
         <CardContent className="overflow-y-auto max-h-[78vh] p-3 sm:p-4">
           <div className="mb-3 sm:mb-4">
-            <Input
-              type="text"
+            <StickyFilterInput
               placeholder="Search items / description / quote ID…"
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              data-testid="approval-search-input"
-              className="w-full"
+              testId="approval-search-input"
             />
           </div>
 

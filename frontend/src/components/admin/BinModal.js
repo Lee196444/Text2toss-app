@@ -1,7 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
-import { Input } from "../ui/input";
 import { Badge } from "../ui/badge";
 import {
   buildImageUrl,
@@ -11,6 +10,8 @@ import {
   formatDate,
   formatStatus,
 } from "./bucketShared";
+import { useSharedFilter } from "./FilterContext";
+import StickyFilterInput from "./StickyFilterInput";
 
 const BIN_TITLE = {
   new: "🆕 New Jobs",
@@ -157,7 +158,7 @@ const BinModal = ({
   handleViewCustomerPhoto,
   testSmsPhoto,
 }) => {
-  const [filter, setFilter] = useState("");
+  const [filter] = useSharedFilter();
 
   const sortedBookings = useMemo(
     () => [...binBookings].sort((a, b) => new Date(b.pickup_date) - new Date(a.pickup_date)),
@@ -220,13 +221,9 @@ const BinModal = ({
         <CardContent className="overflow-y-auto max-h-[78vh] p-3 sm:p-4">
           {/* Search */}
           <div className="mb-3 sm:mb-4">
-            <Input
-              type="text"
+            <StickyFilterInput
               placeholder="Search by item, address, phone, email…"
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              data-testid="bin-search-input"
-              className="w-full"
+              testId="bin-search-input"
             />
           </div>
 

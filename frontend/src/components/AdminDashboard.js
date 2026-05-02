@@ -11,6 +11,7 @@ import MarketingQRModal from "./marketing/MarketingQRModal";
 import RouteOptimizerModal from "./admin/RouteOptimizerModal";
 import PendingApprovalsModal from "./admin/PendingApprovalsModal";
 import AutoApprovedQuotesModal from "./admin/AutoApprovedQuotesModal";
+import { FilterProvider } from "./admin/FilterContext";
 import PaymentRemindersModal from "./admin/PaymentRemindersModal";
 import BinModal from "./admin/BinModal";
 import CalendarModal from "./admin/CalendarModal";
@@ -68,8 +69,6 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
   const [newSmsMessage, setNewSmsMessage] = useState('');
   const [showAllJobsModal, setShowAllJobsModal] = useState(false);
   const [allJobs, setAllJobs] = useState([]);
-  const [jobSearchQuery, setJobSearchQuery] = useState('');
-  const [filteredJobs, setFilteredJobs] = useState([]);
   const [emailCompose, setEmailCompose] = useState({
     to: '',
     subject: '',
@@ -646,38 +645,11 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
   const fetchAllJobs = async () => {
     try {
       const response = await axios.get(`${API}/admin/all-bookings`);
-      const jobs = response.data || [];
-      setAllJobs(jobs);
-      setFilteredJobs(jobs);
+      setAllJobs(response.data || []);
     } catch (error) {
       console.error('Failed to fetch all jobs:', error);
       toast.error('Failed to load jobs');
     }
-  };
-
-  // Search jobs by job number
-  const handleJobSearch = (query) => {
-    setJobSearchQuery(query);
-    
-    if (!query.trim()) {
-      setFilteredJobs(allJobs);
-      return;
-    }
-    
-    const searchLower = query.toLowerCase();
-    const filtered = allJobs.filter(job => {
-      const jobId = job.id?.toLowerCase() || '';
-      const email = job.email?.toLowerCase() || '';
-      const phone = job.phone?.toLowerCase() || '';
-      const address = job.address?.toLowerCase() || '';
-      
-      return jobId.includes(searchLower) || 
-             email.includes(searchLower) || 
-             phone.includes(searchLower) ||
-             address.includes(searchLower);
-    });
-    
-    setFilteredJobs(filtered);
   };
 
   // Open All Jobs modal
@@ -960,6 +932,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
   };
 
   return (
+    <FilterProvider>
     <div className="min-h-screen bg-gradient-to-br from-black/40 to-emerald-900/50 p-2 sm:p-4">
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 overflow-visible">
         {/* Header */}
@@ -1396,10 +1369,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       {/* All Jobs Modal with Search */}
       <AllJobsModal
         open={showAllJobsModal}
-        jobs={allJobs}
-        filteredJobs={filteredJobs}
-        jobSearchQuery={jobSearchQuery}
-        handleJobSearch={handleJobSearch}
+        allJobs={allJobs}
         openJobDetails={openJobDetails}
         openEmailCenter={openEmailCenter}
         setShowAllJobsModal={setShowAllJobsModal}
@@ -1656,6 +1626,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
 
       <MarketingQRModal open={showQRModal} onClose={() => setShowQRModal(false)} />
     </div>
+    </FilterProvider>
   );
 };
 

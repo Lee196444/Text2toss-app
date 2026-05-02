@@ -15,6 +15,12 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Test creds: `lrobe` / `L1964c10$` (see `/app/memory/test_credentials.md`)
 
 ## Implemented (Apr 26, 2026)
+- ✅ **FEATURE (May 2): Sticky Filter Bar across every admin bucket modal**
+  - **New:** `admin/FilterContext.jsx` — React context wrapping localStorage key `text2toss:admin:shared-filter`, with cross-tab sync via the `storage` event. Survives page reloads.
+  - **New:** `admin/StickyFilterInput.jsx` — reusable input with inline `📌 STICKY` hint pill and `✕` clear button visible when a value is present.
+  - **Wiring:** Wrapped `AdminDashboard`'s return JSX in `<FilterProvider>`. All 5 admin bucket modals (BinModal, PaymentRemindersModal, AllJobsModal, PendingApprovalsModal, AutoApprovedQuotesModal) replaced local `useState('')` with `useSharedFilter()` and render `<StickyFilterInput>` in place of their prior `<Input>`.
+  - **Cleanup:** Deleted the now-dead `jobSearchQuery` + `filteredJobs` + `handleJobSearch` in AdminDashboard. AllJobsModal now receives `allJobs` and filters internally.
+  - **Verified end-to-end:** Live playwright test — typed `555` into Pending Payments search, closed that modal, opened Auto-Approved Quotes, the search input already contains `555` with the "📌 STICKY" pill and clear button visible. Matches screenshot. ESLint clean across the admin folder + AdminDashboard.
 - ✅ **DESIGN PASS (May 2): All 5 admin "bucket" modals share the same visual language**
   - **Shared module** `/app/frontend/src/components/admin/bucketShared.js` exporting `buildImageUrl`, `STATUS_BADGE`, `STATUS_BORDER`, `BIN_GRADIENT`, `formatDate`, `formatStatus` — eliminates 3 duplicated helpers across modals.
   - Redesigned with the auto-approved-quotes look:
