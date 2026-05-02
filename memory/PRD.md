@@ -15,6 +15,25 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Test creds: `lrobe` / `L1964c10$` (see `/app/memory/test_credentials.md`)
 
 ## Implemented (Apr 26, 2026)
+- ✅ **FEATURE (May 2): Multi-photo quotes — customer can upload up to 8 photos per job**
+  - **Why:** Big jobs often have piles of junk at multiple spots (garage, side yard, curb, back patio). Customers used to have to book 4 separate jobs. Now they upload all photos once, AI sees the full scope, and returns ONE combined quote.
+  - **Backend:**
+    - `PriceQuote` model: added `temp_image_paths: List[str]`. Kept `temp_image_path` as the primary/first image for backwards compat.
+    - `/api/quotes/image`: accepts **either** the legacy `file` form field OR the new repeated `files` form field (up to 8). Returns one quote with the full list of storage paths.
+    - `_save_images_permanently(files)` helper: uploads each file to managed object storage (disk fallback), returns `(db_paths, scratch_paths)`.
+    - `analyze_image_for_quote(image_paths, description)`: accepts list or str (legacy). Hashes **all image bytes + image count** into the cache key so "1 pile" and "4 piles" never collide. Passes multiple `FileContentWithMimeType` instances to Gemini 3 Flash Preview in a single call.
+    - `_build_vision_prompt(description, num_images)`: prepends a clear instruction to the AI when N>1 — "analyze ALL photos together as ONE combined quote" so it sums items/volumes across every image instead of returning N separate quotes.
+    - Timeout bumped client-side to 90s (multi-image vision takes a touch longer).
+  - **Frontend:**
+    - `LandingPage.js`: renamed `imageFile`/`uploadedImage` → `imageFiles[]`/`uploadedImages[]`. New handlers `handleRemoveImage(i)` + `handleClearImages()`.
+    - `QuoteFlowModal.js` — `UploadStep` completely redesigned for multi-photo: thumbnails grid (3-col) with index badges + per-photo "✕" remove, "＋ Add photo" tile that opens the file picker, "Clear all" link, dynamic title/copy ("3 photos added"), placeholder hint ("e.g., 4 piles: garage, side yard, curb, back patio…"), `multiple` attribute on all file inputs.
+    - `Get Quote` button disabled until at least one photo is added; still allows a single photo (the normal/simple case).
+  - **Verified end-to-end (live curl):**
+    - Legacy single-file → HTTP 200, `temp_image_paths: [...]` = 1-element list.
+    - Multi-file (2× `files=@image`) → HTTP 200, `temp_image_paths` = 2 storage keys, price returned from AI.
+    - ESLint + ruff clean. Backend boots. Admin + landing page render with no compile errors.
+- ✅ **TWEAK (May 2): Auto-Approved Quotes capped at 30 most recent**
+  - Frontend fetcher now requests `?limit=30`. Older auto-approved quotes roll off; past bookings still accessible via All Jobs History search. Modal subtitle updated to explain the rollover ("Older ones auto-roll off — find any past booking via All Jobs History").
 - ✅ **FEATURE (May 2): Sticky Filter Bar across every admin bucket modal**
   - **New:** `admin/FilterContext.jsx` — React context wrapping localStorage key `text2toss:admin:shared-filter`, with cross-tab sync via the `storage` event. Survives page reloads.
   - **New:** `admin/StickyFilterInput.jsx` — reusable input with inline `📌 STICKY` hint pill and `✕` clear button visible when a value is present.

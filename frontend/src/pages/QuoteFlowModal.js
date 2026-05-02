@@ -14,8 +14,8 @@ export default function QuoteFlowModal({
   quoteStep,
   quote,
   quoteError,
-  imageFile,
-  uploadedImage,
+  imageFiles,
+  uploadedImages,
   imageDescription,
   setImageDescription,
   imageAnalyzing,
@@ -23,7 +23,8 @@ export default function QuoteFlowModal({
 
   // actions
   onImageUpload,
-  onRemoveImage,
+  onRemoveImageAt,
+  onClearImages,
   onAnalyze,
   onCancel,         // close + reset everything
   onContinueToBooking,
@@ -51,14 +52,15 @@ export default function QuoteFlowModal({
         {quoteStep === 1 && (
           <UploadStep
             quoteError={quoteError}
-            uploadedImage={uploadedImage}
+            uploadedImages={uploadedImages}
+            imageFiles={imageFiles}
             imageDescription={imageDescription}
             setImageDescription={setImageDescription}
-            imageFile={imageFile}
             imageAnalyzing={imageAnalyzing}
             analysisStatus={analysisStatus}
             onImageUpload={onImageUpload}
-            onRemoveImage={onRemoveImage}
+            onRemoveImageAt={onRemoveImageAt}
+            onClearImages={onClearImages}
             onAnalyze={onAnalyze}
             onCancel={onCancel}
           />
@@ -97,23 +99,34 @@ function StepDot({ step, quoteStep }) {
 
 function UploadStep({
   quoteError,
-  uploadedImage,
+  uploadedImages,
+  imageFiles,
   imageDescription,
   setImageDescription,
-  imageFile,
   imageAnalyzing,
   analysisStatus,
   onImageUpload,
-  onRemoveImage,
+  onRemoveImageAt,
+  onClearImages,
   onAnalyze,
   onCancel,
 }) {
+  const count = (uploadedImages || []).length;
+  const MAX = 8;
+  const canAddMore = count < MAX;
+
   return (
     <>
       <CardHeader className="text-center pb-3 pt-6">
-        <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900">Upload your junk photo</CardTitle>
+        <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900">
+          {count === 0 ? "Upload your junk photos" : `${count} photo${count === 1 ? "" : "s"} added`}
+        </CardTitle>
         <CardDescription className="text-sm text-gray-500">
-          Take a clear photo of the items you want removed
+          {count === 0
+            ? "One photo is fine — add multiple if your piles are in different spots"
+            : canAddMore
+              ? "Add more photos if you have piles in other spots (all go on one quote)"
+              : `Maximum of ${MAX} photos per quote`}
         </CardDescription>
       </CardHeader>
 
@@ -124,7 +137,7 @@ function UploadStep({
           </div>
         )}
 
-        {!uploadedImage ? (
+        {count === 0 ? (
           <div className="space-y-3">
             <label className="block cursor-pointer">
               <div className="flex items-center gap-4 p-4 border-2 border-dashed border-emerald-300 rounded-xl bg-emerald-50/50 hover:bg-emerald-50 transition-colors">
@@ -142,7 +155,7 @@ function UploadStep({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                 </svg>
               </div>
-              <Input type="file" accept="image/*" capture="environment" onChange={onImageUpload} className="hidden" data-testid="camera-input" />
+              <Input type="file" accept="image/*" capture="environment" multiple onChange={onImageUpload} className="hidden" data-testid="camera-input" />
             </label>
 
             <label className="block cursor-pointer">
@@ -154,28 +167,64 @@ function UploadStep({
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-gray-900">Choose from gallery</p>
-                  <p className="text-xs text-gray-500">Select an existing photo</p>
+                  <p className="text-xs text-gray-500">Select one or multiple photos</p>
                 </div>
                 <svg className="w-5 h-5 text-gray-300 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                 </svg>
               </div>
-              <Input type="file" accept="image/*" onChange={onImageUpload} className="hidden" data-testid="gallery-input" />
+              <Input type="file" accept="image/*" multiple onChange={onImageUpload} className="hidden" data-testid="gallery-input" />
             </label>
 
-            <p className="text-xs text-gray-400 text-center">PNG, JPG, HEIC — any size, we'll shrink it</p>
+            <p className="text-xs text-gray-400 text-center">Up to {MAX} photos · PNG, JPG, HEIC — any size, we'll shrink them</p>
           </div>
         ) : (
-          <div className="relative rounded-xl overflow-hidden">
-            <img src={uploadedImage} alt="Uploaded items" className="w-full h-56 object-cover" />
-            <Button onClick={onRemoveImage} variant="destructive" size="sm" className="absolute top-3 right-3 h-8 rounded-lg text-xs">
-              Remove
-            </Button>
-            <div className="absolute bottom-3 left-3 bg-emerald-600 text-white text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-              </svg>
-              Ready
+          <div className="space-y-3">
+            {/* Thumbnail strip */}
+            <div className="grid grid-cols-3 gap-2" data-testid="upload-thumbs">
+              {uploadedImages.map((src, idx) => (
+                <div
+                  key={`${src.slice(-20)}-${idx}`}
+                  className="relative aspect-square rounded-xl overflow-hidden border border-gray-200 bg-gray-50 group"
+                >
+                  <img src={src} alt={`Pile ${idx + 1}`} className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => onRemoveImageAt(idx)}
+                    disabled={imageAnalyzing}
+                    className="absolute top-1 right-1 w-6 h-6 bg-black/70 text-white rounded-full text-xs flex items-center justify-center hover:bg-black disabled:opacity-50"
+                    aria-label={`Remove photo ${idx + 1}`}
+                    data-testid={`remove-photo-${idx}`}
+                  >
+                    ✕
+                  </button>
+                  <div className="absolute bottom-1 left-1 bg-emerald-600 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-full">
+                    {idx + 1}
+                  </div>
+                </div>
+              ))}
+              {canAddMore && (
+                <label className="aspect-square rounded-xl border-2 border-dashed border-emerald-300 bg-emerald-50/40 hover:bg-emerald-50 flex flex-col items-center justify-center cursor-pointer transition-colors">
+                  <span className="text-2xl text-emerald-500 mb-0.5">＋</span>
+                  <span className="text-[11px] text-emerald-700 font-medium">Add photo</span>
+                  <Input type="file" accept="image/*" multiple onChange={onImageUpload} className="hidden" data-testid="add-more-input" />
+                </label>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between text-xs text-gray-500">
+              <span>
+                {count} of {MAX} photo{count === 1 ? "" : "s"} — all combined into one quote
+              </span>
+              <button
+                type="button"
+                onClick={onClearImages}
+                disabled={imageAnalyzing}
+                className="text-red-600 hover:underline disabled:opacity-50"
+                data-testid="clear-photos-btn"
+              >
+                Clear all
+              </button>
             </div>
           </div>
         )}
@@ -185,7 +234,7 @@ function UploadStep({
             Brief description <span className="text-gray-400 font-normal">(optional)</span>
           </label>
           <Textarea
-            placeholder="e.g., Old furniture in garage, mattress, boxes..."
+            placeholder={count > 1 ? "e.g., 4 piles: garage, side yard, curb, back patio…" : "e.g., Old furniture in garage, mattress, boxes..."}
             value={imageDescription}
             onChange={(e) => setImageDescription(e.target.value)}
             className="min-h-[70px] text-sm resize-none rounded-xl border-gray-200"
@@ -213,7 +262,7 @@ function UploadStep({
         </Button>
         <Button
           onClick={onAnalyze}
-          disabled={!imageFile || imageAnalyzing}
+          disabled={!imageFiles || imageFiles.length === 0 || imageAnalyzing}
           className="h-11 bg-emerald-600 hover:bg-emerald-700 rounded-xl px-6 font-semibold"
           data-testid="get-instant-quote-btn"
         >

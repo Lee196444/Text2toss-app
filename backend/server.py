@@ -328,7 +328,8 @@ class PriceQuote(BaseModel):
     breakdown: Optional[dict] = None   # New: cost breakdown
     description: str
     ai_explanation: Optional[str] = None
-    temp_image_path: Optional[str] = None  # Temporary image path (deleted if not booked)
+    temp_image_path: Optional[str] = None  # Primary image (first of temp_image_paths); kept for backwards-compat
+    temp_image_paths: List[str] = Field(default_factory=list)  # All uploaded images for multi-photo quotes
     # Quote approval system for high-value jobs (Scale 9-20)
     approval_status: str = "auto_approved"  # auto_approved, pending_approval, approved, rejected
     requires_approval: bool = False  # True for Scale 9-20 quotes
@@ -674,8 +675,13 @@ def calculate_basic_price(items: List[JunkItem]) -> float:
     return round((price_range[0] + price_range[1]) / 2, 2)
 
 # AI Vision Analysis for Image-based Quotes
-async def analyze_image_for_quote(image_path: str, description: str) -> tuple[List[JunkItem], float, str, Optional[int], Optional[dict]]:
-    """Use AI vision to analyze uploaded image and identify junk items for pricing.
+async def analyze_image_for_quote(image_paths, description: str) -> tuple[List[JunkItem], float, str, Optional[int], Optional[dict]]:
+    """Analyze one or more uploaded images as a SINGLE combined quote.
+
+    Accepts either a single path (legacy call sites) or a list. When multiple
+    images are provided the AI sees them all at once and returns one
+    aggregated item list + price — the use case is a customer with multiple
+    piles of junk at different spots who wants a single pickup quote.
 
     Implementation is broken down into helpers:
       - _compress_image_for_ai     → speed up upload & hashing
@@ -687,29 +693,45 @@ async def analyze_image_for_quote(image_path: str, description: str) -> tuple[Li
     import time as _time
     t0 = _time.monotonic()
 
-    compressed_path = _compress_image_for_ai(image_path, t0)
+    # Normalize to list so the rest of the pipeline is single-branched.
+    if isinstance(image_paths, (str, Path)):
+        image_paths = [str(image_paths)]
+    image_paths = [str(p) for p in image_paths]
+    if not image_paths:
+        raise ValueError("At least one image path is required")
+
+    compressed_paths = [_compress_image_for_ai(p, t0) for p in image_paths]
 
     try:
         import hashlib
-        with open(compressed_path, "rb") as f:
-            image_hash = hashlib.sha256(f.read()).hexdigest()
+        hasher = hashlib.sha256()
+        for cp in compressed_paths:
+            with open(cp, "rb") as fh:
+                hasher.update(fh.read())
+            hasher.update(b"|")  # separator so (A,B) and (AB,) hash differently
+        image_hash = hasher.hexdigest()
 
-        # Description is now part of the cache key so a customer hint like
-        # "with stairs" or "extra heavy" causes a fresh AI pass instead of
-        # silently returning a description-less quote.
+        # Description + image count are part of the cache key so "1 pile" and
+        # "4 piles" with similar photos never collide.
         desc_norm = (description or "").strip().lower()
-        cache_key = hashlib.sha256(f"{image_hash}|{desc_norm}".encode()).hexdigest()
+        cache_key = hashlib.sha256(
+            f"{image_hash}|n={len(compressed_paths)}|{desc_norm}".encode()
+        ).hexdigest()
 
-        cached = await _check_image_cache(cache_key, image_hash, compressed_path, image_path, t0)
+        cached = await _check_image_cache(cache_key, image_hash, compressed_paths[0], image_paths[0], t0)
         if cached is not None:
             return cached
 
-        logger.info(f"Cache MISS for image {image_hash[:8]} desc={desc_norm[:40]!r} - sending to AI")
-        response_text = await _request_ai_vision_quote(compressed_path, description, image_hash, t0)
+        logger.info(
+            f"Cache MISS for batch {image_hash[:8]} (n={len(compressed_paths)}) "
+            f"desc={desc_norm[:40]!r} - sending to AI"
+        )
+        response_text = await _request_ai_vision_quote(compressed_paths, description, image_hash, t0)
 
-        # Clean up compressed file
-        if compressed_path != image_path and Path(compressed_path).exists():
-            Path(compressed_path).unlink()
+        # Clean up compressed files (they're separate from the scratch originals)
+        for cp, op in zip(compressed_paths, image_paths):
+            if cp != op and Path(cp).exists():
+                Path(cp).unlink()
 
         items, total_price, explanation, scale_level, breakdown = _parse_ai_quote_response(response_text)
 
@@ -764,10 +786,22 @@ async def _check_image_cache(cache_key: str, image_hash: str, compressed_path: s
     )
 
 
-def _build_vision_prompt(description: str) -> str:
+def _build_vision_prompt(description: str, num_images: int = 1) -> str:
     """Centralized pricing prompt for the vision call."""
+    # When the customer uploads multiple photos of the SAME job (e.g. four
+    # separate piles of junk around their property) the AI must aggregate
+    # them into ONE combined quote, not treat each image as a separate job.
+    multi_note = ""
+    if num_images > 1:
+        multi_note = (
+            f"IMPORTANT: The customer has uploaded {num_images} photos of a SINGLE job "
+            "(e.g. multiple piles at different spots on one property). Analyze ALL "
+            f"{num_images} photos together and return ONE combined quote — sum all "
+            "items/volumes across every photo. Do NOT return separate quotes.\n\n"
+        )
     return (
         f"Junk removal pricing expert — Text2toss, Flagstaff AZ. GROUND LEVEL/CURBSIDE ONLY.\n\n"
+        f"{multi_note}"
         f"Customer note: {description or 'None'}\n\n"
         "SCALE (by total volume):\n"
         "1:$15|2:$20|3:$50|4:$63|5:$78|6:$95|7:$115|8:$138|9:$163|10:$190|11:$220|12:$253|13:$290|14:$333|15:$380|16:$433|17:$490|18:$553|19:$620|20:$703\n\n"
@@ -782,25 +816,36 @@ def _build_vision_prompt(description: str) -> str:
     )
 
 
-async def _request_ai_vision_quote(compressed_path: str, description: str, image_hash: str, t0: float) -> str:
-    """Send compressed image + prompt to Gemini Flash and return the raw text response.
+async def _request_ai_vision_quote(compressed_paths, description: str, image_hash: str, t0: float) -> str:
+    """Send one or more compressed images + prompt to Gemini Flash and return the raw response.
 
-    Using `gemini-3-flash-preview` (newer than 2.0-flash, similar low latency
-    ~1-2s) instead of OpenAI vision to keep customer wait times short. Gemini
-    accepts file paths directly via FileContentWithMimeType, so no base64
-    pre-encoding needed.
+    Accepts either a single path (legacy) or a list of paths for multi-image
+    quotes. Gemini 3 Flash Preview handles multi-image prompts natively — we
+    just hand it the full list of FileContentWithMimeType objects.
     """
     import time as _time
-    image_file = FileContentWithMimeType(file_path=compressed_path, mime_type="image/jpeg")
+    if isinstance(compressed_paths, (str, Path)):
+        compressed_paths = [str(compressed_paths)]
+
+    image_files = [
+        FileContentWithMimeType(file_path=str(p), mime_type="image/jpeg")
+        for p in compressed_paths
+    ]
     chat = LlmChat(
         api_key=os.environ.get("EMERGENT_LLM_KEY"),
         session_id=f"vision_{image_hash}",
         system_message="Junk removal pricing expert. Respond with valid JSON only."
     ).with_model("gemini", "gemini-3-flash-preview")
-    user_message = UserMessage(text=_build_vision_prompt(description), file_contents=[image_file])
+    user_message = UserMessage(
+        text=_build_vision_prompt(description, num_images=len(image_files)),
+        file_contents=image_files,
+    )
     t_ai = _time.monotonic()
     response = await chat.send_message(user_message)
-    logger.info(f"AI response in {_time.monotonic()-t_ai:.1f}s (total {_time.monotonic()-t0:.1f}s)")
+    logger.info(
+        f"AI response in {_time.monotonic()-t_ai:.1f}s "
+        f"(n_images={len(image_files)}, total {_time.monotonic()-t0:.1f}s)"
+    )
     return response.strip()
 
 
@@ -997,55 +1042,75 @@ async def cleanup_old_quote_images(keep_count: int = 30):
 @api_router.post("/quotes/image", response_model=PriceQuote)
 async def create_quote_from_image(
     background_tasks: BackgroundTasks,
-    file: UploadFile = File(...),
+    file: Optional[UploadFile] = File(default=None),
+    files: List[UploadFile] = File(default_factory=list),
     description: str = Form(default="")
 ):
-    """Create quote by analyzing uploaded image with AI vision.
+    """Create a single quote by analyzing ONE OR MORE uploaded images.
 
-    Refactored helpers:
-      - _validate_image_upload     → guard clause + 400 on bad mimetype
-      - _save_image_permanently    → write the file, return its path
-      - _build_quote_record        → assemble the PriceQuote pydantic object
+    For multi-pile jobs (customer has 4 piles of junk around their property),
+    the frontend sends all photos as repeated `files` form fields. The backend
+    hands all photos to the AI vision model in a single request so it can see
+    the full scope and return one aggregated item list + price.
+
+    The legacy single-photo API continues to work via the `file` field.
     """
-    print(f"Image quote endpoint received description: '{description}'")
+    # Normalize: accept either legacy `file` or the new `files` list (or both).
+    uploads: List[UploadFile] = []
+    if files:
+        uploads.extend(files)
+    if file is not None:
+        uploads.append(file)
+    if not uploads:
+        raise HTTPException(status_code=400, detail="At least one image is required")
+    if len(uploads) > 8:
+        # Soft cap — AI cost/latency scales with image count.
+        raise HTTPException(status_code=400, detail="Up to 8 images per quote")
 
-    _validate_image_upload(file)
-    db_path, scratch_path = await _save_image_permanently(file)
+    print(f"Image quote endpoint received {len(uploads)} image(s); description: '{description}'")
+
+    for upload in uploads:
+        _validate_image_upload(upload)
+
+    db_paths, scratch_paths = await _save_images_permanently(uploads)
+    primary_db_path = db_paths[0]
 
     try:
         items, total_price, ai_explanation, scale_level, breakdown = await analyze_image_for_quote(
-            str(scratch_path), description
+            [str(p) for p in scratch_paths], description
         )
-        quote = _build_quote_record(items, total_price, scale_level, breakdown, ai_explanation, description, db_path)
+        quote = _build_quote_record(items, total_price, scale_level, breakdown, ai_explanation, description, primary_db_path)
+        quote.temp_image_paths = db_paths
         await db.quotes.insert_one(prepare_for_mongo(quote.dict()))
 
         logger.info(
             f"Quote created: id={quote.id}, scale={scale_level}, "
             f"requires_approval={quote.requires_approval}, approval_status={quote.approval_status}, "
-            f"image={Path(db_path).name}"
+            f"images={len(db_paths)} (first={Path(primary_db_path).name})"
         )
         background_tasks.add_task(cleanup_old_quote_images, 30)
         return quote
 
     except Exception:
-        # On failure, soft-delete the orphan: drop the scratch file and the
-        # disk-fallback copy if any. We don't bother deleting from object
-        # storage (no delete API; storage GC handles it).
-        if scratch_path.exists():
-            scratch_path.unlink()
-        if not object_storage.looks_like_storage_path(db_path):
-            disk_orphan = Path(db_path)
-            if disk_orphan.exists():
-                disk_orphan.unlink()
+        # Drop scratch files + any disk-fallback orphans. We don't delete from
+        # object storage (no delete API — GC handles it).
+        for scratch in scratch_paths:
+            if scratch.exists():
+                scratch.unlink()
+        for db_path in db_paths:
+            if not object_storage.looks_like_storage_path(db_path):
+                orphan = Path(db_path)
+                if orphan.exists():
+                    orphan.unlink()
         raise
 
     finally:
-        # Always clean up the scratch file once analysis is done.
-        if scratch_path.exists():
-            try:
-                scratch_path.unlink()
-            except OSError:
-                pass
+        for scratch in scratch_paths:
+            if scratch.exists():
+                try:
+                    scratch.unlink()
+                except OSError:
+                    pass
 
 
 def _validate_image_upload(file: UploadFile) -> None:
@@ -1055,51 +1120,47 @@ def _validate_image_upload(file: UploadFile) -> None:
 
 
 async def _save_image_permanently(file: UploadFile) -> tuple[str, Path]:
-    """Persist the upload and prepare it for AI analysis.
+    """Persist a single upload. Convenience wrapper around _save_images_permanently."""
+    db_paths, scratch_paths = await _save_images_permanently([file])
+    return db_paths[0], scratch_paths[0]
 
-    Returns a tuple ``(db_path, scratch_path)``:
-      - ``db_path`` is what we store on the quote/booking record. For new
-        uploads this is a managed object-storage key like
-        ``text2toss/quote_images/quote_<uuid>.jpg``.  If storage is offline
-        we fall back to a literal disk path so the upload never fails.
-      - ``scratch_path`` is a local temp file the caller can hand to the
-        AI vision pipeline. The caller is responsible for ``unlink()``-ing
-        it once analysis is complete.
 
-    The frontend's image-URL helper extracts the last two segments of the
-    db_path (folder + filename) and renders /api/images/{folder}/{filename},
-    which the backend resolves to either object storage or disk.
+async def _save_images_permanently(files: List[UploadFile]) -> tuple[List[str], List[Path]]:
+    """Persist N uploads in order; returns (db_paths, scratch_paths).
+
+    `db_paths[i]` is the storage-or-disk path we save on the quote record.
+    `scratch_paths[i]` is a local file the AI vision pipeline reads. Caller
+    must unlink the scratch files after analysis.
     """
-    file_extension = Path(file.filename).suffix or ".jpg"
-    filename = f"quote_{uuid.uuid4()}{file_extension}"
-    data = await file.read()
-
-    # Always write a scratch copy that the AI vision step can read.
+    db_paths: List[str] = []
+    scratch_paths: List[Path] = []
     scratch_dir = Path("/tmp/text2toss_uploads")
     scratch_dir.mkdir(parents=True, exist_ok=True)
-    scratch_path = scratch_dir / filename
-    async with aiofiles.open(scratch_path, "wb") as f:
-        await f.write(data)
 
-    # Try managed object storage first. If anything fails, fall back to the
-    # legacy on-disk location so the request still succeeds (the operator
-    # gets a warning in the logs and can fix storage later).
-    try:
-        storage_key = object_storage.storage_path("quote_images", filename)
-        object_storage.put_bytes(
-            storage_key,
-            data,
-            file.content_type or "image/jpeg",
-        )
-        return storage_key, scratch_path
-    except Exception as exc:
-        logger.warning("[storage] quote upload failed, using disk: %s", exc)
-        quote_images_dir = Path("/app/static/quote_images")
-        quote_images_dir.mkdir(parents=True, exist_ok=True)
-        disk_path = quote_images_dir / filename
-        async with aiofiles.open(disk_path, "wb") as f:
-            await f.write(data)
-        return str(disk_path), scratch_path
+    for file in files:
+        file_extension = Path(file.filename or "photo.jpg").suffix or ".jpg"
+        filename = f"quote_{uuid.uuid4()}{file_extension}"
+        data = await file.read()
+
+        scratch_path = scratch_dir / filename
+        async with aiofiles.open(scratch_path, "wb") as fh:
+            await fh.write(data)
+        scratch_paths.append(scratch_path)
+
+        try:
+            storage_key = object_storage.storage_path("quote_images", filename)
+            object_storage.put_bytes(storage_key, data, file.content_type or "image/jpeg")
+            db_paths.append(storage_key)
+        except Exception as exc:
+            logger.warning("[storage] quote upload failed, using disk: %s", exc)
+            quote_images_dir = Path("/app/static/quote_images")
+            quote_images_dir.mkdir(parents=True, exist_ok=True)
+            disk_path = quote_images_dir / filename
+            async with aiofiles.open(disk_path, "wb") as fh:
+                await fh.write(data)
+            db_paths.append(str(disk_path))
+
+    return db_paths, scratch_paths
 
 
 def _build_quote_record(items, total_price, scale_level, breakdown, ai_explanation, description, file_path) -> PriceQuote:

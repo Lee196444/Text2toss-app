@@ -25,8 +25,8 @@ const LandingPage = () => {
   const [currentItem, setCurrentItem] = useState({ name: "", size: "medium", description: "" });
   const [quote, setQuote] = useState(null);
   const [showBooking, setShowBooking] = useState(false);
-  const [uploadedImage, setUploadedImage] = useState(null);
-  const [imageFile, setImageFile] = useState(null);
+  const [uploadedImages, setUploadedImages] = useState([]); // Array of data-URL previews
+  const [imageFiles, setImageFiles] = useState([]);           // Array of File objects
   const [imageDescription, setImageDescription] = useState("");
   const [imageAnalyzing, setImageAnalyzing] = useState(false);
   // While analyzing: holds the resolved quote / error so the progress overlay
@@ -164,24 +164,64 @@ const LandingPage = () => {
     }
   };
 
+  const MAX_IMAGES = 8;
+
   const handleImageUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
+    const selected = Array.from(event.target.files || []);
+    if (selected.length === 0) return;
+
+    // Combined ceiling (existing + new) so adding one at a time still caps out.
+    if (imageFiles.length + selected.length > MAX_IMAGES) {
+      const msg = `You can upload up to ${MAX_IMAGES} photos per quote.`;
+      setQuoteError(msg);
+      toast.error(msg);
+      return;
+    }
+
+    const accepted = [];
+    for (const file of selected) {
       // Sanity cap on raw upload — we compress to ~150KB before sending, so
       // anything under 50MB is fine. Modern phones (esp. Samsung HQ mode)
       // routinely produce 12-25MB photos.
       if (file.size > 50 * 1024 * 1024) {
-        setQuoteError("Image must be less than 50MB");
-        toast.error("Image must be less than 50MB");
-        return;
+        setQuoteError(`"${file.name}" is larger than 50MB — please pick a smaller photo.`);
+        toast.error(`"${file.name}" is larger than 50MB`);
+        continue;
       }
-      setImageFile(file);
-      setImageAnalyzed(false); // Reset analysis state when new image uploaded
-      setQuoteError(''); // Clear any previous errors
-      const reader = new FileReader();
-      reader.onload = (e) => setUploadedImage(e.target.result);
-      reader.readAsDataURL(file);
+      accepted.push(file);
     }
+
+    if (accepted.length === 0) return;
+
+    setImageFiles(prev => [...prev, ...accepted]);
+    setImageAnalyzed(false);
+    setQuoteError('');
+
+    accepted.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setUploadedImages(prev => [...prev, e.target.result]);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Allow selecting the same file again if it was removed earlier
+    if (event.target && event.target.value !== undefined) {
+      event.target.value = "";
+    }
+  };
+
+  const handleRemoveImage = (index) => {
+    setImageFiles(prev => prev.filter((_, i) => i !== index));
+    setUploadedImages(prev => prev.filter((_, i) => i !== index));
+    setImageAnalyzed(false);
+    setQuoteError('');
+  };
+
+  const handleClearImages = () => {
+    setImageFiles([]);
+    setUploadedImages([]);
+    setQuoteError('');
   };
 
   const [analysisStatus, setAnalysisStatus] = useState('');
@@ -253,9 +293,9 @@ const LandingPage = () => {
   };
 
   const analyzeImageAndGetQuote = async () => {
-    if (!imageFile) {
-      setQuoteError("Please upload a photo of your items");
-      toast.error("Please upload a photo of your items");
+    if (!imageFiles.length) {
+      setQuoteError("Please upload at least one photo of your items");
+      toast.error("Please upload at least one photo of your items");
       return;
     }
 
@@ -265,16 +305,16 @@ const LandingPage = () => {
     setQuoteError('');
 
     try {
-      // Compress image client-side first (5-10MB → ~100-200KB).
-      // If compression fails (HEIC, decode error, timeout) fall back to the
-      // raw file — the backend will decode + resize it.
-      const compressedBlob = await compressImageForUpload(imageFile);
-
       const formData = new FormData();
-      if (compressedBlob) {
-        formData.append('file', compressedBlob, 'photo.jpg');
-      } else {
-        formData.append('file', imageFile, imageFile.name || 'photo.jpg');
+      // Compress each image client-side (5-10MB → ~100-200KB each). If any
+      // compression step fails (HEIC, decode error, timeout) we fall back to
+      // that file raw — the backend will decode + resize it.
+      for (let i = 0; i < imageFiles.length; i++) {
+        const original = imageFiles[i];
+        const compressed = await compressImageForUpload(original);
+        const payload = compressed || original;
+        const name = compressed ? `photo_${i + 1}.jpg` : (original.name || `photo_${i + 1}.jpg`);
+        formData.append('files', payload, name);
       }
       formData.append('description', imageDescription);
 
@@ -282,7 +322,7 @@ const LandingPage = () => {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        timeout: 60000, // 60s — covers slow networks + AI vision call
+        timeout: 90000, // 90s — multi-image vision can take a few seconds longer
       });
 
       // Hand the response to the progress overlay; it will animate the
@@ -575,18 +615,19 @@ const LandingPage = () => {
           quoteStep={quoteStep}
           quote={quote}
           quoteError={quoteError}
-          imageFile={imageFile}
-          uploadedImage={uploadedImage}
+          imageFiles={imageFiles}
+          uploadedImages={uploadedImages}
           imageDescription={imageDescription}
           setImageDescription={setImageDescription}
           imageAnalyzing={imageAnalyzing}
           analysisStatus={analysisStatus}
           onImageUpload={handleImageUpload}
-          onRemoveImage={() => { setImageFile(null); setUploadedImage(null); setQuoteError(''); }}
+          onRemoveImageAt={handleRemoveImage}
+          onClearImages={handleClearImages}
           onAnalyze={analyzeImageAndGetQuote}
-          onCancel={() => { setShowQuote(false); setQuoteStep(1); setImageFile(null); setUploadedImage(null); setQuoteError(''); setImageDescription(''); }}
+          onCancel={() => { setShowQuote(false); setQuoteStep(1); handleClearImages(); setImageDescription(''); }}
           onContinueToBooking={() => { setShowBooking(true); setShowQuote(false); }}
-          onCloseAfterQuote={() => { setShowQuote(false); setQuoteStep(1); setQuote(null); setImageFile(null); setUploadedImage(null); setImageDescription(''); }}
+          onCloseAfterQuote={() => { setShowQuote(false); setQuoteStep(1); setQuote(null); handleClearImages(); setImageDescription(''); }}
         />
       )}
 
@@ -682,3 +723,4 @@ const LandingPage = () => {
 // Photo Carousel Component
 
 export default LandingPage;
+

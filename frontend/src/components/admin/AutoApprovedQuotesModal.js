@@ -69,7 +69,7 @@ const AutoApprovedQuotesModal = ({
               </Badge>
             </CardTitle>
             <CardDescription className="text-xs sm:text-sm mt-1">
-              Recent quotes auto-approved by the AI (Scale 1–8).
+              30 most recent AI auto-approved quotes. Older ones auto-roll off — find any past booking via <strong>All Jobs History</strong>.
               Booked revenue in view: <strong>${totalRevenue.toFixed(2)}</strong>
             </CardDescription>
           </div>

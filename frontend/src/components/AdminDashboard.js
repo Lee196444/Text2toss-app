@@ -854,7 +854,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
   const fetchAutoApprovedQuotes = useCallback(async () => {
     setAutoApprovedLoading(true);
     try {
-      const response = await axios.get(`${API}/admin/auto-approved-quotes?limit=200`);
+      const response = await axios.get(`${API}/admin/auto-approved-quotes?limit=30`);
       setAutoApprovedQuotes(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Error fetching auto-approved quotes:', error);
