@@ -2425,7 +2425,13 @@ async def admin_login(login_data: AdminLogin):
             value=admin_token,
             httponly=True,
             secure=True,
-            samesite="lax",
+            # `none` is REQUIRED for the admin cookie to be sent on cross-site
+            # XHR. The deployed frontend (e.g. text2toss.com) calls a different
+            # backend host (e.g. junkai-platform.emergent.host), so the cookie
+            # must be cross-site-eligible. `Lax` would silently drop it on
+            # every fetch/XHR and produce empty admin bins.
+            # `secure=True` is mandatory whenever SameSite is `None`.
+            samesite="none",
             max_age=8 * 3600,
             path="/api"
         )
