@@ -1,9 +1,11 @@
-from fastapi import FastAPI, APIRouter, HTTPException, UploadFile, File, Form, Request, BackgroundTasks
+from fastapi import FastAPI, APIRouter, HTTPException, UploadFile, File, Form, Request, BackgroundTasks, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse, JSONResponse
 from dotenv import load_dotenv
 import csv
 import io
+from io import BytesIO
+import requests
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
@@ -25,6 +27,7 @@ import aiofiles
 import shutil
 from twilio.rest import Client
 from templates import email_templates
+import object_storage
 
 # Register HEIC/HEIF (iPhone default) so any endpoint using PIL can decode it.
 # Safe to call once at import time — register_heif_opener is idempotent.
@@ -1007,28 +1010,42 @@ async def create_quote_from_image(
     print(f"Image quote endpoint received description: '{description}'")
 
     _validate_image_upload(file)
-    file_path = await _save_image_permanently(file)
+    db_path, scratch_path = await _save_image_permanently(file)
 
     try:
         items, total_price, ai_explanation, scale_level, breakdown = await analyze_image_for_quote(
-            str(file_path), description
+            str(scratch_path), description
         )
-        quote = _build_quote_record(items, total_price, scale_level, breakdown, ai_explanation, description, file_path)
+        quote = _build_quote_record(items, total_price, scale_level, breakdown, ai_explanation, description, db_path)
         await db.quotes.insert_one(prepare_for_mongo(quote.dict()))
 
         logger.info(
             f"Quote created: id={quote.id}, scale={scale_level}, "
             f"requires_approval={quote.requires_approval}, approval_status={quote.approval_status}, "
-            f"image={file_path.name}"
+            f"image={Path(db_path).name}"
         )
         background_tasks.add_task(cleanup_old_quote_images, 30)
         return quote
 
     except Exception:
-        # Clean up the saved file on any failure so we don't leak orphans.
-        if file_path.exists():
-            file_path.unlink()
+        # On failure, soft-delete the orphan: drop the scratch file and the
+        # disk-fallback copy if any. We don't bother deleting from object
+        # storage (no delete API; storage GC handles it).
+        if scratch_path.exists():
+            scratch_path.unlink()
+        if not object_storage.looks_like_storage_path(db_path):
+            disk_orphan = Path(db_path)
+            if disk_orphan.exists():
+                disk_orphan.unlink()
         raise
+
+    finally:
+        # Always clean up the scratch file once analysis is done.
+        if scratch_path.exists():
+            try:
+                scratch_path.unlink()
+            except OSError:
+                pass
 
 
 def _validate_image_upload(file: UploadFile) -> None:
@@ -1037,15 +1054,52 @@ def _validate_image_upload(file: UploadFile) -> None:
         raise HTTPException(status_code=400, detail="Only image files are allowed")
 
 
-async def _save_image_permanently(file: UploadFile) -> Path:
-    """Persist the upload to /app/static/quote_images and return its path."""
-    quote_images_dir = Path("/app/static/quote_images")
-    quote_images_dir.mkdir(parents=True, exist_ok=True)
+async def _save_image_permanently(file: UploadFile) -> tuple[str, Path]:
+    """Persist the upload and prepare it for AI analysis.
+
+    Returns a tuple ``(db_path, scratch_path)``:
+      - ``db_path`` is what we store on the quote/booking record. For new
+        uploads this is a managed object-storage key like
+        ``text2toss/quote_images/quote_<uuid>.jpg``.  If storage is offline
+        we fall back to a literal disk path so the upload never fails.
+      - ``scratch_path`` is a local temp file the caller can hand to the
+        AI vision pipeline. The caller is responsible for ``unlink()``-ing
+        it once analysis is complete.
+
+    The frontend's image-URL helper extracts the last two segments of the
+    db_path (folder + filename) and renders /api/images/{folder}/{filename},
+    which the backend resolves to either object storage or disk.
+    """
     file_extension = Path(file.filename).suffix or ".jpg"
-    file_path = quote_images_dir / f"quote_{uuid.uuid4()}{file_extension}"
-    async with aiofiles.open(file_path, "wb") as f:
-        await f.write(await file.read())
-    return file_path
+    filename = f"quote_{uuid.uuid4()}{file_extension}"
+    data = await file.read()
+
+    # Always write a scratch copy that the AI vision step can read.
+    scratch_dir = Path("/tmp/text2toss_uploads")
+    scratch_dir.mkdir(parents=True, exist_ok=True)
+    scratch_path = scratch_dir / filename
+    async with aiofiles.open(scratch_path, "wb") as f:
+        await f.write(data)
+
+    # Try managed object storage first. If anything fails, fall back to the
+    # legacy on-disk location so the request still succeeds (the operator
+    # gets a warning in the logs and can fix storage later).
+    try:
+        storage_key = object_storage.storage_path("quote_images", filename)
+        object_storage.put_bytes(
+            storage_key,
+            data,
+            file.content_type or "image/jpeg",
+        )
+        return storage_key, scratch_path
+    except Exception as exc:
+        logger.warning("[storage] quote upload failed, using disk: %s", exc)
+        quote_images_dir = Path("/app/static/quote_images")
+        quote_images_dir.mkdir(parents=True, exist_ok=True)
+        disk_path = quote_images_dir / filename
+        async with aiofiles.open(disk_path, "wb") as f:
+            await f.write(data)
+        return str(disk_path), scratch_path
 
 
 def _build_quote_record(items, total_price, scale_level, breakdown, ai_explanation, description, file_path) -> PriceQuote:
@@ -1902,22 +1956,40 @@ async def _validate_completion_upload(booking_id: str, file: UploadFile) -> dict
     return booking
 
 
-async def _save_completion_photo(booking_id: str, file: UploadFile) -> Path:
-    """Persist the uploaded file under /completion_photos and return its path."""
-    completion_dir = Path("/app/backend/static/completion_photos")
-    completion_dir.mkdir(parents=True, exist_ok=True)
+async def _save_completion_photo(booking_id: str, file: UploadFile) -> str:
+    """Persist the completion photo and return the path to store on the booking.
+
+    Prefers managed object storage (key like
+    ``text2toss/completion_photos/completion_<bid>_<ts>.jpg``) and falls back
+    to the legacy on-disk location if storage is unavailable. The frontend's
+    image-URL helper handles either format transparently.
+    """
     file_extension = Path(file.filename).suffix or ".jpg"
     photo_filename = f"completion_{booking_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}{file_extension}"
-    photo_path = completion_dir / photo_filename
-    async with aiofiles.open(photo_path, "wb") as f:
-        await f.write(await file.read())
-    return photo_path
+    data = await file.read()
+
+    try:
+        storage_key = object_storage.storage_path("completion_photos", photo_filename)
+        object_storage.put_bytes(
+            storage_key,
+            data,
+            file.content_type or "image/jpeg",
+        )
+        return storage_key
+    except Exception as exc:
+        logger.warning("[storage] completion photo upload failed, using disk: %s", exc)
+        completion_dir = Path("/app/backend/static/completion_photos")
+        completion_dir.mkdir(parents=True, exist_ok=True)
+        photo_path = completion_dir / photo_filename
+        async with aiofiles.open(photo_path, "wb") as f:
+            await f.write(data)
+        return str(photo_path)
 
 
-async def _persist_completion_metadata(booking_id: str, photo_path: Path, completion_note: str):
+async def _persist_completion_metadata(booking_id: str, photo_path: str, completion_note: str):
     result = await db.bookings.update_one(
         {"id": booking_id},
-        {"$set": {"completion_photo_path": str(photo_path), "completion_note": completion_note}}
+        {"$set": {"completion_photo_path": photo_path, "completion_note": completion_note}}
     )
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Booking not found")
@@ -2937,9 +3009,24 @@ async def upload_gallery_photo(photo: UploadFile = File(...)):
 
         # Always store as JPEG so the browser renders it everywhere
         filename = f"gallery_{uuid.uuid4()}.jpg"
-        file_path = f"/app/static/gallery/{filename}"
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        img.save(file_path, "JPEG", quality=85, optimize=True)
+
+        # Encode JPEG into memory; we'll send it to object storage and only
+        # touch disk as a fallback. Object storage gives us redeploy-survival
+        # for free (the previous on-disk-only approach lost gallery photos
+        # on every container restart).
+        out_buffer = BytesIO()
+        img.save(out_buffer, "JPEG", quality=85, optimize=True)
+        jpeg_bytes = out_buffer.getvalue()
+
+        try:
+            storage_key = object_storage.storage_path("gallery", filename)
+            object_storage.put_bytes(storage_key, jpeg_bytes, "image/jpeg")
+        except Exception as exc:
+            logger.warning("[storage] gallery upload failed, using disk: %s", exc)
+            file_path = f"/app/static/gallery/{filename}"
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            with open(file_path, "wb") as f:
+                f.write(jpeg_bytes)
 
         backend_url = os.environ.get("REACT_APP_BACKEND_URL", "")
         photo_url = f"{backend_url}/api/images/gallery/{filename}"
@@ -3027,7 +3114,6 @@ async def crop_reel_photo(payload: CropReelPayload):
     """Crop the source photo at `photo_url` according to `payload.crop`,
     save the result to /app/static/gallery/, and update the reel slot."""
     from PIL import Image
-    from io import BytesIO
 
     src_url = payload.photo_url
     # Resolve to a local file path when the URL points at our own server
@@ -3139,22 +3225,56 @@ def _delete_disk_file_silently(file_path: str, photo_url: str) -> None:
 # Image serving endpoint (due to Kubernetes routing all non-/api requests to frontend)
 @api_router.get("/images/{folder}/{filename}")
 async def serve_image(folder: str, filename: str):
-    """Serve images through API endpoint due to Kubernetes routing"""
+    """Serve images through API endpoint due to Kubernetes routing.
+
+    Resolution order:
+      1. Object storage at ``text2toss/{folder}/{filename}`` (current path
+         for any upload made after May 2026).
+      2. Local disk at ``/app/static/{folder}/{filename}`` (legacy uploads
+         that pre-date the storage migration).
+
+    If neither has the file we return 404.
+    """
     import mimetypes
-    
+
+    storage_key = object_storage.storage_path(folder, filename)
+
+    # Try object storage first.
+    try:
+        data, content_type = object_storage.get_bytes(storage_key)
+        if not content_type or content_type == "application/octet-stream":
+            content_type, _ = mimetypes.guess_type(filename)
+            content_type = content_type or "application/octet-stream"
+        return Response(
+            content=data,
+            media_type=content_type,
+            headers={
+                "Content-Disposition": "inline",
+                "Cache-Control": "public, max-age=86400",
+            },
+        )
+    except requests.HTTPError as exc:
+        # 404 from storage is fine — fall through to disk. Anything else
+        # we want to surface in the logs but still try disk so a transient
+        # storage hiccup doesn't take down the gallery.
+        if exc.response is not None and exc.response.status_code != 404:
+            logger.warning("[storage] get %s failed: %s", storage_key, exc)
+    except Exception as exc:
+        logger.warning("[storage] get %s errored: %s", storage_key, exc)
+
+    # Disk fallback — legacy files only.
     file_path = f"/app/static/{folder}/{filename}"
-    
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Image not found")
-    
-    # Determine content type
+
     content_type, _ = mimetypes.guess_type(file_path)
     if not content_type:
         content_type = "application/octet-stream"
-    
-    # Return with inline disposition so images display in browser instead of downloading
-    headers = {"Content-Disposition": "inline"}
-    return FileResponse(file_path, media_type=content_type, headers=headers)
+    return FileResponse(
+        file_path,
+        media_type=content_type,
+        headers={"Content-Disposition": "inline"},
+    )
 
 # Customer Price Approval Endpoints
 @api_router.get("/customer-approval/{token}")
@@ -3691,6 +3811,17 @@ async def _start_push_scheduler():
     sched.start()
     app.state.push_scheduler = sched
     logger.info("[push] daily-reminder scheduler started")
+
+
+@app.on_event("startup")
+async def _init_object_storage():
+    """Acquire the object-storage session key once at startup. Failures here
+    are non-fatal — uploads will fall back to disk and log a warning, but the
+    rest of the API stays online."""
+    try:
+        object_storage.init_storage()
+    except Exception as exc:
+        logger.warning("[storage] init failed at startup (%s) — uploads will fall back to disk", exc)
 
 
 @app.on_event("shutdown")

@@ -15,6 +15,17 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Test creds: `lrobe` / `L1964c10$` (see `/app/memory/test_credentials.md`)
 
 ## Implemented (Apr 26, 2026)
+- ✅ **MAJOR FEATURE (May 2): Managed Object Storage for all customer/admin uploads (P0)**
+  - **Why:** Container disk is ephemeral — every redeploy wiped customer photos uploaded in the prior session (the same root cause behind the "$78 customer's photo missing" report earlier today). Migrated to Emergent's managed object storage so uploads survive container restarts/redeploys.
+  - **New module:** `/app/backend/object_storage.py` — wraps the official Emergent Storage API (`https://integrations.emergentagent.com/objstore/api/v1/storage`). Idempotent `init_storage()` with auto-refresh on 403, `put_bytes`, `get_bytes`, `object_exists`. App namespace = `text2toss`, paths follow `text2toss/{folder}/{filename}`.
+  - **server.py changes:**
+    - Startup hook `_init_object_storage` (non-fatal — disk fallback if storage init fails).
+    - `_save_image_permanently` now returns `(db_path, scratch_path)` tuple. The scratch copy lives in `/tmp/text2toss_uploads/` and is cleaned up in a `finally` block after AI vision analysis. The db_path goes to managed storage, with disk fallback.
+    - `_save_completion_photo` migrated to managed storage with disk fallback.
+    - `upload_gallery_photo` migrated — Pillow processes in-memory, JPEG bytes go straight to storage.
+    - `serve_image` (`/api/images/{folder}/{filename}`) now resolves storage-first then disk-fallback. Adds `Cache-Control: public, max-age=86400` for browser caching. **Legacy on-disk files keep working transparently** (no migration of old records needed).
+  - **Verified end-to-end:** Live upload via `POST /api/quotes/image` → file persisted in managed storage at `text2toss/quote_images/quote_<uuid>.jpg` → `GET /api/images/quote_images/<file>` returns HTTP 200, exact byte count match (8267 → 8267). Legacy disk file also returns 200. Bogus filename returns 404. Lint clean.
+  - **Frontend:** zero changes required — the existing `buildImageUrl` helper extracts the last two path segments of `image_path`, which works identically for both `/app/static/quote_images/...` (legacy) and `text2toss/quote_images/...` (new) formats.
 - ✅ **BUGFIX (May 2): Customer photo not loading + missing "Complete" shortcut on scheduled jobs**
   - **Photo not loading (root cause #1):** The thumbnail in `BinModal.js` used `${API}/admin/booking-image/${id}` — an **admin-protected** endpoint. `<img>` tags do NOT send credentials cross-site by default, so the browser fired the request without the `admin_session` cookie → backend rejected as 401 → `onError` hid the image. **Fix:** switched the `<img src>` to the **public** `/api/images/{folder}/{filename}` endpoint via a new `buildImageUrl(storedPath)` helper that derives folder + filename from the stored disk path.
   - **"View Photo" button (root cause #2):** `handleViewCustomerPhoto` in `AdminDashboard.js` hard-coded folder name `booking_images`, but quote photos actually live in `quote_images`. **Fix:** rewritten to derive folder dynamically from `booking.image_path` (last two segments).
