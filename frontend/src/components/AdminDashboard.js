@@ -350,22 +350,29 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
   };
 
   const handleViewCustomerPhoto = (booking) => {
-    if (booking.image_path) {
-      // Construct the full URL for the customer photo
-      const backend_url = process.env.REACT_APP_BACKEND_URL;
-      const photoUrl = booking.image_path.startsWith('http') 
-        ? booking.image_path 
-        : `${backend_url}/api/images/booking_images/${booking.image_path.split('/').pop()}`;
-      
-      setCurrentCustomerPhoto({
-        url: photoUrl,
-        booking_id: booking.id,
-        customer_phone: booking.phone,
-        pickup_date: booking.pickup_date,
-        address: booking.address
-      });
-      setShowCustomerPhoto(true);
+    if (!booking.image_path) return;
+    // Build the public image URL from the stored disk path. The path looks like
+    // "/app/static/quote_images/quote_<uuid>.jpg" — we want the last two segments
+    // (folder + filename). Earlier code hard-coded "booking_images" which was wrong
+    // — the AI quote photos live in "quote_images".
+    const backend_url = process.env.REACT_APP_BACKEND_URL;
+    let photoUrl;
+    if (booking.image_path.startsWith('http')) {
+      photoUrl = booking.image_path;
+    } else {
+      const parts = booking.image_path.split('/').filter(Boolean);
+      const folder = parts[parts.length - 2] || 'quote_images';
+      const filename = parts[parts.length - 1];
+      photoUrl = `${backend_url}/api/images/${folder}/${filename}`;
     }
+    setCurrentCustomerPhoto({
+      url: photoUrl,
+      booking_id: booking.id,
+      customer_phone: booking.phone,
+      pickup_date: booking.pickup_date,
+      address: booking.address
+    });
+    setShowCustomerPhoto(true);
   };
 
   const submitCompletion = async () => {

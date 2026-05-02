@@ -9,6 +9,21 @@ import { Badge } from "../ui/badge";
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// Build a public image URL from a stored disk path like
+// "/app/static/quote_images/quote_<uuid>.jpg" → "/api/images/quote_images/quote_<uuid>.jpg".
+// `<img>` tags don't send admin cookies cross-site, so we MUST use the
+// public `/api/images/{folder}/{filename}` endpoint, not `/api/admin/...`.
+const buildImageUrl = (storedPath) => {
+  if (!storedPath) return null;
+  if (storedPath.startsWith('http')) return storedPath;
+  // Match the last two path segments: folder + filename
+  const parts = storedPath.split('/').filter(Boolean);
+  if (parts.length < 2) return null;
+  const folder = parts[parts.length - 2];
+  const filename = parts[parts.length - 1];
+  return `${API}/images/${folder}/${filename}`;
+};
+
 const BinModal = ({ open, selectedBin, binBookings, jobs, formatPrice, formatTime, closeBin, startRoute, notifyCustomer, updateBookingStatus, handleCompleteWithPhoto, handleViewCustomerPhoto, testSmsPhoto }) => {
   // Sort on a *copy* (previous code mutated the prop!) and memoize to avoid
   // re-sorting on every render.
@@ -138,7 +153,7 @@ const BinModal = ({ open, selectedBin, binBookings, jobs, formatPrice, formatTim
                           <div>
                             <p className="text-xs font-medium text-blue-800 mb-1">Customer Photo:</p>
                             <img 
-                              src={`${API}/admin/booking-image/${booking.id}`}
+                              src={buildImageUrl(booking.image_path)}
                               alt="Customer items"
                               className="w-full h-20 object-cover rounded border"
                               onError={(e) => e.target.style.display = 'none'}
@@ -149,7 +164,7 @@ const BinModal = ({ open, selectedBin, binBookings, jobs, formatPrice, formatTim
                           <div>
                             <p className="text-xs font-medium text-green-800 mb-1">Completion Photo:</p>
                             <img 
-                              src={`${API}/admin/completion-photo/${booking.id}`}
+                              src={buildImageUrl(booking.completion_photo_path)}
                               alt="Completed job"
                               className="w-full h-20 object-cover rounded border"
                               onError={(e) => e.target.style.display = 'none'}
@@ -187,14 +202,37 @@ const BinModal = ({ open, selectedBin, binBookings, jobs, formatPrice, formatTim
                         {/* Status-specific Action Buttons */}
                         <div className="flex flex-wrap gap-2 flex-1">
                           {booking.status === 'scheduled' && (
-                            <Button 
-                              size="sm" 
-                              onClick={() => updateBookingStatus(booking.id, 'in_progress')}
-                              className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                            >
-                              <span className="mr-1">▶️</span>
-                              Start Job
-                            </Button>
+                            <>
+                              <Button 
+                                size="sm" 
+                                onClick={() => updateBookingStatus(booking.id, 'in_progress')}
+                                data-testid={`start-job-btn-${booking.id}`}
+                                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                              >
+                                <span className="mr-1">▶️</span>
+                                Start Job
+                              </Button>
+                              {/* Shortcut: complete directly from scheduled (e.g.,
+                                  user forgot to mark "Start Job" before finishing). */}
+                              <Button 
+                                size="sm" 
+                                onClick={() => updateBookingStatus(booking.id, 'completed')}
+                                data-testid={`complete-job-btn-${booking.id}`}
+                                className="bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                              >
+                                <span className="mr-1">✅</span>
+                                Complete
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                onClick={() => handleCompleteWithPhoto(booking)}
+                                data-testid={`complete-photo-btn-${booking.id}`}
+                                className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                              >
+                                <span className="mr-1">📸</span>
+                                + Photo
+                              </Button>
+                            </>
                           )}
                           
                           {booking.status === 'in_progress' && (
