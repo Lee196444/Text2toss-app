@@ -2277,6 +2277,51 @@ async def get_pending_quotes():
         logger.error(f"Error fetching pending quotes: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to fetch pending quotes")
 
+
+@api_router.get("/admin/auto-approved-quotes")
+async def get_auto_approved_quotes(limit: int = 100):
+    """Return recently auto-approved quotes with their associated booking
+    (if any). Lets the operator review what the AI is auto-approving and
+    spot-check that the prices and item lists look right."""
+    try:
+        cap = max(1, min(limit, 500))
+        cursor = db.quotes.find(
+            {"approval_status": "auto_approved"},
+            {"_id": 0},
+        ).sort("created_at", -1).limit(cap)
+        quotes = await cursor.to_list(length=cap)
+        if not quotes:
+            return []
+
+        # Batch-load matching bookings so the operator can see which quotes
+        # turned into real jobs (and skip the ones that abandoned).
+        quote_ids = [q["id"] for q in quotes]
+        bookings_cursor = db.bookings.find(
+            {"quote_id": {"$in": quote_ids}},
+            {
+                "_id": 0, "id": 1, "quote_id": 1, "address": 1, "phone": 1,
+                "email": 1, "customer_name": 1, "pickup_date": 1, "pickup_time": 1,
+                "status": 1, "payment_status": 1, "created_at": 1,
+            },
+        )
+        bookings_by_quote = {}
+        async for b in bookings_cursor:
+            bookings_by_quote.setdefault(b["quote_id"], []).append(parse_from_mongo(b))
+
+        for q in quotes:
+            parsed = parse_from_mongo(q)
+            related = bookings_by_quote.get(q["id"], [])
+            # Pick the most recent booking if multiple exist
+            related.sort(key=lambda b: b.get("created_at") or "", reverse=True)
+            q.update(parsed)
+            q["booking"] = related[0] if related else None
+            q["has_booking"] = bool(related)
+
+        return quotes
+    except Exception as e:
+        logger.error(f"Error fetching auto-approved quotes: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch auto-approved quotes")
+
 @api_router.post("/admin/quotes/{quote_id}/approve")
 async def approve_quote(quote_id: str, approval_action: QuoteApprovalAction):
     """Approve or reject a quote.

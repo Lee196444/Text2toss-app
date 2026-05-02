@@ -15,6 +15,11 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Test creds: `lrobe` / `L1964c10$` (see `/app/memory/test_credentials.md`)
 
 ## Implemented (Apr 26, 2026)
+- ✅ **FEATURE (May 2): Auto-Approved Quotes review modal**
+  - **Backend:** New `GET /api/admin/auto-approved-quotes?limit=N` returns recent quotes with `approval_status="auto_approved"`, joined with their corresponding bookings (if any) for at-a-glance "did they book?" visibility. Defaults to 100, capped at 500.
+  - **Frontend:** New `AutoApprovedQuotesModal.js` — read-only review of auto-approved quotes with photo thumbnails (click to expand), item list, scale, price, AI description, booking status, address/phone/email, pickup date/time. Includes free-text search (item / address / phone / email) and a "Booked only" filter to hide abandoned quotes. Header shows total booked revenue across the visible set.
+  - **Quick Actions button** added to admin dashboard (blue, between "Quotes" and "Upload Photos") with a green count badge showing `approvalStats.auto_approved`. Click opens the modal and lazy-loads the data.
+  - **Verified live:** Endpoint returns 200 with quotes + joined bookings (`has_booking` true/false). Modal renders cleanly in screenshot, photos use the same `buildImageUrl` helper that handles both legacy disk paths and new `text2toss/...` storage paths. ruff + eslint all clean.
 - ✅ **MAJOR FEATURE (May 2): Managed Object Storage for all customer/admin uploads (P0)**
   - **Why:** Container disk is ephemeral — every redeploy wiped customer photos uploaded in the prior session (the same root cause behind the "$78 customer's photo missing" report earlier today). Migrated to Emergent's managed object storage so uploads survive container restarts/redeploys.
   - **New module:** `/app/backend/object_storage.py` — wraps the official Emergent Storage API (`https://integrations.emergentagent.com/objstore/api/v1/storage`). Idempotent `init_storage()` with auto-refresh on 403, `put_bytes`, `get_bytes`, `object_exists`. App namespace = `text2toss`, paths follow `text2toss/{folder}/{filename}`.

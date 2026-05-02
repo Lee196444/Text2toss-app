@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import MarketingQRModal from "./marketing/MarketingQRModal";
 import RouteOptimizerModal from "./admin/RouteOptimizerModal";
 import PendingApprovalsModal from "./admin/PendingApprovalsModal";
+import AutoApprovedQuotesModal from "./admin/AutoApprovedQuotesModal";
 import PaymentRemindersModal from "./admin/PaymentRemindersModal";
 import BinModal from "./admin/BinModal";
 import CalendarModal from "./admin/CalendarModal";
@@ -57,6 +58,10 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
   const [pendingQuotes, setPendingQuotes] = useState([]);
   const [showQuoteApproval, setShowQuoteApproval] = useState(false);
   const [approvalStats, setApprovalStats] = useState({});
+  // Auto-approved quotes review (separate from pending-approval queue)
+  const [autoApprovedQuotes, setAutoApprovedQuotes] = useState([]);
+  const [showAutoApprovedQuotes, setShowAutoApprovedQuotes] = useState(false);
+  const [autoApprovedLoading, setAutoApprovedLoading] = useState(false);
   const [showSmsCenter, setShowSmsCenter] = useState(false);
   const [smsMessages, setSmsMessages] = useState([]);
   const [smsLoading, setSmsLoading] = useState(false);
@@ -874,6 +879,25 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
     }
   }, []);
 
+  const fetchAutoApprovedQuotes = useCallback(async () => {
+    setAutoApprovedLoading(true);
+    try {
+      const response = await axios.get(`${API}/admin/auto-approved-quotes?limit=200`);
+      setAutoApprovedQuotes(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      console.error('Error fetching auto-approved quotes:', error);
+      setAutoApprovedQuotes([]);
+      toast.error('Failed to load auto-approved quotes');
+    } finally {
+      setAutoApprovedLoading(false);
+    }
+  }, []);
+
+  const openAutoApprovedQuotes = useCallback(() => {
+    setShowAutoApprovedQuotes(true);
+    fetchAutoApprovedQuotes();
+  }, [fetchAutoApprovedQuotes]);
+
   const fetchApprovalStats = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/admin/quote-approval-stats`);
@@ -1129,6 +1153,20 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
                 {pendingQuotes.length > 0 && (
                   <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 sm:min-w-[24px] sm:h-6 px-1.5 flex items-center justify-center font-bold shadow-lg animate-bounce">
                     {pendingQuotes.length}
+                  </div>
+                )}
+              </Button>
+
+              <Button
+                onClick={openAutoApprovedQuotes}
+                data-testid="open-auto-approved-quotes-btn"
+                className="bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 relative overflow-visible group transform hover:scale-105 min-h-[64px]"
+              >
+                <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">⚡</span>
+                <span className="text-xs sm:text-sm font-medium leading-tight">Auto-Approved</span>
+                {(approvalStats?.auto_approved || 0) > 0 && (
+                  <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 bg-emerald-500 text-white text-xs rounded-full min-w-[20px] h-5 sm:min-w-[24px] sm:h-6 px-1.5 flex items-center justify-center font-bold shadow-lg">
+                    {approvalStats.auto_approved}
                   </div>
                 )}
               </Button>
@@ -1504,6 +1542,14 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
         onApprove={(id, notes, price) => handleQuoteApproval(id, 'approve', notes, price)}
         onReject={(id, notes) => handleQuoteApproval(id, 'reject', notes)}
         onClose={() => setShowQuoteApproval(false)}
+      />
+
+      <AutoApprovedQuotesModal
+        open={showAutoApprovedQuotes}
+        quotes={autoApprovedQuotes}
+        loading={autoApprovedLoading}
+        onClose={() => setShowAutoApprovedQuotes(false)}
+        onRefresh={fetchAutoApprovedQuotes}
       />
 
       {/* Photo Gallery Management Modal */}
