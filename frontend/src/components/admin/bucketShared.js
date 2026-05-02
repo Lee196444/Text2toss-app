@@ -61,3 +61,17 @@ export const formatDate = (iso) => {
 
 export const formatStatus = (status) =>
   (status || "").replace(/_/g, " ").toUpperCase();
+
+// Collect every photo path for a quote or booking record. Handles the
+// post-May-2026 multi-photo model (`temp_image_paths[]`) and the legacy
+// single-photo field (`image_path` / `temp_image_path`). Bookings may have
+// their images nested under `.quote_details`.
+export const collectImagePaths = (record) => {
+  if (!record) return [];
+  // Prefer quote_details if present (bookings), else the record itself (quotes).
+  const quote = record.quote_details || record;
+  const many = Array.isArray(quote?.temp_image_paths) ? quote.temp_image_paths : [];
+  if (many.length > 0) return many.filter(Boolean);
+  const single = quote?.temp_image_path || record?.image_path;
+  return single ? [single] : [];
+};

@@ -3,9 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { Input } from "../ui/input";
-import { buildImageUrl, STATUS_BADGE, formatDate } from "./bucketShared";
+import { buildImageUrl, STATUS_BADGE, formatDate, collectImagePaths } from "./bucketShared";
 import { useSharedFilter } from "./FilterContext";
 import StickyFilterInput from "./StickyFilterInput";
+import PhotoCarousel from "./PhotoCarousel";
 
 /**
  * Read-only review modal for auto-approved quotes.
@@ -125,7 +126,7 @@ const AutoApprovedQuotesModal = ({
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
               {visibleQuotes.map((quote) => {
-                const imgUrl = buildImageUrl(quote.temp_image_path);
+                const imagePaths = collectImagePaths(quote);
                 const booking = quote.booking;
                 return (
                   <Card
@@ -141,6 +142,11 @@ const AutoApprovedQuotesModal = ({
                         </span>
                         <Badge variant="outline">Scale {quote.scale_level}</Badge>
                         <Badge className="bg-blue-100 text-blue-800">Auto-approved</Badge>
+                        {imagePaths.length > 1 && (
+                          <Badge variant="outline" className="text-blue-600">
+                            📸 {imagePaths.length} Photos
+                          </Badge>
+                        )}
                         {booking ? (
                           <Badge className={STATUS_BADGE[booking.status] || "bg-gray-100 text-gray-700"}>
                             {(booking.status || "").replace("_", " ")}
@@ -156,25 +162,11 @@ const AutoApprovedQuotesModal = ({
                       {/* Photo + items grid */}
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div className="sm:col-span-1">
-                          {quote.temp_image_path ? (
-                            <img
-                              src={imgUrl}
-                              alt="Customer items"
-                              className="w-full h-32 object-cover rounded-lg border cursor-pointer hover:opacity-90 transition-opacity"
-                              onClick={() => window.open(imgUrl, "_blank")}
-                              onError={(e) => {
-                                e.target.style.display = "none";
-                                e.target.nextSibling && (e.target.nextSibling.style.display = "block");
-                              }}
-                              data-testid={`auto-approved-photo-${quote.id}`}
-                            />
-                          ) : null}
-                          <div
-                            className="w-full h-32 rounded-lg border bg-gray-50 flex items-center justify-center text-xs text-gray-400"
-                            style={{ display: quote.temp_image_path ? "none" : "flex" }}
-                          >
-                            No photo
-                          </div>
+                          <PhotoCarousel
+                            paths={imagePaths}
+                            alt="Customer items"
+                            testId={`auto-approved-photos-${quote.id}`}
+                          />
                         </div>
                         <div className="sm:col-span-2 space-y-1 text-xs sm:text-sm">
                           {(quote.items || []).length > 0 ? (

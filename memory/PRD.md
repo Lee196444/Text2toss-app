@@ -15,6 +15,12 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Test creds: `lrobe` / `L1964c10$` (see `/app/memory/test_credentials.md`)
 
 ## Implemented (Apr 26, 2026)
+- ✅ **FEATURE (May 2): Multi-photo carousel on every admin bucket card**
+  - **New component** `admin/PhotoCarousel.jsx` — compact carousel with prev/next arrows, dot indicator, "N / M" counter badge, click-to-open-fullsize. Gracefully degrades to a single `<img>` when only 1 photo exists and a "No photo" placeholder when 0. Same height as the previous thumbnails so no card layout shifts.
+  - **New shared helper** `bucketShared.collectImagePaths(record)` — returns the full image list for a quote or booking, handling both the new `temp_image_paths[]` field and the legacy `image_path` / `temp_image_path` fields. Bookings read from nested `quote_details`.
+  - **Integration:** replaced the single `<img>` thumbnail in all 5 bucket modals (`BinModal`, `AllJobsModal`, `PaymentRemindersModal`, `PendingApprovalsModal`, `AutoApprovedQuotesModal`) with `<PhotoCarousel paths={collectImagePaths(record)} />`. Added a "📸 N Photos" badge on headers when N > 1.
+  - **Verified live:** `/api/admin/auto-approved-quotes` returns quotes with n=0, n=1, n=2 photos; all three render correctly. ESLint clean. Backend & frontend compile cleanly.
+  - **Side cleanup:** truncated 20 lines of stale JSX tail accidentally left at the end of `AllJobsModal.js` (same class of corruption as the earlier `LandingPage.js` issue) — fixed both.
 - ✅ **FEATURE (May 2): Multi-photo quotes — customer can upload up to 8 photos per job**
   - **Why:** Big jobs often have piles of junk at multiple spots (garage, side yard, curb, back patio). Customers used to have to book 4 separate jobs. Now they upload all photos once, AI sees the full scope, and returns ONE combined quote.
   - **Backend:**

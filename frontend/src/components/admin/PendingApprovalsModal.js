@@ -4,9 +4,10 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Badge } from "../ui/badge";
-import { buildImageUrl, formatDate } from "./bucketShared";
+import { buildImageUrl, formatDate, collectImagePaths } from "./bucketShared";
 import { useSharedFilter } from "./FilterContext";
 import StickyFilterInput from "./StickyFilterInput";
+import PhotoCarousel from "./PhotoCarousel";
 
 /**
  * Pending Quote Approval modal — matches the new admin "bucket" visual
@@ -96,7 +97,8 @@ const PendingApprovalsModal = ({
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
               {visibleQuotes.map((quote) => {
-                const imgUrl = buildImageUrl(quote.temp_image_path);
+                const imagePaths = collectImagePaths(quote);
+                const primaryUrl = buildImageUrl(imagePaths[0]);
                 const imageFailed = failedQuoteImages?.has?.(quote.id);
                 return (
                   <Card
@@ -111,12 +113,17 @@ const PendingApprovalsModal = ({
                         </span>
                         <Badge variant="outline">Scale {quote.scale_level}</Badge>
                         <Badge className="bg-orange-100 text-orange-800">Pending Review</Badge>
+                        {imagePaths.length > 1 && (
+                          <Badge variant="outline" className="text-blue-600">
+                            📸 {imagePaths.length} Photos
+                          </Badge>
+                        )}
                         <span className="ml-auto text-xs text-gray-500">{formatDate(quote.created_at)}</span>
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div className="sm:col-span-1">
-                          {!quote.temp_image_path ? (
+                          {imagePaths.length === 0 ? (
                             <div className="w-full h-32 rounded-lg border bg-gray-50 flex items-center justify-center text-xs text-gray-400">
                               No photo
                             </div>
@@ -126,13 +133,10 @@ const PendingApprovalsModal = ({
                               <p className="text-[10px] text-yellow-700 mt-1">Only the latest 30 photos are kept.</p>
                             </div>
                           ) : (
-                            <img
-                              src={imgUrl}
+                            <PhotoCarousel
+                              paths={imagePaths}
                               alt="Customer items"
-                              className="w-full h-32 object-cover rounded-lg border cursor-pointer hover:opacity-90 transition-opacity"
-                              onClick={() => window.open(imgUrl, "_blank")}
-                              onError={() => onMarkImageFailed?.(quote.id)}
-                              data-testid="quote-photo-img"
+                              testId={`pending-approval-photos-${quote.id}`}
                             />
                           )}
                         </div>
@@ -197,15 +201,15 @@ const PendingApprovalsModal = ({
                       </div>
 
                       <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
-                        {quote.temp_image_path && !imageFailed && (
+                        {imagePaths.length > 0 && !imageFailed && primaryUrl && (
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => window.open(imgUrl, "_blank")}
+                            onClick={() => window.open(primaryUrl, "_blank")}
                             data-testid="view-full-photo-btn"
                             className="border-blue-400 text-blue-700 hover:bg-blue-50 text-xs font-medium px-3 py-2 rounded-lg"
                           >
-                            <span className="mr-1">🔍</span>View Full
+                            <span className="mr-1">🔍</span>View Full{imagePaths.length > 1 ? " (1st)" : ""}
                           </Button>
                         )}
                         <Button

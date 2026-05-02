@@ -2,9 +2,10 @@ import React, { useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import { buildImageUrl, STATUS_BADGE, formatDate } from "./bucketShared";
+import { buildImageUrl, STATUS_BADGE, formatDate, collectImagePaths } from "./bucketShared";
 import { useSharedFilter } from "./FilterContext";
 import StickyFilterInput from "./StickyFilterInput";
+import PhotoCarousel from "./PhotoCarousel";
 
 /**
  * Pending Payment Modal — bookings the customer submitted but hasn't paid
@@ -108,7 +109,7 @@ const PaymentRemindersModal = ({
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
               {visibleBookings.map((booking) => {
-                const imgUrl = buildImageUrl(booking.image_path);
+                const imagePaths = collectImagePaths(booking);
                 const items = booking.quote_details?.items || [];
                 return (
                   <Card
@@ -133,19 +134,11 @@ const PaymentRemindersModal = ({
 
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div className="sm:col-span-1">
-                          {imgUrl ? (
-                            <img
-                              src={imgUrl}
-                              alt="Customer items"
-                              className="w-full h-32 object-cover rounded-lg border cursor-pointer hover:opacity-90 transition-opacity"
-                              onClick={() => window.open(imgUrl, "_blank")}
-                              onError={(e) => { e.target.style.display = "none"; }}
-                            />
-                          ) : (
-                            <div className="w-full h-32 rounded-lg border bg-gray-50 flex items-center justify-center text-xs text-gray-400">
-                              No photo
-                            </div>
-                          )}
+                          <PhotoCarousel
+                            paths={imagePaths}
+                            alt="Customer items"
+                            testId={`pending-payment-photos-${booking.id}`}
+                          />
                         </div>
                         <div className="sm:col-span-2 space-y-1 text-xs sm:text-sm">
                           {items.length > 0 ? (

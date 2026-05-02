@@ -93,7 +93,7 @@ const AllJobsModal = ({
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
               {visibleJobs.map((job) => {
-                const imgUrl = buildImageUrl(job.image_path);
+                const imagePaths = collectImagePaths(job);
                 const items = job.quote_details?.items || [];
                 return (
                   <Card
@@ -125,18 +125,11 @@ const AllJobsModal = ({
 
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div className="sm:col-span-1">
-                          {imgUrl ? (
-                            <img
-                              src={imgUrl}
-                              alt="Customer items"
-                              className="w-full h-32 object-cover rounded-lg border"
-                              onError={(e) => { e.target.style.display = "none"; }}
-                            />
-                          ) : (
-                            <div className="w-full h-32 rounded-lg border bg-gray-50 flex items-center justify-center text-xs text-gray-400">
-                              No photo
-                            </div>
-                          )}
+                          <PhotoCarousel
+                            paths={imagePaths}
+                            alt="Customer items"
+                            testId={`all-jobs-photos-${job.id}`}
+                          />
                         </div>
                         <div className="sm:col-span-2 space-y-1 text-xs sm:text-sm">
                           {items.length > 0 ? (
@@ -190,3 +183,4 @@ const AllJobsModal = ({
 };
 
 export default AllJobsModal;
+

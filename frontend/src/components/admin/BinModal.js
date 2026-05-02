@@ -9,9 +9,11 @@ import {
   BIN_GRADIENT,
   formatDate,
   formatStatus,
+  collectImagePaths,
 } from "./bucketShared";
 import { useSharedFilter } from "./FilterContext";
 import StickyFilterInput from "./StickyFilterInput";
+import PhotoCarousel from "./PhotoCarousel";
 
 const BIN_TITLE = {
   new: "🆕 New Jobs",
@@ -237,7 +239,7 @@ const BinModal = ({
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
               {visibleBookings.map((booking) => {
-                const imgUrl = buildImageUrl(booking.image_path);
+                const imagePaths = collectImagePaths(booking);
                 const completionUrl = buildImageUrl(booking.completion_photo_path);
                 const items = booking.quote_details?.items || [];
 
@@ -259,8 +261,10 @@ const BinModal = ({
                         <Badge className={STATUS_BADGE[booking.status] || "bg-gray-100 text-gray-700"}>
                           {formatStatus(booking.status)}
                         </Badge>
-                        {booking.image_path && (
-                          <Badge variant="outline" className="text-blue-600">📸 Photo</Badge>
+                        {imagePaths.length > 0 && (
+                          <Badge variant="outline" className="text-blue-600">
+                            📸 {imagePaths.length > 1 ? `${imagePaths.length} Photos` : "Photo"}
+                          </Badge>
                         )}
                         <span className="ml-auto text-xs text-gray-500">
                           {formatDate(booking.pickup_date)}
@@ -271,20 +275,11 @@ const BinModal = ({
                       {/* Photo + items grid */}
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div className="sm:col-span-1 space-y-2">
-                          {imgUrl ? (
-                            <img
-                              src={imgUrl}
-                              alt="Customer items"
-                              className="w-full h-32 object-cover rounded-lg border cursor-pointer hover:opacity-90 transition-opacity"
-                              onClick={() => window.open(imgUrl, "_blank")}
-                              onError={(e) => { e.target.style.display = "none"; }}
-                              data-testid={`bin-photo-${booking.id}`}
-                            />
-                          ) : (
-                            <div className="w-full h-32 rounded-lg border bg-gray-50 flex items-center justify-center text-xs text-gray-400">
-                              No photo
-                            </div>
-                          )}
+                          <PhotoCarousel
+                            paths={imagePaths}
+                            alt="Customer items"
+                            testId={`bin-photos-${booking.id}`}
+                          />
                           {completionUrl && (
                             <div>
                               <p className="text-[10px] uppercase font-semibold text-green-700 mb-1">Completion</p>
