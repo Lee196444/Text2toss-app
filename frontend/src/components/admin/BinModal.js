@@ -1,305 +1,356 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { Textarea } from "../ui/textarea";
-import { Label } from "../ui/label";
 import { Badge } from "../ui/badge";
+import {
+  buildImageUrl,
+  STATUS_BADGE,
+  STATUS_BORDER,
+  BIN_GRADIENT,
+  formatDate,
+  formatStatus,
+} from "./bucketShared";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
-
-// Build a public image URL from a stored disk path like
-// "/app/static/quote_images/quote_<uuid>.jpg" → "/api/images/quote_images/quote_<uuid>.jpg".
-// `<img>` tags don't send admin cookies cross-site, so we MUST use the
-// public `/api/images/{folder}/{filename}` endpoint, not `/api/admin/...`.
-const buildImageUrl = (storedPath) => {
-  if (!storedPath) return null;
-  if (storedPath.startsWith('http')) return storedPath;
-  // Match the last two path segments: folder + filename
-  const parts = storedPath.split('/').filter(Boolean);
-  if (parts.length < 2) return null;
-  const folder = parts[parts.length - 2];
-  const filename = parts[parts.length - 1];
-  return `${API}/images/${folder}/${filename}`;
+const BIN_TITLE = {
+  new: "🆕 New Jobs",
+  upcoming: "📅 Upcoming Jobs",
+  inProgress: "🚛 Jobs In Progress",
+  completed: "✅ Completed Jobs",
+  details: "📋 Job Details",
 };
 
-const BinModal = ({ open, selectedBin, binBookings, jobs, formatPrice, formatTime, closeBin, startRoute, notifyCustomer, updateBookingStatus, handleCompleteWithPhoto, handleViewCustomerPhoto, testSmsPhoto }) => {
-  // Sort on a *copy* (previous code mutated the prop!) and memoize to avoid
-  // re-sorting on every render.
+const BIN_SUBTITLE = {
+  new: "Just-scheduled jobs that haven't started yet.",
+  upcoming: "Future scheduled pickups.",
+  inProgress: "Currently in progress — out for pickup.",
+  completed: "Finished jobs.",
+};
+
+/**
+ * Action buttons rendered per booking based on its current status. Behaviour
+ * is unchanged from the previous version — only layout is refreshed.
+ */
+const ActionButtons = ({
+  booking,
+  startRoute,
+  notifyCustomer,
+  updateBookingStatus,
+  handleCompleteWithPhoto,
+  handleViewCustomerPhoto,
+  testSmsPhoto,
+}) => (
+  <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
+    <Button
+      size="sm"
+      onClick={() => startRoute(booking)}
+      data-testid={`route-btn-${booking.id}`}
+      className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+    >
+      <span className="mr-1">🗺️</span>Route
+    </Button>
+
+    {booking.image_path && (
+      <Button
+        size="sm"
+        onClick={() => handleViewCustomerPhoto(booking)}
+        data-testid={`view-photo-btn-${booking.id}`}
+        className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+      >
+        <span className="mr-1">📷</span>View Photo
+      </Button>
+    )}
+
+    {booking.status === "scheduled" && (
+      <>
+        <Button
+          size="sm"
+          onClick={() => updateBookingStatus(booking.id, "in_progress")}
+          data-testid={`start-job-btn-${booking.id}`}
+          className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+        >
+          <span className="mr-1">▶️</span>Start Job
+        </Button>
+        <Button
+          size="sm"
+          onClick={() => updateBookingStatus(booking.id, "completed")}
+          data-testid={`complete-job-btn-${booking.id}`}
+          className="bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+        >
+          <span className="mr-1">✅</span>Complete
+        </Button>
+        <Button
+          size="sm"
+          onClick={() => handleCompleteWithPhoto(booking)}
+          data-testid={`complete-photo-btn-${booking.id}`}
+          className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+        >
+          <span className="mr-1">📸</span>+ Photo
+        </Button>
+      </>
+    )}
+
+    {booking.status === "in_progress" && (
+      <>
+        <Button
+          size="sm"
+          onClick={() => updateBookingStatus(booking.id, "completed")}
+          className="bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+        >
+          <span className="mr-1">✅</span>Complete
+        </Button>
+        <Button
+          size="sm"
+          onClick={() => handleCompleteWithPhoto(booking)}
+          className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+        >
+          <span className="mr-1">📸</span>+ Photo
+        </Button>
+      </>
+    )}
+
+    {booking.status === "completed" && (
+      <>
+        {!booking.completion_photo_path && (
+          <Button
+            size="sm"
+            onClick={() => handleCompleteWithPhoto(booking)}
+            className="bg-white border-2 border-green-400 text-green-700 hover:bg-green-50 text-xs font-medium px-3 py-2 rounded-lg shadow-sm transition-all duration-200"
+          >
+            <span className="mr-1">📸</span>Add Photo
+          </Button>
+        )}
+        {booking.completion_photo_path && (
+          <>
+            <Button
+              size="sm"
+              onClick={() => notifyCustomer(booking.id)}
+              className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+            >
+              <span className="mr-1">📱</span>SMS Customer
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => testSmsPhoto(booking.id)}
+              className="bg-white border-2 border-blue-400 text-blue-700 hover:bg-blue-50 text-xs font-medium px-3 py-2 rounded-lg shadow-sm transition-all duration-200"
+            >
+              <span className="mr-1">🧪</span>Test
+            </Button>
+          </>
+        )}
+      </>
+    )}
+  </div>
+);
+
+const BinModal = ({
+  open,
+  selectedBin,
+  binBookings,
+  formatPrice,
+  formatTime,
+  closeBin,
+  startRoute,
+  notifyCustomer,
+  updateBookingStatus,
+  handleCompleteWithPhoto,
+  handleViewCustomerPhoto,
+  testSmsPhoto,
+}) => {
+  const [filter, setFilter] = useState("");
+
   const sortedBookings = useMemo(
     () => [...binBookings].sort((a, b) => new Date(b.pickup_date) - new Date(a.pickup_date)),
     [binBookings],
   );
+
   const totalRevenue = useMemo(
-    () => binBookings.reduce((sum, booking) => sum + (booking.quote_details?.total_price || 0), 0),
+    () => binBookings.reduce((sum, b) => sum + (b.quote_details?.total_price || 0), 0),
     [binBookings],
   );
 
+  const visibleBookings = useMemo(() => {
+    const q = filter.trim().toLowerCase();
+    if (!q) return sortedBookings;
+    return sortedBookings.filter((b) => {
+      const haystack = [
+        b.id,
+        b.address,
+        b.phone,
+        b.email,
+        b.special_instructions,
+        ...(b.quote_details?.items || []).map((i) => `${i.name} ${i.size}`),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [sortedBookings, filter]);
+
   if (!open) return null;
+
+  const gradient = BIN_GRADIENT[selectedBin] || "from-gray-500 to-gray-600";
+
   return (
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-center justify-center p-2 sm:p-4">
-        <Card className="w-full max-w-6xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
-          <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
-            <div>
-              <CardTitle className="text-lg sm:text-2xl flex items-center gap-2">
-                {selectedBin === 'new' && '🆕 New Jobs'}
-                {selectedBin === 'upcoming' && '📅 Upcoming Jobs'}
-                {selectedBin === 'inProgress' && '🚛 Jobs In Progress'}
-                {selectedBin === 'completed' && '✅ Completed Jobs'}
-                {selectedBin === 'details' && '📋 Job Details'}
-                <span className="text-sm font-normal">({binBookings.length})</span>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-center justify-center p-2 sm:p-4">
+      <Card className="w-full max-w-5xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
+        <CardHeader className={`bg-gradient-to-r ${gradient} text-white px-4 py-3 sm:px-6 sm:py-4`}>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="min-w-0">
+              <CardTitle className="text-lg sm:text-2xl flex items-center gap-2 flex-wrap">
+                {BIN_TITLE[selectedBin] || "📋 Jobs"}
+                <Badge className="bg-white/20 text-white border-0">{binBookings.length}</Badge>
               </CardTitle>
-              <CardDescription className="text-sm">
-                Total Revenue: {formatPrice(totalRevenue)}
+              <CardDescription className="text-white/85 text-xs sm:text-sm mt-1">
+                {BIN_SUBTITLE[selectedBin] || ""} · Total revenue: <strong>{formatPrice(totalRevenue)}</strong>
               </CardDescription>
             </div>
-            <Button 
-              variant="outline" 
-              onClick={closeBin} 
-              className="bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300 text-gray-600 hover:text-gray-800 w-full sm:w-auto px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium"
+            <Button
+              onClick={closeBin}
+              data-testid="bin-modal-close-btn"
+              className="bg-white/20 hover:bg-white/30 text-white border-0 self-end sm:self-auto"
+              size="sm"
             >
-              <span className="mr-2">✕</span>
-              Close
+              <span className="mr-1">✕</span>Close
             </Button>
-          </CardHeader>
-          <CardContent className="overflow-y-auto max-h-[70vh]">
-            {binBookings.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                No jobs in this category
-              </div>
-            ) : (
-              <div className="space-y-3 sm:space-y-4">
-                {/* Sort jobs by pickup date descending */}
-                {binBookings
-                  .sort((a, b) => new Date(b.pickup_date) - new Date(a.pickup_date))
-                  .map((booking, index) => (
-                  <div key={booking.id} className="border rounded-lg p-3 sm:p-4 space-y-3 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
-                    {/* Header Row */}
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                      <div className="flex flex-wrap items-center gap-1 sm:gap-2">
-                        <Badge variant="secondary" className="text-xs">#{index + 1}</Badge>
-                        <Badge 
-                          variant={
-                            booking.status === 'completed' ? 'success' : 
-                            booking.status === 'in_progress' ? 'warning' : 
-                            booking.status === 'pending_customer_approval' ? 'destructive' :
-                            'default'
-                          }
-                          className={`text-xs ${
-                            booking.status === 'pending_customer_approval' ? 'bg-orange-500 text-white' : ''
-                          }`}
-                        >
-                          {booking.status === 'pending_customer_approval' ? 'AWAITING CUSTOMER APPROVAL' : 
-                           booking.status.replace('_', ' ').toUpperCase()}
-                        </Badge>
-                        {/* Date Badge */}
-                        <Badge variant="outline" className="bg-gray-100 text-gray-700 text-xs">
-                          📅 {new Date(booking.pickup_date).toLocaleDateString('en-US', { 
-                            month: 'short', 
-                            day: 'numeric',
-                            year: 'numeric'
-                          })}
-                        </Badge>
-                        {booking.pickup_time && (
-                          <Badge variant="outline" className="bg-indigo-100 text-indigo-700 text-xs">
-                            🕐 {formatTime(booking.pickup_time)}
-                          </Badge>
-                        )}
-                        {booking.image_path && (
-                          <Badge variant="outline" className="text-blue-600 text-xs hidden sm:inline-flex">
-                            📸 Has Photo
-                          </Badge>
-                        )}
-                        {booking.status !== 'scheduled' && (
-                          <Badge variant="outline" className="text-green-600 text-xs hidden sm:inline-flex">
-                            📱 SMS Sent
-                          </Badge>
-                        )}
-                        {booking.quote_details?.total_price && (
-                          <div className="text-lg font-bold text-emerald-600">
-                            ${booking.quote_details.total_price}
-                          </div>
-                        )}
-                      </div>
-                      <div className="text-xs sm:text-sm text-gray-500 text-right">
-                        ID: {booking.id.substring(0, 8)}...
-                      </div>
-                    </div>
+          </div>
+        </CardHeader>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
-                      {/* Booking Details */}
-                      <div className="md:col-span-2">
-                        <div className="text-xs sm:text-sm space-y-1">
-                          <p className="font-medium text-gray-900 break-words">{booking.address}</p>
-                          <p className="text-gray-600">📞 {booking.phone}</p>
-                          <p className="text-gray-600">📅 {new Date(booking.pickup_date).toLocaleDateString()}</p>
-                          {booking.quote_details && (
-                            <p className="text-gray-600 break-words">
-                              📦 Items: {booking.quote_details.items.map(item => 
-                                `${item.quantity}x ${item.name}`
-                              ).join(', ')}
-                            </p>
-                          )}
-                          {booking.special_instructions && (
-                            <p className="text-gray-600 break-words">📝 {booking.special_instructions}</p>
-                          )}
-                        </div>
+        <CardContent className="overflow-y-auto max-h-[78vh] p-3 sm:p-4">
+          {/* Search */}
+          <div className="mb-3 sm:mb-4">
+            <Input
+              type="text"
+              placeholder="Search by item, address, phone, email…"
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              data-testid="bin-search-input"
+              className="w-full"
+            />
+          </div>
+
+          {visibleBookings.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-3xl mb-2">📭</div>
+              <p className="text-gray-500">
+                {binBookings.length === 0 ? "No jobs in this bucket yet." : "No jobs match your search."}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+              {visibleBookings.map((booking) => {
+                const imgUrl = buildImageUrl(booking.image_path);
+                const completionUrl = buildImageUrl(booking.completion_photo_path);
+                const items = booking.quote_details?.items || [];
+
+                return (
+                  <Card
+                    key={booking.id}
+                    className={`border-l-4 ${STATUS_BORDER[booking.status] || "border-l-gray-300"}`}
+                    data-testid={`bin-card-${booking.id}`}
+                  >
+                    <CardContent className="p-3 sm:p-4 space-y-3">
+                      {/* Header row */}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-xl font-bold text-emerald-600">
+                          ${booking.quote_details?.total_price || 0}
+                        </span>
+                        {booking.quote_details?.scale_level !== undefined && (
+                          <Badge variant="outline">Scale {booking.quote_details.scale_level}</Badge>
+                        )}
+                        <Badge className={STATUS_BADGE[booking.status] || "bg-gray-100 text-gray-700"}>
+                          {formatStatus(booking.status)}
+                        </Badge>
+                        {booking.image_path && (
+                          <Badge variant="outline" className="text-blue-600">📸 Photo</Badge>
+                        )}
+                        <span className="ml-auto text-xs text-gray-500">
+                          {formatDate(booking.pickup_date)}
+                          {booking.pickup_time ? ` · ${formatTime(booking.pickup_time)}` : ""}
+                        </span>
                       </div>
 
-                      {/* Photos */}
-                      <div className="space-y-2">
-                        {booking.image_path && (
-                          <div>
-                            <p className="text-xs font-medium text-blue-800 mb-1">Customer Photo:</p>
-                            <img 
-                              src={buildImageUrl(booking.image_path)}
+                      {/* Photo + items grid */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="sm:col-span-1 space-y-2">
+                          {imgUrl ? (
+                            <img
+                              src={imgUrl}
                               alt="Customer items"
-                              className="w-full h-20 object-cover rounded border"
-                              onError={(e) => e.target.style.display = 'none'}
+                              className="w-full h-32 object-cover rounded-lg border cursor-pointer hover:opacity-90 transition-opacity"
+                              onClick={() => window.open(imgUrl, "_blank")}
+                              onError={(e) => { e.target.style.display = "none"; }}
+                              data-testid={`bin-photo-${booking.id}`}
                             />
-                          </div>
-                        )}
-                        {booking.completion_photo_path && (
-                          <div>
-                            <p className="text-xs font-medium text-green-800 mb-1">Completion Photo:</p>
-                            <img 
-                              src={buildImageUrl(booking.completion_photo_path)}
-                              alt="Completed job"
-                              className="w-full h-20 object-cover rounded border"
-                              onError={(e) => e.target.style.display = 'none'}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Modern Action Buttons */}
-                    <div className="pt-3 border-t border-gray-100">
-                      <div className="flex flex-wrap gap-2">
-                        {/* Universal Route Button */}
-                        <Button 
-                          size="sm" 
-                          onClick={() => startRoute(booking)}
-                          className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 flex-shrink-0"
-                        >
-                          <span className="mr-1">🗺️</span>
-                          Route
-                        </Button>
-                        
-                        {/* Customer Photo View Button */}
-                        {booking.image_path && (
-                          <Button 
-                            size="sm" 
-                            onClick={() => handleViewCustomerPhoto(booking)}
-                            className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 flex-shrink-0"
-                          >
-                            <span className="mr-1">📷</span>
-                            View Photo
-                          </Button>
-                        )}
-                        
-                        {/* Status-specific Action Buttons */}
-                        <div className="flex flex-wrap gap-2 flex-1">
-                          {booking.status === 'scheduled' && (
-                            <>
-                              <Button 
-                                size="sm" 
-                                onClick={() => updateBookingStatus(booking.id, 'in_progress')}
-                                data-testid={`start-job-btn-${booking.id}`}
-                                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                              >
-                                <span className="mr-1">▶️</span>
-                                Start Job
-                              </Button>
-                              {/* Shortcut: complete directly from scheduled (e.g.,
-                                  user forgot to mark "Start Job" before finishing). */}
-                              <Button 
-                                size="sm" 
-                                onClick={() => updateBookingStatus(booking.id, 'completed')}
-                                data-testid={`complete-job-btn-${booking.id}`}
-                                className="bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                              >
-                                <span className="mr-1">✅</span>
-                                Complete
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                onClick={() => handleCompleteWithPhoto(booking)}
-                                data-testid={`complete-photo-btn-${booking.id}`}
-                                className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                              >
-                                <span className="mr-1">📸</span>
-                                + Photo
-                              </Button>
-                            </>
+                          ) : (
+                            <div className="w-full h-32 rounded-lg border bg-gray-50 flex items-center justify-center text-xs text-gray-400">
+                              No photo
+                            </div>
                           )}
-                          
-                          {booking.status === 'in_progress' && (
-                            <>
-                              <Button 
-                                size="sm" 
-                                onClick={() => updateBookingStatus(booking.id, 'completed')}
-                                className="bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                              >
-                                <span className="mr-1">✅</span>
-                                Complete
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                onClick={() => handleCompleteWithPhoto(booking)}
-                                className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                              >
-                                <span className="mr-1">📸</span>
-                                + Photo
-                              </Button>
-                            </>
-                          )}
-                          
-                          {booking.status === 'completed' && (
-                            <div className="flex flex-wrap gap-2">
-                              {!booking.completion_photo_path && (
-                                <Button 
-                                  size="sm" 
-                                  onClick={() => handleCompleteWithPhoto(booking)}
-                                  className="bg-white border-2 border-green-400 text-green-700 hover:bg-green-50 hover:border-green-500 text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                                >
-                                  <span className="mr-1">📸</span>
-                                  Add Photo
-                                </Button>
-                              )}
-                              {booking.completion_photo_path && (
-                                <>
-                                  <Button 
-                                    size="sm" 
-                                    onClick={() => notifyCustomer(booking.id)}
-                                    className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                                  >
-                                    <span className="mr-1">📱</span>
-                                    SMS
-                                  </Button>
-                                  <Button 
-                                    size="sm" 
-                                    onClick={() => testSmsPhoto(booking.id)}
-                                    className="bg-white border-2 border-blue-400 text-blue-700 hover:bg-blue-50 hover:border-blue-500 text-xs font-medium px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                                  >
-                                    <span className="mr-1">🧪</span>
-                                    Test
-                                  </Button>
-                                </>
-                              )}
+                          {completionUrl && (
+                            <div>
+                              <p className="text-[10px] uppercase font-semibold text-green-700 mb-1">Completion</p>
+                              <img
+                                src={completionUrl}
+                                alt="Completed job"
+                                className="w-full h-20 object-cover rounded border cursor-pointer hover:opacity-90 transition-opacity"
+                                onClick={() => window.open(completionUrl, "_blank")}
+                                onError={(e) => { e.target.style.display = "none"; }}
+                              />
                             </div>
                           )}
                         </div>
+
+                        <div className="sm:col-span-2 space-y-1 text-xs sm:text-sm">
+                          {items.length > 0 ? (
+                            <ul className="space-y-0.5">
+                              {items.slice(0, 6).map((item, idx) => (
+                                <li key={`${item.name}-${idx}`} className="text-gray-700">
+                                  • {item.quantity || 1}× <span className="font-medium">{item.name}</span>
+                                  {item.size ? <span className="text-gray-500"> ({item.size})</span> : null}
+                                </li>
+                              ))}
+                              {items.length > 6 && (
+                                <li className="text-gray-400 italic">+{items.length - 6} more…</li>
+                              )}
+                            </ul>
+                          ) : (
+                            <p className="text-gray-500 italic">No item list available.</p>
+                          )}
+                          {booking.special_instructions && (
+                            <p className="text-gray-500 mt-2 break-words">
+                              <span className="font-medium">Notes:</span> {booking.special_instructions}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+
+                      {/* Customer details */}
+                      <div className="border-t pt-2 text-xs sm:text-sm text-gray-700 space-y-0.5">
+                        <p>📍 {booking.address || "—"}</p>
+                        <p>📞 {booking.phone || "—"}{booking.email ? `   ✉️ ${booking.email}` : ""}</p>
+                      </div>
+
+                      {/* Actions */}
+                      <ActionButtons
+                        booking={booking}
+                        startRoute={startRoute}
+                        notifyCustomer={notifyCustomer}
+                        updateBookingStatus={updateBookingStatus}
+                        handleCompleteWithPhoto={handleCompleteWithPhoto}
+                        handleViewCustomerPhoto={handleViewCustomerPhoto}
+                        testSmsPhoto={testSmsPhoto}
+                      />
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

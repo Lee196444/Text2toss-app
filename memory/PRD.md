@@ -15,6 +15,15 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Test creds: `lrobe` / `L1964c10$` (see `/app/memory/test_credentials.md`)
 
 ## Implemented (Apr 26, 2026)
+- ✅ **DESIGN PASS (May 2): All 5 admin "bucket" modals share the same visual language**
+  - **Shared module** `/app/frontend/src/components/admin/bucketShared.js` exporting `buildImageUrl`, `STATUS_BADGE`, `STATUS_BORDER`, `BIN_GRADIENT`, `formatDate`, `formatStatus` — eliminates 3 duplicated helpers across modals.
+  - Redesigned with the auto-approved-quotes look:
+    - **`BinModal.js`** (Pending Payment, New, Upcoming, In Progress, Completed): gradient header per bin, search bar, two-column responsive card grid, photo+items grid, status-coded left border, full action button row preserved (Route, View Photo, Start Job, Complete, + Photo, SMS, Test).
+    - **`PaymentRemindersModal.js`**: rose-gradient header, total-awaiting in subtitle, search, photo thumbnails, Mark as Paid / Reject buttons.
+    - **`AllJobsModal.js`**: purple-gradient header, search, photo thumbnails, status pills, click-card-to-open-details.
+    - **`PendingApprovalsModal.js`**: orange-gradient header, search, photo thumbnails, inline price-adjust + admin notes (now with controlled state instead of `document.getElementById`), Approve/Reject buttons, stats footer preserved.
+    - **`AutoApprovedQuotesModal.js`**: refactored to import from `bucketShared` (was the original of this design).
+  - **Verified:** ESLint 100% clean across `/app/frontend/src/components/admin/`. Live screenshot confirms Pending Payments now matches the Auto-Approved style — search bar, card grid, "$price · Scale · status · date" header row, photo on left, items on right, customer details, Mark as Paid + Reject. Action behaviour unchanged.
 - ✅ **FEATURE (May 2): Auto-Approved Quotes review modal**
   - **Backend:** New `GET /api/admin/auto-approved-quotes?limit=N` returns recent quotes with `approval_status="auto_approved"`, joined with their corresponding bookings (if any) for at-a-glance "did they book?" visibility. Defaults to 100, capped at 500.
   - **Frontend:** New `AutoApprovedQuotesModal.js` — read-only review of auto-approved quotes with photo thumbnails (click to expand), item list, scale, price, AI description, booking status, address/phone/email, pickup date/time. Includes free-text search (item / address / phone / email) and a "Booked only" filter to hide abandoned quotes. Header shows total booked revenue across the visible set.

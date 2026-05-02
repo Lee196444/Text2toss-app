@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { Input } from "../ui/input";
+import { buildImageUrl, STATUS_BADGE, formatDate } from "./bucketShared";
 
 /**
  * Read-only review modal for auto-approved quotes.
@@ -12,36 +13,6 @@ import { Input } from "../ui/input";
  * AI is auto-approving correctly. No approve/reject controls — these are
  * already approved by definition.
  */
-
-// Build the public image URL from the quote's stored path. New uploads are
-// stored as `text2toss/quote_images/<file>` and legacy ones as
-// `/app/static/quote_images/<file>`. Either way, the last two path segments
-// give us {folder, filename} for the /api/images/{folder}/{filename} route.
-const buildQuoteImageUrl = (storedPath) => {
-  if (!storedPath) return "";
-  if (storedPath.startsWith("http")) return storedPath;
-  const parts = storedPath.split("/").filter(Boolean);
-  if (parts.length < 2) return "";
-  const folder = parts[parts.length - 2];
-  const filename = parts[parts.length - 1];
-  return `${process.env.REACT_APP_BACKEND_URL}/api/images/${folder}/${filename}`;
-};
-
-const formatDate = (iso) => {
-  if (!iso) return "—";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-};
-
-const STATUS_BADGE = {
-  scheduled: "bg-blue-100 text-blue-800",
-  in_progress: "bg-yellow-100 text-yellow-800",
-  completed: "bg-green-100 text-green-800",
-  pending_payment: "bg-rose-100 text-rose-800",
-  pending_customer_approval: "bg-orange-100 text-orange-800",
-  cancelled: "bg-gray-100 text-gray-600",
-};
 
 const AutoApprovedQuotesModal = ({
   open,
@@ -154,7 +125,7 @@ const AutoApprovedQuotesModal = ({
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
               {visibleQuotes.map((quote) => {
-                const imgUrl = buildQuoteImageUrl(quote.temp_image_path);
+                const imgUrl = buildImageUrl(quote.temp_image_path);
                 const booking = quote.booking;
                 return (
                   <Card

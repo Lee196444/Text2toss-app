@@ -1,149 +1,179 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { Textarea } from "../ui/textarea";
-import { Label } from "../ui/label";
 import { Badge } from "../ui/badge";
+import {
+  buildImageUrl,
+  STATUS_BADGE,
+  STATUS_BORDER,
+  formatDate,
+  formatStatus,
+} from "./bucketShared";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+/**
+ * "All Jobs History" modal — every booking ever, searchable. Card design
+ * matches the other admin "buckets": photo on the left, items + customer
+ * details on the right, status pill, click-through to job details.
+ */
+const AllJobsModal = ({
+  open,
+  filteredJobs,
+  jobSearchQuery,
+  handleJobSearch,
+  openJobDetails,
+  openEmailCenter,
+  setShowAllJobsModal,
+}) => {
+  const totalRevenue = useMemo(
+    () => (filteredJobs || []).reduce((s, j) => s + (j.quote_details?.total_price || 0), 0),
+    [filteredJobs],
+  );
 
-// Status → visual style maps. Replaces 3 chained ternaries below.
-const STATUS_BORDER = {
-  completed: "border-green-300 bg-green-50/50",
-  in_progress: "border-yellow-300 bg-yellow-50/50",
-  cancelled: "border-red-300 bg-red-50/50",
-};
-const STATUS_BADGE = {
-  completed: "bg-green-500",
-  in_progress: "bg-yellow-500",
-  cancelled: "bg-red-500",
-};
-const STATUS_ICON = {
-  completed: "✓",
-  in_progress: "⏳",
-  cancelled: "✕",
-};
-const DEFAULT_BORDER = "border-blue-300 bg-blue-50/50";
-const DEFAULT_BADGE = "bg-blue-500";
-const DEFAULT_ICON = "📅";
-
-const AllJobsModal = ({ open, jobs, filteredJobs, jobSearchQuery, handleJobSearch, openJobDetails, openEmailCenter, setShowAllJobsModal }) => {
   if (!open) return null;
-  return (
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-        <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle className="text-2xl">
-                  📚 All Jobs History
-                </CardTitle>
-                <CardDescription className="text-white/80 mt-1">
-                  Search and view all jobs
-                </CardDescription>
-              </div>
-              <Button 
-                onClick={() => setShowAllJobsModal(false)}
-                variant="ghost"
-                className="text-white hover:bg-white/20"
-              >
-                ✕
-              </Button>
-            </div>
-          </CardHeader>
-          
-          <CardContent className="p-6">
-            {/* Search Bar */}
-            <div className="mb-6">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search by Job #, Email, Phone, or Address..."
-                  value={jobSearchQuery}
-                  onChange={(e) => handleJobSearch(e.target.value)}
-                  className="w-full px-4 py-3 pr-10 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none text-base"
-                />
-                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl">
-                  🔍
-                </span>
-              </div>
-              {jobSearchQuery && (
-                <p className="text-sm text-gray-600 mt-2">
-                  Found {filteredJobs.length} job(s)
-                </p>
-              )}
-            </div>
 
-            {/* Jobs List */}
-            <div className="overflow-y-auto max-h-[50vh] space-y-3">
-              {filteredJobs.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="text-6xl mb-4">📭</div>
-                  <p className="text-gray-500 text-lg">
-                    {jobSearchQuery ? 'No jobs found matching your search' : 'Loading jobs...'}
-                  </p>
-                </div>
-              ) : (
-                filteredJobs.map((job, index) => (
-                  <Card 
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-2 sm:p-4">
+      <Card className="w-full max-w-5xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-3 sm:px-6 sm:py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="min-w-0">
+              <CardTitle className="text-lg sm:text-2xl flex items-center gap-2 flex-wrap">
+                📚 All Jobs History
+                <Badge className="bg-white/20 text-white border-0">
+                  {(filteredJobs || []).length}
+                </Badge>
+              </CardTitle>
+              <CardDescription className="text-white/85 text-xs sm:text-sm mt-1">
+                Search by job ID, address, phone, or email · Total revenue in view: <strong>${totalRevenue.toFixed(2)}</strong>
+              </CardDescription>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => setShowAllJobsModal(false)}
+              data-testid="all-jobs-close-btn"
+              className="bg-white/20 hover:bg-white/30 text-white border-0 self-end sm:self-auto"
+            >
+              <span className="mr-1">✕</span>Close
+            </Button>
+          </div>
+        </CardHeader>
+
+        <CardContent className="overflow-y-auto max-h-[78vh] p-3 sm:p-4">
+          <div className="mb-3 sm:mb-4">
+            <Input
+              type="text"
+              placeholder="Search by Job #, Email, Phone, or Address..."
+              value={jobSearchQuery}
+              onChange={(e) => handleJobSearch(e.target.value)}
+              data-testid="all-jobs-search-input"
+              className="w-full"
+            />
+          </div>
+
+          {(filteredJobs || []).length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-3xl mb-2">📭</div>
+              <p className="text-gray-500">
+                {jobSearchQuery ? "No jobs match your search." : "Loading jobs..."}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+              {filteredJobs.map((job) => {
+                const imgUrl = buildImageUrl(job.image_path);
+                const items = job.quote_details?.items || [];
+                return (
+                  <Card
                     key={job.id}
-                    className={`cursor-pointer hover:shadow-lg transition-all border-2 ${STATUS_BORDER[job.status] || DEFAULT_BORDER}`}
+                    className={`border-l-4 ${STATUS_BORDER[job.status] || "border-l-gray-300"} cursor-pointer hover:shadow-md transition-shadow`}
                     onClick={() => {
                       openJobDetails(job);
                       setShowAllJobsModal(false);
                     }}
+                    data-testid={`all-jobs-card-${job.id}`}
                   >
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2 flex-wrap">
-                            <h3 className="font-bold text-base text-gray-800">
-                              Job #{job.id.substring(0, 8)}...
-                            </h3>
-                            <Badge className={STATUS_BADGE[job.status] || DEFAULT_BADGE}>
-                              {STATUS_ICON[job.status] || DEFAULT_ICON} {job.status}
-                            </Badge>
-                            {job.email && (
-                              <Button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  openEmailCenter(job.email);
-                                }}
-                                className="bg-indigo-500 hover:bg-indigo-600 text-white text-xs px-2 py-1 rounded"
-                              >
-                                📧 Email
-                              </Button>
-                            )}
-                          </div>
-                          
-                          <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
-                            <div>📅 {new Date(job.pickup_date).toLocaleDateString()}</div>
-                            <div>⏰ {job.pickup_time}</div>
-                            <div>📧 {job.email || 'N/A'}</div>
-                            <div>📱 {job.phone || 'N/A'}</div>
-                            <div className="col-span-2">📍 {job.address}</div>
-                          </div>
-                        </div>
-                        
-                        <div className="text-right ml-4">
-                          <div className="text-xl font-bold text-emerald-600">
-                            ${job.quote_details?.total_price || 0}
-                          </div>
-                          <div className="text-xs text-gray-500 mt-1">
+                    <CardContent className="p-3 sm:p-4 space-y-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-xl font-bold text-emerald-600">
+                          ${job.quote_details?.total_price || 0}
+                        </span>
+                        <Badge className={STATUS_BADGE[job.status] || "bg-gray-100 text-gray-700"}>
+                          {formatStatus(job.status)}
+                        </Badge>
+                        {job.payment_status && (
+                          <Badge variant="outline" className="text-xs text-gray-500">
                             {job.payment_status}
-                          </div>
+                          </Badge>
+                        )}
+                        <span className="ml-auto text-xs text-gray-500">
+                          #{(job.id || "").substring(0, 8)} · {formatDate(job.pickup_date)}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="sm:col-span-1">
+                          {imgUrl ? (
+                            <img
+                              src={imgUrl}
+                              alt="Customer items"
+                              className="w-full h-32 object-cover rounded-lg border"
+                              onError={(e) => { e.target.style.display = "none"; }}
+                            />
+                          ) : (
+                            <div className="w-full h-32 rounded-lg border bg-gray-50 flex items-center justify-center text-xs text-gray-400">
+                              No photo
+                            </div>
+                          )}
+                        </div>
+                        <div className="sm:col-span-2 space-y-1 text-xs sm:text-sm">
+                          {items.length > 0 ? (
+                            <ul className="space-y-0.5">
+                              {items.slice(0, 5).map((item, idx) => (
+                                <li key={`${item.name}-${idx}`} className="text-gray-700">
+                                  • {item.quantity || 1}× <span className="font-medium">{item.name}</span>
+                                  {item.size ? <span className="text-gray-500"> ({item.size})</span> : null}
+                                </li>
+                              ))}
+                              {items.length > 5 && (
+                                <li className="text-gray-400 italic">+{items.length - 5} more…</li>
+                              )}
+                            </ul>
+                          ) : (
+                            <p className="text-gray-500 italic">No item list available.</p>
+                          )}
                         </div>
                       </div>
+
+                      <div className="border-t pt-2 text-xs sm:text-sm text-gray-700 space-y-0.5">
+                        <p>📍 {job.address || "—"}</p>
+                        <p>📞 {job.phone || "—"}{job.email ? `   ✉️ ${job.email}` : ""}</p>
+                        <p className="text-gray-500">⏰ {job.pickup_time || "—"}</p>
+                      </div>
+
+                      {job.email && (
+                        <div className="pt-2 border-t border-gray-100">
+                          <Button
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openEmailCenter(job.email);
+                            }}
+                            className="bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white text-xs font-medium px-3 py-2 rounded-lg"
+                          >
+                            <span className="mr-1">📧</span>Email Customer
+                          </Button>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
-                ))
-              )}
+                );
+              })}
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
