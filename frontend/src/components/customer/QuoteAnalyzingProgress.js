@@ -83,11 +83,15 @@ export default function QuoteAnalyzingProgress({ quote, error, onDone }) {
   const onDoneRef = useRef(onDone);
   onDoneRef.current = onDone;
 
-  // Step timer — speeds up if the API response is already back.
+  // Step timer — speeds up if the API response is already back. If we reach
+  // the last step but the quote isn't in yet, HOLD on it until the response
+  // lands (otherwise the overlay fires onDone with pendingQuote=null and the
+  // parent has no data to advance with — the user sees nothing happen and
+  // clicks Get Quote again, which used to be the "press twice" bug).
   useEffect(() => {
     if (done || error) return;
     if (activeIdx >= STEP_IDS.length) {
-      setDone(true);
+      if (quote) setDone(true);
       return;
     }
     const id = STEP_IDS[activeIdx];

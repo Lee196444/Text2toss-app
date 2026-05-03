@@ -15,6 +15,14 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Test creds: `lrobe` / `L1964c10$` (see `/app/memory/test_credentials.md`)
 
 ## Implemented (Apr 26, 2026)
+- ✅ **BUGFIX (May 2): "Get Quote" had to be pressed twice**
+  - **Root cause:** `QuoteAnalyzingProgress` animated through its 5 steps in a fixed ~3.5-4s envelope. If the AI vision response took longer (common on a cold multi-photo call, 5-8s), the overlay would reach its `done` state and fire `onDone` while `pendingQuote` was still null in the parent. `handleAnalyzeOverlayDone` would see null, skip the advance, and just reset state. The user saw the overlay disappear with no quote → pressed Get Quote again → second attempt hit the cache → instant response → overlay + quote finished in sync → advance worked.
+  - **Fix:** in the overlay's step-timer effect, when `activeIdx` reaches the end, only flip `done = true` **if the quote has actually arrived**. Otherwise hold on the last step and let the effect re-run when `quote` finally updates. One-line change in `QuoteAnalyzingProgress.js`.
+- ✅ **UX (May 2): Combined "Quotes" dropdown button on admin dashboard**
+  - Previously two separate Quick Action buttons (orange "Quotes" for review queue + blue "Auto-Approved"). Combined into **one orange "Quotes" dropdown** with a single badge showing the total count. Opens a menu with two entries, each showing its own pill count:
+    - **📋 Needs Review** — `pendingQuotes.length` (red pill when > 0)
+    - **⚡ Auto-Approved** — `approvalStats.auto_approved` (green pill when > 0)
+  - Uses shadcn `DropdownMenu`. Saves one slot in the Quick Actions row and matches the "one card, inline counts" pattern the user requested.
 - ✅ **FEATURE (May 2): Multi-photo carousel on every admin bucket card**
   - **New component** `admin/PhotoCarousel.jsx` — compact carousel with prev/next arrows, dot indicator, "N / M" counter badge, click-to-open-fullsize. Gracefully degrades to a single `<img>` when only 1 photo exists and a "No photo" placeholder when 0. Same height as the previous thumbnails so no card layout shifts.
   - **New shared helper** `bucketShared.collectImagePaths(record)` — returns the full image list for a quote or booking, handling both the new `temp_image_paths[]` field and the legacy `image_path` / `temp_image_path` fields. Bookings read from nested `quote_details`.
