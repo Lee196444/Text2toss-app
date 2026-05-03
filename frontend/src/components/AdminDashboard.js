@@ -341,6 +341,9 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
     try {
       await axios.patch(`${API}/admin/bookings/${bookingId}`, { status: newStatus });
       fetchDailySchedule(); // Refresh data
+      // Also refresh the rolling-7-day Completed bin so yesterday's completions
+      // (and any just-marked-complete) show up immediately.
+      fetchRecentCompleted();
       toast.success("Booking status updated");
     } catch (error) {
       toast.error("Failed to update booking status");
@@ -666,6 +669,18 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
     fetchAllJobs();
   };
 
+  const [recentCompletedBookings, setRecentCompletedBookings] = useState([]);
+
+  const fetchRecentCompleted = useCallback(async () => {
+    try {
+      const res = await axios.get(`${API}/admin/recent-completed?days=7`);
+      setRecentCompletedBookings(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error('Failed to fetch recent completed jobs:', err);
+      setRecentCompletedBookings([]);
+    }
+  }, []);
+
   // Categorize bookings into bins
   const categorizBookings = () => {
     const today = new Date().toISOString().split('T')[0];
@@ -675,15 +690,13 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       new: [],      // scheduled for today
       upcoming: [], // scheduled for future dates
       inProgress: [], // currently in progress
-      completed: []   // completed jobs
+      completed: []   // completed jobs (rolling 7-day window, sourced separately)
     };
 
     dailyBookings.forEach(booking => {
       const bookingDate = booking.pickup_date ? booking.pickup_date.split('T')[0] : '';
-      
-      if (booking.status === 'completed') {
-        bins.completed.push(booking);
-      } else if (booking.status === 'in_progress') {
+
+      if (booking.status === 'in_progress') {
         bins.inProgress.push(booking);
       } else if (booking.status === 'pending_customer_approval') {
         bins.new.push(booking); // Show approval pending jobs as priority
@@ -696,8 +709,13 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
           bins.new.push(booking); // Past due, show in new
         }
       }
+      // NOTE: completed jobs are intentionally NOT read from dailyBookings.
+      // dailyBookings only covers selectedDate, so a job completed yesterday
+      // would silently disappear. Instead we source the Completed bin from
+      // a rolling 7-day window fetched via fetchRecentCompleted().
     });
 
+    bins.completed = recentCompletedBookings;
     return bins;
   };
 
@@ -873,6 +891,32 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
     }
   }, []);
 
+  const handleDismissAutoApproved = useCallback(async (quoteId) => {
+    try {
+      await axios.post(`${API}/admin/quotes/${quoteId}/dismiss`);
+      // Optimistic update — drop it from view immediately, then reconcile.
+      setAutoApprovedQuotes(prev => prev.filter(q => q.id !== quoteId));
+      toast.success('Quote dismissed');
+      fetchApprovalStats();
+    } catch (err) {
+      console.error(err);
+      toast.error('Could not dismiss quote');
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleDismissAllAutoApproved = useCallback(async () => {
+    if (!window.confirm('Clear all auto-approved quotes from this view? They\'ll stay in the database (All Jobs search still finds them).')) return;
+    try {
+      const res = await axios.post(`${API}/admin/quotes/dismiss-all-auto-approved`);
+      setAutoApprovedQuotes([]);
+      toast.success(`Cleared ${res.data?.dismissed || 0} auto-approved quotes`);
+      fetchApprovalStats();
+    } catch (err) {
+      console.error(err);
+      toast.error('Could not clear auto-approved quotes');
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const openAutoApprovedQuotes = useCallback(() => {
     setShowAutoApprovedQuotes(true);
     fetchAutoApprovedQuotes();
@@ -894,7 +938,8 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
     fetchPendingQuotes();
     fetchApprovalStats();
     fetchPendingPayments();
-  }, [selectedDate, fetchDailySchedule, fetchWeeklySchedule, fetchPendingQuotes, fetchApprovalStats, fetchPendingPayments]);
+    fetchRecentCompleted();
+  }, [selectedDate, fetchDailySchedule, fetchWeeklySchedule, fetchPendingQuotes, fetchApprovalStats, fetchPendingPayments, fetchRecentCompleted]);
 
   // Auto-refresh admin data every 30 seconds
   useEffect(() => {
@@ -903,9 +948,10 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       fetchPendingQuotes();
       fetchApprovalStats();
       fetchDailySchedule();
+      fetchRecentCompleted();
     }, 30000);
     return () => clearInterval(interval);
-  }, [selectedDate, fetchPendingPayments, fetchPendingQuotes, fetchApprovalStats, fetchDailySchedule]);
+  }, [selectedDate, fetchPendingPayments, fetchPendingQuotes, fetchApprovalStats, fetchDailySchedule, fetchRecentCompleted]);
 
   useEffect(() => {
     if (showSmsCenter) {
@@ -1565,6 +1611,8 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
         loading={autoApprovedLoading}
         onClose={() => setShowAutoApprovedQuotes(false)}
         onRefresh={fetchAutoApprovedQuotes}
+        onDismissQuote={handleDismissAutoApproved}
+        onDismissAll={handleDismissAllAutoApproved}
       />
 
       {/* Photo Gallery Management Modal */}

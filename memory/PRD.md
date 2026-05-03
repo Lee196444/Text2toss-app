@@ -15,6 +15,20 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Test creds: `lrobe` / `L1964c10$` (see `/app/memory/test_credentials.md`)
 
 ## Implemented (Apr 26, 2026)
+- ✅ **BUGFIX (May 2): Completed jobs from yesterday missing from Completed bin**
+  - **Root cause:** The Completed bin was built by filtering `dailyBookings`, which is sourced from `/api/admin/daily-schedule?date={selectedDate}`. Only the selected date's bookings are loaded, so anything completed yesterday (or earlier) silently disappeared from the Completed bin on today's dashboard.
+  - **Fix (backend):** New endpoint `GET /api/admin/recent-completed?days=7` — returns all completed bookings across a rolling N-day window (default 7, capped 1-90) with quote_details attached. Sorted by pickup_date desc.
+  - **Fix (frontend):** Added `recentCompletedBookings` state + `fetchRecentCompleted` callback. Wired into initial load + 30s auto-refresh cycle + `updateBookingStatus` (so a just-marked-complete job appears immediately). `categorizBookings` no longer reads completed jobs from `dailyBookings`; the Completed bin now uses `recentCompletedBookings` exclusively.
+  - **Verified:** `/api/admin/recent-completed?days=7` returned 38 completed bookings live (was effectively 0 from the old daily-only source on dates without a completion). ruff + eslint clean.
+- ✅ **FEATURE (May 2): Dismiss / Clear-All on Auto-Approved bucket**
+  - **Schema:** Added `dismissed_at: Optional[datetime]` to the PriceQuote model.
+  - **Backend endpoints:**
+    - `POST /api/admin/quotes/{quote_id}/dismiss` — marks one quote as dismissed.
+    - `POST /api/admin/quotes/dismiss-all-auto-approved` — bulk-dismisses every currently-visible auto-approved quote. Returns `{success, dismissed: N}`.
+    - `GET /api/admin/auto-approved-quotes` — hides dismissed quotes by default; pass `?include_dismissed=true` to show them (audit view).
+  - **Why dismiss not delete:** Dismissal just hides from the review UI. The quote stays in the DB (approval stats still count it, All Jobs search still finds it, dismissed_at is reversible if needed).
+  - **Frontend UI:** Added per-card "🗑️ Dismiss" button on each auto-approved card + a "🗑️ Clear All" button in the modal header (red outline, appears only when list is non-empty). Clear-All shows a confirm dialog noting that records stay in the database. Optimistic UI update on dismiss.
+  - **Verified end-to-end:** Dismissed one quote → total=366, visible=365, dismissed=1. MongoDB filter `$or: [{dismissed_at: {$exists: false}}, {dismissed_at: null}]` working correctly.
 - ✅ **BUGFIX (May 2): "Get Quote" had to be pressed twice**
   - **Root cause:** `QuoteAnalyzingProgress` animated through its 5 steps in a fixed ~3.5-4s envelope. If the AI vision response took longer (common on a cold multi-photo call, 5-8s), the overlay would reach its `done` state and fire `onDone` while `pendingQuote` was still null in the parent. `handleAnalyzeOverlayDone` would see null, skip the advance, and just reset state. The user saw the overlay disappear with no quote → pressed Get Quote again → second attempt hit the cache → instant response → overlay + quote finished in sync → advance worked.
   - **Fix:** in the overlay's step-timer effect, when `activeIdx` reaches the end, only flip `done = true` **if the quote has actually arrived**. Otherwise hold on the last step and let the effect re-run when `quote` finally updates. One-line change in `QuoteAnalyzingProgress.js`.

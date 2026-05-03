@@ -330,6 +330,7 @@ class PriceQuote(BaseModel):
     ai_explanation: Optional[str] = None
     temp_image_path: Optional[str] = None  # Primary image (first of temp_image_paths); kept for backwards-compat
     temp_image_paths: List[str] = Field(default_factory=list)  # All uploaded images for multi-photo quotes
+    dismissed_at: Optional[datetime] = None  # Admin-hidden from auto-approved bucket
     # Quote approval system for high-value jobs (Scale 9-20)
     approval_status: str = "auto_approved"  # auto_approved, pending_approval, approved, rejected
     requires_approval: bool = False  # True for Scale 9-20 quotes
@@ -2340,16 +2341,19 @@ async def get_pending_quotes():
 
 
 @api_router.get("/admin/auto-approved-quotes")
-async def get_auto_approved_quotes(limit: int = 100):
+async def get_auto_approved_quotes(limit: int = 100, include_dismissed: bool = False):
     """Return recently auto-approved quotes with their associated booking
-    (if any). Lets the operator review what the AI is auto-approving and
-    spot-check that the prices and item lists look right."""
+    (if any). Dismissed quotes are hidden by default; pass
+    ``?include_dismissed=true`` to show them for an audit view."""
     try:
         cap = max(1, min(limit, 500))
-        cursor = db.quotes.find(
-            {"approval_status": "auto_approved"},
-            {"_id": 0},
-        ).sort("created_at", -1).limit(cap)
+        query = {"approval_status": "auto_approved"}
+        if not include_dismissed:
+            query["$or"] = [
+                {"dismissed_at": {"$exists": False}},
+                {"dismissed_at": None},
+            ]
+        cursor = db.quotes.find(query, {"_id": 0}).sort("created_at", -1).limit(cap)
         quotes = await cursor.to_list(length=cap)
         if not quotes:
             return []
@@ -2382,6 +2386,66 @@ async def get_auto_approved_quotes(limit: int = 100):
     except Exception as e:
         logger.error(f"Error fetching auto-approved quotes: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch auto-approved quotes")
+
+
+@api_router.post("/admin/quotes/{quote_id}/dismiss")
+async def dismiss_quote(quote_id: str):
+    """Hide a quote from the auto-approved bucket without deleting it.
+
+    The record stays in the database (audit trail, stats still count it);
+    it just no longer clutters the operator's review surface.
+    """
+    now = datetime.now(timezone.utc).isoformat()
+    result = await db.quotes.update_one(
+        {"id": quote_id},
+        {"$set": {"dismissed_at": now}},
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Quote not found")
+    return {"success": True, "dismissed_at": now}
+
+
+@api_router.post("/admin/quotes/dismiss-all-auto-approved")
+async def dismiss_all_auto_approved():
+    """Bulk-dismiss every currently-visible auto-approved quote. Equivalent
+    to the "Clear all" button on the Auto-Approved modal."""
+    now = datetime.now(timezone.utc).isoformat()
+    result = await db.quotes.update_many(
+        {
+            "approval_status": "auto_approved",
+            "$or": [
+                {"dismissed_at": {"$exists": False}},
+                {"dismissed_at": None},
+            ],
+        },
+        {"$set": {"dismissed_at": now}},
+    )
+    return {"success": True, "dismissed": result.modified_count}
+
+
+@api_router.get("/admin/recent-completed")
+async def get_recent_completed(days: int = 7):
+    """Completed bookings from the last N days (default 7).
+
+    The main admin dashboard's Completed bin used to filter on today-only
+    because it was sourced from the daily schedule — completions from
+    yesterday silently disappeared from view. This endpoint gives the
+    Completed bin a rolling window so recent jobs stay visible.
+    """
+    cap_days = max(1, min(days, 90))
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=cap_days)).date().isoformat()
+    cursor = db.bookings.find(
+        {"status": "completed", "pickup_date": {"$gte": cutoff}},
+        {"_id": 0},
+    ).sort("pickup_date", -1).limit(200)
+    bookings = await cursor.to_list(length=200)
+    quote_dict = await _fetch_quotes_for_bookings(bookings)
+    result = []
+    for b in bookings:
+        parsed = parse_from_mongo(b)
+        _attach_quote_details_inplace(parsed, quote_dict)
+        result.append(parsed)
+    return result
 
 @api_router.post("/admin/quotes/{quote_id}/approve")
 async def approve_quote(quote_id: str, approval_action: QuoteApprovalAction):

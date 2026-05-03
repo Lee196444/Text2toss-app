@@ -23,6 +23,8 @@ const AutoApprovedQuotesModal = ({
   loading,
   onClose,
   onRefresh,
+  onDismissQuote,
+  onDismissAll,
 }) => {
   const [filter] = useSharedFilter();
   const [bookedOnly, setBookedOnly] = useState(false);
@@ -203,6 +205,36 @@ const AutoApprovedQuotesModal = ({
                         </div>
                       ) : (
                         <div className="border-t pt-2 text-xs text-gray-500 italic">
+                          Customer got this quote but didn't book.
+                        </div>
+                      )}
+
+                      {/* Dismiss button */}
+                      <div className="pt-2 border-t border-gray-100 flex justify-end">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => onDismissQuote?.(quote.id)}
+                          data-testid={`dismiss-quote-${quote.id}`}
+                          className="text-xs text-gray-500 hover:text-red-600 hover:bg-red-50 border-gray-200"
+                        >
+                          <span className="mr-1">🗑️</span>Dismiss
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default AutoApprovedQuotesModal;
+text-gray-500 italic">
                           Customer got this quote but didn't book.
                         </div>
                       )}
