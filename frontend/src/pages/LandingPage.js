@@ -393,10 +393,16 @@ const LandingPage = () => {
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex justify-between items-center h-14 sm:h-16">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">T2T</span>
-              </div>
-              <span className="text-lg sm:text-xl font-extrabold tracking-tight text-gray-900">Text2toss</span>
+              <img
+                src="/apple-touch-icon.png?v=8"
+                alt="Text2toss"
+                className="w-9 h-9 rounded-lg shadow-sm"
+                data-testid="brand-icon"
+              />
+              <span className="text-lg sm:text-xl font-extrabold tracking-tight text-gray-900 italic">Text2toss</span>
+              <span className="hidden md:inline-flex items-center gap-1 ml-2 bg-black text-lime-400 text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded">
+                <span className="text-white">#1</span> in AZ
+              </span>
             </div>
             <div className="flex items-center gap-3">
               <a href="#how-it-works" className="hidden sm:block text-sm text-gray-500 hover:text-gray-900 font-medium transition-colors">How It Works</a>
@@ -428,16 +434,17 @@ const LandingPage = () => {
             {/* Left - Copy */}
             <div className="space-y-6 sm:space-y-8 animate-fade-up">
               <div>
-                <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 text-xs sm:text-sm font-medium px-3 py-1.5 rounded-full mb-4 sm:mb-6">
-                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                  Serving Flagstaff, AZ
+                <div className="inline-flex items-center gap-2 bg-black text-lime-400 text-xs sm:text-sm font-black uppercase tracking-widest px-3 py-1.5 rounded-full mb-4 sm:mb-6 shadow-lg shadow-lime-400/20" data-testid="az-number-one-badge">
+                  <svg className="w-4 h-4 fill-lime-400" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                  Arizona's #1 Junk Removal
                 </div>
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 tracking-tight leading-[1.1]">
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 tracking-tight leading-[1.05]">
+                  <span className="block text-base sm:text-lg font-extrabold uppercase tracking-[0.25em] text-lime-600 mb-2">Trash Today.</span>
                   Junk removal,<br />
                   <span className="text-emerald-600">made simple.</span>
                 </h1>
                 <p className="mt-4 sm:mt-6 text-base sm:text-lg text-gray-500 leading-relaxed max-w-lg">
-                  Snap a photo of your junk, get an instant AI quote, and schedule a pickup. No callbacks. No hassles.
+                  Snap a photo. Get an instant AI quote. Schedule pickup. <span className="font-bold text-gray-900">No callbacks. No hassles.</span>
                 </p>
               </div>
 
@@ -463,19 +470,32 @@ const LandingPage = () => {
                 </a>
               </div>
 
-              {/* Trust strip */}
-              <div className="flex flex-wrap gap-x-6 gap-y-2 pt-2">
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                  Instant AI quotes
+              {/* Trust strip with real proof */}
+              <div className="grid grid-cols-3 gap-3 pt-4 border-t border-gray-100">
+                <div className="flex items-center gap-2">
+                  <div className="flex -space-x-0.5">
+                    {[0,1,2,3,4].map(i => (
+                      <svg key={i} className="w-3.5 h-3.5 fill-yellow-400" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    ))}
+                  </div>
+                  <div>
+                    <div className="text-sm font-black text-gray-900 leading-none">4.9★</div>
+                    <div className="text-[10px] text-gray-400 uppercase tracking-wider mt-0.5">Avg rating</div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                  No callbacks
+                <div className="flex items-center gap-2">
+                  <svg className="w-7 h-7 text-lime-500 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                  <div>
+                    <div className="text-sm font-black text-gray-900 leading-none">Same-Day</div>
+                    <div className="text-[10px] text-gray-400 uppercase tracking-wider mt-0.5">Pickups</div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                  Curbside pickup
+                <div className="flex items-center gap-2">
+                  <svg className="w-7 h-7 text-emerald-600 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                  <div>
+                    <div className="text-sm font-black text-gray-900 leading-none">Licensed</div>
+                    <div className="text-[10px] text-gray-400 uppercase tracking-wider mt-0.5">& Insured</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -521,15 +541,39 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* CTA Banner */}
-      <section className="py-12 sm:py-16 bg-emerald-600">
-        <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">Ready to clear your space?</h2>
-          <p className="text-emerald-100 text-base mb-8 max-w-xl mx-auto">Upload a photo and get your instant quote in under 30 seconds. It's that easy.</p>
-          <Button 
+      {/* CTA Banner — Arizona's #1 push */}
+      <section className="relative py-12 sm:py-16 bg-black overflow-hidden">
+        {/* Subtle hex pattern overlay */}
+        <div
+          aria-hidden
+          className="absolute inset-0 opacity-[0.07]"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 1px 1px, rgba(190,255,77,0.8) 1px, transparent 0)",
+            backgroundSize: "24px 24px",
+          }}
+        />
+        {/* Lime accent stripe */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-lime-400 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-lime-400 to-transparent" />
+
+        <div className="relative max-w-4xl mx-auto px-4 text-center">
+          <div className="inline-flex items-center gap-2 bg-lime-400 text-black text-xs font-black uppercase tracking-widest px-3 py-1.5 rounded-full mb-4">
+            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+            Arizona's #1 — Trusted statewide
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-black text-white mb-3 italic tracking-tight">
+            Trash today.<br className="sm:hidden" />
+            <span className="text-lime-400"> Tomorrow clean.</span>
+          </h2>
+          <p className="text-gray-300 text-base mb-8 max-w-xl mx-auto">
+            Snap, quote, schedule — done in under 30 seconds. Same-day pickup available.
+          </p>
+          <Button
             onClick={() => setShowQuote(true)}
             size="lg"
-            className="bg-white text-emerald-700 hover:bg-emerald-50 text-base font-bold px-8 h-14 rounded-xl shadow-lg"
+            className="bg-lime-400 text-black hover:bg-lime-300 text-base font-black uppercase tracking-wider px-8 h-14 rounded-xl shadow-2xl shadow-lime-400/30 hover:shadow-lime-400/50 transition-all"
+            data-testid="cta-banner-quote-btn"
           >
             Get Your Free Quote
           </Button>
@@ -586,14 +630,13 @@ const LandingPage = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 py-10 sm:py-14">
+      <footer className="bg-gray-900 py-10 sm:py-14 border-t-2 border-lime-400/20">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">T2T</span>
-              </div>
-              <span className="text-lg font-extrabold text-white">Text2toss</span>
+              <img src="/apple-touch-icon.png?v=8" alt="Text2toss" className="w-9 h-9 rounded-lg" />
+              <span className="text-lg font-extrabold italic text-white">Text2toss</span>
+              <span className="ml-2 inline-flex items-center bg-lime-400 text-black text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded">#1 AZ</span>
             </div>
             <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-gray-400">
               <span>Flagstaff, AZ</span>

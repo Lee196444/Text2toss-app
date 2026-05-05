@@ -288,3 +288,11 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
   - Android/Chrome: captures `beforeinstallprompt` and exposes a one-tap "Install app" button.
   - Dismiss button (×) sets 7-day cooldown.
 - Test IDs: `a2hs-prompt`, `a2hs-install-btn`, `a2hs-dismiss-btn`.
+
+## 2026-02 Brand Refresh — "Arizona's #1 Junk Removal" (DONE)
+- **Header**: replaced flat green T2T badge with the metallic T2T icon (`/apple-touch-icon.png`), italicized "Text2toss" wordmark, plus a black "#1 IN AZ" lime-accent badge (md+ only).
+- **Hero**: new prominent black/lime "★ Arizona's #1 Junk Removal" badge above headline; added "TRASH TODAY." lime kicker label; reworked trust-strip into 3 stat tiles (4.9★ avg rating / Same-Day pickups / Licensed & Insured).
+- **CTA Banner**: redesigned in pure black with subtle hex dot-grid overlay + lime gradient accent stripes top & bottom; lime "Arizona's #1 — Trusted statewide" pill; italic headline "Trash today. Tomorrow clean." (lime accent); lime-400 CTA button with glow.
+- **Footer**: brand-icon + italic "Text2toss" + "#1 AZ" lime chip; lime-tinted top border.
+- **Assets**: saved transparent-bg `text2toss-wordmark.png` (full hero use) and `text2toss-wordmark-nav.png` (nav size) for future use.
+- **Test IDs**: `brand-icon`, `az-number-one-badge`, `cta-banner-quote-btn`.
