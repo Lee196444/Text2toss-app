@@ -269,3 +269,10 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - `GET  /api/admin/marketing/stats -> { this_week, total, by_channel }`
 - `GET  /api/admin/marketing/settings -> MarketingSettings`
 - `POST /api/admin/marketing/settings <- MarketingSettings`
+
+## 2026-02 PWA Icon Refresh (DONE)
+- Generated stylized "T2T" brand icon (bold white text + stylized trash can on brand-green rounded square gradient).
+- Assets: `/icon-192.png`, `/icon-512.png`, `/apple-touch-icon.png` (180), `/favicon-16.png`, `/favicon-32.png`, `/maskable-icon-512.png`, plus legacy `/text2toss-icon.png` regenerated.
+- Created `public/manifest.json` with full PWA metadata (theme/background `#10b981`, standalone, portrait, maskable purpose).
+- Updated `public/index.html`: linked manifest, added all icon sizes with `?v=2` cache-bust, iOS PWA meta tags (`apple-mobile-web-app-*`), `apple-mobile-web-app-title=T2T`, mask-icon.
+- Verified: all 7 assets return HTTP 200 from production preview URL.
