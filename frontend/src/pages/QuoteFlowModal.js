@@ -4,6 +4,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Badge } from "../components/ui/badge";
+import AddToHomeScreenPrompt from "../components/customer/AddToHomeScreenPrompt";
 
 /**
  * 3-step quote flow modal: Upload → Quote → (booking opens externally).
@@ -337,6 +338,8 @@ function QuoteStep({ quote, onContinueToBooking, onCloseAfterQuote }) {
         )}
 
         <p className="text-xs text-gray-400 text-center">Ground level & curbside pickup only</p>
+
+        <AddToHomeScreenPrompt />
       </CardContent>
 
       <div className="p-5 bg-white border-t space-y-3">

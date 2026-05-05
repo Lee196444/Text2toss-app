@@ -276,3 +276,15 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Created `public/manifest.json` with full PWA metadata (theme/background `#10b981`, standalone, portrait, maskable purpose).
 - Updated `public/index.html`: linked manifest, added all icon sizes with `?v=2` cache-bust, iOS PWA meta tags (`apple-mobile-web-app-*`), `apple-mobile-web-app-title=T2T`, mask-icon.
 - Verified: all 7 assets return HTTP 200 from production preview URL.
+
+## 2026-02 Add-to-Home-Screen Prompt (DONE)
+- New component: `/app/frontend/src/components/customer/AddToHomeScreenPrompt.js`
+- Renders inside `QuoteFlowModal` QuoteStep card (right after the price/items/AI analysis, above CTAs).
+- Behavior:
+  - Hidden when app already in standalone mode (`display-mode: standalone` or `navigator.standalone`).
+  - Hidden on desktop (mobile-only).
+  - Hidden if user dismissed within last 7 days (`localStorage` key `t2t_a2hs_dismissed_until`).
+  - iOS: shows visual instructions (Share icon → Add to Home Screen).
+  - Android/Chrome: captures `beforeinstallprompt` and exposes a one-tap "Install app" button.
+  - Dismiss button (×) sets 7-day cooldown.
+- Test IDs: `a2hs-prompt`, `a2hs-install-btn`, `a2hs-dismiss-btn`.
