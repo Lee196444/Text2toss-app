@@ -37,42 +37,69 @@ h1, h2 {
 h1 { letter-spacing: -0.005em; }
 
 /* === Badass button utility ======================================= */
-/* Use class `.btn-badass` directly, OR rely on the upgraded shadcn
-   <Button variant="default"> which now wires this in automatically. */
+/* Refined badass primary button — clean gradient, subtle shine, soft shadow.
+   Apply via class `.btn-badass` OR rely on shadcn <Button variant="default">. */
 .btn-badass {
-    background-color: #bef264; /* lime-300 */
-    color: #000;
+    position: relative;
+    background: linear-gradient(180deg, #d9f99d 0%, #bef264 50%, #a3e635 100%);
+    color: #0a0a0a;
     font-family: 'Anton', 'Bebas Neue', Impact, sans-serif;
     font-style: italic;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    border: 2px solid #000;
-    box-shadow: 0 2px 0 0 #000, 0 0 0 0 rgba(190, 242, 100, 0);
-    transition: transform 120ms ease, box-shadow 200ms ease, background-color 150ms ease;
+    letter-spacing: 0.06em;
+    border: 1.5px solid #1a1a1a;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.55),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.18),
+        0 2px 0 0 #1a1a1a,
+        0 6px 14px -4px rgba(190, 242, 100, 0.55),
+        0 1px 2px rgba(0, 0, 0, 0.15);
+    transition: transform 140ms ease, box-shadow 220ms ease, filter 180ms ease;
 }
 .btn-badass:hover:not(:disabled) {
-    background-color: #d9f99d; /* lime-200 */
+    filter: brightness(1.04) saturate(1.1);
     transform: translateY(-1px);
-    box-shadow: 0 3px 0 0 #000, 0 0 24px 4px rgba(190, 242, 100, 0.45);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.7),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.18),
+        0 3px 0 0 #1a1a1a,
+        0 10px 28px -4px rgba(190, 242, 100, 0.75),
+        0 2px 4px rgba(0, 0, 0, 0.18);
 }
 .btn-badass:active:not(:disabled) {
     transform: translateY(1px);
-    box-shadow: 0 0 0 0 #000;
+    box-shadow:
+        inset 0 1px 2px rgba(0, 0, 0, 0.2),
+        0 0 0 0 #1a1a1a,
+        0 2px 8px rgba(190, 242, 100, 0.4);
+}
+.btn-badass:focus-visible {
+    outline: 2px solid #84cc16;
+    outline-offset: 3px;
 }
 
 .btn-chrome {
-    background-color: #0a0a0a;
+    position: relative;
+    background: linear-gradient(180deg, #1f1f1f 0%, #0a0a0a 100%);
     color: #d9f99d;
     font-family: 'Anton', 'Bebas Neue', Impact, sans-serif;
     font-style: italic;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    border: 2px solid #bef264;
-    transition: transform 120ms ease, box-shadow 200ms ease, background-color 150ms ease;
+    letter-spacing: 0.06em;
+    border: 1.5px solid #bef264;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.06),
+        0 6px 16px -6px rgba(190, 242, 100, 0.35),
+        0 1px 2px rgba(0, 0, 0, 0.4);
+    transition: transform 140ms ease, box-shadow 220ms ease, background 200ms ease;
 }
 .btn-chrome:hover:not(:disabled) {
-    background-color: #171717;
-    box-shadow: 0 0 24px 2px rgba(190, 242, 100, 0.35);
+    background: linear-gradient(180deg, #262626 0%, #0a0a0a 100%);
+    transform: translateY(-1px);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 10px 28px -6px rgba(190, 242, 100, 0.55),
+        0 2px 4px rgba(0, 0, 0, 0.45);
 }
 
 /* === Metallic chrome text — matches the T2T icon's "metal" energy ====== */

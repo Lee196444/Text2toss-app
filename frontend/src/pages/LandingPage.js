@@ -399,7 +399,7 @@ const LandingPage = () => {
                 className="w-9 h-9 rounded-lg shadow-sm"
                 data-testid="brand-icon"
               />
-              <span className="text-lg sm:text-xl font-extrabold tracking-tight text-gray-900 italic">Text2toss</span>
+              <span className="text-lg sm:text-xl font-extrabold tracking-tight text-chrome italic" data-testid="brand-wordmark">Text2toss</span>
               <span className="hidden md:inline-flex items-center gap-1 ml-2 bg-black text-lime-400 text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded">
                 <span className="text-white">#1</span> in AZ
               </span>
