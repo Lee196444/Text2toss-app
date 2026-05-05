@@ -408,10 +408,10 @@ const LandingPage = () => {
               <a href="#how-it-works" className="hidden sm:block text-sm text-gray-500 hover:text-gray-900 font-medium transition-colors">How It Works</a>
               <Link to="/track" className="hidden sm:block text-sm text-gray-500 hover:text-gray-900 font-medium transition-colors">Track Booking</Link>
               <a href="#contact" className="hidden sm:block text-sm text-gray-500 hover:text-gray-900 font-medium transition-colors">Contact</a>
-              <Button 
+              <Button
                 onClick={() => setShowQuote(true)}
                 size="sm"
-                className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 h-9 rounded-full"
+                className="px-4 rounded-full"
                 data-testid="get-quote-btn"
               >
                 Get Quote
@@ -438,10 +438,10 @@ const LandingPage = () => {
                   <svg className="w-4 h-4 fill-lime-400" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                   Arizona's #1 Junk Removal
                 </div>
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 tracking-tight leading-[1.05]">
-                  <span className="block text-base sm:text-lg font-extrabold uppercase tracking-[0.25em] text-lime-600 mb-2">Trash Today.</span>
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-lime-500 tracking-tight leading-[1.05]">
+                  <span className="block text-base sm:text-lg font-extrabold uppercase tracking-[0.25em] text-black mb-2">Trash Today.</span>
                   Junk removal,<br />
-                  <span className="text-emerald-600">made simple.</span>
+                  <span className="text-lime-500">made simple.</span>
                 </h1>
                 <p className="mt-4 sm:mt-6 text-base sm:text-lg text-gray-500 leading-relaxed max-w-lg">
                   Snap a photo. Get an instant AI quote. Schedule pickup. <span className="font-bold text-gray-900">No callbacks. No hassles.</span>
@@ -449,20 +449,20 @@ const LandingPage = () => {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3">
-                <Button 
+                <Button
                   onClick={() => setShowQuote(true)}
                   size="lg"
-                  className="bg-gray-900 hover:bg-gray-800 text-white text-base sm:text-lg font-bold px-6 sm:px-8 h-14 rounded-xl shadow-lg hover:shadow-xl transition-all"
+                  className="text-base sm:text-lg px-6 sm:px-8 shadow-lg hover:shadow-xl"
                   data-testid="hero-get-quote-btn"
                 >
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                   Upload Photo & Get Quote
                 </Button>
-                <a href="tel:9288539619">
-                  <Button 
+                <a href="tel:9288539619" className="block">
+                  <Button
                     variant="outline"
                     size="lg"
-                    className="w-full sm:w-auto border-2 border-gray-200 text-gray-700 hover:bg-gray-50 text-base font-semibold px-6 h-14 rounded-xl"
+                    className="w-full sm:w-auto px-6"
                   >
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
                     Call Us
@@ -475,25 +475,25 @@ const LandingPage = () => {
                 <div className="flex items-center gap-2">
                   <div className="flex -space-x-0.5">
                     {[0,1,2,3,4].map(i => (
-                      <svg key={i} className="w-3.5 h-3.5 fill-yellow-400" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                      <svg key={i} className="w-3.5 h-3.5 fill-lime-400" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                     ))}
                   </div>
                   <div>
-                    <div className="text-sm font-black text-gray-900 leading-none">4.9★</div>
+                    <div className="font-display italic text-base text-black leading-none">4.9★</div>
                     <div className="text-[10px] text-gray-400 uppercase tracking-wider mt-0.5">Avg rating</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <svg className="w-7 h-7 text-lime-500 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                   <div>
-                    <div className="text-sm font-black text-gray-900 leading-none">Same-Day</div>
+                    <div className="font-display italic text-base text-black leading-none">Same-Day</div>
                     <div className="text-[10px] text-gray-400 uppercase tracking-wider mt-0.5">Pickups</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <svg className="w-7 h-7 text-emerald-600 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                  <svg className="w-7 h-7 text-lime-500 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                   <div>
-                    <div className="text-sm font-black text-gray-900 leading-none">Licensed</div>
+                    <div className="font-display italic text-base text-black leading-none">Licensed</div>
                     <div className="text-[10px] text-gray-400 uppercase tracking-wider mt-0.5">& Insured</div>
                   </div>
                 </div>
@@ -516,7 +516,7 @@ const LandingPage = () => {
       <section id="how-it-works" className="py-12 sm:py-20 bg-gray-50 border-t border-gray-100">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-10 sm:mb-14">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">How it works</h2>
+            <h2 className="text-3xl sm:text-4xl text-black mb-2 uppercase tracking-tight">How it works</h2>
             <p className="text-base text-gray-500">Three steps, no waiting</p>
           </div>
 
@@ -526,14 +526,14 @@ const LandingPage = () => {
               { step: "2", title: "Get your quote", desc: "Receive transparent pricing in seconds. No hidden fees, no surprises, no waiting for callbacks.", icon: <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg> },
               { step: "3", title: "Schedule & pay", desc: "Pick a convenient Mon-Thu time slot and pay via Venmo. We handle the rest — ground level and curbside.", icon: <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg> }
             ].map((item) => (
-              <div key={item.step} className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-100 hover:border-emerald-200 hover:shadow-lg transition-all duration-300">
-                <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-5">
+              <div key={item.step} className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-100 hover:border-lime-300 hover:shadow-lg transition-all duration-300">
+                <div className="w-12 h-12 bg-black text-lime-400 rounded-xl flex items-center justify-center mb-5">
                   {item.icon}
                 </div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Step {item.step}</span>
+                  <span className="font-display italic text-xs text-black bg-lime-300 px-2 py-0.5 rounded-full uppercase tracking-wider">Step {item.step}</span>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">{item.title}</h3>
+                <h3 className="font-display italic text-xl text-black mb-2 uppercase tracking-tight">{item.title}</h3>
                 <p className="text-sm text-gray-500 leading-relaxed">{item.desc}</p>
               </div>
             ))}
@@ -584,44 +584,44 @@ const LandingPage = () => {
       <section id="contact" className="py-12 sm:py-20 bg-white">
         <div className="max-w-4xl mx-auto px-4">
           <div className="text-center mb-10 sm:mb-14">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Get in touch</h2>
+            <h2 className="text-3xl sm:text-4xl text-black mb-2 uppercase tracking-tight">Get in touch</h2>
             <p className="text-base text-gray-500">We're here to help with your junk removal needs</p>
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            <a href="tel:9288539619" className="group flex flex-col items-center p-6 rounded-2xl border border-gray-100 hover:border-emerald-200 hover:shadow-md transition-all">
-              <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-3 group-hover:bg-emerald-100 transition-colors">
+            <a href="tel:9288539619" className="group flex flex-col items-center p-6 rounded-2xl border border-gray-100 hover:border-lime-300 hover:shadow-md transition-all">
+              <div className="w-12 h-12 bg-black text-lime-400 rounded-xl flex items-center justify-center mb-3 group-hover:bg-gray-900 transition-colors">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
               </div>
-              <span className="text-sm font-semibold text-gray-900">(928) 853-9619</span>
+              <span className="font-display italic text-base text-black tracking-tight">(928) 853-9619</span>
               <span className="text-xs text-gray-400 mt-1">Mon-Sat 8AM-6PM</span>
             </a>
-            <a href="mailto:text2toss@gmail.com" className="group flex flex-col items-center p-6 rounded-2xl border border-gray-100 hover:border-emerald-200 hover:shadow-md transition-all">
-              <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-3 group-hover:bg-emerald-100 transition-colors">
+            <a href="mailto:text2toss@gmail.com" className="group flex flex-col items-center p-6 rounded-2xl border border-gray-100 hover:border-lime-300 hover:shadow-md transition-all">
+              <div className="w-12 h-12 bg-black text-lime-400 rounded-xl flex items-center justify-center mb-3 group-hover:bg-gray-900 transition-colors">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
               </div>
-              <span className="text-sm font-semibold text-gray-900">text2toss@gmail.com</span>
+              <span className="font-display italic text-sm text-black tracking-tight">text2toss@gmail.com</span>
               <span className="text-xs text-gray-400 mt-1">Quick response</span>
             </a>
-            <a href="https://www.facebook.com/share/17Vsc23wKL/" target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center p-6 rounded-2xl border border-gray-100 hover:border-emerald-200 hover:shadow-md transition-all">
-              <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-3 group-hover:bg-emerald-100 transition-colors">
+            <a href="https://www.facebook.com/share/17Vsc23wKL/" target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center p-6 rounded-2xl border border-gray-100 hover:border-lime-300 hover:shadow-md transition-all">
+              <div className="w-12 h-12 bg-black text-lime-400 rounded-xl flex items-center justify-center mb-3 group-hover:bg-gray-900 transition-colors">
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
               </div>
-              <span className="text-sm font-semibold text-gray-900">Facebook</span>
+              <span className="font-display italic text-base text-black uppercase tracking-tight">Facebook</span>
               <span className="text-xs text-gray-400 mt-1">Follow us</span>
             </a>
-            <a href="https://g.page/r/CaN7_KQsxQCdEAE/review" target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center p-6 rounded-2xl border border-gray-100 hover:border-amber-200 hover:shadow-md transition-all" data-testid="google-review-link">
-              <div className="w-12 h-12 bg-amber-50 text-amber-500 rounded-xl flex items-center justify-center mb-3 group-hover:bg-amber-100 transition-colors">
+            <a href="https://g.page/r/CaN7_KQsxQCdEAE/review" target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center p-6 rounded-2xl border border-gray-100 hover:border-lime-300 hover:shadow-md transition-all" data-testid="google-review-link">
+              <div className="w-12 h-12 bg-black text-lime-400 rounded-xl flex items-center justify-center mb-3 group-hover:bg-gray-900 transition-colors">
                 <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
               </div>
-              <span className="text-sm font-semibold text-gray-900">Leave a Review</span>
+              <span className="font-display italic text-base text-black uppercase tracking-tight">Leave a Review</span>
               <span className="text-xs text-gray-400 mt-1">Google Reviews</span>
             </a>
           </div>
 
           {/* Track booking link */}
           <div className="mt-8 text-center">
-            <Link to="/track" className="inline-flex items-center gap-2 text-emerald-600 hover:text-emerald-700 font-semibold text-sm transition-colors" data-testid="track-booking-link">
+            <Link to="/track" className="inline-flex items-center gap-2 text-lime-600 hover:text-lime-700 font-display italic uppercase tracking-wider text-sm transition-colors" data-testid="track-booking-link">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
               Track your booking status
             </Link>
@@ -709,7 +709,7 @@ const LandingPage = () => {
       {showApprovalModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl my-8 max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="bg-emerald-600 text-white p-6 flex-shrink-0 text-center">
+            <div className="bg-lime-400 text-white p-6 flex-shrink-0 text-center">
               <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
                 <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               </div>
@@ -717,9 +717,9 @@ const LandingPage = () => {
             </div>
             
             <div className="p-6 space-y-4 overflow-y-auto flex-1">
-              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
-                <p className="text-sm font-semibold text-emerald-800 mb-1">Quote submitted successfully</p>
-                <p className="text-xs text-emerald-700">Our team is reviewing your request and will provide an accurate quote.</p>
+              <div className="bg-lime-50 border border-lime-300 rounded-xl p-4">
+                <p className="text-sm font-semibold text-lime-700 mb-1">Quote submitted successfully</p>
+                <p className="text-xs text-lime-600">Our team is reviewing your request and will provide an accurate quote.</p>
               </div>
               
               <div className="space-y-3">
