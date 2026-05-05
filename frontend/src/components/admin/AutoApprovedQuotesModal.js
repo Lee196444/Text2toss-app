@@ -234,20 +234,3 @@ const AutoApprovedQuotesModal = ({
 };
 
 export default AutoApprovedQuotesModal;
-text-gray-500 italic">
-                          Customer got this quote but didn't book.
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
-};
-
-export default AutoApprovedQuotesModal;

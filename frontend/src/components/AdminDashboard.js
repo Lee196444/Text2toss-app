@@ -902,7 +902,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       console.error(err);
       toast.error('Could not dismiss quote');
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleDismissAllAutoApproved = useCallback(async () => {
     if (!window.confirm('Clear all auto-approved quotes from this view? They\'ll stay in the database (All Jobs search still finds them).')) return;
@@ -915,7 +915,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       console.error(err);
       toast.error('Could not clear auto-approved quotes');
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const openAutoApprovedQuotes = useCallback(() => {
     setShowAutoApprovedQuotes(true);
