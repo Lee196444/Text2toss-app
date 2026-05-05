@@ -296,3 +296,9 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - **Footer**: brand-icon + italic "Text2toss" + "#1 AZ" lime chip; lime-tinted top border.
 - **Assets**: saved transparent-bg `text2toss-wordmark.png` (full hero use) and `text2toss-wordmark-nav.png` (nav size) for future use.
 - **Test IDs**: `brand-icon`, `az-number-one-badge`, `cta-banner-quote-btn`.
+
+## 2026-02 Global Badass Theme (DONE)
+- **Fonts**: loaded Anton (display) + Inter (body) via Google Fonts in `index.html`. Body switched to Inter; all `h1/h2` auto-styled italic Anton uppercase.
+- **Global CSS** (`src/index.css`): added `.font-display`, `.btn-badass`, `.btn-chrome` utility classes. Badass = lime-300 bg, black border, italic uppercase Anton, hover-glow + 2-px drop shadow press effect.
+- **Button component** (`src/components/ui/button.jsx`): `default` variant now wires in `.btn-badass` (lime/black aggressive); new `chrome` variant for dark/secondary; `outline` redesigned with bold black border + lime hover; rounded-lg standard.
+- **Result**: every page across customer + admin flows (Landing, QuoteFlow, BookingModal, AdminDashboard, AdminLogin, PayBookingPage, CustomerApproval) inherits the new look automatically without per-component edits.

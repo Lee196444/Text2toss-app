@@ -4,7 +4,7 @@
 
 body {
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
         "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
         "Helvetica Neue", sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -14,6 +14,65 @@ body {
 code {
     font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
         monospace;
+}
+
+/* === Badass brand typography ===================================== */
+/* "Anton" is a chunky condensed display face — perfect for headlines.
+   We deliberately preserve Inter for body copy + small UI labels so the
+   page stays readable. Apply via `.font-display` or it's auto-applied
+   to large headings via the base layer below. */
+.font-display {
+    font-family: 'Anton', 'Bebas Neue', Impact, sans-serif !important;
+    letter-spacing: 0.01em;
+}
+
+/* Auto-apply display font to major headings everywhere — italic + slight
+   forward-lean reads aggressive without hurting readability. */
+h1, h2 {
+    font-family: 'Anton', 'Bebas Neue', Impact, 'Inter', sans-serif;
+    font-style: italic;
+    letter-spacing: 0.01em;
+    font-weight: 400; /* Anton ships as a single weight */
+}
+h1 { letter-spacing: -0.005em; }
+
+/* === Badass button utility ======================================= */
+/* Use class `.btn-badass` directly, OR rely on the upgraded shadcn
+   <Button variant="default"> which now wires this in automatically. */
+.btn-badass {
+    background-color: #bef264; /* lime-300 */
+    color: #000;
+    font-family: 'Anton', 'Bebas Neue', Impact, sans-serif;
+    font-style: italic;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border: 2px solid #000;
+    box-shadow: 0 2px 0 0 #000, 0 0 0 0 rgba(190, 242, 100, 0);
+    transition: transform 120ms ease, box-shadow 200ms ease, background-color 150ms ease;
+}
+.btn-badass:hover:not(:disabled) {
+    background-color: #d9f99d; /* lime-200 */
+    transform: translateY(-1px);
+    box-shadow: 0 3px 0 0 #000, 0 0 24px 4px rgba(190, 242, 100, 0.45);
+}
+.btn-badass:active:not(:disabled) {
+    transform: translateY(1px);
+    box-shadow: 0 0 0 0 #000;
+}
+
+.btn-chrome {
+    background-color: #0a0a0a;
+    color: #d9f99d;
+    font-family: 'Anton', 'Bebas Neue', Impact, sans-serif;
+    font-style: italic;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border: 2px solid #bef264;
+    transition: transform 120ms ease, box-shadow 200ms ease, background-color 150ms ease;
+}
+.btn-chrome:hover:not(:disabled) {
+    background-color: #171717;
+    box-shadow: 0 0 24px 2px rgba(190, 242, 100, 0.35);
 }
 
 
