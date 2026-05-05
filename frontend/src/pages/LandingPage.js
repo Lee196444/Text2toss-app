@@ -400,6 +400,13 @@ const LandingPage = () => {
                 data-testid="brand-icon"
               />
               <span className="text-lg sm:text-xl font-extrabold tracking-tight text-chrome italic" data-testid="brand-wordmark">Text2toss</span>
+              <span className="md:hidden inline-flex items-center gap-1 ml-1.5" data-testid="online-status-mobile" aria-label="Online and accepting quotes">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-lime-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-lime-400 shadow-[0_0_8px_rgba(190,242,100,0.85)]"></span>
+                </span>
+                <span className="text-[9px] font-display italic text-lime-600 uppercase tracking-widest leading-none">Online</span>
+              </span>
               <span className="hidden md:inline-flex items-center gap-1 ml-2 bg-black text-lime-400 text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded">
                 <span className="text-white">#1</span> in AZ
               </span>
