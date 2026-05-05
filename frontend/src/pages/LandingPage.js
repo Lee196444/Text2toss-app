@@ -441,7 +441,7 @@ const LandingPage = () => {
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-lime-500 tracking-tight leading-[1.05]">
                   <span className="block text-base sm:text-lg font-extrabold uppercase tracking-[0.25em] text-black mb-2">Trash Today.</span>
                   Junk removal,<br />
-                  <span className="text-lime-500">made simple.</span>
+                  <span className="text-chrome">made simple.</span>
                 </h1>
                 <p className="mt-4 sm:mt-6 text-base sm:text-lg text-gray-500 leading-relaxed max-w-lg">
                   Snap a photo. Get an instant AI quote. Schedule pickup. <span className="font-bold text-gray-900">No callbacks. No hassles.</span>
