@@ -13,6 +13,8 @@ import BookingModal from "../components/booking/BookingModal";
 import VenmoPaymentModal from "../components/booking/VenmoPaymentModal";
 import QuoteFlowModal from "./QuoteFlowModal";
 import { toast } from "../lib/toast";
+import { logger } from "../utils/logger";
+
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -61,7 +63,7 @@ const LandingPage = () => {
       const response = await axios.get(`${API}/reel-photos`);
       setPhotoReel(response.data.photos || []);
     } catch (error) {
-      console.error('Failed to fetch photo reel:', error);
+      logger.error('Failed to fetch photo reel:', error);
     }
   }, []);
 
@@ -114,7 +116,7 @@ const LandingPage = () => {
         }
         
       } catch (error) {
-        console.error('Error recalculating quote after item addition:', error);
+        logger.error('Error recalculating quote after item addition:', error);
         // Clear quote on error - user will need to manually get new quote
         setQuote(null);
         toast.error("Quote recalculation failed. Please get a new quote.");
@@ -148,7 +150,7 @@ const LandingPage = () => {
         toast.success(`Item "${removedItem.name}" removed. Quote updated to $${response.data.total_price}`);
         
       } catch (error) {
-        console.error('Error recalculating quote after item removal:', error);
+        logger.error('Error recalculating quote after item removal:', error);
         // Clear quote on error - user will need to manually get new quote
         setQuote(null);
         toast.error("Quote recalculation failed. Please get a new quote.");

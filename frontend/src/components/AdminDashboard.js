@@ -27,9 +27,28 @@ import AllJobsModal from "./admin/AllJobsModal";
 import EmailCenterModal from "./admin/EmailCenterModal";
 import PhotoGalleryModal from "./admin/PhotoGalleryModal";
 import { toast } from "../lib/toast";
+import { logger } from "../utils/logger";
+
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+
+// --- Job-status presentation helpers (kept flat to avoid nested ternaries) ---
+const STATUS_BORDER_CLASS = {
+  completed: "border-green-300 bg-green-50",
+  in_progress: "border-yellow-300 bg-yellow-50",
+};
+const STATUS_BADGE_CLASS = {
+  completed: "bg-green-500",
+  in_progress: "bg-yellow-500",
+};
+const STATUS_BADGE_LABEL = {
+  completed: "✓ Completed",
+  in_progress: "⏳ In Progress",
+};
+const jobBorderClass = (status) => STATUS_BORDER_CLASS[status] || "border-blue-300 bg-blue-50";
+const jobBadgeClass = (status) => STATUS_BADGE_CLASS[status] || "bg-blue-500";
+const jobBadgeLabel = (status) => STATUS_BADGE_LABEL[status] || "📅 Scheduled";
 
 // Local axios instance — admin requests need the httpOnly admin_session
 // cookie. Using a per-module instance instead of `axios.defaults` so we
@@ -135,7 +154,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       // Backend now returns full URLs
       setGalleryPhotos(response.data);
     } catch (error) {
-      console.error('Failed to fetch gallery photos:', error);
+      logger.error('Failed to fetch gallery photos:', error);
       toast.error('Failed to load gallery photos');
     }
   }, []);
@@ -147,7 +166,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       // Backend now returns full URLs
       setReelPhotos(response.data.photos || Array(6).fill(null));
     } catch (error) {
-      console.error('Failed to fetch reel photos:', error);
+      logger.error('Failed to fetch reel photos:', error);
       toast.error('Failed to load photo reel');
     }
   }, []);
@@ -471,7 +490,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       }
     } catch (error) {
       toast.error("SMS sending failed");
-      console.error('SMS send error:', error);
+      logger.error('SMS send error:', error);
     }
   };
 
@@ -507,7 +526,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       toast.success("Contact list exported successfully!");
     } catch (error) {
       toast.error("Failed to export contacts");
-      console.error('Export error:', error);
+      logger.error('Export error:', error);
     }
   };
 
@@ -522,7 +541,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       }
     } catch (error) {
       toast.error("Bulk email sending failed");
-      console.error('Bulk email error:', error);
+      logger.error('Bulk email error:', error);
     }
   };
 
@@ -537,7 +556,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       }
     } catch (error) {
       toast.error("Email sending failed");
-      console.error('Email send error:', error);
+      logger.error('Email send error:', error);
     }
   };
 
@@ -552,7 +571,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       }
     } catch (error) {
       toast.error("Payment reminder failed");
-      console.error('Payment reminder error:', error);
+      logger.error('Payment reminder error:', error);
     }
   };
 
@@ -579,7 +598,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       }
     } catch (error) {
       toast.error("Email sending failed");
-      console.error('Email send error:', error);
+      logger.error('Email send error:', error);
     } finally {
       setSendingEmail(false);
     }
@@ -597,7 +616,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       const response = await axios.get(`${API}/admin/pending-payments`);
       setPendingPayments(response.data);
     } catch (error) {
-      console.error('Error fetching pending payments:', error);
+      logger.error('Error fetching pending payments:', error);
     }
   }, []);
 
@@ -612,7 +631,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       fetchPendingPayments();
     } catch (error) {
       toast.error("Failed to mark as paid");
-      console.error('Mark paid error:', error);
+      logger.error('Mark paid error:', error);
     }
   };
 
@@ -624,7 +643,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       fetchPendingPayments();
     } catch (error) {
       toast.error("Failed to reject payment");
-      console.error('Reject payment error:', error);
+      logger.error('Reject payment error:', error);
     }
   };
 
@@ -658,7 +677,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       const response = await axios.get(`${API}/admin/all-bookings`);
       setAllJobs(response.data || []);
     } catch (error) {
-      console.error('Failed to fetch all jobs:', error);
+      logger.error('Failed to fetch all jobs:', error);
       toast.error('Failed to load jobs');
     }
   };
@@ -676,7 +695,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       const res = await axios.get(`${API}/admin/recent-completed?days=7`);
       setRecentCompletedBookings(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
-      console.error('Failed to fetch recent completed jobs:', err);
+      logger.error('Failed to fetch recent completed jobs:', err);
       setRecentCompletedBookings([]);
     }
   }, []);
@@ -806,7 +825,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       );
 
     } catch (error) {
-      console.error('Route calculation error:', error);
+      logger.error('Route calculation error:', error);
       toast.error("Failed to calculate route");
       
       // Fallback
@@ -871,7 +890,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       const response = await axios.get(`${API}/admin/pending-quotes`);
       setPendingQuotes(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
-      console.error('Error fetching pending quotes:', error);
+      logger.error('Error fetching pending quotes:', error);
       setPendingQuotes([]);
       toast.error('Failed to load pending quotes');
     }
@@ -883,7 +902,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       const response = await axios.get(`${API}/admin/auto-approved-quotes?limit=30`);
       setAutoApprovedQuotes(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
-      console.error('Error fetching auto-approved quotes:', error);
+      logger.error('Error fetching auto-approved quotes:', error);
       setAutoApprovedQuotes([]);
       toast.error('Failed to load auto-approved quotes');
     } finally {
@@ -899,7 +918,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       toast.success('Quote dismissed');
       fetchApprovalStats();
     } catch (err) {
-      console.error(err);
+      logger.error(err);
       toast.error('Could not dismiss quote');
     }
   }, []);
@@ -912,7 +931,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       toast.success(`Cleared ${res.data?.dismissed || 0} auto-approved quotes`);
       fetchApprovalStats();
     } catch (err) {
-      console.error(err);
+      logger.error(err);
       toast.error('Could not clear auto-approved quotes');
     }
   }, []);
@@ -927,7 +946,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       const response = await axios.get(`${API}/admin/quote-approval-stats`);
       setApprovalStats(response.data);
     } catch (error) {
-      console.error('Error fetching approval stats:', error);
+      logger.error('Error fetching approval stats:', error);
     }
   }, []);
 
@@ -1123,7 +1142,11 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
                 <CardContent className="p-3 text-center">
                   <div className="text-2xl mb-1">{bin.icon}</div>
                   <div className={`text-xl font-bold mb-1 ${bin.countColor}`}>
-                    {bin.type === 'pendingPayment' ? pendingPayments.length : (bin.showTotal ? '∞' : bins[bin.type]?.length || 0)}
+                    {(() => {
+                      if (bin.type === 'pendingPayment') return pendingPayments.length;
+                      if (bin.showTotal) return '∞';
+                      return bins[bin.type]?.length || 0;
+                    })()}
                   </div>
                   <p className={`text-xs font-medium ${bin.textColor}`}>{bin.title}</p>
                   {!bin.showTotal && bin.type !== 'pendingPayment' && bins[bin.type]?.length > 0 && (
@@ -1505,11 +1528,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
                   {(calendarData[selectedCalendarDate] || []).map((job, index) => (
                     <Card 
                       key={job.id}
-                      className={`cursor-pointer hover:shadow-lg transition-all ${
-                        job.status === 'completed' ? 'border-green-300 bg-green-50' :
-                        job.status === 'in_progress' ? 'border-yellow-300 bg-yellow-50' :
-                        'border-blue-300 bg-blue-50'
-                      }`}
+                      className={`cursor-pointer hover:shadow-lg transition-all ${jobBorderClass(job.status)}`}
                       onClick={() => {
                         openJobDetails(job);
                         setShowDateJobsModal(false);
@@ -1529,14 +1548,8 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
                             <div className="text-2xl font-bold text-emerald-600">
                               ${job.quote_details?.total_price || 0}
                             </div>
-                            <Badge className={
-                              job.status === 'completed' ? 'bg-green-500' :
-                              job.status === 'in_progress' ? 'bg-yellow-500' :
-                              'bg-blue-500'
-                            }>
-                              {job.status === 'completed' ? '✓ Completed' :
-                               job.status === 'in_progress' ? '⏳ In Progress' :
-                               '📅 Scheduled'}
+                            <Badge className={jobBadgeClass(job.status)}>
+                              {jobBadgeLabel(job.status)}
                             </Badge>
                           </div>
                         </div>

@@ -13,6 +13,8 @@ import {
   buildCaption,
 } from "./utils";
 import MarketingPanel from "./MarketingPanel";
+import { logger } from "../../utils/logger";
+
 
 // Local axios instance with credentials — see AdminDashboard.js for why
 // we avoid `axios.defaults.withCredentials = true` (it pollutes customer
@@ -50,7 +52,7 @@ const MarketingQRModal = ({ open, onClose }) => {
         });
         setHealth(h.data || { subscriptions: 0, last_event: null, last_daily: null });
       } catch (err) {
-        console.error("Marketing modal: failed to load stats/settings/health", err);
+        logger.error("Marketing modal: failed to load stats/settings/health", err);
         toast.error("Couldn't load marketing data — try reopening the modal");
       }
     })();
@@ -61,7 +63,7 @@ const MarketingQRModal = ({ open, onClose }) => {
       const { data } = await axios.get(`${API}/admin/marketing/stats`);
       setStats(data);
     } catch (err) {
-      console.warn("Marketing modal: refreshStats failed", err);
+      logger.warn("Marketing modal: refreshStats failed", err);
     }
   };
 
@@ -70,7 +72,7 @@ const MarketingQRModal = ({ open, onClose }) => {
       const { data } = await axios.get(`${API}/admin/push/health`);
       setHealth(data);
     } catch (err) {
-      console.warn("Marketing modal: refreshHealth failed", err);
+      logger.warn("Marketing modal: refreshHealth failed", err);
     }
   };
 
@@ -79,7 +81,7 @@ const MarketingQRModal = ({ open, onClose }) => {
       await axios.post(`${API}/admin/marketing/share-event`, { channel });
       await refreshStats();
     } catch (err) {
-      console.warn("Marketing modal: share-event tracking failed", err);
+      logger.warn("Marketing modal: share-event tracking failed", err);
     }
   };
 
@@ -192,7 +194,7 @@ const MarketingQRModal = ({ open, onClose }) => {
         await sub.unsubscribe();
       }
     } catch (err) {
-      console.warn("Marketing modal: disableBackgroundPush failed", err);
+      logger.warn("Marketing modal: disableBackgroundPush failed", err);
     }
   };
 

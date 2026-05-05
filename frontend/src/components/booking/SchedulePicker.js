@@ -31,11 +31,11 @@ export default function SchedulePicker({
     });
   };
 
-  const timePlaceholder = checkingAvailability
-    ? "Checking..."
-    : !bookingData.pickup_date
-    ? "Select date first"
-    : "Choose time window";
+  const timePlaceholder = (() => {
+    if (checkingAvailability) return "Checking...";
+    if (!bookingData.pickup_date) return "Select date first";
+    return "Choose time window";
+  })();
 
   return (
     <div className="space-y-4">

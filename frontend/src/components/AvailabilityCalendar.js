@@ -12,6 +12,7 @@ import {
   getDateStatus,
   isUnselectableStatus,
 } from "./availability/calendarHelpers";
+import { logger } from "../utils/logger";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -33,7 +34,7 @@ const AvailabilityCalendar = ({ selectedDate, onDateSelect, onClose }) => {
       );
       setAvailabilityData(response.data);
     } catch (error) {
-      console.error("Error fetching availability:", error);
+      logger.error("Error fetching availability:", error);
     }
     setLoading(false);
   }, [currentMonth]);

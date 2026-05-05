@@ -3,6 +3,8 @@ import axios from "axios";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { toast } from "../../lib/toast";
+import { logger } from "../../utils/logger";
+
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -73,7 +75,7 @@ const VenmoPaymentModal = ({ quote, bookingId, qrCode, onClose }) => {
       toast.success("Payment reminder sent! Check your phone for details.");
       onClose();
     } catch (error) {
-      console.error("Failed to send payment reminder:", error);
+      logger.error("Failed to send payment reminder:", error);
       toast.error("Could not send reminder, but your booking is confirmed!");
       onClose();
     }

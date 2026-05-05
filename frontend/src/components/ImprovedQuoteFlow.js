@@ -338,16 +338,16 @@ const StepIndicator = ({ step, currentStep, label }) => {
   const isActive = step === currentStep;
   const isCompleted = step < currentStep;
 
+  const stepCircleClass = (() => {
+    if (isCompleted) return "bg-emerald-600 text-white";
+    if (isActive) return "bg-emerald-500 text-white ring-4 ring-emerald-200";
+    return "bg-gray-200 text-gray-500";
+  })();
+
   return (
     <div className="flex flex-col items-center">
       <div
-        className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
-          isCompleted
-            ? "bg-emerald-600 text-white"
-            : isActive
-            ? "bg-emerald-500 text-white ring-4 ring-emerald-200"
-            : "bg-gray-200 text-gray-500"
-        }`}
+        className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${stepCircleClass}`}
       >
         {isCompleted ? "✓" : step}
       </div>

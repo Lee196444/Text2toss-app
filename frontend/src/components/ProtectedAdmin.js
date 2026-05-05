@@ -4,6 +4,8 @@ import AdminDashboard from "./AdminDashboard";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
 import axios from "axios";
+import { logger } from "../utils/logger";
+
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -19,7 +21,7 @@ const ProtectedAdmin = () => {
       setIsAuthenticated(true);
       setAdminDisplayName(res.data.display_name || "Admin");
     } catch (err) {
-      console.error("Auth check failed:", err.message);
+      logger.error("Auth check failed:", err.message);
       setIsAuthenticated(false);
     }
     setIsChecking(false);
@@ -38,7 +40,7 @@ const ProtectedAdmin = () => {
     try {
       await axios.post(`${API}/admin/logout`, {}, { withCredentials: true });
     } catch (err) {
-      console.error("Logout request failed:", err.message);
+      logger.error("Logout request failed:", err.message);
     }
     setIsAuthenticated(false);
     toast.success("Logged out successfully");

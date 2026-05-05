@@ -11,6 +11,8 @@ import BookingSuccessScreen from "./BookingSuccessScreen";
 import SchedulePicker from "./SchedulePicker";
 import ContactFields from "./ContactFields";
 import RequirementsSection from "./RequirementsSection";
+import { logger } from "../../utils/logger";
+
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -77,7 +79,7 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
         toast.warning("All time slots are booked for this date. Please choose another day.");
       }
     } catch (err) {
-      console.error("Failed to check availability:", err);
+      logger.error("Failed to check availability:", err);
       setBookedTimeSlots([]);
     } finally {
       setCheckingAvailability(false);

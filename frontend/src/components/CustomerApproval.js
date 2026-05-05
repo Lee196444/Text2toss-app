@@ -12,6 +12,8 @@ import {
 import PriceAdjustmentCard from "./approval/PriceAdjustmentCard";
 import JobDetailsCard from "./approval/JobDetailsCard";
 import ApprovalActions from "./approval/ApprovalActions";
+import { logger } from "../utils/logger";
+
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -31,7 +33,7 @@ const CustomerApproval = () => {
       const response = await axios.get(`${API}/customer-approval/${token}`);
       setApprovalData(response.data);
     } catch (err) {
-      console.error("Error fetching approval details:", err);
+      logger.error("Error fetching approval details:", err);
       setError(err.response?.data?.detail || "Failed to load approval details");
     } finally {
       setLoading(false);
@@ -53,7 +55,7 @@ const CustomerApproval = () => {
       setSubmitted(true);
       setTimeout(() => navigate("/"), 5000);
     } catch (err) {
-      console.error("Error submitting approval:", err);
+      logger.error("Error submitting approval:", err);
       setError(err.response?.data?.detail || "Failed to submit approval");
     } finally {
       setSubmitting(false);

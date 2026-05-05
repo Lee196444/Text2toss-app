@@ -9,6 +9,31 @@ import { useSharedFilter } from "./FilterContext";
 import StickyFilterInput from "./StickyFilterInput";
 import PhotoCarousel from "./PhotoCarousel";
 
+const QuotePhoto = ({ imagePaths, imageFailed, quoteId }) => {
+  if (imagePaths.length === 0) {
+    return (
+      <div className="w-full h-32 rounded-lg border bg-gray-50 flex items-center justify-center text-xs text-gray-400">
+        No photo
+      </div>
+    );
+  }
+  if (imageFailed) {
+    return (
+      <div className="w-full h-32 rounded-lg border bg-yellow-50 border-yellow-300 flex flex-col items-center justify-center text-center px-2">
+        <p className="text-xs font-semibold text-yellow-800">Photo unavailable</p>
+        <p className="text-[10px] text-yellow-700 mt-1">Only the latest 30 photos are kept.</p>
+      </div>
+    );
+  }
+  return (
+    <PhotoCarousel
+      paths={imagePaths}
+      alt="Customer items"
+      testId={`pending-approval-photos-${quoteId}`}
+    />
+  );
+};
+
 /**
  * Pending Quote Approval modal — matches the new admin "bucket" visual
  * language. Preserves inline price-adjust + admin-notes + approve/reject
@@ -123,22 +148,11 @@ const PendingApprovalsModal = ({
 
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div className="sm:col-span-1">
-                          {imagePaths.length === 0 ? (
-                            <div className="w-full h-32 rounded-lg border bg-gray-50 flex items-center justify-center text-xs text-gray-400">
-                              No photo
-                            </div>
-                          ) : imageFailed ? (
-                            <div className="w-full h-32 rounded-lg border bg-yellow-50 border-yellow-300 flex flex-col items-center justify-center text-center px-2">
-                              <p className="text-xs font-semibold text-yellow-800">Photo unavailable</p>
-                              <p className="text-[10px] text-yellow-700 mt-1">Only the latest 30 photos are kept.</p>
-                            </div>
-                          ) : (
-                            <PhotoCarousel
-                              paths={imagePaths}
-                              alt="Customer items"
-                              testId={`pending-approval-photos-${quote.id}`}
-                            />
-                          )}
+                          <QuotePhoto
+                            imagePaths={imagePaths}
+                            imageFailed={imageFailed}
+                            quoteId={quote.id}
+                          />
                         </div>
 
                         <div className="sm:col-span-2 space-y-1 text-xs sm:text-sm">
