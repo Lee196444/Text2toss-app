@@ -38,21 +38,37 @@ const PriorityPicker = ({ value, onChange, pickupDate }) => {
   const [availability, setAvailability] = useState(null);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(!!value);
+  const [fetchError, setFetchError] = useState(null);
+
+  // Defensive: tolerate parent not wiring onChange (shouldn't happen, but
+  // keeps the UI alive instead of throwing on click).
+  const handleChange = (tier) => {
+    if (typeof onChange === "function") {
+      onChange(tier);
+    } else {
+      console.warn("PriorityPicker: onChange prop missing");
+    }
+  };
 
   useEffect(() => {
     if (!pickupDate) {
       setAvailability(null);
+      setFetchError(null);
       return;
     }
     let active = true;
     setLoading(true);
+    setFetchError(null);
     axios
       .get(`${API}/priority/availability`, { params: { date: pickupDate } })
       .then((res) => {
         if (active) setAvailability(res.data);
       })
-      .catch(() => {
-        if (active) setAvailability(null);
+      .catch((err) => {
+        if (active) {
+          setAvailability(null);
+          setFetchError(err?.response?.data?.detail || "Couldn't check availability");
+        }
       })
       .finally(() => {
         if (active) setLoading(false);
