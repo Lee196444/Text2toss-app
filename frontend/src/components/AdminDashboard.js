@@ -671,8 +671,10 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
     return `$${price?.toFixed(2) || '0.00'}`;
   };
 
-  // Fetch all jobs (history and present)
-  const fetchAllJobs = async () => {
+  // Fetch all jobs (history and present). Wrapped in useCallback so we can
+  // include it in the mount + auto-refresh effects below — bins must reflect
+  // every active booking regardless of the calendar date the admin is viewing.
+  const fetchAllJobs = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/admin/all-bookings`);
       setAllJobs(response.data || []);
@@ -680,7 +682,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       logger.error('Failed to fetch all jobs:', error);
       toast.error('Failed to load jobs');
     }
-  };
+  }, []);
 
   // Open All Jobs modal
   const openAllJobsModal = () => {
@@ -700,38 +702,35 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
     }
   }, []);
 
-  // Categorize bookings into bins
+  // Categorize bookings into bins (date-independent — sources from ALL jobs
+  // so "Upcoming"/"In Progress" don't silently disappear when the admin
+  // navigates the calendar to a different day).
   const categorizBookings = () => {
     const today = new Date().toISOString().split('T')[0];
-    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    
+
     const bins = {
-      new: [],      // scheduled for today
+      new: [],      // scheduled for today + past-due + pending customer approval
       upcoming: [], // scheduled for future dates
       inProgress: [], // currently in progress
-      completed: []   // completed jobs (rolling 7-day window, sourced separately)
+      completed: []   // sourced separately via fetchRecentCompleted (7-day rolling window)
     };
 
-    dailyBookings.forEach(booking => {
+    allJobs.forEach(booking => {
       const bookingDate = booking.pickup_date ? booking.pickup_date.split('T')[0] : '';
 
       if (booking.status === 'in_progress') {
         bins.inProgress.push(booking);
       } else if (booking.status === 'pending_customer_approval') {
-        bins.new.push(booking); // Show approval pending jobs as priority
+        bins.new.push(booking); // approval-pending: surface as priority
       } else if (booking.status === 'scheduled') {
         if (bookingDate === today) {
           bins.new.push(booking);
         } else if (bookingDate > today) {
           bins.upcoming.push(booking);
         } else {
-          bins.new.push(booking); // Past due, show in new
+          bins.new.push(booking); // past-due — bubble back to New so it isn't lost
         }
       }
-      // NOTE: completed jobs are intentionally NOT read from dailyBookings.
-      // dailyBookings only covers selectedDate, so a job completed yesterday
-      // would silently disappear. Instead we source the Completed bin from
-      // a rolling 7-day window fetched via fetchRecentCompleted().
     });
 
     bins.completed = recentCompletedBookings;
@@ -958,7 +957,8 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
     fetchApprovalStats();
     fetchPendingPayments();
     fetchRecentCompleted();
-  }, [selectedDate, fetchDailySchedule, fetchWeeklySchedule, fetchPendingQuotes, fetchApprovalStats, fetchPendingPayments, fetchRecentCompleted]);
+    fetchAllJobs();
+  }, [selectedDate, fetchDailySchedule, fetchWeeklySchedule, fetchPendingQuotes, fetchApprovalStats, fetchPendingPayments, fetchRecentCompleted, fetchAllJobs]);
 
   // Auto-refresh admin data every 30 seconds
   useEffect(() => {
@@ -968,9 +968,10 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       fetchApprovalStats();
       fetchDailySchedule();
       fetchRecentCompleted();
+      fetchAllJobs();
     }, 30000);
     return () => clearInterval(interval);
-  }, [selectedDate, fetchPendingPayments, fetchPendingQuotes, fetchApprovalStats, fetchDailySchedule, fetchRecentCompleted]);
+  }, [selectedDate, fetchPendingPayments, fetchPendingQuotes, fetchApprovalStats, fetchDailySchedule, fetchRecentCompleted, fetchAllJobs]);
 
   useEffect(() => {
     if (showSmsCenter) {
