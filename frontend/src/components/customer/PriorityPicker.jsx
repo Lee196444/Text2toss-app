@@ -98,7 +98,7 @@ const PriorityPicker = ({ value, onChange, pickupDate }) => {
           {/* "No priority" option */}
           <button
             type="button"
-            onClick={() => onChange(null)}
+            onClick={() => handleChange(null)}
             className={`w-full mt-4 text-left rounded-xl border-2 p-3 transition-all flex items-center justify-between gap-2 ${
               !value
                 ? "border-black bg-white shadow-md"
@@ -122,7 +122,7 @@ const PriorityPicker = ({ value, onChange, pickupDate }) => {
                 key={tier.id}
                 type="button"
                 disabled={disabled}
-                onClick={() => onChange(tier.id)}
+                onClick={() => handleChange(tier.id)}
                 className={`w-full mt-2 text-left rounded-xl border-2 p-3 transition-all flex items-center justify-between gap-2 ${
                   selected
                     ? "border-lime-500 bg-lime-100 shadow-lg ring-2 ring-lime-400/40"
@@ -151,6 +151,13 @@ const PriorityPicker = ({ value, onChange, pickupDate }) => {
             <div className="mt-3 text-xs">
               {loading ? (
                 <p className="text-gray-500">Checking availability…</p>
+              ) : fetchError ? (
+                <p
+                  className="bg-red-50 border border-red-200 rounded-lg p-2.5 text-red-800"
+                  data-testid="priority-fetch-error"
+                >
+                  ⚠ {fetchError}
+                </p>
               ) : isFull ? (
                 <p
                   className="bg-amber-50 border border-amber-200 rounded-lg p-2.5 text-amber-800"
