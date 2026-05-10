@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import AdminLogin from "./AdminLogin";
 import AdminDashboard from "./AdminDashboard";
-import { Button } from "./ui/button";
 import { toast } from "sonner";
 import axios from "axios";
 import { logger } from "../utils/logger";
@@ -60,17 +59,6 @@ const ProtectedAdmin = () => {
 
   return (
     <div className="relative">
-      <div className="fixed top-4 right-4 z-50">
-        <Button 
-          onClick={handleLogout}
-          variant="outline"
-          className="bg-white/90 border-red-200 text-red-700 hover:bg-red-50"
-          data-testid="admin-logout-btn"
-        >
-          Logout
-        </Button>
-      </div>
-      
       <AdminDashboard adminDisplayName={adminDisplayName} onLogout={handleLogout} />
     </div>
   );

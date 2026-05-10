@@ -1009,44 +1009,65 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
     <FilterProvider>
     <div className="min-h-screen bg-gradient-to-br from-black/40 to-emerald-900/50 p-2 sm:p-4">
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 overflow-visible">
-        {/* Header */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/20">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div className="text-center lg:text-left">
-              <div className="flex items-center justify-center lg:justify-start gap-3 mb-2">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-lg sm:text-xl font-bold">🏠</span>
-                </div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-white">Text2toss Admin</h1>
+        {/* Header — minimal, with live status */}
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-5 border border-white/20">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <img src="/apple-touch-icon.png?v=8" alt="T2T" className="w-10 h-10 rounded-lg shadow-md" />
+              <div>
+                <h1 className="text-xl sm:text-2xl font-display italic text-white uppercase tracking-tight leading-none">Text2toss Admin</h1>
+                {(() => {
+                  // Live status line computed from allJobs (date-independent)
+                  const todayStr = new Date().toISOString().split('T')[0];
+                  const upcoming = allJobs
+                    .filter(j => j.status === 'scheduled' && j.pickup_date)
+                    .map(j => ({ ...j, _date: j.pickup_date.split('T')[0] }))
+                    .sort((a, b) => (a._date + (a.pickup_time || '')).localeCompare(b._date + (b.pickup_time || '')));
+                  const inProg = allJobs.filter(j => j.status === 'in_progress').length;
+                  const todayJobs = upcoming.filter(j => j._date === todayStr);
+                  const nextJob = upcoming.find(j => j._date >= todayStr);
+
+                  if (inProg > 0) {
+                    return (
+                      <p className="text-lime-300 text-xs sm:text-sm mt-1 font-display italic uppercase tracking-wider" data-testid="admin-status-line">
+                        🚛 {inProg} job{inProg > 1 ? 's' : ''} in progress now
+                      </p>
+                    );
+                  }
+                  if (todayJobs.length > 0) {
+                    return (
+                      <p className="text-lime-300 text-xs sm:text-sm mt-1 font-display italic uppercase tracking-wider" data-testid="admin-status-line">
+                        📍 {todayJobs.length} pickup{todayJobs.length > 1 ? 's' : ''} today · Next at {todayJobs[0].pickup_time || 'TBD'}
+                      </p>
+                    );
+                  }
+                  if (nextJob) {
+                    const d = new Date(nextJob._date + 'T00:00:00');
+                    const dayLabel = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+                    return (
+                      <p className="text-lime-300 text-xs sm:text-sm mt-1 font-display italic uppercase tracking-wider" data-testid="admin-status-line">
+                        ⏭ Next pickup {dayLabel} · {nextJob.pickup_time || 'TBD'}
+                      </p>
+                    );
+                  }
+                  return (
+                    <p className="text-white/60 text-xs sm:text-sm mt-1 font-display italic uppercase tracking-wider" data-testid="admin-status-line">
+                      ✨ No pickups scheduled
+                    </p>
+                  );
+                })()}
               </div>
-              <p className="text-emerald-100 text-sm sm:text-base">
-                Welcome back, {adminDisplayName}! Manage daily pickups and optimize routes
-              </p>
             </div>
-            
-            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
-              <Input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-full sm:w-auto text-lg font-semibold bg-white border-2 border-emerald-400 text-emerald-900 p-3 rounded-lg shadow-md hover:bg-emerald-50 focus:ring-2 focus:ring-emerald-500"
-              />
-              <Button 
-                onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
-                size="sm"
-                className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700"
-              >
-                Today
-              </Button>
-              <Button 
-                onClick={onLogout}
-                size="sm"
-                variant="outline"
-                className="w-full sm:w-auto bg-white/10 border-white/30 text-white hover:bg-white/20"
-              >
-                Logout
-              </Button>
-            </div>
+
+            <Button
+              onClick={onLogout}
+              size="sm"
+              variant="outline"
+              className="bg-white/10 border-white/30 text-white hover:bg-white/20"
+              data-testid="admin-logout-btn"
+            >
+              Logout
+            </Button>
           </div>
         </div>
 
