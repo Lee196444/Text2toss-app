@@ -12,6 +12,7 @@ import RouteOptimizerModal from "./admin/RouteOptimizerModal";
 import PendingApprovalsModal from "./admin/PendingApprovalsModal";
 import AutoApprovedQuotesModal from "./admin/AutoApprovedQuotesModal";
 import { FilterProvider } from "./admin/FilterContext";
+import { CreditCard, CalendarDays, FastForward, Truck, CheckCircle2, BookOpen } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -1203,12 +1204,12 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
               {(() => {
                 const bins = categorizBookings();
                 const binConfigs = [
-                  { type: 'pendingPayment', title: 'Pending Payment', icon: '💳', color: 'border-red-300 bg-red-50 hover:bg-red-100', textColor: 'text-red-800', countColor: 'text-red-600' },
-                  { type: 'new',            title: 'New',             icon: '📅', color: 'border-blue-300 bg-blue-50 hover:bg-blue-100', textColor: 'text-blue-800', countColor: 'text-blue-600' },
-                  { type: 'upcoming',       title: 'Upcoming',        icon: '⏭️', color: 'border-orange-300 bg-orange-50 hover:bg-orange-100', textColor: 'text-orange-800', countColor: 'text-orange-600' },
-                  { type: 'inProgress',     title: 'In Progress',     icon: '🚛', color: 'border-yellow-300 bg-yellow-50 hover:bg-yellow-100', textColor: 'text-yellow-800', countColor: 'text-yellow-600' },
-                  { type: 'completed',      title: 'Completed',       icon: '✅', color: 'border-green-300 bg-green-50 hover:bg-green-100', textColor: 'text-green-800', countColor: 'text-green-600' },
-                  { type: 'all',            title: 'All Jobs',        icon: '📚', color: 'border-purple-300 bg-purple-50 hover:bg-purple-100', textColor: 'text-purple-800', countColor: 'text-purple-600', showTotal: true },
+                  { type: 'pendingPayment', title: 'Pending Payment', Icon: CreditCard,   color: 'border-red-300 bg-red-50 hover:bg-red-100',     textColor: 'text-red-800',    countColor: 'text-red-600',    iconColor: 'text-red-500' },
+                  { type: 'new',            title: 'New',             Icon: CalendarDays, color: 'border-blue-300 bg-blue-50 hover:bg-blue-100',   textColor: 'text-blue-800',   countColor: 'text-blue-600',   iconColor: 'text-blue-500' },
+                  { type: 'upcoming',       title: 'Upcoming',        Icon: FastForward,  color: 'border-orange-300 bg-orange-50 hover:bg-orange-100', textColor: 'text-orange-800', countColor: 'text-orange-600', iconColor: 'text-orange-500' },
+                  { type: 'inProgress',     title: 'In Progress',     Icon: Truck,        color: 'border-yellow-300 bg-yellow-50 hover:bg-yellow-100', textColor: 'text-yellow-800', countColor: 'text-yellow-600', iconColor: 'text-yellow-500' },
+                  { type: 'completed',      title: 'Completed',       Icon: CheckCircle2, color: 'border-green-300 bg-green-50 hover:bg-green-100', textColor: 'text-green-800',  countColor: 'text-green-600',  iconColor: 'text-green-500' },
+                  { type: 'all',            title: 'All Jobs',        Icon: BookOpen,     color: 'border-purple-300 bg-purple-50 hover:bg-purple-100', textColor: 'text-purple-800', countColor: 'text-purple-600', iconColor: 'text-purple-500', showTotal: true },
                 ];
 
                 return binConfigs.map(bin => (
@@ -1229,7 +1230,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
                     className={`cursor-pointer transition-all duration-200 ${bin.color} border-2 hover:shadow-md rounded-xl p-2 text-center`}
                     data-testid={`bin-tile-${bin.type}`}
                   >
-                    <div className="text-lg leading-none mb-1">{bin.icon}</div>
+                    <bin.Icon className={`w-5 h-5 mx-auto mb-1 ${bin.iconColor}`} strokeWidth={2.2} />
                     <div className={`font-display italic text-xl leading-none ${bin.countColor}`}>
                       {(() => {
                         if (bin.type === 'pendingPayment') return pendingPayments.length;

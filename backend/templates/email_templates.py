@@ -79,8 +79,24 @@ def booking_confirmation_email(booking_data: dict, quote_data: dict) -> str:
                     <li>Include Booking ID: <strong>{booking_id_short}</strong> in the note</li>
                 </ul>
                 <p style="margin-top: 20px;">We'll confirm your payment and send final details before pickup!</p>
+
+                <!-- AI / pricing disclaimer -->
+                <div style="margin-top: 24px; padding: 14px 16px; background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 6px;">
+                    <p style="margin: 0 0 4px 0; font-size: 12px; font-weight: bold; color: #1e3a8a;">⚡ Estimate Disclaimer</p>
+                    <p style="margin: 0; font-size: 12px; color: #1e40af; line-height: 1.5;">
+                        Your quote is an AI-generated <strong>preliminary estimate</strong> based on the photos provided.
+                        Final pricing is confirmed at pickup once our team can inspect actual volume, weight, and accessibility.
+                        We'll always communicate any change in price before starting work.
+                    </p>
+                </div>
+
                 <div class="footer">
-                    <p>Questions? Reply to this email or call us!</p>
+                    <p>Questions? Reply to this email or call us at (928) 853-9619!</p>
+                    <p style="font-size: 10px; color: #9ca3af; margin-top: 12px;">
+                        <a href="https://text2toss.com/terms" style="color: #9ca3af;">Terms of Service</a> ·
+                        <a href="https://text2toss.com/privacy" style="color: #9ca3af;">Privacy Policy</a> ·
+                        <a href="https://text2toss.com/refund-policy" style="color: #9ca3af;">Refund Policy</a>
+                    </p>
                     <p>© 2025 Text2toss Junk Removal - Flagstaff, AZ</p>
                 </div>
             </div>

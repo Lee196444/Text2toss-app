@@ -249,6 +249,14 @@ function UploadStep({
             Ground level & curbside pickup only. Items must be accessible without stairs.
           </p>
         </div>
+
+        {/* AI Disclaimer — upload step */}
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-3" data-testid="ai-disclaimer-upload">
+          <p className="text-[11px] text-blue-800 leading-relaxed">
+            <span className="font-bold">⚡ AI-generated estimates are preliminary</span> and may change after in-person inspection.
+            Final pricing is confirmed at pickup based on actual volume and accessibility.
+          </p>
+        </div>
       </CardContent>
 
       <div className="p-5 bg-white border-t flex justify-between gap-3">
@@ -302,6 +310,10 @@ function QuoteStep({ quote, onContinueToBooking, onCloseAfterQuote }) {
             Quote #{quote.id?.substring(0, 8)}
           </Badge>
         </div>
+        {/* AI Disclaimer — quote step (small text right under price) */}
+        <p className="mt-2 text-[10px] text-gray-500 italic px-4" data-testid="ai-disclaimer-quote">
+          AI-generated estimate · Final price confirmed at pickup based on actual volume
+        </p>
       </CardHeader>
 
       <CardContent className="space-y-4 pt-5 px-5 sm:px-6">

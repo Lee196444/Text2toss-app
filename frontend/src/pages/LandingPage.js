@@ -651,9 +651,17 @@ const LandingPage = () => {
               <span>Mon-Sat 8AM-6PM</span>
             </div>
           </div>
-          <div className="border-t border-gray-800 mt-8 pt-6 text-center">
-            <p className="text-sm text-gray-500">
-              &copy; {new Date().getFullYear()} Text2toss. Professional junk removal in Flagstaff, AZ.
+          {/* Legal links + copyright */}
+          <div className="border-t border-gray-800 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-display italic uppercase tracking-wider text-gray-400">
+              <Link to="/terms" className="hover:text-lime-400 transition-colors" data-testid="landing-terms-link">Terms of Service</Link>
+              <span className="text-gray-700">|</span>
+              <Link to="/privacy" className="hover:text-lime-400 transition-colors" data-testid="landing-privacy-link">Privacy Policy</Link>
+              <span className="text-gray-700">|</span>
+              <Link to="/refund-policy" className="hover:text-lime-400 transition-colors" data-testid="landing-refund-link">Refund Policy</Link>
+            </nav>
+            <p className="text-xs text-gray-500 text-center sm:text-right">
+              &copy; {new Date().getFullYear()} Text2toss · Flagstaff, AZ
             </p>
           </div>
         </div>

@@ -5,6 +5,7 @@ import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { toast } from "../lib/toast";
 import BookingJourneyProgress from "../components/customer/BookingJourneyProgress";
+import SiteFooter from "../components/SiteFooter";
 
 const API = process.env.REACT_APP_BACKEND_URL + "/api";
 
@@ -261,6 +262,7 @@ export default function PayBookingPage() {
           </>
         )}
       </div>
+      <SiteFooter />
     </div>
   );
 }

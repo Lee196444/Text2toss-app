@@ -102,6 +102,52 @@ h1 { letter-spacing: -0.005em; }
         0 2px 4px rgba(0, 0, 0, 0.45);
 }
 
+/* === Legal page typography (readable, no badass italic for body) ===== */
+.legal-content {
+    color: #1f2937;
+    line-height: 1.7;
+    font-family: 'Inter', sans-serif;
+}
+.legal-content h2 {
+    font-family: 'Anton', 'Bebas Neue', Impact, sans-serif !important;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.35rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    margin-top: 2rem;
+    margin-bottom: 0.5rem;
+    color: #000;
+    border-left: 4px solid #bef264;
+    padding-left: 0.75rem;
+}
+.legal-content p {
+    margin-bottom: 0.85rem;
+    color: #374151;
+}
+.legal-content ul {
+    margin-bottom: 1rem;
+    padding-left: 1.25rem;
+    list-style: disc;
+}
+.legal-content li {
+    margin-bottom: 0.35rem;
+    color: #374151;
+}
+.legal-content a {
+    color: #65a30d;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    font-weight: 500;
+}
+.legal-content a:hover {
+    color: #4d7c0f;
+}
+.legal-content strong {
+    color: #000;
+    font-weight: 700;
+}
+
 /* === Metallic chrome text — matches the T2T icon's "metal" energy ====== */
 .text-chrome {
     background: linear-gradient(

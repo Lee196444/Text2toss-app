@@ -60,6 +60,7 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
   const [checkingAvailability, setCheckingAvailability] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
+  const [legalConsent, setLegalConsent] = useState(false);
 
   const checkAvailableTimeSlots = async (selectedDate) => {
     if (!selectedDate || !isDateAllowed(selectedDate)) {
@@ -119,6 +120,10 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
     }
     if (bookedTimeSlots.includes(bookingData.pickup_time)) {
       toast.error("Selected time slot is already booked. Please choose another time.");
+      return;
+    }
+    if (!legalConsent) {
+      toast.error("Please agree to the Terms of Service and Refund Policy to continue.");
       return;
     }
 
@@ -252,32 +257,70 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
         </div>
 
         {/* Sticky footer */}
-        <div className="sticky bottom-0 p-4 bg-white border-t border-gray-200 flex flex-col sm:flex-row gap-3 rounded-b-lg">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            data-testid="cancel-booking-btn"
-            className="flex-1 h-12 border-2 text-base font-semibold"
-          >
-            Cancel
-          </Button>
-          {quote.requires_approval ? (
+        <div className="sticky bottom-0 bg-white border-t border-gray-200 rounded-b-lg">
+          {/* Legal consent — required before submission */}
+          <label className="flex items-start gap-3 px-4 pt-3 pb-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={legalConsent}
+              onChange={(e) => setLegalConsent(e.target.checked)}
+              className="mt-0.5 w-5 h-5 rounded border-2 border-gray-300 text-lime-500 focus:ring-2 focus:ring-lime-400 cursor-pointer flex-shrink-0"
+              data-testid="legal-consent-checkbox"
+            />
+            <span className="text-xs text-gray-700 leading-snug">
+              I agree to the{" "}
+              <a
+                href="/terms"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-lime-600 hover:text-lime-700 font-semibold underline"
+                data-testid="consent-terms-link"
+              >
+                Terms of Service
+              </a>{" "}
+              and{" "}
+              <a
+                href="/refund-policy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-lime-600 hover:text-lime-700 font-semibold underline"
+                data-testid="consent-refund-link"
+              >
+                Refund Policy
+              </a>
+              . I understand that the price shown is an AI-generated estimate and may be adjusted at pickup based on actual volume.
+            </span>
+          </label>
+
+          <div className="p-4 pt-2 flex flex-col sm:flex-row gap-3">
             <Button
-              onClick={handleVenmoBooking}
-              data-testid="venmo-booking-btn"
-              className="flex-1 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white text-base font-bold shadow-lg hover:shadow-xl transition-all"
+              variant="outline"
+              onClick={onClose}
+              data-testid="cancel-booking-btn"
+              className="flex-1 h-12 border-2 text-base font-semibold"
             >
-              📝 Submit Booking (Pending Approval)
+              Cancel
             </Button>
-          ) : (
-            <Button
-              onClick={handleVenmoBooking}
-              data-testid="venmo-booking-btn"
-              className="flex-1 h-12 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-base font-bold shadow-lg hover:shadow-xl transition-all"
-            >
-              📱 Confirm Booking
-            </Button>
-          )}
+            {quote.requires_approval ? (
+              <Button
+                onClick={handleVenmoBooking}
+                disabled={!legalConsent}
+                data-testid="venmo-booking-btn"
+                className="flex-1 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white text-base font-bold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                📝 Submit Booking (Pending Approval)
+              </Button>
+            ) : (
+              <Button
+                onClick={handleVenmoBooking}
+                disabled={!legalConsent}
+                data-testid="venmo-booking-btn"
+                className="flex-1 h-12 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-base font-bold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                📱 Confirm Booking
+              </Button>
+            )}
+          </div>
         </div>
       </Card>
 

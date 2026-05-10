@@ -6,6 +6,7 @@ import { Badge } from '../components/ui/badge';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import BookingJourneyProgress from './customer/BookingJourneyProgress';
+import SiteFooter from './SiteFooter';
 
 const API = process.env.REACT_APP_BACKEND_URL + '/api';
 
@@ -157,6 +158,7 @@ export default function BookingLookup() {
           </div>
         )}
       </div>
+      <SiteFooter />
     </div>
   );
 }
