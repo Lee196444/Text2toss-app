@@ -38,6 +38,7 @@ const LandingPage = () => {
   const [analyzeError, setAnalyzeError] = useState(null);
   const [imageAnalyzed, setImageAnalyzed] = useState(false);
   const [quoteRecalculating, setQuoteRecalculating] = useState(false);
+  const [priorityTier, setPriorityTier] = useState(null); // null | 'same_day' | 'next_slot' | 'emergency'
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [showVenmoPayment, setShowVenmoPayment] = useState(false);
   const [venmoBookingId, setVenmoBookingId] = useState('');
@@ -685,9 +686,11 @@ const LandingPage = () => {
           onRemoveImageAt={handleRemoveImage}
           onClearImages={handleClearImages}
           onAnalyze={analyzeImageAndGetQuote}
-          onCancel={() => { setShowQuote(false); setQuoteStep(1); handleClearImages(); setImageDescription(''); }}
+          onCancel={() => { setShowQuote(false); setQuoteStep(1); handleClearImages(); setImageDescription(''); setPriorityTier(null); }}
           onContinueToBooking={() => { setShowBooking(true); setShowQuote(false); }}
-          onCloseAfterQuote={() => { setShowQuote(false); setQuoteStep(1); setQuote(null); handleClearImages(); setImageDescription(''); }}
+          onCloseAfterQuote={() => { setShowQuote(false); setQuoteStep(1); setQuote(null); handleClearImages(); setImageDescription(''); setPriorityTier(null); }}
+          priorityTier={priorityTier}
+          onPriorityChange={setPriorityTier}
         />
       )}
 

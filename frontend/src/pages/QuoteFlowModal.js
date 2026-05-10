@@ -5,6 +5,7 @@ import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Badge } from "../components/ui/badge";
 import AddToHomeScreenPrompt from "../components/customer/AddToHomeScreenPrompt";
+import PriorityPicker from "../components/customer/PriorityPicker";
 
 /**
  * 3-step quote flow modal: Upload → Quote → (booking opens externally).
@@ -30,6 +31,8 @@ export default function QuoteFlowModal({
   onCancel,         // close + reset everything
   onContinueToBooking,
   onCloseAfterQuote, // close from step 2 (e.g., "Close")
+  priorityTier,
+  onPriorityChange,
 }) {
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-start sm:items-center justify-center p-3 sm:p-4 overflow-y-auto">
@@ -72,6 +75,8 @@ export default function QuoteFlowModal({
             quote={quote}
             onContinueToBooking={onContinueToBooking}
             onCloseAfterQuote={onCloseAfterQuote}
+            priorityTier={priorityTier}
+            onPriorityChange={onPriorityChange}
           />
         )}
       </Card>
@@ -289,7 +294,7 @@ function UploadStep({
   );
 }
 
-function QuoteStep({ quote, onContinueToBooking, onCloseAfterQuote }) {
+function QuoteStep({ quote, onContinueToBooking, onCloseAfterQuote, priorityTier, onPriorityChange }) {
   return (
     <>
       <CardHeader className="text-center pb-2 pt-6 bg-emerald-50 border-b border-emerald-100">
@@ -350,6 +355,9 @@ function QuoteStep({ quote, onContinueToBooking, onCloseAfterQuote }) {
         )}
 
         <p className="text-xs text-gray-400 text-center">Ground level & curbside pickup only</p>
+
+        {/* Priority Pickup upgrade — surfaces directly under the quote */}
+        <PriorityPicker value={priorityTier} onChange={onPriorityChange} />
 
         <AddToHomeScreenPrompt />
       </CardContent>

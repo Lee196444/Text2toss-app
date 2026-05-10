@@ -386,6 +386,9 @@ class Booking(BaseModel):
     customer_approval_token: Optional[str] = None  # Token for customer approval
     customer_approved_at: Optional[datetime] = None  # When customer approved price change
     requires_customer_approval: bool = False  # Whether customer approval is needed
+    # --- Priority Pickup ---
+    priority_tier: Optional[str] = None  # None | "same_day" | "next_slot" | "emergency"
+    priority_fee: float = 0.0            # Non-refundable surcharge added on top of quote
 
 class BookingCreate(BaseModel):
     quote_id: str
@@ -397,6 +400,7 @@ class BookingCreate(BaseModel):
     special_instructions: Optional[str] = None
     curbside_confirmed: bool = False
     email_notifications: bool = True
+    priority_tier: Optional[str] = None  # None | "same_day" | "next_slot" | "emergency"
     
     @validator('email')
     def validate_email(cls, v):
@@ -1313,7 +1317,72 @@ async def _validate_pickup_request(booking_data: BookingCreate) -> datetime:
             status_code=409,
             detail=f"Time slot {booking_data.pickup_time} is already booked for {booking_data.pickup_date}"
         )
+
+    # Priority slot validation — max 2 priority bookings per day
+    if booking_data.priority_tier:
+        if booking_data.priority_tier not in PRIORITY_FEES:
+            raise HTTPException(status_code=400, detail="Invalid priority tier")
+        priority_count = await _count_priority_bookings_for_date(booking_data.pickup_date)
+        if priority_count >= MAX_PRIORITY_PER_DAY:
+            raise HTTPException(
+                status_code=409,
+                detail=f"Priority slots are full for {booking_data.pickup_date}. Choose a different date or remove priority."
+            )
     return pickup_datetime
+
+
+# === Priority Pickup ====================================================
+PRIORITY_FEES = {
+    "same_day": 75.0,
+    "next_slot": 40.0,
+    "emergency": 100.0,
+}
+MAX_PRIORITY_PER_DAY = 2
+
+
+async def _count_priority_bookings_for_date(date_str: str) -> int:
+    """Count existing priority bookings for a given YYYY-MM-DD."""
+    return await db.bookings.count_documents({
+        "pickup_date": {"$regex": f"^{date_str}"},
+        "priority_tier": {"$in": list(PRIORITY_FEES.keys())},
+        "status": {"$nin": ["cancelled"]},
+    })
+
+
+@api_router.get("/priority/availability")
+async def get_priority_availability(date: str):
+    """Return priority-slot availability for the given YYYY-MM-DD.
+
+    Public endpoint used by the booking flow to show "Priority full — try
+    [next available date]" hints before the customer commits.
+    """
+    try:
+        target = datetime.strptime(date, "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="date must be YYYY-MM-DD")
+
+    used = await _count_priority_bookings_for_date(date)
+    available = max(0, MAX_PRIORITY_PER_DAY - used)
+
+    # If full, scan forward for the next date with capacity (max 14 days)
+    next_available = None
+    if available == 0:
+        for delta in range(1, 15):
+            candidate = target + timedelta(days=delta)
+            if candidate.weekday() > 3:  # skip Fri/Sat/Sun
+                continue
+            if await _count_priority_bookings_for_date(candidate.isoformat()) < MAX_PRIORITY_PER_DAY:
+                next_available = candidate.isoformat()
+                break
+
+    return {
+        "date": date,
+        "used": used,
+        "available": available,
+        "max_per_day": MAX_PRIORITY_PER_DAY,
+        "fees": PRIORITY_FEES,
+        "next_available_date": next_available,
+    }
 
 
 def _build_booking(booking_data: BookingCreate, pickup_datetime: datetime, quote_doc: dict, user_id: str) -> "Booking":
@@ -1323,6 +1392,7 @@ def _build_booking(booking_data: BookingCreate, pickup_datetime: datetime, quote
         if quote_doc.get("requires_approval", False)
         else "pending_payment"
     )
+    priority_fee = PRIORITY_FEES.get(booking_data.priority_tier, 0.0) if booking_data.priority_tier else 0.0
     return Booking(
         user_id=user_id,
         quote_id=booking_data.quote_id,
@@ -1335,7 +1405,9 @@ def _build_booking(booking_data: BookingCreate, pickup_datetime: datetime, quote
         curbside_confirmed=booking_data.curbside_confirmed,
         email_notifications=booking_data.email_notifications,
         image_path=quote_doc.get("temp_image_path"),
-        status=booking_status
+        status=booking_status,
+        priority_tier=booking_data.priority_tier,
+        priority_fee=priority_fee,
     )
 
 
@@ -1434,11 +1506,13 @@ async def get_booking_payment_info(booking_id: str):
     quote_doc = await db.quotes.find_one({"id": booking_doc.get("quote_id")}) if booking_doc.get("quote_id") else None
 
     # Prefer the admin-approved price if set, otherwise fall back to the original quote
-    amount_due = (
+    base_amount = (
         (quote_doc.get("approved_price") if quote_doc else None)
         or (quote_doc.get("total_price") if quote_doc else None)
         or 0
     )
+    priority_fee = float(booking_doc.get("priority_fee") or 0)
+    amount_due = float(base_amount) + priority_fee
 
     return {
         "booking_id": booking_doc.get("id"),
@@ -1446,7 +1520,10 @@ async def get_booking_payment_info(booking_id: str):
         "address": booking_doc.get("address"),
         "pickup_date": booking_doc.get("pickup_date"),
         "pickup_time": booking_doc.get("pickup_time"),
-        "amount_due": float(amount_due) if amount_due else 0,
+        "amount_due": amount_due,
+        "base_amount": float(base_amount) if base_amount else 0,
+        "priority_tier": booking_doc.get("priority_tier"),
+        "priority_fee": priority_fee,
         "status": booking_doc.get("status"),
         "payment_status": booking_doc.get("payment_status", "pending"),
         "venmo_qr_url": "https://www.paypal.com/qrcodes/venmocs/9f1f97dd-23ed-4676-82b5-3fc2126def65?created=1762118921",

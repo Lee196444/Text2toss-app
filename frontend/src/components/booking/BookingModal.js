@@ -11,6 +11,7 @@ import BookingSuccessScreen from "./BookingSuccessScreen";
 import SchedulePicker from "./SchedulePicker";
 import ContactFields from "./ContactFields";
 import RequirementsSection from "./RequirementsSection";
+import PriorityPicker, { PRIORITY_TIERS } from "../customer/PriorityPicker";
 import { logger } from "../../utils/logger";
 
 
@@ -44,7 +45,7 @@ const buildMissingFields = (bookingData) => {
   return { errors, missing };
 };
 
-const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
+const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier, onPriorityChange }) => {
   const [bookingData, setBookingData] = useState({
     pickup_date: "",
     pickup_time: "",
@@ -131,6 +132,7 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
       const res = await axios.post(`${API}/bookings`, {
         quote_id: quote.id,
         ...bookingData,
+        priority_tier: priorityTier || null,
         payment_method: "venmo",
       });
       const bookingId = res.data.id;
@@ -149,7 +151,9 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
         style: { background: "#10b981", color: "#ffffff", fontSize: "16px", fontWeight: "600", padding: "16px" },
       });
 
-      const venmoUrl = `https://venmo.com/code?user_id=Text2toss&amount=${quote.total_price}&note=Text2toss%20Booking%20${bookingId.substring(0, 8)}`;
+      const priorityFeeAmount = PRIORITY_TIERS.find(t => t.id === priorityTier)?.fee || 0;
+      const totalAmount = (quote.total_price || 0) + priorityFeeAmount;
+      const venmoUrl = `https://venmo.com/code?user_id=Text2toss&amount=${totalAmount}&note=Text2toss%20Booking%20${bookingId.substring(0, 8)}`;
       const qrCodeDataUrl = await QRCode.toDataURL(venmoUrl, {
         width: 256,
         margin: 2,
@@ -196,9 +200,14 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
             <div className="text-white">
               <h2 className="text-2xl font-bold mb-2">Complete Your Booking</h2>
               <div className="flex items-center justify-center gap-2">
-                <span className="text-4xl font-black">${quote.total_price}</span>
+                <span className="text-4xl font-black">${(quote.total_price || 0) + (PRIORITY_TIERS.find(t => t.id === priorityTier)?.fee || 0)}</span>
                 <Badge className="bg-white/20 text-white border-0 text-xs px-2 py-1">💳 Venmo</Badge>
               </div>
+              {priorityTier && (
+                <p className="text-xs text-white/80 mt-1">
+                  Includes ${PRIORITY_TIERS.find(t => t.id === priorityTier)?.fee} priority surcharge (non-refundable)
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -231,6 +240,12 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment }) => {
               bookedTimeSlots={bookedTimeSlots}
               checkingAvailability={checkingAvailability}
               onOpenCalendar={() => setShowCalendar(true)}
+            />
+
+            <PriorityPicker
+              value={priorityTier}
+              onChange={onPriorityChange}
+              pickupDate={bookingData.pickup_date}
             />
 
             <ContactFields

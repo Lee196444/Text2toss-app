@@ -8,6 +8,16 @@ const RefundPolicyPage = () => (
       refunds work — written so there are no surprises.
     </p>
 
+    <h2>Priority Pickup Fees</h2>
+    <p>
+      <strong>Priority pickup surcharges are non-refundable under all circumstances</strong>, including
+      customer-initiated cancellation more than 2 hours before pickup. Priority slots are
+      capacity-limited (2 per day) and remove a slot from inventory the moment they are booked,
+      so we cannot refund them once paid. If <strong>we</strong> are unable to fulfill the
+      priority slot (e.g., weather, crew issue), the priority fee will be refunded in full at
+      our discretion.
+    </p>
+
     <h2>Cancellations Before Pickup</h2>
     <ul>
       <li>
