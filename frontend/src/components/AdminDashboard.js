@@ -1050,151 +1050,23 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
           </div>
         </div>
 
-        {/* Job Bins */}
+        {/* === Quick Actions (primary entry point) === */}
         <Card className="bg-white/95 backdrop-blur-sm border-gray-200 shadow-lg overflow-visible">
-          <CardHeader className="pb-3 cursor-pointer" onClick={() => toggleSection('jobBins')}>
-            <CardTitle className="text-lg font-semibold text-gray-800 flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                📊 Job Bins
-              </span>
-              <span className="text-2xl transition-transform duration-200" style={{transform: collapsed.jobBins ? 'rotate(-90deg)' : 'rotate(0deg)'}}>
-                ▼
-              </span>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-display italic text-black flex items-center gap-2 uppercase tracking-wider">
+              ⚡ Quick Actions
             </CardTitle>
-            <CardDescription className="text-sm text-gray-600">
-              Organize and view jobs by status
-            </CardDescription>
           </CardHeader>
-          {!collapsed.jobBins && (
-          <CardContent className="overflow-visible">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4 md:gap-6">
-              {(() => {
-                const bins = categorizBookings();
-                const binConfigs = [
-              { 
-                type: 'pendingPayment', 
-                title: 'Pending Payment', 
-                icon: '💳', 
-                color: 'border-red-300 bg-red-50 hover:bg-red-100',
-                textColor: 'text-red-800',
-                countColor: 'text-red-600'
-              },
-              { 
-                type: 'new', 
-                title: 'New Jobs', 
-                icon: '📅', 
-                color: 'border-blue-300 bg-blue-50 hover:bg-blue-100',
-                textColor: 'text-blue-800',
-                countColor: 'text-blue-600'
-              },
-              { 
-                type: 'upcoming', 
-                title: 'Upcoming', 
-                icon: '📅', 
-                color: 'border-orange-300 bg-orange-50 hover:bg-orange-100',
-                textColor: 'text-orange-800',
-                countColor: 'text-orange-600'
-              },
-              { 
-                type: 'inProgress', 
-                title: 'In Progress', 
-                icon: '🚛', 
-                color: 'border-yellow-300 bg-yellow-50 hover:bg-yellow-100',
-                textColor: 'text-yellow-800',
-                countColor: 'text-yellow-600'
-              },
-              { 
-                type: 'completed', 
-                title: 'Completed', 
-                icon: '✅', 
-                color: 'border-green-300 bg-green-50 hover:bg-green-100',
-                textColor: 'text-green-800',
-                countColor: 'text-green-600'
-              },
-              { 
-                type: 'all', 
-                title: 'All Jobs', 
-                icon: '📚', 
-                color: 'border-purple-300 bg-purple-50 hover:bg-purple-100',
-                textColor: 'text-purple-800',
-                countColor: 'text-purple-600',
-                showTotal: true
-              }
-            ];
-
-            return binConfigs.map(bin => (
-              <Card 
-                key={bin.type}
-                className={`cursor-pointer transition-all duration-200 ${bin.color} border-2 hover:shadow-lg transform hover:scale-105`}
-                onClick={() => {
-                  // Handle different bin types
-                  if (bin.type === 'pendingPayment') {
-                    fetchPendingPayments();
-                    setShowPendingPayments(true);
-                  } else if (bin.type === 'new') {
-                    openCalendar();
-                  } else if (bin.type === 'all') {
-                    openAllJobsModal();
-                  } else {
-                    openBin(bin.type);
-                  }
-                }}
-              >
-                <CardContent className="p-3 text-center">
-                  <div className="text-2xl mb-1">{bin.icon}</div>
-                  <div className={`text-xl font-bold mb-1 ${bin.countColor}`}>
-                    {(() => {
-                      if (bin.type === 'pendingPayment') return pendingPayments.length;
-                      if (bin.showTotal) return '∞';
-                      return bins[bin.type]?.length || 0;
-                    })()}
-                  </div>
-                  <p className={`text-xs font-medium ${bin.textColor}`}>{bin.title}</p>
-                  {!bin.showTotal && bin.type !== 'pendingPayment' && bins[bin.type]?.length > 0 && (
-                    <div className={`text-xs mt-2 ${bin.textColor}`}>
-                      Revenue: {formatPrice(bins[bin.type].reduce((sum, booking) => sum + (booking.quote_details?.total_price || 0), 0))}
-                    </div>
-                  )}
-                  {bin.type === 'pendingPayment' && pendingPayments.length > 0 && (
-                    <div className={`text-xs mt-2 ${bin.textColor}`}>
-                      Total: {formatPrice(pendingPayments.reduce((sum, booking) => sum + (booking.quote_details?.total_price || 0), 0))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ));
-          })()}
-            </div>
-          </CardContent>
-          )}
-        </Card>
-
-        {/* Modern Quick Actions Grid - Improved Layout */}
-        <Card className="bg-white/95 backdrop-blur-sm border-gray-200 shadow-lg overflow-visible">
-          <CardHeader className="pb-3 cursor-pointer" onClick={() => toggleSection('quickActions')}>
-            <CardTitle className="text-lg font-semibold text-gray-800 flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                ⚡ Quick Actions
-              </span>
-              <span className="text-2xl transition-transform duration-200" style={{transform: collapsed.quickActions ? 'rotate(-90deg)' : 'rotate(0deg)'}}>
-                ▼
-              </span>
-            </CardTitle>
-            <CardDescription className="text-sm text-gray-600">
-              Admin tools and management functions
-            </CardDescription>
-          </CardHeader>
-          {!collapsed.quickActions && (
           <CardContent className="overflow-visible">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4 overflow-visible">
-              <Button 
-                onClick={openCalendar} 
+              <Button
+                onClick={openCalendar}
                 className="bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
               >
                 <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">📅</span>
                 <span className="text-xs sm:text-sm font-medium leading-tight">Calendar</span>
               </Button>
-              
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -1259,40 +1131,40 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <Button 
-                onClick={() => setShowPhotoGallery(true)} 
+              <Button
+                onClick={() => setShowPhotoGallery(true)}
                 className="bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
               >
                 <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">📸</span>
                 <span className="text-xs sm:text-sm font-medium leading-tight">Upload Photos</span>
               </Button>
-              
-              <Button 
-                onClick={() => setShowSmsCenter(true)} 
+
+              <Button
+                onClick={() => setShowSmsCenter(true)}
                 className="bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
               >
                 <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">📧</span>
                 <span className="text-xs sm:text-sm font-medium leading-tight">Email Center</span>
               </Button>
-              
-              <Button 
-                onClick={exportJobContacts} 
+
+              <Button
+                onClick={exportJobContacts}
                 className="bg-gradient-to-br from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
               >
                 <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">📥</span>
                 <span className="text-xs sm:text-sm font-medium leading-tight">Export Contacts</span>
               </Button>
-              
-              <Button 
-                onClick={calculateOptimalRoute} 
+
+              <Button
+                onClick={calculateOptimalRoute}
                 className="bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
               >
                 <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">🗺️</span>
                 <span className="text-xs sm:text-sm font-medium leading-tight">Route</span>
               </Button>
 
-              <Button 
-                onClick={() => setShowQRModal(true)} 
+              <Button
+                onClick={() => setShowQRModal(true)}
                 data-testid="open-marketing-qr-btn"
                 className="bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
               >
@@ -1301,63 +1173,55 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
               </Button>
             </div>
           </CardContent>
-          )}
         </Card>
 
-        {/* Instructions */}
-        <Card className="bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-200">
-          <CardContent className="p-6 text-center">
-            <h3 className="text-lg font-semibold text-emerald-800 mb-2">📋 How to Use Job Bins</h3>
-            <p className="text-emerald-700">
-              Click on any colored bin above to view and manage jobs in that category. 
-              Each bin shows the count and total revenue for easy tracking.
-            </p>
-          </CardContent>
-        </Card>
+        {/* === Job Bins (compact glance row) === */}
+        <Card className="bg-white/95 backdrop-blur-sm border-gray-200 shadow-sm overflow-visible">
+          <CardContent className="p-3 sm:p-4 overflow-visible">
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
+              {(() => {
+                const bins = categorizBookings();
+                const binConfigs = [
+                  { type: 'pendingPayment', title: 'Pending Payment', icon: '💳', color: 'border-red-300 bg-red-50 hover:bg-red-100', textColor: 'text-red-800', countColor: 'text-red-600' },
+                  { type: 'new',            title: 'New',             icon: '📅', color: 'border-blue-300 bg-blue-50 hover:bg-blue-100', textColor: 'text-blue-800', countColor: 'text-blue-600' },
+                  { type: 'upcoming',       title: 'Upcoming',        icon: '⏭️', color: 'border-orange-300 bg-orange-50 hover:bg-orange-100', textColor: 'text-orange-800', countColor: 'text-orange-600' },
+                  { type: 'inProgress',     title: 'In Progress',     icon: '🚛', color: 'border-yellow-300 bg-yellow-50 hover:bg-yellow-100', textColor: 'text-yellow-800', countColor: 'text-yellow-600' },
+                  { type: 'completed',      title: 'Completed',       icon: '✅', color: 'border-green-300 bg-green-50 hover:bg-green-100', textColor: 'text-green-800', countColor: 'text-green-600' },
+                  { type: 'all',            title: 'All Jobs',        icon: '📚', color: 'border-purple-300 bg-purple-50 hover:bg-purple-100', textColor: 'text-purple-800', countColor: 'text-purple-600', showTotal: true },
+                ];
 
-        {/* Summary Stats */}
-        <Card>
-          <CardHeader className="pb-3 cursor-pointer" onClick={() => toggleSection('dailySchedule')}>
-            <CardTitle className="text-lg font-semibold text-gray-800 flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                📊 Daily Summary
-              </span>
-              <span className="text-2xl transition-transform duration-200" style={{transform: collapsed.dailySchedule ? 'rotate(-90deg)' : 'rotate(0deg)'}}>
-                ▼
-              </span>
-            </CardTitle>
-            <CardDescription className="text-sm text-gray-600">
-              Overview for {new Date(selectedDate).toLocaleDateString()}
-            </CardDescription>
-          </CardHeader>
-          {!collapsed.dailySchedule && (
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 text-center">
-              <div className="p-3 sm:p-4 bg-gray-50 rounded-lg">
-                <div className="text-xl sm:text-2xl font-bold text-gray-700">{dailyBookings.length}</div>
-                <div className="text-xs sm:text-sm text-gray-600">Total Jobs</div>
-              </div>
-              <div className="p-3 sm:p-4 bg-emerald-50 rounded-lg">
-                <div className="text-xl sm:text-2xl font-bold text-emerald-600">
-                  {formatPrice(dailyBookings.reduce((sum, booking) => sum + (booking.quote_details?.total_price || 0), 0))}
-                </div>
-                <div className="text-xs sm:text-sm text-emerald-700">Daily Revenue</div>
-              </div>
-              <div className="p-3 sm:p-4 bg-blue-50 rounded-lg">
-                <div className="text-xl sm:text-2xl font-bold text-blue-600">
-                  {dailyBookings.filter(b => b.image_path).length}
-                </div>
-                <div className="text-xs sm:text-sm text-blue-700">With Photos</div>
-              </div>
-              <div className="p-3 sm:p-4 bg-green-50 rounded-lg">
-                <div className="text-xl sm:text-2xl font-bold text-green-600">
-                  {dailyBookings.filter(b => b.completion_photo_path).length}
-                </div>
-                <div className="text-xs sm:text-sm text-green-700">Completed w/Photo</div>
-              </div>
+                return binConfigs.map(bin => (
+                  <button
+                    key={bin.type}
+                    onClick={() => {
+                      if (bin.type === 'pendingPayment') {
+                        fetchPendingPayments();
+                        setShowPendingPayments(true);
+                      } else if (bin.type === 'new') {
+                        openCalendar();
+                      } else if (bin.type === 'all') {
+                        openAllJobsModal();
+                      } else {
+                        openBin(bin.type);
+                      }
+                    }}
+                    className={`cursor-pointer transition-all duration-200 ${bin.color} border-2 hover:shadow-md rounded-xl p-2 text-center`}
+                    data-testid={`bin-tile-${bin.type}`}
+                  >
+                    <div className="text-lg leading-none mb-1">{bin.icon}</div>
+                    <div className={`font-display italic text-xl leading-none ${bin.countColor}`}>
+                      {(() => {
+                        if (bin.type === 'pendingPayment') return pendingPayments.length;
+                        if (bin.showTotal) return '∞';
+                        return bins[bin.type]?.length || 0;
+                      })()}
+                    </div>
+                    <p className={`text-[10px] font-bold mt-1 uppercase tracking-wider ${bin.textColor}`}>{bin.title}</p>
+                  </button>
+                ));
+              })()}
             </div>
           </CardContent>
-          )}
         </Card>
       </div>
 
