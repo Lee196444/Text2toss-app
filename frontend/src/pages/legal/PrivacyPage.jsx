@@ -8,7 +8,7 @@ const PrivacyPage = () => (
       collect, why, and how you can control it.
     </p>
 
-    <h2>1. Information We Collect</h2>
+    <h2>Information We Collect</h2>
     <ul>
       <li><strong>Contact details</strong> — name, phone, email, pickup address (provided when you book).</li>
       <li><strong>Photos</strong> — images you upload of items to be removed.</li>
@@ -16,7 +16,7 @@ const PrivacyPage = () => (
       <li><strong>Usage data</strong> — anonymized analytics (page views, button clicks) to improve the site.</li>
     </ul>
 
-    <h2>2. How We Use It</h2>
+    <h2>How We Use It</h2>
     <ul>
       <li>Generate quotes and fulfill pickups.</li>
       <li>Process payments and issue refunds when applicable.</li>
@@ -25,7 +25,7 @@ const PrivacyPage = () => (
       <li>Comply with legal obligations (tax, dispute resolution).</li>
     </ul>
 
-    <h2>3. Who We Share It With</h2>
+    <h2>Who We Share It With</h2>
     <p>
       We share data only with third parties strictly necessary to operate the Service:
     </p>
@@ -40,7 +40,7 @@ const PrivacyPage = () => (
       We <strong>do not sell or rent</strong> your personal information to third parties.
     </p>
 
-    <h2>4. Data Retention</h2>
+    <h2>Data Retention</h2>
     <p>
       We keep booking records for a minimum of <strong>7 years</strong> to satisfy U.S. tax and
       financial-record-keeping requirements. Uploaded photos are retained only while needed for
@@ -48,7 +48,7 @@ const PrivacyPage = () => (
       earlier deletion of your photos at any time.
     </p>
 
-    <h2>5. Your Rights</h2>
+    <h2>Your Rights</h2>
     <p>
       You may request to access, correct, or delete your personal information. Email{" "}
       <a href="mailto:text2toss@gmail.com">text2toss@gmail.com</a> from the address on file and we
@@ -57,20 +57,20 @@ const PrivacyPage = () => (
       where required.
     </p>
 
-    <h2>6. Cookies &amp; Tracking</h2>
+    <h2>Cookies &amp; Tracking</h2>
     <p>
       We use only essential cookies (session/auth) and a small amount of first-party analytics
       to understand traffic patterns. We do not use cross-site advertising trackers. You can
       block cookies via your browser settings; the booking flow will continue to work.
     </p>
 
-    <h2>7. Children</h2>
+    <h2>Children</h2>
     <p>
       Text2toss is not intended for users under 18. We do not knowingly collect personal
       information from children.
     </p>
 
-    <h2>8. Security</h2>
+    <h2>Security</h2>
     <p>
       We use industry-standard practices (HTTPS, encrypted storage, restricted admin access,
       Stripe-managed payment data) to protect your information. No system is 100% secure; in
@@ -78,13 +78,13 @@ const PrivacyPage = () => (
       applicable law.
     </p>
 
-    <h2>9. Changes to This Policy</h2>
+    <h2>Changes to This Policy</h2>
     <p>
       We may update this policy from time to time. The "Last updated" date above reflects the
       latest revision.
     </p>
 
-    <h2>10. Contact</h2>
+    <h2>Contact</h2>
     <p>
       Privacy questions? <a href="mailto:text2toss@gmail.com">text2toss@gmail.com</a>{" "}
       · <a href="tel:9288539619">(928) 853-9619</a>.
