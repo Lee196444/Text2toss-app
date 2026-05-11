@@ -36,12 +36,37 @@ def _format_pickup_date(raw) -> str:
 # Booking confirmation (sent after payment lands)
 # ---------------------------------------------------------------------------
 
+PRIORITY_LABELS = {
+    "same_day": ("⚡ Same-Day Rush", 75),
+    "next_slot": ("⏭ Next Available", 40),
+    "emergency": ("🚨 Emergency / After-Hours", 100),
+}
+
+
 def booking_confirmation_email(booking_data: dict, quote_data: dict) -> str:
     pickup_date = _format_pickup_date(booking_data.get("pickup_date", "TBD"))
     booking_id_short = (booking_data.get("id") or "")[:8]
-    amount = quote_data.get("total_price", 0)
+    base_amount = quote_data.get("total_price", 0)
+    priority_tier = booking_data.get("priority_tier")
+    priority_fee = float(booking_data.get("priority_fee") or 0)
+    priority_label, _expected_fee = PRIORITY_LABELS.get(priority_tier, ("", 0))
+    total_amount = float(base_amount) + priority_fee
     address = booking_data.get("address", "Not provided")
     time_window = booking_data.get("pickup_time", "TBD")
+
+    # Build optional priority line-item row
+    priority_row = ""
+    if priority_fee > 0 and priority_label:
+        priority_row = (
+            f'<div class="detail-row" style="background:#f7fee7;">'
+            f'<span class="detail-label" style="color:#3f6212;">{priority_label} (non-refundable)</span>'
+            f'<span class="detail-value" style="color:#3f6212;font-weight:bold;">+${priority_fee:.0f}</span>'
+            f'</div>'
+        )
+    base_row = (
+        f'<div class="detail-row"><span class="detail-label">Base quote:</span>'
+        f'<span class="detail-value">${float(base_amount):.0f}</span></div>'
+    )
     return f"""
     <html>
     <head>
@@ -70,12 +95,14 @@ def booking_confirmation_email(booking_data: dict, quote_data: dict) -> str:
                     <div class="detail-row"><span class="detail-label">Pickup Date:</span><span class="detail-value">{pickup_date}</span></div>
                     <div class="detail-row"><span class="detail-label">Time Window:</span><span class="detail-value">{time_window}</span></div>
                     <div class="detail-row"><span class="detail-label">Address:</span><span class="detail-value">{address}</span></div>
-                    <div class="detail-row"><span class="detail-label">Total Amount:</span><span class="detail-value" style="font-size: 20px; font-weight: bold; color: #10b981;">${amount}</span></div>
+                    {base_row}
+                    {priority_row}
+                    <div class="detail-row" style="border-top:2px solid #10b981;padding-top:14px;margin-top:6px;"><span class="detail-label" style="color:#111827;font-size:14px;">Total Amount:</span><span class="detail-value" style="font-size: 22px; font-weight: bold; color: #10b981;">${total_amount:.0f}</span></div>
                 </div>
                 <h3 style="color: #10b981; margin-top: 30px;">📱 Payment Required</h3>
                 <p>Please send payment via Venmo to complete your booking:</p>
                 <ul style="background: #eff6ff; padding: 20px; border-radius: 8px;">
-                    <li>Send <strong>${amount}</strong> to <strong>@Text2toss</strong></li>
+                    <li>Send <strong>${total_amount:.0f}</strong> to <strong>@Text2toss</strong></li>
                     <li>Include Booking ID: <strong>{booking_id_short}</strong> in the note</li>
                 </ul>
                 <p style="margin-top: 20px;">We'll confirm your payment and send final details before pickup!</p>

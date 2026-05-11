@@ -296,6 +296,8 @@ function UploadStep({
 
 function QuoteStep({ quote, onContinueToBooking, onCloseAfterQuote, priorityTier, onPriorityChange }) {
   const priorityFee = PRIORITY_TIERS.find(t => t.id === priorityTier)?.fee || 0;
+  const priorityLabel = PRIORITY_TIERS.find(t => t.id === priorityTier)?.title || "";
+  const priorityIcon = PRIORITY_TIERS.find(t => t.id === priorityTier)?.icon || "";
   const totalWithPriority = (quote.total_price || 0) + priorityFee;
   return (
     <>
@@ -312,11 +314,7 @@ function QuoteStep({ quote, onContinueToBooking, onCloseAfterQuote, priorityTier
         </p>
         <div className="text-5xl font-black text-emerald-700 mb-1" data-testid="quote-total-price">${totalWithPriority}</div>
         <CardDescription className="text-sm font-medium text-emerald-600">
-          {priorityFee > 0 ? (
-            <>Quote ${quote.total_price} + <span className="font-bold">${priorityFee}</span> priority</>
-          ) : (
-            <>Your instant quote</>
-          )}
+          {priorityFee > 0 ? <>Your total with priority pickup</> : <>Your instant quote</>}
         </CardDescription>
         <div className="mt-2">
           <Badge variant="outline" className="border-emerald-200 text-emerald-600 text-xs">
@@ -330,6 +328,38 @@ function QuoteStep({ quote, onContinueToBooking, onCloseAfterQuote, priorityTier
       </CardHeader>
 
       <CardContent className="space-y-4 pt-5 px-5 sm:px-6">
+        {/* === Price breakdown (always shown when priority selected) === */}
+        {priorityFee > 0 && (
+          <div
+            className="rounded-xl border-2 border-lime-300 bg-lime-50 overflow-hidden"
+            data-testid="price-breakdown-card"
+          >
+            <div className="px-4 py-2 bg-lime-100 border-b border-lime-200">
+              <h4 className="font-display italic text-xs text-black uppercase tracking-wider">Price breakdown</h4>
+            </div>
+            <div className="divide-y divide-lime-200">
+              <div className="flex justify-between items-center px-4 py-2.5">
+                <span className="text-sm text-gray-700">Base junk-removal quote</span>
+                <span className="text-sm font-bold text-gray-900">${quote.total_price}</span>
+              </div>
+              <div className="flex justify-between items-center px-4 py-2.5 bg-lime-100/40">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-base">{priorityIcon}</span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-lime-800">+ {priorityLabel}</p>
+                    <p className="text-[10px] text-lime-700/80 leading-tight">Priority pickup · non-refundable</p>
+                  </div>
+                </div>
+                <span className="text-sm font-bold text-lime-700">+${priorityFee}</span>
+              </div>
+              <div className="flex justify-between items-center px-4 py-3 bg-emerald-50">
+                <span className="font-display italic text-base text-black uppercase tracking-wider">Total</span>
+                <span className="font-display italic text-2xl text-emerald-700">${totalWithPriority}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {quote.breakdown?.items?.length > 0 && (
           <div className="border border-gray-100 rounded-xl divide-y divide-gray-50">
             <div className="px-4 py-2.5 bg-gray-50 rounded-t-xl">
