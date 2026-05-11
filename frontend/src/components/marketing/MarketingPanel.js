@@ -120,6 +120,8 @@ export default function MarketingPanel({
         <PushHealthWidget health={health} onResubscribe={onResubscribe} />
       </div>
 
+      <PriorityPricingPanel settings={settings} setSettings={setSettings} />
+
       <Button
         onClick={onSave}
         disabled={saving}
@@ -128,6 +130,72 @@ export default function MarketingPanel({
       >
         {saving ? "Saving…" : "💾 Save Marketing Settings"}
       </Button>
+    </div>
+  );
+}
+
+function PriorityPricingPanel({ settings, setSettings }) {
+  const fees = settings.priority_fees || {};
+  const updateFee = (tier, value) => {
+    const num = Math.max(0, Math.min(1000, Number(value) || 0));
+    setSettings({
+      ...settings,
+      priority_fees: { ...fees, [tier]: num },
+    });
+  };
+  const tiers = [
+    { id: "same_day", label: "⚡ Same-Day Rush" },
+    { id: "next_slot", label: "⏭ Next Available" },
+    { id: "emergency", label: "🚨 Emergency / After-Hours" },
+  ];
+  return (
+    <div className="bg-white rounded-lg p-4 border border-purple-100 mb-3" data-testid="priority-pricing-panel">
+      <div className="mb-3">
+        <span className="text-sm font-semibold text-purple-900">🔥 Priority Pickup Pricing</span>
+        <p className="text-[11px] text-purple-700/80 mt-1">
+          Fees added on top of the AI quote. Customers see these in checkout & email.
+        </p>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
+        {tiers.map((t) => (
+          <div key={t.id}>
+            <Label htmlFor={`priority-fee-${t.id}`} className="text-[11px] text-purple-800 font-semibold">
+              {t.label}
+            </Label>
+            <div className="relative">
+              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-sm text-purple-700">$</span>
+              <Input
+                id={`priority-fee-${t.id}`}
+                data-testid={`priority-fee-input-${t.id}`}
+                type="number"
+                min={0}
+                max={1000}
+                value={fees[t.id] ?? 0}
+                onChange={(e) => updateFee(t.id, e.target.value)}
+                className="pl-6 border-purple-200 focus:border-purple-500"
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center gap-3">
+        <Label htmlFor="priority-cap" className="text-[11px] text-purple-800 font-semibold whitespace-nowrap">
+          Max priority bookings / day
+        </Label>
+        <Input
+          id="priority-cap"
+          data-testid="priority-max-per-day-input"
+          type="number"
+          min={0}
+          max={20}
+          value={settings.priority_max_per_day ?? 2}
+          onChange={(e) => {
+            const num = Math.max(0, Math.min(20, Number(e.target.value) || 0));
+            setSettings({ ...settings, priority_max_per_day: num });
+          }}
+          className="w-24 border-purple-200 focus:border-purple-500"
+        />
+      </div>
     </div>
   );
 }

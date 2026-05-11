@@ -187,7 +187,8 @@ class TestBookingDoesNotDeleteImage:
             "pickup_time": "10:00-12:00",
             "address": "999 Test Blvd, Flagstaff AZ 86001",
             "phone": "+19285559999",
-            "email": "imagetest@example.com"
+            "email": "imagetest@example.com",
+            "consent_accepted": True
         })
         assert booking_response.status_code == 200
         booking = booking_response.json()

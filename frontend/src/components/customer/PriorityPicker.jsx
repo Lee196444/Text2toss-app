@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import usePriorityConfig from "../../hooks/usePriorityConfig";
 
 const API = process.env.REACT_APP_BACKEND_URL + "/api";
 
-const PRIORITY_TIERS = [
+// Default fees / metadata — overridden by /api/priority/availability response
+const DEFAULT_PRIORITY_TIERS = [
   {
     id: "same_day",
     title: "Same-Day Rush",
@@ -27,6 +29,9 @@ const PRIORITY_TIERS = [
   },
 ];
 
+// Legacy export — preserved for callers that need static metadata.
+const PRIORITY_TIERS = DEFAULT_PRIORITY_TIERS;
+
 /**
  * PriorityPicker — surfaces the optional priority upgrade.
  * Props:
@@ -35,10 +40,20 @@ const PRIORITY_TIERS = [
  *   pickupDate: optional YYYY-MM-DD to check availability for that date
  */
 const PriorityPicker = ({ value, onChange, pickupDate }) => {
+  const { fees: dynamicFees } = usePriorityConfig();
   const [availability, setAvailability] = useState(null);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(!!value);
   const [fetchError, setFetchError] = useState(null);
+
+  // Merge DB-driven fees onto static metadata (title/description/icon stay constant)
+  const tiers = useMemo(
+    () => DEFAULT_PRIORITY_TIERS.map((t) => ({
+      ...t,
+      fee: dynamicFees?.[t.id] ?? t.fee,
+    })),
+    [dynamicFees]
+  );
 
   // Defensive: tolerate parent not wiring onChange (shouldn't happen, but
   // keeps the UI alive instead of throwing on click).
@@ -130,7 +145,7 @@ const PriorityPicker = ({ value, onChange, pickupDate }) => {
           </button>
 
           {/* Priority tier options */}
-          {PRIORITY_TIERS.map((tier) => {
+          {tiers.map((tier) => {
             const disabled = isFull;
             const selected = value === tier.id;
             return (

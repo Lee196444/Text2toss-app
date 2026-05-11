@@ -29,6 +29,8 @@ const MarketingQRModal = ({ open, onClose }) => {
     reminder_enabled: false,
     reminder_hour: 10,
     timezone: detectTimezone(),
+    priority_fees: { same_day: 75, next_slot: 40, emergency: 100 },
+    priority_max_per_day: 2,
   });
   const [saving, setSaving] = useState(false);
   const [health, setHealth] = useState({ subscriptions: 0, last_event: null, last_daily: null });
@@ -49,6 +51,8 @@ const MarketingQRModal = ({ open, onClose }) => {
           reminder_enabled: !!c.data?.reminder_enabled,
           reminder_hour: c.data?.reminder_hour ?? 10,
           timezone: c.data?.timezone || detectTimezone(),
+          priority_fees: c.data?.priority_fees || { same_day: 75, next_slot: 40, emergency: 100 },
+          priority_max_per_day: c.data?.priority_max_per_day ?? 2,
         });
         setHealth(h.data || { subscriptions: 0, last_event: null, last_daily: null });
       } catch (err) {
@@ -230,6 +234,8 @@ const MarketingQRModal = ({ open, onClose }) => {
         reminder_enabled: !!data.reminder_enabled,
         reminder_hour: data.reminder_hour ?? 10,
         timezone: data.timezone || detectTimezone(),
+        priority_fees: data.priority_fees || { same_day: 75, next_slot: 40, emergency: 100 },
+        priority_max_per_day: data.priority_max_per_day ?? 2,
       });
       toast.success("Marketing settings saved");
     } catch {

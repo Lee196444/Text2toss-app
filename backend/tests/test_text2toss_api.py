@@ -268,7 +268,8 @@ class TestBookingCreation:
             "pickup_time": "10:00-12:00",
             "address": "789 Test Road, Flagstaff AZ 86001",
             "phone": "+19285551111",
-            "email": "bookingtest@example.com"
+            "email": "bookingtest@example.com",
+            "consent_accepted": True
         })
         assert booking_response.status_code == 200
         booking = booking_response.json()
@@ -306,7 +307,8 @@ class TestBookingCreation:
                 "pickup_time": "14:00-16:00",
                 "address": "456 Large St, Flagstaff AZ 86001",
                 "phone": "+19285552222",
-                "email": "largebooking@example.com"
+                "email": "largebooking@example.com",
+                "consent_accepted": True
             })
             assert booking_response.status_code == 200
             booking = booking_response.json()

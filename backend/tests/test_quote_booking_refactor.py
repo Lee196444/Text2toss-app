@@ -163,6 +163,7 @@ def _booking_payload(quote_id: str, pickup_iso: str, pickup_time: str = "10:00 A
         "special_instructions": "Curbside pickup, ring bell",
         "curbside_confirmed": True,
         "email_notifications": False,
+        "consent_accepted": True,
     }
 
 

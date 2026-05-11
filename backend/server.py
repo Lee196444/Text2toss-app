@@ -12,7 +12,7 @@ import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field, validator, EmailStr
-from typing import List, Optional
+from typing import List, Optional, Dict
 import uuid
 from datetime import datetime, timezone, date, time, timedelta
 import hashlib
@@ -389,6 +389,12 @@ class Booking(BaseModel):
     # --- Priority Pickup ---
     priority_tier: Optional[str] = None  # None | "same_day" | "next_slot" | "emergency"
     priority_fee: float = 0.0            # Non-refundable surcharge added on top of quote
+    # --- Legal consent (defense against payment disputes) ---
+    consent_accepted: bool = False
+    consent_accepted_at: Optional[datetime] = None
+    consent_ip: Optional[str] = None
+    consent_user_agent: Optional[str] = None
+    consent_version: Optional[str] = None  # snapshot of policy version at acceptance
 
 class BookingCreate(BaseModel):
     quote_id: str
@@ -401,6 +407,7 @@ class BookingCreate(BaseModel):
     curbside_confirmed: bool = False
     email_notifications: bool = True
     priority_tier: Optional[str] = None  # None | "same_day" | "next_slot" | "emergency"
+    consent_accepted: bool = False        # Customer agreed to Terms + Refund Policy
     
     @validator('email')
     def validate_email(cls, v):
@@ -754,8 +761,10 @@ def _compress_image_for_ai(image_path: str, t0: float) -> str:
     Falls back to the original path if compression fails."""
     import time as _time
     try:
-        from PIL import Image as PILImage
+        from PIL import Image as PILImage, ImageOps
         img = PILImage.open(image_path)
+        # Auto-rotate based on EXIF orientation (iPhone/Samsung sideways photos)
+        img = ImageOps.exif_transpose(img)
         max_dim = 768
         if max(img.size) > max_dim:
             ratio = max_dim / max(img.size)
@@ -1254,7 +1263,7 @@ def _build_under_review_email(booking, quote_doc):
 
 
 @api_router.post("/bookings", response_model=Booking)
-async def create_booking(booking_data: BookingCreate, token: str = None):
+async def create_booking(booking_data: BookingCreate, request: Request, token: str = None):
     """Create a booking from an existing quote.
 
     Implementation broken down into focused helpers:
@@ -1264,6 +1273,12 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
       - _send_post_booking_emails   → admin + customer notifications
       - _send_post_booking_sms      → optional confirmation SMS
     """
+    if not booking_data.consent_accepted:
+        raise HTTPException(
+            status_code=400,
+            detail="You must accept the Terms of Service and Refund Policy to book."
+        )
+
     user_id = await _resolve_user_id(token)
 
     quote_doc = await db.quotes.find_one({"id": booking_data.quote_id})
@@ -1272,7 +1287,8 @@ async def create_booking(booking_data: BookingCreate, token: str = None):
 
     pickup_datetime = await _validate_pickup_request(booking_data)
 
-    booking = _build_booking(booking_data, pickup_datetime, quote_doc, user_id)
+    consent_meta = _capture_consent_metadata(request)
+    booking = _build_booking(booking_data, pickup_datetime, quote_doc, user_id, consent_meta)
     await db.bookings.insert_one(prepare_for_mongo(booking.dict()))
 
     quote_requires_approval = quote_doc.get("requires_approval", False)
@@ -1318,12 +1334,14 @@ async def _validate_pickup_request(booking_data: BookingCreate) -> datetime:
             detail=f"Time slot {booking_data.pickup_time} is already booked for {booking_data.pickup_date}"
         )
 
-    # Priority slot validation — max 2 priority bookings per day
+    # Priority slot validation — max per-day cap (admin configurable)
     if booking_data.priority_tier:
-        if booking_data.priority_tier not in PRIORITY_FEES:
+        fees = await _get_priority_fees()
+        if booking_data.priority_tier not in fees:
             raise HTTPException(status_code=400, detail="Invalid priority tier")
+        cap = await _get_priority_max_per_day()
         priority_count = await _count_priority_bookings_for_date(booking_data.pickup_date)
-        if priority_count >= MAX_PRIORITY_PER_DAY:
+        if priority_count >= cap:
             raise HTTPException(
                 status_code=409,
                 detail=f"Priority slots are full for {booking_data.pickup_date}. Choose a different date or remove priority."
@@ -1332,12 +1350,73 @@ async def _validate_pickup_request(booking_data: BookingCreate) -> datetime:
 
 
 # === Priority Pickup ====================================================
+# Default fees / cap. These are the *fallback* when the admin hasn't
+# overridden values in /admin/marketing/settings.
 PRIORITY_FEES = {
     "same_day": 75.0,
     "next_slot": 40.0,
     "emergency": 100.0,
 }
 MAX_PRIORITY_PER_DAY = 2
+CONSENT_VERSION = "2026-02-01"  # bump when terms/refund policy materially changes
+
+# Tiny in-process cache so high-traffic paths (BookingCreate, availability
+# endpoint) don't slam Mongo on every request. Refreshed on save.
+_PRIORITY_SETTINGS_CACHE: dict = {"fees": None, "cap": None}
+
+
+def _coerce_priority_fees(raw: dict | None) -> dict:
+    """Validate + normalize an admin-supplied priority_fees dict."""
+    out = dict(PRIORITY_FEES)
+    if not isinstance(raw, dict):
+        return out
+    for tier in ("same_day", "next_slot", "emergency"):
+        v = raw.get(tier)
+        try:
+            if v is not None:
+                fee = float(v)
+                if 0 <= fee <= 1000:
+                    out[tier] = fee
+        except (TypeError, ValueError):
+            continue
+    return out
+
+
+async def _get_priority_fees() -> dict:
+    cached = _PRIORITY_SETTINGS_CACHE.get("fees")
+    if cached is not None:
+        return cached
+    doc = await db.marketing_settings.find_one({"_id": "singleton"}, {"_id": 0})
+    fees = _coerce_priority_fees((doc or {}).get("priority_fees"))
+    _PRIORITY_SETTINGS_CACHE["fees"] = fees
+    return fees
+
+
+async def _get_priority_max_per_day() -> int:
+    cached = _PRIORITY_SETTINGS_CACHE.get("cap")
+    if cached is not None:
+        return cached
+    doc = await db.marketing_settings.find_one({"_id": "singleton"}, {"_id": 0})
+    raw = (doc or {}).get("priority_max_per_day", MAX_PRIORITY_PER_DAY)
+    try:
+        cap = int(raw)
+        cap = max(0, min(cap, 20))
+    except (TypeError, ValueError):
+        cap = MAX_PRIORITY_PER_DAY
+    _PRIORITY_SETTINGS_CACHE["cap"] = cap
+    return cap
+
+
+def _get_priority_fees_sync() -> dict:
+    """Synchronous accessor for code paths that already loaded fees, or
+    fall back to PRIORITY_FEES defaults. Safe to call from non-async helpers."""
+    cached = _PRIORITY_SETTINGS_CACHE.get("fees")
+    return cached if cached is not None else dict(PRIORITY_FEES)
+
+
+def _invalidate_priority_cache() -> None:
+    _PRIORITY_SETTINGS_CACHE["fees"] = None
+    _PRIORITY_SETTINGS_CACHE["cap"] = None
 
 
 async def _count_priority_bookings_for_date(date_str: str) -> int:
@@ -1347,6 +1426,15 @@ async def _count_priority_bookings_for_date(date_str: str) -> int:
         "priority_tier": {"$in": list(PRIORITY_FEES.keys())},
         "status": {"$nin": ["cancelled"]},
     })
+
+
+@api_router.get("/priority/config")
+async def get_priority_config():
+    """Public, date-agnostic priority pricing config. Used by booking UI
+    to render up-to-date fee amounts without doing a date lookup."""
+    fees = await _get_priority_fees()
+    cap = await _get_priority_max_per_day()
+    return {"fees": fees, "max_per_day": cap}
 
 
 @api_router.get("/priority/availability")
@@ -1361,8 +1449,10 @@ async def get_priority_availability(date: str):
     except ValueError:
         raise HTTPException(status_code=400, detail="date must be YYYY-MM-DD")
 
+    fees = await _get_priority_fees()
+    cap = await _get_priority_max_per_day()
     used = await _count_priority_bookings_for_date(date)
-    available = max(0, MAX_PRIORITY_PER_DAY - used)
+    available = max(0, cap - used)
 
     # If full, scan forward for the next date with capacity (max 14 days)
     next_available = None
@@ -1371,7 +1461,7 @@ async def get_priority_availability(date: str):
             candidate = target + timedelta(days=delta)
             if candidate.weekday() > 3:  # skip Fri/Sat/Sun
                 continue
-            if await _count_priority_bookings_for_date(candidate.isoformat()) < MAX_PRIORITY_PER_DAY:
+            if await _count_priority_bookings_for_date(candidate.isoformat()) < cap:
                 next_available = candidate.isoformat()
                 break
 
@@ -1379,20 +1469,40 @@ async def get_priority_availability(date: str):
         "date": date,
         "used": used,
         "available": available,
-        "max_per_day": MAX_PRIORITY_PER_DAY,
-        "fees": PRIORITY_FEES,
+        "max_per_day": cap,
+        "fees": fees,
         "next_available_date": next_available,
     }
 
 
-def _build_booking(booking_data: BookingCreate, pickup_datetime: datetime, quote_doc: dict, user_id: str) -> "Booking":
+def _capture_consent_metadata(request: Request) -> dict:
+    """Pull IP + User-Agent from the request for legal/dispute defense.
+    Respects X-Forwarded-For when behind a proxy (Kubernetes ingress)."""
+    fwd = request.headers.get("x-forwarded-for", "")
+    client_ip = fwd.split(",")[0].strip() if fwd else (request.client.host if request.client else None)
+    return {
+        "ip": client_ip,
+        "user_agent": request.headers.get("user-agent"),
+        "accepted_at": datetime.now(timezone.utc),
+    }
+
+
+def _build_booking(
+    booking_data: BookingCreate,
+    pickup_datetime: datetime,
+    quote_doc: dict,
+    user_id: str,
+    consent_meta: Optional[dict] = None,
+) -> "Booking":
     """Assemble the Booking object, including initial status based on approval rules."""
     booking_status = (
         "pending_customer_approval"
         if quote_doc.get("requires_approval", False)
         else "pending_payment"
     )
-    priority_fee = PRIORITY_FEES.get(booking_data.priority_tier, 0.0) if booking_data.priority_tier else 0.0
+    fees = _get_priority_fees_sync()
+    priority_fee = fees.get(booking_data.priority_tier, 0.0) if booking_data.priority_tier else 0.0
+    meta = consent_meta or {}
     return Booking(
         user_id=user_id,
         quote_id=booking_data.quote_id,
@@ -1408,6 +1518,11 @@ def _build_booking(booking_data: BookingCreate, pickup_datetime: datetime, quote
         status=booking_status,
         priority_tier=booking_data.priority_tier,
         priority_fee=priority_fee,
+        consent_accepted=booking_data.consent_accepted,
+        consent_accepted_at=meta.get("accepted_at"),
+        consent_ip=meta.get("ip"),
+        consent_user_agent=meta.get("user_agent"),
+        consent_version=CONSENT_VERSION,
     )
 
 
@@ -3783,6 +3898,9 @@ class MarketingSettings(BaseModel):
     reminder_enabled: bool = False
     reminder_hour: int = Field(10, ge=0, le=23)
     timezone: str = Field("UTC", max_length=64)
+    # Priority Pickup configuration (overrides hardcoded defaults)
+    priority_fees: Optional[Dict[str, float]] = None
+    priority_max_per_day: int = Field(MAX_PRIORITY_PER_DAY, ge=0, le=20)
 
 
 @api_router.post("/admin/marketing/share-event")
@@ -3825,31 +3943,37 @@ async def get_marketing_stats():
 
 @api_router.get("/admin/marketing/settings")
 async def get_marketing_settings():
-    """Get the current marketing settings (deal text + reminder)."""
+    """Get the current marketing settings (deal text + reminder + priority config)."""
     doc = await db.marketing_settings.find_one(
         {"_id": "singleton"}, {"_id": 0}
     )
     if not doc:
-        return MarketingSettings().dict()
+        return MarketingSettings(priority_fees=dict(PRIORITY_FEES)).dict()
     # Strip any leftover Mongo fields and ensure defaults
     return {
         "deal_text": doc.get("deal_text", ""),
         "deal_active": bool(doc.get("deal_active", False)),
         "reminder_enabled": bool(doc.get("reminder_enabled", False)),
         "reminder_hour": int(doc.get("reminder_hour", 10)),
-        "timezone": doc.get("timezone") or "UTC"
+        "timezone": doc.get("timezone") or "UTC",
+        "priority_fees": _coerce_priority_fees(doc.get("priority_fees")),
+        "priority_max_per_day": int(doc.get("priority_max_per_day", MAX_PRIORITY_PER_DAY)),
     }
 
 
 @api_router.post("/admin/marketing/settings")
 async def save_marketing_settings(settings: MarketingSettings):
-    """Save marketing settings (upsert singleton)."""
+    """Save marketing settings (upsert singleton). Invalidates priority cache."""
+    payload = settings.dict()
+    # Normalize fees so saved doc reflects validated values
+    payload["priority_fees"] = _coerce_priority_fees(payload.get("priority_fees"))
     await db.marketing_settings.update_one(
         {"_id": "singleton"},
-        {"$set": settings.dict()},
+        {"$set": payload},
         upsert=True
     )
-    return {"success": True, **settings.dict()}
+    _invalidate_priority_cache()
+    return {"success": True, **payload}
 
 
 # ===================== Web Push (Service Worker) =====================

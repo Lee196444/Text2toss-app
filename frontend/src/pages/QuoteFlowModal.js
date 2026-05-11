@@ -6,6 +6,7 @@ import { Textarea } from "../components/ui/textarea";
 import { Badge } from "../components/ui/badge";
 import AddToHomeScreenPrompt from "../components/customer/AddToHomeScreenPrompt";
 import PriorityPicker, { PRIORITY_TIERS } from "../components/customer/PriorityPicker";
+import usePriorityConfig from "../hooks/usePriorityConfig";
 
 /**
  * 3-step quote flow modal: Upload → Quote → (booking opens externally).
@@ -295,9 +296,11 @@ function UploadStep({
 }
 
 function QuoteStep({ quote, onContinueToBooking, onCloseAfterQuote, priorityTier, onPriorityChange }) {
-  const priorityFee = PRIORITY_TIERS.find(t => t.id === priorityTier)?.fee || 0;
-  const priorityLabel = PRIORITY_TIERS.find(t => t.id === priorityTier)?.title || "";
-  const priorityIcon = PRIORITY_TIERS.find(t => t.id === priorityTier)?.icon || "";
+  const { fees: priorityFees } = usePriorityConfig();
+  const tierMeta = PRIORITY_TIERS.find(t => t.id === priorityTier);
+  const priorityFee = priorityTier ? (priorityFees?.[priorityTier] ?? tierMeta?.fee ?? 0) : 0;
+  const priorityLabel = tierMeta?.title || "";
+  const priorityIcon = tierMeta?.icon || "";
   const totalWithPriority = (quote.total_price || 0) + priorityFee;
   return (
     <>

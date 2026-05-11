@@ -15,6 +15,15 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Test creds: `lrobe` / `L1964c10$` (see `/app/memory/test_credentials.md`)
 
 ## Implemented (Apr 26, 2026)
+- ✅ **FEATURE (Feb 11): P1 + P2 Backlog Sweep**
+  - **Admin-configurable Priority Pickup fees (P1):** `MarketingSettings` model now persists `priority_fees` + `priority_max_per_day`. New public endpoint `GET /api/priority/config` and updated `GET /api/priority/availability` read from DB with in-memory cache (invalidated on save). New admin UI "🔥 Priority Pickup Pricing" panel inside the Marketing modal lets the admin change Same-Day / Next / Emergency surcharges + daily cap without redeploy. Frontend hook `usePriorityConfig()` propagates live fees to `PriorityPicker`, `BookingModal`, `QuoteFlowModal`, Venmo deep link, and confirmation email (which already used the stored `priority_fee`).
+  - **Global 401 interceptor (P1):** `AdminDashboard.js` registers an `axios.interceptors.response` for the local admin axios instance — on any `/admin/*` 401, surfaces a single "Session expired" alert and calls `onLogout()` to route back to the login screen. De-duped via window flag.
+  - **Consent stamping (P2):** `POST /api/bookings` now requires `consent_accepted: true` (returns 400 otherwise) and stamps `consent_ip` (X-Forwarded-For aware), `consent_user_agent`, `consent_accepted_at`, and `consent_version="2026-02-01"` onto every booking — defense against Stripe/Venmo disputes.
+  - **EXIF auto-rotation (P2):** `_compress_image_for_ai` now calls `ImageOps.exif_transpose()` so sideways iPhone/Samsung photos are upright before Gemini sees them.
+  - **Business-hours "ONLINE" dot (P2):** New `useBusinessHours()` hook evaluates Mon–Thu 7 AM–6 PM Arizona time (fixed UTC-7, no DST) and re-ticks every minute. Mobile nav dot is lime+pulsing when open, gray "CLOSED" outside hours.
+  - **Tests:** Updated 4 pytest payloads to send `consent_accepted: True`; all 7 booking-flow tests pass. Remaining test failures are pre-existing (object-storage path changes, unrelated to this work).
+
+## Implemented (Apr 26, 2026 — earlier)
 - ✅ **BUGFIX (May 2): Completed jobs from yesterday missing from Completed bin**
   - **Root cause:** The Completed bin was built by filtering `dailyBookings`, which is sourced from `/api/admin/daily-schedule?date={selectedDate}`. Only the selected date's bookings are loaded, so anything completed yesterday (or earlier) silently disappeared from the Completed bin on today's dashboard.
   - **Fix (backend):** New endpoint `GET /api/admin/recent-completed?days=7` — returns all completed bookings across a rolling N-day window (default 7, capped 1-90) with quote_details attached. Sorted by pickup_date desc.
