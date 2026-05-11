@@ -5,7 +5,7 @@ import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Badge } from "../components/ui/badge";
 import AddToHomeScreenPrompt from "../components/customer/AddToHomeScreenPrompt";
-import PriorityPicker from "../components/customer/PriorityPicker";
+import PriorityPicker, { PRIORITY_TIERS } from "../components/customer/PriorityPicker";
 
 /**
  * 3-step quote flow modal: Upload → Quote → (booking opens externally).
@@ -295,6 +295,8 @@ function UploadStep({
 }
 
 function QuoteStep({ quote, onContinueToBooking, onCloseAfterQuote, priorityTier, onPriorityChange }) {
+  const priorityFee = PRIORITY_TIERS.find(t => t.id === priorityTier)?.fee || 0;
+  const totalWithPriority = (quote.total_price || 0) + priorityFee;
   return (
     <>
       <CardHeader className="text-center pb-2 pt-6 bg-emerald-50 border-b border-emerald-100">
@@ -308,8 +310,14 @@ function QuoteStep({ quote, onContinueToBooking, onCloseAfterQuote, priorityTier
         <p className="text-sm font-bold text-emerald-700 mb-2" data-testid="quote-success-msg">
           Quote submitted successfully!
         </p>
-        <div className="text-5xl font-black text-emerald-700 mb-1">${quote.total_price}</div>
-        <CardDescription className="text-sm font-medium text-emerald-600">Your instant quote</CardDescription>
+        <div className="text-5xl font-black text-emerald-700 mb-1" data-testid="quote-total-price">${totalWithPriority}</div>
+        <CardDescription className="text-sm font-medium text-emerald-600">
+          {priorityFee > 0 ? (
+            <>Quote ${quote.total_price} + <span className="font-bold">${priorityFee}</span> priority</>
+          ) : (
+            <>Your instant quote</>
+          )}
+        </CardDescription>
         <div className="mt-2">
           <Badge variant="outline" className="border-emerald-200 text-emerald-600 text-xs">
             Quote #{quote.id?.substring(0, 8)}
