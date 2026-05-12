@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import axios from "axios";
+import axiosBase from "axios";
 import Cropper from "react-easy-crop";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
@@ -7,6 +7,10 @@ import { toast } from "../../lib/toast";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+
+// Admin endpoints require the httpOnly admin_session cookie — use a
+// credentialed instance instead of polluting axios.defaults.
+const axios = axiosBase.create({ withCredentials: true });
 
 const SlotCard = ({
   index, photo,

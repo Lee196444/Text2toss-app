@@ -61,16 +61,38 @@ const axios = axiosBase.create({ withCredentials: true });
 const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || ""; // Set this in .env file
 
 const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
-  // ----- Global 401 interceptor: surface session expiration once, then
+  // ----- Global 401 interceptor: surface a true session expiry once, then
   // hand control back to the parent which routes to /admin/login.
+  //
+  // Guards against false-positives:
+  //   1. Skip /admin/login itself (wrong-password 401 != expired session)
+  //   2. Require at least one prior successful admin call (rules out the
+  //      cold-start race where a stray non-credentialed admin axios call
+  //      fires before login finishes)
+  //   3. 3-second grace window after mount to let cookies settle
   React.useEffect(() => {
-    const interceptorId = axios.interceptors.response.use(
+    const mountedAt = Date.now();
+    const state = { hadSuccess: false };
+
+    const successId = axios.interceptors.response.use(
+      (res) => {
+        const url = res?.config?.url || "";
+        if (url.includes("/admin/") && !url.includes("/admin/login")) {
+          state.hadSuccess = true;
+        }
+        return res;
+      },
+      (err) => Promise.reject(err)
+    );
+
+    const errorId = axios.interceptors.response.use(
       (res) => res,
       (error) => {
         const status = error?.response?.status;
         const url = error?.config?.url || "";
-        // Only handle admin-scoped 401s — leave public/customer 401s to their callers
-        if (status === 401 && url.includes("/admin/")) {
+        const isAdminUrl = url.includes("/admin/") && !url.includes("/admin/login");
+        const gracePeriodOver = Date.now() - mountedAt > 3000;
+        if (status === 401 && isAdminUrl && gracePeriodOver && state.hadSuccess) {
           if (!window.__t2t_session_expired_shown) {
             window.__t2t_session_expired_shown = true;
             try {
@@ -78,7 +100,6 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
             } catch (e) {
               /* noop — running in a non-window env */
             }
-            // Reset flag after a tick so a fresh expiry can re-trigger later
             setTimeout(() => { window.__t2t_session_expired_shown = false; }, 1500);
           }
           if (typeof onLogout === "function") onLogout();
@@ -86,7 +107,10 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
         return Promise.reject(error);
       }
     );
-    return () => { axios.interceptors.response.eject(interceptorId); };
+    return () => {
+      axios.interceptors.response.eject(successId);
+      axios.interceptors.response.eject(errorId);
+    };
   }, [onLogout]);
 
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
