@@ -2807,13 +2807,21 @@ def _build_quote_rejection_email_html(approval_action, customer_name: str) -> st
 
 @api_router.get("/admin/quote-approval-stats")
 async def get_quote_approval_stats():
-    """Get statistics for quote approval system"""
+    """Get statistics for quote approval system.
+    Note: ``auto_approved`` excludes dismissed quotes so the dashboard badge
+    matches the visible list (otherwise Clear-All leaves the badge stale)."""
     try:
         # Count quotes by approval status
         pending_count = await db.quotes.count_documents({"approval_status": "pending_approval"})
         approved_count = await db.quotes.count_documents({"approval_status": "approved"})
         rejected_count = await db.quotes.count_documents({"approval_status": "rejected"})
-        auto_approved_count = await db.quotes.count_documents({"approval_status": "auto_approved"})
+        auto_approved_count = await db.quotes.count_documents({
+            "approval_status": "auto_approved",
+            "$or": [
+                {"dismissed_at": {"$exists": False}},
+                {"dismissed_at": None},
+            ],
+        })
         
         return {
             "pending_approval": pending_count,
