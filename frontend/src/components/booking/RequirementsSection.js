@@ -36,7 +36,7 @@ function CustomCheckbox({ checked, color = "emerald" }) {
 /** Curbside confirmation, email-notifications opt-in, and free-form instructions. */
 export default function RequirementsSection({ bookingData, setBookingData, fieldErrors, setFieldErrors }) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <div className="flex items-center gap-2 pb-2 border-b-2 border-emerald-500">
         <span className="text-2xl">✓</span>
         <h3 className="text-xl font-bold text-gray-800">Requirements</h3>

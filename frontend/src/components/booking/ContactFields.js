@@ -16,7 +16,7 @@ export default function ContactFields({ bookingData, setBookingData, fieldErrors
         <h3 className="text-xl font-bold text-gray-800">Contact Details</h3>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid md:grid-cols-2 gap-5 md:gap-4">
         {/* Address */}
         <div className="space-y-2 md:col-span-2">
           <Label className="text-base font-semibold text-gray-700">

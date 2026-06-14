@@ -239,7 +239,7 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
 
         {/* Body — takes all remaining vertical space */}
         <div className="overflow-y-auto flex-1 min-h-0">
-          <CardContent className="p-4 sm:p-6 space-y-5">
+          <CardContent className="p-4 sm:p-6 space-y-6 sm:space-y-7">
             {quote.requires_approval && (
               <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-400 rounded-lg p-4 shadow-sm">
                 <div className="flex items-start gap-3">
