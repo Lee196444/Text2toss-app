@@ -70,7 +70,8 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
   const priorityFeeAmount = priorityTier
     ? (priorityFees?.[priorityTier] ?? PRIORITY_TIERS.find(t => t.id === priorityTier)?.fee ?? 0)
     : 0;
-  const totalWithPriority = (quote.total_price || 0) + priorityFeeAmount;
+  const equipmentFeeAmount = quote.equipment_required ? (quote.equipment_fee || 0) : 0;
+  const totalWithPriority = (quote.total_price || 0) + priorityFeeAmount + equipmentFeeAmount;
 
   const checkAvailableTimeSlots = async (selectedDate) => {
     if (!selectedDate || !isDateAllowed(selectedDate)) {
@@ -225,9 +226,11 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
           <div className="relative px-4 py-3 flex items-center justify-between gap-3 text-white">
             <div className="min-w-0">
               <p className="text-[10px] font-display italic uppercase tracking-widest text-lime-400 leading-none mb-1">Complete Your Booking</p>
-              {priorityTier && (
+              {(priorityTier || equipmentFeeAmount > 0) && (
                 <p className="text-[10px] text-gray-400 truncate">
-                  +${priorityFeeAmount} priority surcharge
+                  {priorityTier && <>+${priorityFeeAmount} priority</>}
+                  {priorityTier && equipmentFeeAmount > 0 && " · "}
+                  {equipmentFeeAmount > 0 && <>+${equipmentFeeAmount} equipment</>}
                 </p>
               )}
             </div>

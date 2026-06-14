@@ -50,7 +50,9 @@ def booking_confirmation_email(booking_data: dict, quote_data: dict) -> str:
     priority_tier = booking_data.get("priority_tier")
     priority_fee = float(booking_data.get("priority_fee") or 0)
     priority_label, _expected_fee = PRIORITY_LABELS.get(priority_tier, ("", 0))
-    total_amount = float(base_amount) + priority_fee
+    equipment_fee = float(booking_data.get("equipment_fee") or 0)
+    equipment_required = bool(booking_data.get("equipment_required"))
+    total_amount = float(base_amount) + priority_fee + equipment_fee
     address = booking_data.get("address", "Not provided")
     time_window = booking_data.get("pickup_time", "TBD")
 
@@ -61,6 +63,15 @@ def booking_confirmation_email(booking_data: dict, quote_data: dict) -> str:
             f'<div class="detail-row" style="background:#f7fee7;">'
             f'<span class="detail-label" style="color:#3f6212;">{priority_label} (non-refundable)</span>'
             f'<span class="detail-value" style="color:#3f6212;font-weight:bold;">+${priority_fee:.0f}</span>'
+            f'</div>'
+        )
+    # Heavy-material equipment line item
+    equipment_row = ""
+    if equipment_required and equipment_fee > 0:
+        equipment_row = (
+            f'<div class="detail-row" style="background:#fef3c7;">'
+            f'<span class="detail-label" style="color:#78350f;">🚜 Heavy-pile equipment</span>'
+            f'<span class="detail-value" style="color:#78350f;font-weight:bold;">+${equipment_fee:.0f}</span>'
             f'</div>'
         )
     base_row = (
@@ -97,6 +108,7 @@ def booking_confirmation_email(booking_data: dict, quote_data: dict) -> str:
                     <div class="detail-row"><span class="detail-label">Address:</span><span class="detail-value">{address}</span></div>
                     {base_row}
                     {priority_row}
+                    {equipment_row}
                     <div class="detail-row" style="border-top:2px solid #10b981;padding-top:14px;margin-top:6px;"><span class="detail-label" style="color:#111827;font-size:14px;">Total Amount:</span><span class="detail-value" style="font-size: 22px; font-weight: bold; color: #10b981;">${total_amount:.0f}</span></div>
                 </div>
                 <h3 style="color: #10b981; margin-top: 30px;">📱 Payment Required</h3>

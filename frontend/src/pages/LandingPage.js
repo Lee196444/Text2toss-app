@@ -707,6 +707,7 @@ const LandingPage = () => {
           onCloseAfterQuote={() => { setShowQuote(false); setQuoteStep(1); setQuote(null); handleClearImages(); setImageDescription(''); setPriorityTier(null); }}
           priorityTier={priorityTier}
           onPriorityChange={setPriorityTier}
+          onQuoteUpdate={setQuote}
         />
       )}
 

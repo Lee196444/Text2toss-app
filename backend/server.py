@@ -340,6 +340,14 @@ class PriceQuote(BaseModel):
     approved_price: Optional[float] = None  # Admin can adjust price
     approved_by: Optional[str] = None  # Admin who approved/rejected
     approved_at: Optional[datetime] = None  # When approved/rejected
+    # === Heavy-pile equipment add-on ===
+    # `heavy_pile` is true only when the photo is dominantly (≥70% of visual
+    # area) a pile of one heavy material — dirt, sandbags, concrete, rock,
+    # gravel, wood chips, mulch, or fill. Mixed junk photos stay false.
+    heavy_pile: bool = False
+    heavy_material_type: Optional[str] = None
+    equipment_fee: float = 0.0
+    equipment_required: bool = False
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class PriceQuoteCreate(BaseModel):
@@ -391,6 +399,8 @@ class Booking(BaseModel):
     # --- Priority Pickup ---
     priority_tier: Optional[str] = None  # None | "same_day" | "next_slot" | "emergency"
     priority_fee: float = 0.0            # Non-refundable surcharge added on top of quote
+    equipment_required: bool = False     # Heavy-pile add-on opted in at quote time
+    equipment_fee: float = 0.0           # Locked-in fee carried from quote
     # --- Legal consent (defense against payment disputes) ---
     consent_accepted: bool = False
     consent_accepted_at: Optional[datetime] = None
@@ -906,9 +916,17 @@ def _build_vision_prompt(description: str, num_images: int = 1) -> str:
         " • Do not vary by mood, lighting interpretation, or 'best-guess swings'.\n"
         " • If unsure between two scales, ALWAYS pick the lower one.\n"
         " • cubic_feet must be a whole number.\n\n"
+        "HEAVY-PILE DETECTION (separate from pricing):\n"
+        ' Set "heavy_pile": true ONLY when ≥70% of the visual area of the photo(s) is\n'
+        " ONE pile of heavy bulk material: dirt, sandbags, concrete chunks/rubble, rock,\n"
+        " gravel, wood chips, mulch, or fill dirt. Mixed-junk photos (couch + boxes +\n"
+        " some debris) must stay false. Single bagged item ≠ pile.\n"
+        ' Set "heavy_material_type" to a short label like "dirt", "sandbags+concrete",\n'
+        ' or "wood chips". Use null/empty when heavy_pile is false.\n\n'
         'JSON only:\n'
         '{"items":[{"name":"item","quantity":1,"size":"small/medium/large","description":"brief"}],'
         '"total_price":150.00,"scale_level":5,"cubic_feet":62,'
+        '"heavy_pile":false,"heavy_material_type":null,'
         '"breakdown":{"base_price":"140.00","volume_assessment":"Medium load",'
         '"items":[{"name":"Table","size":"large","estimated_cost":80.00}],'
         '"factors":["Ground level"],"additional_charges":10.00,"total":150.00},'
@@ -985,6 +1003,12 @@ def _parse_ai_quote_response(response_text: str):
             breakdown["cubic_feet"] = float(cubic_feet)
         except (TypeError, ValueError):
             pass
+    # Heavy-pile flag — only true when ≥70% of the photo is dirt/sandbags/etc.
+    # Stored on breakdown so the 5-tuple signature stays stable.
+    if "heavy_pile" not in breakdown:
+        breakdown["heavy_pile"] = bool(analysis_data.get("heavy_pile", False))
+    if "heavy_material_type" not in breakdown:
+        breakdown["heavy_material_type"] = analysis_data.get("heavy_material_type") or None
     return items, total_price, explanation, scale_level, breakdown
 
 
@@ -1276,6 +1300,9 @@ async def _save_images_permanently(files: List[UploadFile]) -> tuple[List[str], 
 def _build_quote_record(items, total_price, scale_level, breakdown, ai_explanation, description, file_path) -> PriceQuote:
     """Assemble the PriceQuote — including the requires_approval threshold (>=9)."""
     requires_approval = scale_level is not None and scale_level >= 9
+    # Heavy-pile flags are smuggled in via breakdown by _parse_ai_quote_response.
+    heavy_pile = bool((breakdown or {}).get("heavy_pile"))
+    heavy_material_type = (breakdown or {}).get("heavy_material_type") or None
     return PriceQuote(
         user_id="anonymous",
         items=items,
@@ -1287,6 +1314,8 @@ def _build_quote_record(items, total_price, scale_level, breakdown, ai_explanati
         temp_image_path=str(file_path),
         requires_approval=requires_approval,
         approval_status="pending_approval" if requires_approval else "auto_approved",
+        heavy_pile=heavy_pile,
+        heavy_material_type=heavy_material_type,
     )
 
 @api_router.get("/quotes/{quote_id}", response_model=PriceQuote)
@@ -1297,6 +1326,50 @@ async def get_quote(quote_id: str):
     
     quote_doc = parse_from_mongo(quote_doc)
     return PriceQuote(**quote_doc)
+
+
+# Flat fee applied when the customer confirms a heavy pile needs equipment
+# (skid steer / dolly / ramps). Hardcoded per pricing decision.
+EQUIPMENT_FEE = 150.0
+
+
+class EquipmentToggleRequest(BaseModel):
+    equipment_required: bool
+
+
+@api_router.patch("/quotes/{quote_id}/equipment")
+async def set_quote_equipment(quote_id: str, body: EquipmentToggleRequest):
+    """Toggle the heavy-material equipment add-on on a quote.
+
+    Only callable on quotes flagged `heavy_pile=true` by the AI vision pass.
+    Adds (or removes) a flat $150 to the displayed total. The base
+    `total_price` from the AI stays untouched — the surcharge is tracked
+    separately so it can be itemized in emails / receipts.
+    """
+    quote_doc = await db.quotes.find_one({"id": quote_id}, {"_id": 0})
+    if not quote_doc:
+        raise HTTPException(status_code=404, detail="Quote not found")
+    if not quote_doc.get("heavy_pile"):
+        raise HTTPException(
+            status_code=400,
+            detail="This quote was not flagged as a heavy pile. Equipment toggle not applicable."
+        )
+
+    fee = EQUIPMENT_FEE if body.equipment_required else 0.0
+    await db.quotes.update_one(
+        {"id": quote_id},
+        {"$set": {
+            "equipment_required": body.equipment_required,
+            "equipment_fee": fee,
+        }}
+    )
+    return {
+        "success": True,
+        "equipment_required": body.equipment_required,
+        "equipment_fee": fee,
+        "base_total": quote_doc.get("total_price", 0),
+        "combined_total": (quote_doc.get("total_price", 0) or 0) + fee,
+    }
 
 def _build_admin_booking_notification(booking, quote_doc, requires_approval):
     """Build the admin notification HTML email for a new booking."""
@@ -1603,6 +1676,9 @@ def _build_booking(
     payment_method = "cash" if booking_data.pay_in_person else "venmo"
     fees = _get_priority_fees_sync()
     priority_fee = fees.get(booking_data.priority_tier, 0.0) if booking_data.priority_tier else 0.0
+    # Carry the equipment add-on (set by the customer on the quote screen) onto the booking.
+    equipment_required = bool(quote_doc.get("equipment_required"))
+    equipment_fee = float(quote_doc.get("equipment_fee") or 0.0)
     meta = consent_meta or {}
     return Booking(
         user_id=user_id,
@@ -1620,6 +1696,8 @@ def _build_booking(
         payment_method=payment_method,
         priority_tier=booking_data.priority_tier,
         priority_fee=priority_fee,
+        equipment_required=equipment_required,
+        equipment_fee=equipment_fee,
         consent_accepted=booking_data.consent_accepted,
         consent_accepted_at=meta.get("accepted_at"),
         consent_ip=meta.get("ip"),

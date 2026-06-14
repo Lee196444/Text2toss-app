@@ -6,6 +6,7 @@ import { Textarea } from "../components/ui/textarea";
 import { Badge } from "../components/ui/badge";
 import AddToHomeScreenPrompt from "../components/customer/AddToHomeScreenPrompt";
 import PriorityPicker, { PRIORITY_TIERS } from "../components/customer/PriorityPicker";
+import HeavyPileEquipmentModal from "../components/customer/HeavyPileEquipmentModal";
 import usePriorityConfig from "../hooks/usePriorityConfig";
 
 /**
@@ -34,7 +35,28 @@ export default function QuoteFlowModal({
   onCloseAfterQuote, // close from step 2 (e.g., "Close")
   priorityTier,
   onPriorityChange,
+  // Optional: parent-provided handler to mutate the quote object after the
+  // heavy-pile modal returns (e.g., so booking sees equipment_fee). If not
+  // supplied, we mutate the prop in-place which is safe for read-only fields.
+  onQuoteUpdate,
 }) {
+  // Track whether the customer has already responded to the heavy-pile prompt
+  // for this specific quote.id so we don't re-ask on re-renders.
+  const [heavyPileAnsweredFor, setHeavyPileAnsweredFor] = React.useState(null);
+  const showHeavyPilePrompt =
+    quoteStep === 2 &&
+    quote?.heavy_pile === true &&
+    !quote?.equipment_required &&
+    heavyPileAnsweredFor !== quote?.id;
+
+  const handleHeavyPileDone = React.useCallback((updatedQuote) => {
+    setHeavyPileAnsweredFor(updatedQuote.id);
+    if (typeof onQuoteUpdate === "function") onQuoteUpdate(updatedQuote);
+  }, [onQuoteUpdate]);
+
+  const handleHeavyPileSkip = React.useCallback(() => {
+    setHeavyPileAnsweredFor(quote?.id || null);
+  }, [quote?.id]);
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-stretch sm:items-center justify-center sm:p-4">
       <Card className="w-full max-w-lg h-screen sm:h-auto sm:max-h-[95vh] sm:my-0 shadow-2xl border-0 overflow-y-auto rounded-none sm:rounded-2xl">
@@ -81,6 +103,14 @@ export default function QuoteFlowModal({
           />
         )}
       </Card>
+
+      {showHeavyPilePrompt && (
+        <HeavyPileEquipmentModal
+          quote={quote}
+          onDone={handleHeavyPileDone}
+          onSkip={handleHeavyPileSkip}
+        />
+      )}
     </div>
   );
 }
@@ -312,7 +342,10 @@ function QuoteStep({ quote, onContinueToBooking, onCloseAfterQuote, priorityTier
   const priorityFee = priorityTier ? (priorityFees?.[priorityTier] ?? tierMeta?.fee ?? 0) : 0;
   const priorityLabel = tierMeta?.title || "";
   const priorityIcon = tierMeta?.icon || "";
-  const totalWithPriority = (quote.total_price || 0) + priorityFee;
+  const equipmentFee = quote.equipment_required ? (quote.equipment_fee || 0) : 0;
+  const baseTotal = quote.total_price || 0;
+  const totalWithPriority = baseTotal + priorityFee + equipmentFee;
+  const hasAddons = priorityFee > 0 || equipmentFee > 0;
   return (
     <>
       <CardHeader className="text-center pb-3 pt-6 bg-black border-b border-lime-400/30 relative overflow-hidden">
@@ -331,7 +364,7 @@ function QuoteStep({ quote, onContinueToBooking, onCloseAfterQuote, priorityTier
           </p>
           <div className="font-display italic text-6xl text-white mb-1 leading-none" data-testid="quote-total-price">${totalWithPriority}</div>
           <CardDescription className="text-xs uppercase tracking-wider text-gray-400 mt-2">
-            {priorityFee > 0 ? <>Total with priority pickup</> : <>Your instant AI quote</>}
+            {hasAddons ? <>Total with add-ons</> : <>Your instant AI quote</>}
           </CardDescription>
           <div className="mt-3">
             <span className="inline-block border border-lime-400/40 text-lime-400 text-[10px] font-display italic uppercase tracking-wider px-3 py-1 rounded-full bg-lime-400/5">
@@ -345,8 +378,8 @@ function QuoteStep({ quote, onContinueToBooking, onCloseAfterQuote, priorityTier
       </CardHeader>
 
       <CardContent className="space-y-4 pt-5 px-5 sm:px-6 bg-gray-50">
-        {/* === Price breakdown (always shown when priority selected) === */}
-        {priorityFee > 0 && (
+        {/* === Price breakdown (shown when priority and/or equipment add-on is applied) === */}
+        {hasAddons && (
           <div
             className="rounded-xl border-2 border-black overflow-hidden shadow-sm"
             data-testid="price-breakdown-card"
@@ -359,16 +392,30 @@ function QuoteStep({ quote, onContinueToBooking, onCloseAfterQuote, priorityTier
                 <span className="text-sm text-gray-700">Base junk-removal quote</span>
                 <span className="text-sm font-bold text-gray-900">${quote.total_price}</span>
               </div>
-              <div className="flex justify-between items-center px-4 py-2.5 bg-lime-400/10">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-base">{priorityIcon}</span>
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-black">+ {priorityLabel}</p>
-                    <p className="text-[10px] text-gray-600 leading-tight">Priority pickup · non-refundable</p>
+              {priorityFee > 0 && (
+                <div className="flex justify-between items-center px-4 py-2.5 bg-lime-400/10">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-base">{priorityIcon}</span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-black">+ {priorityLabel}</p>
+                      <p className="text-[10px] text-gray-600 leading-tight">Priority pickup · non-refundable</p>
+                    </div>
                   </div>
+                  <span className="text-sm font-bold text-black">+${priorityFee}</span>
                 </div>
-                <span className="text-sm font-bold text-black">+${priorityFee}</span>
-              </div>
+              )}
+              {equipmentFee > 0 && (
+                <div className="flex justify-between items-center px-4 py-2.5 bg-amber-50" data-testid="equipment-line-item">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-base">🚜</span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-black">+ Heavy-pile equipment</p>
+                      <p className="text-[10px] text-gray-600 leading-tight">Dolly / ramp / skid steer to load</p>
+                    </div>
+                  </div>
+                  <span className="text-sm font-bold text-black">+${equipmentFee}</span>
+                </div>
+              )}
               <div className="flex justify-between items-center px-4 py-3 bg-black">
                 <span className="font-display italic text-base text-lime-400 uppercase tracking-wider">Total</span>
                 <span className="font-display italic text-2xl text-lime-400">${totalWithPriority}</span>
