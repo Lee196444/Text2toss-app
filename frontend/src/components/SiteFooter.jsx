@@ -12,7 +12,7 @@ const SiteFooter = ({ variant = "light" }) => {
     : "bg-gray-900 border-t-2 border-lime-400/20 text-white/80";
 
   return (
-    <footer className={`${wrap} py-8`} data-testid="site-footer">
+    <footer className={`${wrap} pt-8 pb-24 sm:pb-12`} data-testid="site-footer">
       <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <img src="/apple-touch-icon.png?v=8" alt="Text2toss" className="w-8 h-8 rounded-md" />
