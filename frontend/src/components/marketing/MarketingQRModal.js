@@ -245,6 +245,16 @@ const MarketingQRModal = ({ open, onClose }) => {
     }
   };
 
+  const clearQuoteCache = async () => {
+    try {
+      const { data } = await axios.post(`${API}/admin/quote-cache/clear`);
+      toast.success(`Cleared ${data.deleted} cached quote${data.deleted === 1 ? "" : "s"}`);
+    } catch (err) {
+      logger.error("Failed to clear quote cache", err);
+      toast.error("Could not clear quote cache");
+    }
+  };
+
   const onReminderToggle = async (enabled) => {
     if (enabled) {
       const ok = await ensureNotificationPermission();
@@ -318,7 +328,7 @@ const MarketingQRModal = ({ open, onClose }) => {
                   </Button>
                 </div>
                 <p className="mt-3 text-[11px] text-emerald-900/70">
-                  Tip: on phones, "Share Post" opens your native share sheet so you can post directly to Instagram Stories, Reels, Messages, or any installed app.
+                  Tip: on phones, &ldquo;Share Post&rdquo; opens your native share sheet so you can post directly to Instagram Stories, Reels, Messages, or any installed app.
                 </p>
               </div>
 
@@ -332,6 +342,7 @@ const MarketingQRModal = ({ open, onClose }) => {
                 onSendTestPush={sendTestPush}
                 onResubscribe={resubscribeDevice}
                 onSave={saveSettings}
+                onClearQuoteCache={clearQuoteCache}
               />
             </div>
 
@@ -344,7 +355,7 @@ const MarketingQRModal = ({ open, onClose }) => {
                 <li className="flex items-start gap-2"><span className="font-bold">1.</span><span><strong>Download</strong> the QR code using the button below</span></li>
                 <li className="flex items-start gap-2"><span className="font-bold">2.</span><span><strong>Print</strong> on business cards, flyers, yard signs, or vehicle magnets</span></li>
                 <li className="flex items-start gap-2"><span className="font-bold">3.</span><span><strong>Share</strong> on social media, email signatures, or your website</span></li>
-                <li className="flex items-start gap-2"><span className="font-bold">4.</span><span>When customers <strong>scan with their phone camera</strong>, they'll instantly access your quote page!</span></li>
+                <li className="flex items-start gap-2"><span className="font-bold">4.</span><span>When customers <strong>scan with their phone camera</strong>, they&apos;ll instantly access your quote page!</span></li>
               </ul>
             </div>
 

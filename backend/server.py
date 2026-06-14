@@ -2930,6 +2930,22 @@ async def get_quote_approval_stats():
         logger.error(f"Error fetching approval stats: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to fetch approval statistics")
 
+
+@api_router.post("/admin/quote-cache/clear")
+async def clear_quote_cache():
+    """One-shot admin tool: wipe the entire image-quote cache.
+    Useful after upgrading the AI prompt/model so stale (inconsistent)
+    cached quotes don't keep haunting customers who re-upload."""
+    before = await db.image_cache.count_documents({})
+    result = await db.image_cache.delete_many({})
+    logger.info(f"Admin cleared quote cache: deleted {result.deleted_count} entries (was {before})")
+    return {
+        "success": True,
+        "deleted": result.deleted_count,
+        "previous_count": before,
+    }
+
+
 @api_router.post("/admin/login")
 async def admin_login(login_data: AdminLogin):
     """Secure admin username/password authentication — sets httpOnly cookie"""

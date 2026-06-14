@@ -15,6 +15,7 @@ export default function MarketingPanel({
   onSendTestPush,
   onResubscribe,
   onSave,
+  onClearQuoteCache,
 }) {
   return (
     <div className="w-full mt-6 bg-gradient-to-br from-purple-50 to-fuchsia-50 rounded-xl border border-purple-200 p-5">
@@ -42,7 +43,7 @@ export default function MarketingPanel({
       <div className="bg-white rounded-lg p-4 border border-purple-100 mb-3">
         <div className="flex items-center justify-between mb-2">
           <Label htmlFor="deal-text" className="text-sm font-semibold text-purple-900">
-            🔥 Today's Deal (added to caption)
+            🔥 Today&apos;s Deal (added to caption)
           </Label>
           <label className="inline-flex items-center gap-2 cursor-pointer">
             <input
@@ -122,6 +123,8 @@ export default function MarketingPanel({
 
       <PriorityPricingPanel settings={settings} setSettings={setSettings} />
 
+      <QuoteCacheTools onClearQuoteCache={onClearQuoteCache} />
+
       <Button
         onClick={onSave}
         disabled={saving}
@@ -129,6 +132,43 @@ export default function MarketingPanel({
         className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-4 shadow-md"
       >
         {saving ? "Saving…" : "💾 Save Marketing Settings"}
+      </Button>
+    </div>
+  );
+}
+
+function QuoteCacheTools({ onClearQuoteCache }) {
+  const [busy, setBusy] = React.useState(false);
+  const handleClick = async () => {
+    if (typeof onClearQuoteCache !== "function") return;
+    if (!window.confirm(
+      "Clear ALL cached quote analyses?\n\nThis is safe — customers' bookings, quotes, and history are NOT affected. " +
+      "Only the AI vision cache is wiped, so the next photo upload triggers a fresh AI analysis. " +
+      "Use this after a pricing rule or AI prompt change."
+    )) return;
+    setBusy(true);
+    try {
+      await onClearQuoteCache();
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="bg-white rounded-lg p-4 border border-purple-100 mb-3" data-testid="quote-cache-tools">
+      <div className="mb-2">
+        <span className="text-sm font-semibold text-purple-900">🧹 Quote Cache</span>
+        <p className="text-[11px] text-purple-700/80 mt-1">
+          Wipe the AI vision cache. Bookings & customer history are not touched.
+          Use after changing the prompt or pricing rules so stale quotes don&apos;t return.
+        </p>
+      </div>
+      <Button
+        onClick={handleClick}
+        disabled={busy}
+        data-testid="clear-quote-cache-btn"
+        className="w-full bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 font-semibold py-2"
+      >
+        {busy ? "Clearing…" : "🧹 Clear Quote Cache"}
       </Button>
     </div>
   );
