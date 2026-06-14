@@ -78,6 +78,8 @@ async def create_indexes():
 
         # Image quote cache — fast lookup on (image+description) hash
         await db.image_cache.create_index([("cache_key", 1)])
+        # Fuzzy lookup via perceptual hash (catches re-uploads of the same photo)
+        await db.image_cache.create_index([("phash", 1), ("desc_norm", 1), ("n_images", 1)])
 
         logger.info("✅ Database indexes created successfully")
     except Exception as e:
@@ -723,6 +725,12 @@ async def analyze_image_for_quote(image_paths, description: str) -> tuple[List[J
             hasher.update(b"|")  # separator so (A,B) and (AB,) hash differently
         image_hash = hasher.hexdigest()
 
+        # Perceptual hash: catches re-uploads where the customer snapped the
+        # same photo again or the client compressed it slightly differently.
+        # The byte-hash above is exact; pHash is fuzzy. We check both so any
+        # match is a cache hit.
+        phash = _perceptual_hash_batch(compressed_paths)
+
         # Description + image count are part of the cache key so "1 pile" and
         # "4 piles" with similar photos never collide.
         desc_norm = (description or "").strip().lower()
@@ -731,6 +739,11 @@ async def analyze_image_for_quote(image_paths, description: str) -> tuple[List[J
         ).hexdigest()
 
         cached = await _check_image_cache(cache_key, image_hash, compressed_paths[0], image_paths[0], t0)
+        if cached is not None:
+            return cached
+
+        # Fuzzy fallback: same perceptual hash + same desc + same image count
+        cached = await _check_image_cache_by_phash(phash, desc_norm, len(compressed_paths), t0)
         if cached is not None:
             return cached
 
@@ -748,12 +761,58 @@ async def analyze_image_for_quote(image_paths, description: str) -> tuple[List[J
         items, total_price, explanation, scale_level, breakdown = _parse_ai_quote_response(response_text)
 
         # Cache the result for consistency
-        await _cache_quote_analysis(cache_key, image_hash, desc_norm, items, total_price, explanation, scale_level, breakdown)
+        await _cache_quote_analysis(cache_key, image_hash, desc_norm, items, total_price, explanation, scale_level, breakdown, phash)
         return items, total_price, explanation, scale_level, breakdown
 
     except Exception as e:
         logger.error(f"AI vision analysis error: {e}")
         return await _enhanced_text_fallback(description)
+
+
+def _perceptual_hash_batch(paths) -> str:
+    """Compute a simple dhash (difference-hash) per image and join them.
+    Robust to re-encoding / minor compression differences — two visually
+    identical photos produce the same string. Pure-PIL, no external deps."""
+    try:
+        from PIL import Image as PILImage, ImageOps
+        parts = []
+        for p in paths:
+            img = PILImage.open(p).convert("L")  # grayscale
+            img = ImageOps.exif_transpose(img)
+            img = img.resize((9, 8), PILImage.LANCZOS)
+            pixels = list(img.getdata())
+            bits = []
+            for row in range(8):
+                base = row * 9
+                for col in range(8):
+                    bits.append("1" if pixels[base + col] > pixels[base + col + 1] else "0")
+            parts.append(f"{int(''.join(bits), 2):016x}")
+        return "|".join(parts)
+    except Exception as e:
+        logger.warning(f"Perceptual hash failed: {e}")
+        return ""
+
+
+async def _check_image_cache_by_phash(phash: str, desc_norm: str, n_images: int, t0: float):
+    """Fuzzy cache lookup keyed on perceptual hash + description + image count."""
+    import time as _time
+    if not phash:
+        return None
+    cached = await db.image_cache.find_one({
+        "phash": phash,
+        "desc_norm": desc_norm,
+        "n_images": n_images,
+    })
+    if not cached:
+        return None
+    logger.info(f"Cache HIT via phash (total {_time.monotonic()-t0:.1f}s)")
+    return (
+        [JunkItem(**item) for item in cached["items"]],
+        cached["total_price"],
+        cached["explanation"],
+        cached.get("scale_level"),
+        cached.get("breakdown")
+    )
 
 
 def _compress_image_for_ai(image_path: str, t0: float) -> str:
@@ -801,7 +860,13 @@ async def _check_image_cache(cache_key: str, image_hash: str, compressed_path: s
 
 
 def _build_vision_prompt(description: str, num_images: int = 1) -> str:
-    """Centralized pricing prompt for the vision call."""
+    """Centralized pricing prompt for the vision call.
+
+    The prompt is deliberately anchored on explicit cubic-feet bands so the
+    model has very little room to drift between calls. Coupled with
+    temperature=0 / top_p=0 / seed in the AI call, the same photo always
+    produces the same quote.
+    """
     # When the customer uploads multiple photos of the SAME job (e.g. four
     # separate piles of junk around their property) the AI must aggregate
     # them into ONE combined quote, not treat each image as a separate job.
@@ -817,9 +882,29 @@ def _build_vision_prompt(description: str, num_images: int = 1) -> str:
         f"Junk removal pricing expert — Text2toss, Flagstaff AZ. GROUND LEVEL/CURBSIDE ONLY.\n\n"
         f"{multi_note}"
         f"Customer note: {description or 'None'}\n\n"
-        "SCALE (by total volume):\n"
-        "1:$15|2:$20|3:$50|4:$63|5:$78|6:$95|7:$115|8:$138|9:$163|10:$190|11:$220|12:$253|13:$290|14:$333|15:$380|16:$433|17:$490|18:$553|19:$620|20:$703\n\n"
-        "Rules: Identify all items. Estimate total cubic feet. Overestimate 15-20%. Heavy items +20%.\n\n"
+        "STEP 1 — Estimate total cubic feet of junk in the photo(s). "
+        "Use these anchors for consistency (always pick the same number for the same photo):\n"
+        " - Microwave/toaster oven ≈ 3 cuft each\n"
+        " - End table / small chair ≈ 8 cuft each\n"
+        " - Office chair / nightstand ≈ 12 cuft each\n"
+        " - Coffee table / large chair ≈ 20 cuft each\n"
+        " - Loveseat / medium dresser ≈ 35 cuft each\n"
+        " - Sofa / large dresser ≈ 55 cuft each\n"
+        " - Sectional / wardrobe ≈ 75 cuft each\n"
+        " - Mattress (queen) ≈ 25 cuft, (king) ≈ 35 cuft\n"
+        " - Trash bag full ≈ 4 cuft each\n"
+        "Add 15% buffer for irregular shapes, +20% for heavy items (concrete, dirt, wet wood).\n\n"
+        "STEP 2 — Map total cubic feet to scale_level (pick the LOWEST scale whose max ≥ your estimate):\n"
+        " 1:≤2cuft|2:≤4|3:≤10|4:≤18|5:≤30|6:≤45|7:≤60|8:≤80|9:≤100|10:≤125|"
+        "11:≤150|12:≤180|13:≤215|14:≤255|15:≤300|16:≤350|17:≤405|18:≤465|19:≤530|20:≤600\n\n"
+        "STEP 3 — Look up the price for that scale_level (no rounding, no swing):\n"
+        " 1:$15|2:$20|3:$50|4:$63|5:$78|6:$95|7:$115|8:$138|9:$163|10:$190|"
+        "11:$220|12:$253|13:$290|14:$333|15:$380|16:$433|17:$490|18:$553|19:$620|20:$703\n\n"
+        "DETERMINISM RULES — read carefully, your output must be reproducible:\n"
+        " • The SAME photo MUST always produce the SAME cubic_feet and scale_level.\n"
+        " • Do not vary by mood, lighting interpretation, or 'best-guess swings'.\n"
+        " • If unsure between two scales, ALWAYS pick the lower one.\n"
+        " • cubic_feet must be a whole number.\n\n"
         'JSON only:\n'
         '{"items":[{"name":"item","quantity":1,"size":"small/medium/large","description":"brief"}],'
         '"total_price":150.00,"scale_level":5,"cubic_feet":62,'
@@ -845,11 +930,18 @@ async def _request_ai_vision_quote(compressed_paths, description: str, image_has
         FileContentWithMimeType(file_path=str(p), mime_type="image/jpeg")
         for p in compressed_paths
     ]
-    chat = LlmChat(
-        api_key=os.environ.get("EMERGENT_LLM_KEY"),
-        session_id=f"vision_{image_hash}",
-        system_message="Junk removal pricing expert. Respond with valid JSON only."
-    ).with_model("gemini", "gemini-3-flash-preview")
+    chat = (
+        LlmChat(
+            api_key=os.environ.get("EMERGENT_LLM_KEY"),
+            session_id=f"vision_{image_hash}",
+            system_message="Junk removal pricing expert. Respond with valid JSON only."
+        )
+        .with_model("gemini", "gemini-3-flash-preview")
+        # Determinism: temperature/top_p=0 → same photo always returns the
+        # same quote. This kills the "uploaded same photo 3x and got 3
+        # different prices" complaint. (Gemini doesn't support `seed`.)
+        .with_params(temperature=0, top_p=0)
+    )
     user_message = UserMessage(
         text=_build_vision_prompt(description, num_images=len(image_files)),
         file_contents=image_files,
@@ -895,11 +987,14 @@ def _parse_ai_quote_response(response_text: str):
     return items, total_price, explanation, scale_level, breakdown
 
 
-async def _cache_quote_analysis(cache_key, image_hash, desc_norm, items, total_price, explanation, scale_level, breakdown):
+async def _cache_quote_analysis(cache_key, image_hash, desc_norm, items, total_price, explanation, scale_level, breakdown, phash: str = ""):
     cache_data = {
         "cache_key": cache_key,
         "image_hash": image_hash,
         "description_norm": desc_norm,
+        "desc_norm": desc_norm,        # mirrored field for phash-based lookups
+        "phash": phash,
+        "n_images": len((phash or "").split("|")) if phash else 1,
         "items": [item.dict() for item in items],
         "total_price": total_price,
         "explanation": explanation,
