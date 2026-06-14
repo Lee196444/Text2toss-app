@@ -39,7 +39,7 @@ export default function QuoteFlowModal({
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-stretch sm:items-center justify-center sm:p-4">
       <Card className="w-full max-w-lg h-screen sm:h-auto sm:max-h-[95vh] sm:my-0 shadow-2xl border-0 overflow-y-auto rounded-none sm:rounded-2xl">
         {/* Progress */}
-        <div className="bg-white border-b border-gray-100 px-4 py-3 sticky top-0 z-10">
+        <div className="bg-black border-b border-lime-400/30 px-4 py-3 sticky top-0 z-10">
           <div className="flex items-center justify-center gap-2">
             <StepDot step={1} quoteStep={quoteStep} />
             <div className={`step-line ${quoteStep > 1 ? "done" : ""}`}></div>
@@ -48,9 +48,9 @@ export default function QuoteFlowModal({
             <StepDot step={3} quoteStep={quoteStep} />
           </div>
           <div className="flex justify-between mt-1.5 px-1">
-            <span className={`text-xs font-medium ${quoteStep >= 1 ? "text-emerald-600" : "text-gray-400"}`}>Upload</span>
-            <span className={`text-xs font-medium ${quoteStep >= 2 ? "text-emerald-600" : "text-gray-400"}`}>Quote</span>
-            <span className={`text-xs font-medium ${quoteStep >= 3 ? "text-emerald-600" : "text-gray-400"}`}>Book</span>
+            <span className={`text-xs font-display italic uppercase tracking-wider ${quoteStep >= 1 ? "text-lime-400" : "text-gray-500"}`}>Upload</span>
+            <span className={`text-xs font-display italic uppercase tracking-wider ${quoteStep >= 2 ? "text-lime-400" : "text-gray-500"}`}>Quote</span>
+            <span className={`text-xs font-display italic uppercase tracking-wider ${quoteStep >= 3 ? "text-lime-400" : "text-gray-500"}`}>Book</span>
           </div>
         </div>
 
@@ -124,43 +124,45 @@ function UploadStep({
 
   return (
     <>
-      <CardHeader className="text-center pb-2 pt-5">
-        <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900">
-          {count === 0 ? "Snap your junk pile" : `${count} photo${count === 1 ? "" : "s"} added`}
+      <CardHeader className="text-center pb-2 pt-5 bg-black border-b border-lime-400/20">
+        <CardTitle className="font-display italic text-2xl sm:text-3xl uppercase tracking-tight text-white">
+          {count === 0 ? <>Snap your <span className="text-lime-400">junk pile</span></> : <>{count} photo{count === 1 ? "" : "s"} <span className="text-lime-400">locked in</span></>}
         </CardTitle>
-        <CardDescription className="text-sm text-gray-500 mt-1">
+        <CardDescription className="text-xs sm:text-sm text-gray-400 mt-1.5 tracking-wide">
           {count === 0
-            ? "Get an instant AI quote — no stairs, ground level only"
+            ? "Instant AI quote · curbside / ground level only"
             : canAddMore
               ? "Add another pile or continue to your quote"
               : `Maximum of ${MAX} photos reached`}
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="space-y-5 px-5 sm:px-6 pb-2">
+      <CardContent className="space-y-5 px-5 sm:px-6 pb-2 pt-5 bg-gray-50">
         {quoteError && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-center">
-            <p className="text-red-600 text-sm font-medium">{quoteError}</p>
+          <div className="bg-red-50 border-2 border-red-400 rounded-lg p-3 text-center">
+            <p className="text-red-700 text-sm font-semibold">{quoteError}</p>
           </div>
         )}
 
         {count === 0 ? (
           <div className="space-y-3">
-            {/* Hero camera button — primary action */}
+            {/* Hero camera button — black + neon lime brand */}
             <label className="block cursor-pointer group" data-testid="camera-cta">
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 p-6 shadow-lg hover:shadow-xl transition-all active:scale-[0.98]">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0">
-                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <div className="relative overflow-hidden rounded-2xl bg-black border-2 border-lime-400 p-5 shadow-[0_8px_24px_-6px_rgba(190,242,100,0.45)] hover:shadow-[0_10px_30px_-6px_rgba(190,242,100,0.6)] transition-all active:scale-[0.98]">
+                {/* Subtle lime glow corner */}
+                <div className="absolute -top-12 -right-12 w-32 h-32 bg-lime-400/15 rounded-full blur-2xl pointer-events-none"></div>
+                <div className="relative flex items-center gap-4">
+                  <div className="w-14 h-14 bg-lime-400 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                    <svg className="w-7 h-7 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
                       <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0 text-left">
-                    <p className="text-lg font-bold text-white leading-tight">Take a Photo</p>
-                    <p className="text-sm text-white/85 mt-0.5">Open camera now — fastest way</p>
+                    <p className="font-display italic text-xl uppercase tracking-tight text-lime-400 leading-none">Take a Photo</p>
+                    <p className="text-xs text-gray-300 mt-1.5">Open camera · fastest way</p>
                   </div>
-                  <svg className="w-6 h-6 text-white/70 group-hover:translate-x-1 transition-transform flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                  <svg className="w-6 h-6 text-lime-400 group-hover:translate-x-1 transition-transform flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
                 </div>
@@ -168,19 +170,19 @@ function UploadStep({
               <Input type="file" accept="image/*" capture="environment" multiple onChange={onImageUpload} className="hidden" data-testid="camera-input" />
             </label>
 
-            {/* Secondary: gallery option */}
+            {/* Secondary: gallery option — chrome / light variant */}
             <label className="block cursor-pointer" data-testid="gallery-cta">
-              <div className="flex items-center gap-3 p-4 rounded-2xl border-2 border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/40 transition-colors active:scale-[0.99]">
-                <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <div className="flex items-center gap-3 p-4 rounded-xl bg-white border-2 border-gray-300 hover:border-black hover:bg-gray-50 transition-colors active:scale-[0.99] shadow-sm">
+                <div className="w-11 h-11 bg-gradient-to-br from-gray-100 to-gray-200 border border-gray-300 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
                   </svg>
                 </div>
                 <div className="flex-1 min-w-0 text-left">
-                  <p className="text-base font-semibold text-gray-900 leading-tight">Choose from gallery</p>
-                  <p className="text-xs text-gray-500 mt-0.5">Select up to {MAX} photos</p>
+                  <p className="font-display italic text-base uppercase tracking-tight text-black leading-none">Choose from Gallery</p>
+                  <p className="text-xs text-gray-500 mt-1">Pick up to {MAX} photos</p>
                 </div>
-                <svg className="w-5 h-5 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                 </svg>
               </div>
@@ -189,47 +191,47 @@ function UploadStep({
           </div>
         ) : (
           <div className="space-y-3">
-            {/* Thumbnail strip */}
+            {/* Thumbnail strip — bold lime accents */}
             <div className="grid grid-cols-3 gap-2.5" data-testid="upload-thumbs">
               {uploadedImages.map((src, idx) => (
                 <div
                   key={`${src.slice(-20)}-${idx}`}
-                  className="relative aspect-square rounded-xl overflow-hidden ring-1 ring-gray-200 bg-gray-50 group shadow-sm"
+                  className="relative aspect-square rounded-xl overflow-hidden ring-2 ring-black bg-gray-50 group shadow-md"
                 >
                   <img src={src} alt={`Pile ${idx + 1}`} className="w-full h-full object-cover" />
                   <button
                     type="button"
                     onClick={() => onRemoveImageAt(idx)}
                     disabled={imageAnalyzing}
-                    className="absolute top-1.5 right-1.5 w-7 h-7 bg-black/70 hover:bg-black text-white rounded-full text-sm flex items-center justify-center disabled:opacity-50 shadow-lg"
+                    className="absolute top-1.5 right-1.5 w-7 h-7 bg-black hover:bg-gray-900 text-lime-400 rounded-full text-sm font-bold flex items-center justify-center disabled:opacity-50 shadow-lg ring-1 ring-lime-400/40"
                     aria-label={`Remove photo ${idx + 1}`}
                     data-testid={`remove-photo-${idx}`}
                   >
                     ✕
                   </button>
-                  <div className="absolute bottom-1.5 left-1.5 bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow">
-                    {idx + 1}
+                  <div className="absolute bottom-1.5 left-1.5 bg-lime-400 text-black text-[10px] font-black px-2 py-0.5 rounded-full shadow font-display italic">
+                    #{idx + 1}
                   </div>
                 </div>
               ))}
               {canAddMore && (
-                <label className="aspect-square rounded-xl border-2 border-dashed border-emerald-300 bg-emerald-50/40 hover:bg-emerald-50 flex flex-col items-center justify-center cursor-pointer transition-colors">
-                  <span className="text-3xl text-emerald-500 leading-none mb-1">＋</span>
-                  <span className="text-[11px] text-emerald-700 font-medium">Add photo</span>
+                <label className="aspect-square rounded-xl border-2 border-dashed border-black bg-lime-50 hover:bg-lime-100 flex flex-col items-center justify-center cursor-pointer transition-colors">
+                  <span className="text-3xl text-black leading-none mb-1">＋</span>
+                  <span className="text-[11px] text-black font-display italic uppercase tracking-wide">Add photo</span>
                   <Input type="file" accept="image/*" multiple onChange={onImageUpload} className="hidden" data-testid="add-more-input" />
                 </label>
               )}
             </div>
 
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-600 font-medium">
+            <div className="flex items-center justify-between text-xs px-1">
+              <span className="text-gray-700 font-semibold tracking-wide">
                 {count} of {MAX} · combined into one quote
               </span>
               <button
                 type="button"
                 onClick={onClearImages}
                 disabled={imageAnalyzing}
-                className="text-red-600 font-semibold hover:underline disabled:opacity-50"
+                className="text-red-600 font-display italic uppercase tracking-wide hover:underline disabled:opacity-50"
                 data-testid="clear-photos-btn"
               >
                 Clear all
@@ -239,42 +241,47 @@ function UploadStep({
         )}
 
         <div className="space-y-1.5">
-          <label className="text-sm font-semibold text-gray-800">
-            Anything we should know? <span className="text-gray-400 font-normal">(optional)</span>
+          <label className="text-sm font-display italic uppercase tracking-wide text-black">
+            Anything we should know? <span className="text-gray-400 normal-case font-normal">(optional)</span>
           </label>
           <Textarea
             placeholder={count > 1 ? "e.g., 4 piles: garage, side yard, curb, back patio…" : "e.g., Old couch, broken washer, lots of boxes…"}
             value={imageDescription}
             onChange={(e) => setImageDescription(e.target.value)}
-            className="min-h-[72px] text-sm resize-none rounded-xl border-gray-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+            className="min-h-[72px] text-sm resize-none rounded-xl border-2 border-gray-300 focus:border-lime-500 focus:ring-2 focus:ring-lime-100 bg-white"
             maxLength={200}
             data-testid="image-description-input"
           />
         </div>
 
-        {/* Combined info card — curbside requirement + AI disclaimer */}
-        <div className="bg-amber-50/60 border border-amber-200 rounded-xl p-3.5 space-y-1.5">
-          <div className="flex items-start gap-2">
-            <span className="text-amber-600 text-sm leading-none mt-0.5">📋</span>
-            <p className="text-xs text-amber-900 leading-relaxed">
-              <span className="font-semibold">Curbside / ground level only.</span> Items must be reachable without stairs.
-            </p>
+        {/* Brand info card — black header strip + clean content */}
+        <div className="rounded-xl overflow-hidden border-2 border-black shadow-sm">
+          <div className="bg-black px-3 py-1.5">
+            <p className="font-display italic uppercase text-[11px] tracking-wider text-lime-400">Quick Heads-Up</p>
           </div>
-          <div className="flex items-start gap-2">
-            <span className="text-blue-600 text-sm leading-none mt-0.5">⚡</span>
-            <p className="text-xs text-amber-900 leading-relaxed">
-              <span className="font-semibold">AI estimate is preliminary.</span> Final price confirmed at pickup based on actual volume.
-            </p>
+          <div className="bg-white p-3 space-y-1.5">
+            <div className="flex items-start gap-2">
+              <span className="text-base leading-none mt-0.5">📋</span>
+              <p className="text-xs text-gray-800 leading-relaxed">
+                <span className="font-bold">Curbside / ground level only.</span> No stairs.
+              </p>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="text-base leading-none mt-0.5">⚡</span>
+              <p className="text-xs text-gray-800 leading-relaxed">
+                <span className="font-bold">AI estimate is preliminary.</span> Final price confirmed at pickup.
+              </p>
+            </div>
           </div>
         </div>
       </CardContent>
 
-      <div className="p-5 bg-white border-t flex justify-between gap-3">
+      <div className="p-5 bg-black border-t-2 border-lime-400/30 flex justify-between gap-3">
         <Button
           variant="outline"
           onClick={onCancel}
           disabled={imageAnalyzing}
-          className="h-11 rounded-xl border-gray-200"
+          className="h-12 rounded-xl border-2 border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white hover:border-white/50 font-display italic uppercase tracking-wide"
           data-testid="cancel-quote-btn"
         >
           Cancel
@@ -282,16 +289,16 @@ function UploadStep({
         <Button
           onClick={onAnalyze}
           disabled={!imageFiles || imageFiles.length === 0 || imageAnalyzing}
-          className="h-11 bg-emerald-600 hover:bg-emerald-700 rounded-xl px-6 font-semibold"
+          className="h-12 bg-lime-400 hover:bg-lime-300 text-black rounded-xl px-6 font-display italic uppercase tracking-wider shadow-[0_4px_14px_-2px_rgba(190,242,100,0.5)] disabled:opacity-40 disabled:shadow-none flex-1"
           data-testid="get-instant-quote-btn"
         >
           {imageAnalyzing ? (
             <span className="flex items-center gap-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-black border-t-transparent"></div>
               {analysisStatus || "Analyzing..."}
             </span>
           ) : (
-            "Get Quote"
+            "Get Quote →"
           )}
         </Button>
       </div>

@@ -168,28 +168,28 @@ img { background-color: #f3f4f6; }
 }
 
 .step-dot.active {
-  background: var(--brand);
-  color: white;
-  box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.15);
+  background: #bef264; /* lime-400 */
+  color: #000;
+  box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.25);
 }
 
 .step-dot.done {
-  background: var(--brand);
-  color: white;
+  background: #bef264; /* lime-400 */
+  color: #000;
 }
 
 .step-dot.pending {
-  background: #e5e7eb;
-  color: #9ca3af;
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.55);
 }
 
 .step-line {
   width: 48px;
   height: 2px;
-  background: #e5e7eb;
+  background: rgba(255, 255, 255, 0.18);
   transition: background 0.3s ease;
 }
 
 .step-line.done {
-  background: var(--brand);
+  background: #bef264; /* lime-400 */
 }
