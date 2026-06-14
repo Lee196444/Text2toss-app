@@ -236,3 +236,58 @@ h1 { letter-spacing: -0.005em; }
     @apply bg-background text-foreground;
     }
 }
+
+/* ============================================================
+ * "Made with Emergent" badge clearance
+ *
+ * The platform injects a fixed-position badge at bottom: 20px /
+ * right: 20px (z-index 9999) on every page. Without extra
+ * bottom padding, the last button in a scrollable area sits
+ * underneath the badge on mobile. These rules ensure every
+ * scrollable surface can scroll *past* the badge so all
+ * interactive elements remain reachable.
+ * ============================================================ */
+:root {
+  --emergent-badge-clearance: 80px;
+}
+
+/* Mobile: badge is large + sits over content. Pad all
+ * scrollable / interactive surfaces so the last row of buttons
+ * can sit clear of the badge. */
+@media (max-width: 768px) {
+  /* Body-level pages (landing, admin dashboard) */
+  body {
+    padding-bottom: var(--emergent-badge-clearance);
+  }
+
+  /* Modal / dialog scrollable areas — catches:
+   *   - Shadcn Dialog (uses [role="dialog"])
+   *   - Radix portals (uses [data-radix-*])
+   *   - Custom modals built with .fixed.inset-0 + .overflow-y-auto
+   *     (BinModal, BookingModal, QuoteFlowModal, etc.) */
+  [role="dialog"] .overflow-y-auto,
+  [data-radix-dialog-content] .overflow-y-auto,
+  .fixed.inset-0 .overflow-y-auto,
+  .modal-scroll,
+  body > div[id^="radix-"] .overflow-y-auto {
+    padding-bottom: var(--emergent-badge-clearance) !important;
+  }
+
+  /* Sticky/fixed bottom action bars (Confirm/Pay buttons) need
+   * to lift above the badge. */
+  .sticky-bottom-actions,
+  [data-action-bar="bottom"] {
+    margin-bottom: var(--emergent-badge-clearance);
+  }
+}
+
+/* Desktop: badge is smaller and sits in the corner, but still
+ * pad scrollable modals so a sidebar form button doesn't hide
+ * under it. */
+@media (min-width: 769px) {
+  [role="dialog"] .overflow-y-auto,
+  [data-radix-dialog-content] .overflow-y-auto,
+  .fixed.inset-0 .overflow-y-auto {
+    padding-bottom: 56px !important;
+  }
+}
