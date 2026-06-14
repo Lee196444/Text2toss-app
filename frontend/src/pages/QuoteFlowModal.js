@@ -124,20 +124,20 @@ function UploadStep({
 
   return (
     <>
-      <CardHeader className="text-center pb-3 pt-6">
+      <CardHeader className="text-center pb-2 pt-5">
         <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900">
-          {count === 0 ? "Upload your junk photos" : `${count} photo${count === 1 ? "" : "s"} added`}
+          {count === 0 ? "Snap your junk pile" : `${count} photo${count === 1 ? "" : "s"} added`}
         </CardTitle>
-        <CardDescription className="text-sm text-gray-500">
+        <CardDescription className="text-sm text-gray-500 mt-1">
           {count === 0
-            ? "One photo is fine — add multiple if your piles are in different spots"
+            ? "Get an instant AI quote — no stairs, ground level only"
             : canAddMore
-              ? "Add more photos if you have piles in other spots (all go on one quote)"
-              : `Maximum of ${MAX} photos per quote`}
+              ? "Add another pile or continue to your quote"
+              : `Maximum of ${MAX} photos reached`}
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="space-y-4 px-5 sm:px-6">
+      <CardContent className="space-y-5 px-5 sm:px-6 pb-2">
         {quoteError && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-center">
             <p className="text-red-600 text-sm font-medium">{quoteError}</p>
@@ -146,88 +146,90 @@ function UploadStep({
 
         {count === 0 ? (
           <div className="space-y-3">
-            <label className="block cursor-pointer">
-              <div className="flex items-center gap-4 p-4 border-2 border-dashed border-emerald-300 rounded-xl bg-emerald-50/50 hover:bg-emerald-50 transition-colors">
-                <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+            {/* Hero camera button — primary action */}
+            <label className="block cursor-pointer group" data-testid="camera-cta">
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 p-6 shadow-lg hover:shadow-xl transition-all active:scale-[0.98]">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0 text-left">
+                    <p className="text-lg font-bold text-white leading-tight">Take a Photo</p>
+                    <p className="text-sm text-white/85 mt-0.5">Open camera now — fastest way</p>
+                  </div>
+                  <svg className="w-6 h-6 text-white/70 group-hover:translate-x-1 transition-transform flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">Take a picture</p>
-                  <p className="text-xs text-gray-500">Open camera to capture now</p>
-                </div>
-                <svg className="w-5 h-5 text-gray-300 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                </svg>
               </div>
               <Input type="file" accept="image/*" capture="environment" multiple onChange={onImageUpload} className="hidden" data-testid="camera-input" />
             </label>
 
-            <label className="block cursor-pointer">
-              <div className="flex items-center gap-4 p-4 border-2 border-dashed border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
-                <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            {/* Secondary: gallery option */}
+            <label className="block cursor-pointer" data-testid="gallery-cta">
+              <div className="flex items-center gap-3 p-4 rounded-2xl border-2 border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/40 transition-colors active:scale-[0.99]">
+                <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
                   </svg>
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">Choose from gallery</p>
-                  <p className="text-xs text-gray-500">Select one or multiple photos</p>
+                <div className="flex-1 min-w-0 text-left">
+                  <p className="text-base font-semibold text-gray-900 leading-tight">Choose from gallery</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Select up to {MAX} photos</p>
                 </div>
-                <svg className="w-5 h-5 text-gray-300 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                <svg className="w-5 h-5 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                 </svg>
               </div>
               <Input type="file" accept="image/*" multiple onChange={onImageUpload} className="hidden" data-testid="gallery-input" />
             </label>
-
-            <p className="text-xs text-gray-400 text-center">Up to {MAX} photos · PNG, JPG, HEIC — any size, we&apos;ll shrink them</p>
           </div>
         ) : (
           <div className="space-y-3">
             {/* Thumbnail strip */}
-            <div className="grid grid-cols-3 gap-2" data-testid="upload-thumbs">
+            <div className="grid grid-cols-3 gap-2.5" data-testid="upload-thumbs">
               {uploadedImages.map((src, idx) => (
                 <div
                   key={`${src.slice(-20)}-${idx}`}
-                  className="relative aspect-square rounded-xl overflow-hidden border border-gray-200 bg-gray-50 group"
+                  className="relative aspect-square rounded-xl overflow-hidden ring-1 ring-gray-200 bg-gray-50 group shadow-sm"
                 >
                   <img src={src} alt={`Pile ${idx + 1}`} className="w-full h-full object-cover" />
                   <button
                     type="button"
                     onClick={() => onRemoveImageAt(idx)}
                     disabled={imageAnalyzing}
-                    className="absolute top-1 right-1 w-6 h-6 bg-black/70 text-white rounded-full text-xs flex items-center justify-center hover:bg-black disabled:opacity-50"
+                    className="absolute top-1.5 right-1.5 w-7 h-7 bg-black/70 hover:bg-black text-white rounded-full text-sm flex items-center justify-center disabled:opacity-50 shadow-lg"
                     aria-label={`Remove photo ${idx + 1}`}
                     data-testid={`remove-photo-${idx}`}
                   >
                     ✕
                   </button>
-                  <div className="absolute bottom-1 left-1 bg-emerald-600 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-full">
+                  <div className="absolute bottom-1.5 left-1.5 bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow">
                     {idx + 1}
                   </div>
                 </div>
               ))}
               {canAddMore && (
                 <label className="aspect-square rounded-xl border-2 border-dashed border-emerald-300 bg-emerald-50/40 hover:bg-emerald-50 flex flex-col items-center justify-center cursor-pointer transition-colors">
-                  <span className="text-2xl text-emerald-500 mb-0.5">＋</span>
+                  <span className="text-3xl text-emerald-500 leading-none mb-1">＋</span>
                   <span className="text-[11px] text-emerald-700 font-medium">Add photo</span>
                   <Input type="file" accept="image/*" multiple onChange={onImageUpload} className="hidden" data-testid="add-more-input" />
                 </label>
               )}
             </div>
 
-            <div className="flex items-center justify-between text-xs text-gray-500">
-              <span>
-                {count} of {MAX} photo{count === 1 ? "" : "s"} — all combined into one quote
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-gray-600 font-medium">
+                {count} of {MAX} · combined into one quote
               </span>
               <button
                 type="button"
                 onClick={onClearImages}
                 disabled={imageAnalyzing}
-                className="text-red-600 hover:underline disabled:opacity-50"
+                className="text-red-600 font-semibold hover:underline disabled:opacity-50"
                 data-testid="clear-photos-btn"
               >
                 Clear all
@@ -237,31 +239,33 @@ function UploadStep({
         )}
 
         <div className="space-y-1.5">
-          <label className="text-sm font-medium text-gray-700">
-            Brief description <span className="text-gray-400 font-normal">(optional)</span>
+          <label className="text-sm font-semibold text-gray-800">
+            Anything we should know? <span className="text-gray-400 font-normal">(optional)</span>
           </label>
           <Textarea
-            placeholder={count > 1 ? "e.g., 4 piles: garage, side yard, curb, back patio…" : "e.g., Old furniture in garage, mattress, boxes..."}
+            placeholder={count > 1 ? "e.g., 4 piles: garage, side yard, curb, back patio…" : "e.g., Old couch, broken washer, lots of boxes…"}
             value={imageDescription}
             onChange={(e) => setImageDescription(e.target.value)}
-            className="min-h-[70px] text-sm resize-none rounded-xl border-gray-200"
+            className="min-h-[72px] text-sm resize-none rounded-xl border-gray-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
             maxLength={200}
             data-testid="image-description-input"
           />
         </div>
 
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
-          <p className="text-xs text-amber-700 font-medium">
-            Ground level & curbside pickup only. Items must be accessible without stairs.
-          </p>
-        </div>
-
-        {/* AI Disclaimer — upload step */}
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-3" data-testid="ai-disclaimer-upload">
-          <p className="text-[11px] text-blue-800 leading-relaxed">
-            <span className="font-bold">⚡ AI-generated estimates are preliminary</span> and may change after in-person inspection.
-            Final pricing is confirmed at pickup based on actual volume and accessibility.
-          </p>
+        {/* Combined info card — curbside requirement + AI disclaimer */}
+        <div className="bg-amber-50/60 border border-amber-200 rounded-xl p-3.5 space-y-1.5">
+          <div className="flex items-start gap-2">
+            <span className="text-amber-600 text-sm leading-none mt-0.5">📋</span>
+            <p className="text-xs text-amber-900 leading-relaxed">
+              <span className="font-semibold">Curbside / ground level only.</span> Items must be reachable without stairs.
+            </p>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="text-blue-600 text-sm leading-none mt-0.5">⚡</span>
+            <p className="text-xs text-amber-900 leading-relaxed">
+              <span className="font-semibold">AI estimate is preliminary.</span> Final price confirmed at pickup based on actual volume.
+            </p>
+          </div>
         </div>
       </CardContent>
 
