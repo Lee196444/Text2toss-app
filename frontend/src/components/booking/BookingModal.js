@@ -353,7 +353,7 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
             </span>
           </label>
 
-          <div className="p-4 pt-2 flex flex-col sm:flex-row gap-3">
+          <div className="p-4 pt-2 pb-20 sm:pb-4 flex flex-col sm:flex-row gap-3">
             <Button
               variant="outline"
               onClick={onClose}
