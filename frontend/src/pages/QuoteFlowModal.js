@@ -36,8 +36,8 @@ export default function QuoteFlowModal({
   onPriorityChange,
 }) {
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-start sm:items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <Card className="w-full max-w-lg max-h-[95vh] my-2 sm:my-0 shadow-2xl border-0 overflow-y-auto rounded-2xl">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-stretch sm:items-center justify-center sm:p-4">
+      <Card className="w-full max-w-lg h-screen sm:h-auto sm:max-h-[95vh] sm:my-0 shadow-2xl border-0 overflow-y-auto rounded-none sm:rounded-2xl">
         {/* Progress */}
         <div className="bg-white border-b border-gray-100 px-4 py-3 sticky top-0 z-10">
           <div className="flex items-center justify-center gap-2">
@@ -183,7 +183,7 @@ function UploadStep({
               <Input type="file" accept="image/*" multiple onChange={onImageUpload} className="hidden" data-testid="gallery-input" />
             </label>
 
-            <p className="text-xs text-gray-400 text-center">Up to {MAX} photos · PNG, JPG, HEIC — any size, we'll shrink them</p>
+            <p className="text-xs text-gray-400 text-center">Up to {MAX} photos · PNG, JPG, HEIC — any size, we&apos;ll shrink them</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -390,7 +390,7 @@ function QuoteStep({ quote, onContinueToBooking, onCloseAfterQuote, priorityTier
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
             <p className="text-sm font-bold text-amber-800 mb-1">Admin approval required</p>
             <p className="text-xs text-amber-700 leading-relaxed">
-              Continue to provide your details. Payment is blocked until approval. You'll hear back within 24 hours.
+              Continue to provide your details. Payment is blocked until approval. You&apos;ll hear back within 24 hours.
             </p>
           </div>
         )}

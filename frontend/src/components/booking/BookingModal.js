@@ -191,53 +191,54 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
 
   if (bookingSubmitted) {
     return (
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-start justify-center p-4 overflow-y-auto pt-8">
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-stretch sm:items-start justify-center sm:p-4 sm:pt-8 overflow-y-auto">
         <BookingSuccessScreen onClose={() => { setBookingSubmitted(false); onSuccess(); }} />
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-start justify-center p-4 overflow-y-auto pt-8">
-      <Card className="w-full max-w-2xl shadow-2xl border-0 mb-8 max-h-[calc(100vh-4rem)]">
-        {/* Sticky header */}
-        <div className="sticky top-0 z-10 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-t-lg">
-          <div className="bg-emerald-600/30 px-4 py-3 border-b border-white/20">
-            <div className="flex items-center justify-center space-x-2">
-              <div className="flex items-center gap-1 opacity-70">
-                <div className="w-6 h-6 rounded-full bg-white/30 text-white flex items-center justify-center text-xs font-bold">✓</div>
-                <span className="text-xs text-white/80 hidden sm:inline">Photo</span>
-              </div>
-              <div className="w-8 h-0.5 bg-white/30"></div>
-              <div className="flex items-center gap-1 opacity-70">
-                <div className="w-6 h-6 rounded-full bg-white/30 text-white flex items-center justify-center text-xs font-bold">✓</div>
-                <span className="text-xs text-white/80 hidden sm:inline">Quote</span>
-              </div>
-              <div className="w-8 h-0.5 bg-white/40"></div>
-              <div className="flex items-center gap-1">
-                <div className="w-6 h-6 rounded-full bg-white text-emerald-600 flex items-center justify-center text-xs font-bold ring-2 ring-white/50">3</div>
-                <span className="text-xs text-white font-semibold">Book & Pay</span>
-              </div>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-stretch sm:items-start justify-center sm:p-4 sm:pt-8">
+      <Card className="w-full max-w-2xl shadow-2xl border-0 sm:mb-8 rounded-none sm:rounded-lg h-screen sm:h-auto sm:max-h-[calc(100vh-4rem)] flex flex-col">
+        {/* Compact sticky header — title + price + step indicator on 2 rows */}
+        <div className="sticky top-0 z-10 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-t-lg flex-shrink-0">
+          <div className="px-4 py-2 flex items-center justify-between gap-3 border-b border-white/20">
+            {/* Compact step pills */}
+            <div className="flex items-center gap-1.5 text-white">
+              <div className="w-5 h-5 rounded-full bg-white/25 flex items-center justify-center text-[10px] font-bold">✓</div>
+              <div className="w-3 h-0.5 bg-white/30"></div>
+              <div className="w-5 h-5 rounded-full bg-white/25 flex items-center justify-center text-[10px] font-bold">✓</div>
+              <div className="w-3 h-0.5 bg-white/30"></div>
+              <div className="w-5 h-5 rounded-full bg-white text-emerald-600 flex items-center justify-center text-[10px] font-bold ring-2 ring-white/40">3</div>
+              <span className="text-xs text-white font-semibold ml-1">Book & Pay</span>
             </div>
+            <button
+              onClick={onClose}
+              data-testid="modal-close-x"
+              className="text-white/80 hover:text-white text-xl leading-none w-7 h-7 flex items-center justify-center rounded-full hover:bg-white/15 transition-colors"
+              aria-label="Close"
+            >
+              ×
+            </button>
           </div>
-          <div className="p-4 text-center">
-            <div className="text-white">
-              <h2 className="text-2xl font-bold mb-2">Complete Your Booking</h2>
-              <div className="flex items-center justify-center gap-2">
-                <span className="text-4xl font-black">${totalWithPriority}</span>
-                <Badge className="bg-white/20 text-white border-0 text-xs px-2 py-1">💳 Venmo</Badge>
-              </div>
+          <div className="px-4 py-2.5 flex items-center justify-between gap-3 text-white">
+            <div className="min-w-0">
+              <p className="text-[11px] uppercase tracking-wider text-white/80 leading-none mb-0.5">Complete Your Booking</p>
               {priorityTier && (
-                <p className="text-xs text-white/80 mt-1">
-                  Includes ${priorityFeeAmount} priority surcharge (non-refundable)
+                <p className="text-[10px] text-white/80 truncate">
+                  +${priorityFeeAmount} priority surcharge
                 </p>
               )}
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span className="text-2xl font-black leading-none">${totalWithPriority}</span>
+              <Badge className="bg-white/20 text-white border-0 text-[10px] px-1.5 py-0.5">💳 Venmo</Badge>
             </div>
           </div>
         </div>
 
-        {/* Body */}
-        <div className="overflow-y-auto max-h-[calc(100vh-16rem)]">
+        {/* Body — takes all remaining vertical space */}
+        <div className="overflow-y-auto flex-1 min-h-0">
           <CardContent className="p-4 sm:p-6 space-y-5">
             {quote.requires_approval && (
               <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-400 rounded-lg p-4 shadow-sm">
