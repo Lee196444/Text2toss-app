@@ -315,98 +315,103 @@ function QuoteStep({ quote, onContinueToBooking, onCloseAfterQuote, priorityTier
   const totalWithPriority = (quote.total_price || 0) + priorityFee;
   return (
     <>
-      <CardHeader className="text-center pb-2 pt-6 bg-emerald-50 border-b border-emerald-100">
-        <div className="flex items-center justify-center gap-2 mb-3">
-          <div className="w-10 h-10 bg-emerald-600 rounded-full flex items-center justify-center">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
-            </svg>
+      <CardHeader className="text-center pb-3 pt-6 bg-black border-b border-lime-400/30 relative overflow-hidden">
+        {/* Lime glow corner */}
+        <div className="absolute -top-12 -right-12 w-40 h-40 bg-lime-400/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="relative">
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <div className="w-10 h-10 bg-lime-400 rounded-full flex items-center justify-center shadow-[0_0_16px_-2px_rgba(190,242,100,0.6)]">
+              <svg className="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
           </div>
+          <p className="text-[11px] font-display italic uppercase tracking-widest text-lime-400 mb-2" data-testid="quote-success-msg">
+            Quote Locked In
+          </p>
+          <div className="font-display italic text-6xl text-white mb-1 leading-none" data-testid="quote-total-price">${totalWithPriority}</div>
+          <CardDescription className="text-xs uppercase tracking-wider text-gray-400 mt-2">
+            {priorityFee > 0 ? <>Total with priority pickup</> : <>Your instant AI quote</>}
+          </CardDescription>
+          <div className="mt-3">
+            <span className="inline-block border border-lime-400/40 text-lime-400 text-[10px] font-display italic uppercase tracking-wider px-3 py-1 rounded-full bg-lime-400/5">
+              Quote #{quote.id?.substring(0, 8)}
+            </span>
+          </div>
+          <p className="mt-3 text-[10px] text-gray-500 italic px-4" data-testid="ai-disclaimer-quote">
+            AI-generated estimate · Final price confirmed at pickup based on actual volume
+          </p>
         </div>
-        <p className="text-sm font-bold text-emerald-700 mb-2" data-testid="quote-success-msg">
-          Quote submitted successfully!
-        </p>
-        <div className="text-5xl font-black text-emerald-700 mb-1" data-testid="quote-total-price">${totalWithPriority}</div>
-        <CardDescription className="text-sm font-medium text-emerald-600">
-          {priorityFee > 0 ? <>Your total with priority pickup</> : <>Your instant quote</>}
-        </CardDescription>
-        <div className="mt-2">
-          <Badge variant="outline" className="border-emerald-200 text-emerald-600 text-xs">
-            Quote #{quote.id?.substring(0, 8)}
-          </Badge>
-        </div>
-        {/* AI Disclaimer — quote step (small text right under price) */}
-        <p className="mt-2 text-[10px] text-gray-500 italic px-4" data-testid="ai-disclaimer-quote">
-          AI-generated estimate · Final price confirmed at pickup based on actual volume
-        </p>
       </CardHeader>
 
-      <CardContent className="space-y-4 pt-5 px-5 sm:px-6">
+      <CardContent className="space-y-4 pt-5 px-5 sm:px-6 bg-gray-50">
         {/* === Price breakdown (always shown when priority selected) === */}
         {priorityFee > 0 && (
           <div
-            className="rounded-xl border-2 border-lime-300 bg-lime-50 overflow-hidden"
+            className="rounded-xl border-2 border-black overflow-hidden shadow-sm"
             data-testid="price-breakdown-card"
           >
-            <div className="px-4 py-2 bg-lime-100 border-b border-lime-200">
-              <h4 className="font-display italic text-xs text-black uppercase tracking-wider">Price breakdown</h4>
+            <div className="px-4 py-2 bg-black">
+              <h4 className="font-display italic text-xs text-lime-400 uppercase tracking-widest">Price Breakdown</h4>
             </div>
-            <div className="divide-y divide-lime-200">
+            <div className="divide-y divide-gray-200 bg-white">
               <div className="flex justify-between items-center px-4 py-2.5">
                 <span className="text-sm text-gray-700">Base junk-removal quote</span>
                 <span className="text-sm font-bold text-gray-900">${quote.total_price}</span>
               </div>
-              <div className="flex justify-between items-center px-4 py-2.5 bg-lime-100/40">
+              <div className="flex justify-between items-center px-4 py-2.5 bg-lime-400/10">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="text-base">{priorityIcon}</span>
                   <div className="min-w-0">
-                    <p className="text-sm font-bold text-lime-800">+ {priorityLabel}</p>
-                    <p className="text-[10px] text-lime-700/80 leading-tight">Priority pickup · non-refundable</p>
+                    <p className="text-sm font-bold text-black">+ {priorityLabel}</p>
+                    <p className="text-[10px] text-gray-600 leading-tight">Priority pickup · non-refundable</p>
                   </div>
                 </div>
-                <span className="text-sm font-bold text-lime-700">+${priorityFee}</span>
+                <span className="text-sm font-bold text-black">+${priorityFee}</span>
               </div>
-              <div className="flex justify-between items-center px-4 py-3 bg-emerald-50">
-                <span className="font-display italic text-base text-black uppercase tracking-wider">Total</span>
-                <span className="font-display italic text-2xl text-emerald-700">${totalWithPriority}</span>
+              <div className="flex justify-between items-center px-4 py-3 bg-black">
+                <span className="font-display italic text-base text-lime-400 uppercase tracking-wider">Total</span>
+                <span className="font-display italic text-2xl text-lime-400">${totalWithPriority}</span>
               </div>
             </div>
           </div>
         )}
 
         {quote.breakdown?.items?.length > 0 && (
-          <div className="border border-gray-100 rounded-xl divide-y divide-gray-50">
-            <div className="px-4 py-2.5 bg-gray-50 rounded-t-xl">
-              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Items identified</h4>
+          <div className="rounded-xl border-2 border-black overflow-hidden bg-white shadow-sm">
+            <div className="px-4 py-2 bg-black">
+              <h4 className="text-[11px] font-display italic text-lime-400 uppercase tracking-widest">Items Identified</h4>
             </div>
-            {quote.breakdown.items.map((item, index) => (
-              <div key={`${item.name}-${item.size}-${index}`} className="flex justify-between items-center px-4 py-2.5">
-                <span className="text-sm text-gray-700">
-                  {item.name} <span className="text-xs text-gray-400">({item.size})</span>
-                </span>
-                <span className="text-sm font-semibold text-gray-900">${item.estimated_cost || "—"}</span>
-              </div>
-            ))}
+            <div className="divide-y divide-gray-100">
+              {quote.breakdown.items.map((item, index) => (
+                <div key={`${item.name}-${item.size}-${index}`} className="flex justify-between items-center px-4 py-2.5">
+                  <span className="text-sm text-gray-800">
+                    {item.name} <span className="text-xs text-gray-400">({item.size})</span>
+                  </span>
+                  <span className="text-sm font-bold text-black">${item.estimated_cost || "—"}</span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
         {quote.ai_explanation && (
-          <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
-            <p className="text-xs font-semibold text-blue-600 mb-1">AI Analysis</p>
-            <p className="text-sm text-blue-700 leading-relaxed">{quote.ai_explanation}</p>
+          <div className="rounded-xl border border-gray-300 bg-white p-4">
+            <p className="text-[11px] font-display italic uppercase tracking-widest text-gray-500 mb-1.5">AI Analysis</p>
+            <p className="text-sm text-gray-700 leading-relaxed">{quote.ai_explanation}</p>
           </div>
         )}
 
         {quote.requires_approval && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-            <p className="text-sm font-bold text-amber-800 mb-1">Admin approval required</p>
-            <p className="text-xs text-amber-700 leading-relaxed">
+          <div className="rounded-xl border-2 border-amber-400 bg-amber-50 p-4">
+            <p className="text-sm font-display italic uppercase tracking-wide text-amber-900 mb-1">⚠ Admin Approval Required</p>
+            <p className="text-xs text-amber-800 leading-relaxed">
               Continue to provide your details. Payment is blocked until approval. You&apos;ll hear back within 24 hours.
             </p>
           </div>
         )}
 
-        <p className="text-xs text-gray-400 text-center">Ground level & curbside pickup only</p>
+        <p className="text-[11px] text-gray-500 text-center uppercase tracking-wider font-medium">📋 Ground level &amp; curbside pickup only</p>
 
         {/* Priority Pickup upgrade — surfaces directly under the quote */}
         <PriorityPicker value={priorityTier} onChange={onPriorityChange} />
@@ -414,18 +419,18 @@ function QuoteStep({ quote, onContinueToBooking, onCloseAfterQuote, priorityTier
         <AddToHomeScreenPrompt />
       </CardContent>
 
-      <div className="p-5 bg-white border-t space-y-3">
+      <div className="p-5 bg-black border-t-2 border-lime-400/30 space-y-3">
         <Button
           onClick={onContinueToBooking}
-          className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 rounded-xl font-bold text-base"
+          className="w-full h-12 bg-lime-400 hover:bg-lime-300 text-black rounded-xl font-display italic uppercase tracking-wider text-base shadow-[0_4px_14px_-2px_rgba(190,242,100,0.5)]"
           data-testid="book-pickup-btn"
         >
-          Continue to Booking
+          Continue to Booking →
         </Button>
         <Button
           variant="outline"
           onClick={onCloseAfterQuote}
-          className="w-full h-12 rounded-xl border-gray-200 font-semibold text-base"
+          className="w-full h-12 rounded-xl border-2 border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white hover:border-white/50 font-display italic uppercase tracking-wide text-base"
           data-testid="close-quote-btn"
         >
           Close

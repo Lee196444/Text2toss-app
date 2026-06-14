@@ -38,23 +38,23 @@ const TIPS = [
 // Status helpers — keep classNames + visuals out of the JSX where they
 // were nested 2-3 ternaries deep.
 const stepRowClass = ({ isDone, isActive }) => {
-  const base = "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300";
-  if (isActive) return `${base} bg-emerald-50 border border-emerald-200 shadow-sm`;
-  if (isDone) return `${base} bg-white`;
-  return `${base} bg-gray-50/50`;
+  const base = "flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-300";
+  if (isActive) return `${base} bg-lime-400/10 border border-lime-400 shadow-sm`;
+  if (isDone) return `${base} bg-white/5 border border-white/10`;
+  return `${base} bg-white/[0.02] border border-white/5`;
 };
 
 const stepLabelClass = ({ isDone, isActive }) => {
   const base = "flex-1 text-sm font-medium transition-colors";
-  if (isActive) return `${base} text-emerald-900`;
-  if (isDone) return `${base} text-gray-700`;
-  return `${base} text-gray-400`;
+  if (isActive) return `${base} text-lime-300`;
+  if (isDone) return `${base} text-gray-200`;
+  return `${base} text-gray-500`;
 };
 
 function StepStatusIcon({ isDone, isActive, icon }) {
   if (isDone) {
     return (
-      <div className="w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-sm">
+      <div className="w-7 h-7 rounded-full bg-lime-400 text-black flex items-center justify-center shadow-[0_0_10px_-2px_rgba(190,242,100,0.55)]">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
         </svg>
@@ -64,13 +64,13 @@ function StepStatusIcon({ isDone, isActive, icon }) {
   if (isActive) {
     return (
       <div className="relative">
-        <div className="w-7 h-7 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin"></div>
+        <div className="w-7 h-7 rounded-full border-2 border-lime-400 border-t-transparent animate-spin"></div>
         <span className="absolute inset-0 flex items-center justify-center text-base">{icon}</span>
       </div>
     );
   }
   return (
-    <div className="w-7 h-7 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center text-sm">
+    <div className="w-7 h-7 rounded-full bg-white/10 text-gray-500 flex items-center justify-center text-sm">
       {icon}
     </div>
   );
@@ -142,37 +142,41 @@ export default function QuoteAnalyzingProgress({ quote, error, onDone }) {
   const totalProgress = done ? 100 : Math.round((activeIdx / totalSteps) * 100);
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-5 text-white text-center">
-          <div className="flex items-center justify-center gap-2 mb-1">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-black rounded-2xl shadow-[0_20px_60px_-10px_rgba(190,242,100,0.4)] overflow-hidden border-2 border-lime-400/40">
+        {/* Header — black with lime accent stripe */}
+        <div className="bg-black px-6 py-5 text-center border-b border-lime-400/30 relative overflow-hidden">
+          {/* Lime glow corner */}
+          <div className="absolute -top-10 -right-10 w-32 h-32 bg-lime-400/20 rounded-full blur-2xl pointer-events-none"></div>
+          <div className="relative flex items-center justify-center gap-2 mb-1.5">
             <span className="text-2xl">🧠</span>
-            <h2 className="text-lg font-bold">AI is reviewing your photo</h2>
+            <h2 className="font-display italic text-xl uppercase tracking-tight text-white">
+              AI is <span className="text-lime-400">reviewing</span> your photo
+            </h2>
           </div>
-          <p className="text-sm text-emerald-50/90">
-            {done ? "Done — your quote is ready!" : "Hang tight — usually 1-3 seconds"}
+          <p className="text-xs uppercase tracking-wider text-gray-400 font-medium">
+            {done ? "DONE — your quote is ready!" : "Hang tight — usually 1-3 seconds"}
           </p>
         </div>
 
         {/* Body */}
-        <div className="p-6 space-y-5">
+        <div className="p-5 space-y-5 bg-gray-950">
           {/* Progress bar */}
           <div>
-            <div className="flex justify-between text-xs font-semibold text-gray-500 mb-2">
+            <div className="flex justify-between text-[11px] uppercase tracking-wider font-bold text-gray-400 mb-2">
               <span>Progress</span>
-              <span data-testid="analyze-pct">{totalProgress}%</span>
+              <span className="text-lime-400" data-testid="analyze-pct">{totalProgress}%</span>
             </div>
-            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-2 bg-white/10 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-emerald-400 to-emerald-600 rounded-full transition-all duration-500 ease-out"
+                className="h-full bg-gradient-to-r from-lime-400 to-lime-300 rounded-full transition-all duration-500 ease-out shadow-[0_0_8px_rgba(190,242,100,0.6)]"
                 style={{ width: `${totalProgress}%` }}
               ></div>
             </div>
           </div>
 
           {/* Steps list */}
-          <ul className="space-y-2.5" data-testid="analyze-steps">
+          <ul className="space-y-2" data-testid="analyze-steps">
             {STEP_IDS.map((id, idx) => {
               const step = STEP_DEFAULTS[id];
               const isDone = idx < activeIdx || done;
@@ -197,17 +201,17 @@ export default function QuoteAnalyzingProgress({ quote, error, onDone }) {
                   {/* Real values shown once the step is done */}
                   {value && (
                     <span
-                      className="text-xs font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full"
+                      className="text-xs font-black text-black bg-lime-400 px-2 py-0.5 rounded-full font-display italic"
                       data-testid={`analyze-step-${id}-value`}
                     >
                       {value}
                     </span>
                   )}
                   {!value && isDone && (
-                    <span className="text-[10px] uppercase tracking-wide text-emerald-600 font-bold">Done</span>
+                    <span className="text-[10px] uppercase tracking-widest text-lime-400 font-display italic">Done</span>
                   )}
                   {isPending && (
-                    <span className="text-[10px] uppercase tracking-wide text-gray-400 font-bold">Queued</span>
+                    <span className="text-[10px] uppercase tracking-widest text-gray-600 font-display italic">Queued</span>
                   )}
                 </li>
               );
@@ -216,8 +220,8 @@ export default function QuoteAnalyzingProgress({ quote, error, onDone }) {
 
           {/* Rotating tip */}
           {!error && (
-            <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 text-center">
-              <p className="text-xs text-amber-800 font-medium" data-testid="analyze-tip">
+            <div className="bg-white/5 border border-white/10 rounded-lg p-3 text-center">
+              <p className="text-xs text-gray-300 font-medium" data-testid="analyze-tip">
                 💡 {TIPS[tipIdx]}
               </p>
             </div>
@@ -225,23 +229,23 @@ export default function QuoteAnalyzingProgress({ quote, error, onDone }) {
 
           {/* Error */}
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-center">
-              <p className="text-sm text-red-700 font-medium">{error}</p>
+            <div className="bg-red-950/40 border border-red-500/40 rounded-lg p-3 text-center">
+              <p className="text-sm text-red-300 font-medium">{error}</p>
             </div>
           )}
         </div>
 
         {/* Footer */}
         <div
-          className={`border-t px-6 py-3 text-center transition-colors ${
-            done ? "bg-emerald-50 border-emerald-100" : "bg-gray-50 border-gray-100"
+          className={`px-6 py-3 text-center border-t transition-colors ${
+            done ? "bg-lime-400 border-lime-300" : "bg-black border-lime-400/20"
           }`}
         >
           {done ? (
-            <p className="text-sm font-bold text-emerald-700">✅ Your quote is ready!</p>
+            <p className="font-display italic uppercase tracking-wider text-sm text-black">✅ Your quote is ready!</p>
           ) : (
-            <p className="text-xs text-gray-500">
-              We're using AI vision to scan, count, and price every item. No surprises later.
+            <p className="text-[11px] text-gray-500 leading-relaxed">
+              We&apos;re using AI vision to scan, count, and price every item. No surprises later.
             </p>
           )}
         </div>
