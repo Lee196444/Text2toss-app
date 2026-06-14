@@ -410,6 +410,7 @@ class BookingCreate(BaseModel):
     email_notifications: bool = True
     priority_tier: Optional[str] = None  # None | "same_day" | "next_slot" | "emergency"
     consent_accepted: bool = False        # Customer agreed to Terms + Refund Policy
+    pay_in_person: bool = False           # Cash/card at pickup — skips Venmo flow
     
     @validator('email')
     def validate_email(cls, v):
@@ -1590,11 +1591,16 @@ def _build_booking(
     consent_meta: Optional[dict] = None,
 ) -> "Booking":
     """Assemble the Booking object, including initial status based on approval rules."""
-    booking_status = (
-        "pending_customer_approval"
-        if quote_doc.get("requires_approval", False)
-        else "pending_payment"
-    )
+    # "Pay in person" customers go straight to `scheduled` so the job lands on
+    # the admin calendar immediately (no Venmo wait). Payment_status stays
+    # `pending` until the admin marks it paid after pickup.
+    if quote_doc.get("requires_approval", False):
+        booking_status = "pending_customer_approval"
+    elif booking_data.pay_in_person:
+        booking_status = "scheduled"
+    else:
+        booking_status = "pending_payment"
+    payment_method = "cash" if booking_data.pay_in_person else "venmo"
     fees = _get_priority_fees_sync()
     priority_fee = fees.get(booking_data.priority_tier, 0.0) if booking_data.priority_tier else 0.0
     meta = consent_meta or {}
@@ -1611,6 +1617,7 @@ def _build_booking(
         email_notifications=booking_data.email_notifications,
         image_path=quote_doc.get("temp_image_path"),
         status=booking_status,
+        payment_method=payment_method,
         priority_tier=booking_data.priority_tier,
         priority_fee=priority_fee,
         consent_accepted=booking_data.consent_accepted,

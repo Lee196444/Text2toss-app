@@ -63,6 +63,7 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
   const [showCalendar, setShowCalendar] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
   const [legalConsent, setLegalConsent] = useState(false);
+  const [payInPerson, setPayInPerson] = useState(false);
 
   // Dynamic priority fees (admin-configurable). Falls back to PRIORITY_TIERS values.
   const { fees: priorityFees } = usePriorityConfig();
@@ -142,7 +143,8 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
         ...bookingData,
         priority_tier: priorityTier || null,
         consent_accepted: legalConsent,
-        payment_method: "venmo",
+        pay_in_person: payInPerson,
+        payment_method: payInPerson ? "cash" : "venmo",
       });
       const bookingId = res.data.id;
 
@@ -152,6 +154,21 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
           setBookingSubmitted(false);
           onSuccess();
         }, 7000);
+        return;
+      }
+
+      // Pay-in-person customers skip the Venmo step — the job is already
+      // on the admin calendar as "scheduled".
+      if (payInPerson) {
+        toast.success("✅ Booking confirmed! We'll see you on pickup day — please have cash or card ready.", {
+          duration: 5000,
+          style: { background: "#10b981", color: "#ffffff", fontSize: "16px", fontWeight: "600", padding: "16px" },
+        });
+        setBookingSubmitted(true);
+        setTimeout(() => {
+          setBookingSubmitted(false);
+          onSuccess();
+        }, 3500);
         return;
       }
 
@@ -233,7 +250,7 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
                     </p>
                     <p className="text-xs text-yellow-700">
                       ✓ No payment will be processed until quote is approved<br />
-                      ✓ We'll contact you within 24 hours with approval<br />
+                      ✓ We&apos;ll contact you within 24 hours with approval<br />
                       ✓ You can then complete payment to confirm your booking
                     </p>
                   </div>
@@ -269,11 +286,33 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
               setFieldErrors={setFieldErrors}
             />
 
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-300 rounded-xl p-4 text-center">
-              <p className="text-base font-bold text-blue-900 mb-1">💰 Payment via Venmo Only</p>
-              <p className="text-sm text-blue-800">
-                After booking, you'll receive payment instructions to complete via <strong>@Text2toss</strong>
-              </p>
+            <div className={`rounded-xl p-4 border-2 transition-colors ${
+              payInPerson
+                ? "bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-400"
+                : "bg-gradient-to-br from-blue-50 to-blue-100 border-blue-300"
+            }`}>
+              <div className="text-center mb-3">
+                <p className={`text-base font-bold mb-1 ${payInPerson ? "text-emerald-900" : "text-blue-900"}`}>
+                  {payInPerson ? "💵 Pay In Person on Pickup Day" : "💰 Payment via Venmo"}
+                </p>
+                <p className={`text-sm ${payInPerson ? "text-emerald-800" : "text-blue-800"}`}>
+                  {payInPerson
+                    ? <>Have <strong>cash or card</strong> ready when the crew arrives. Your booking is locked in immediately.</>
+                    : <>After booking, you&apos;ll get payment instructions for <strong>@Text2toss</strong></>}
+                </p>
+              </div>
+              <label className="flex items-center justify-center gap-2 cursor-pointer bg-white/70 hover:bg-white rounded-lg py-2 px-3 border border-current/20">
+                <input
+                  type="checkbox"
+                  checked={payInPerson}
+                  onChange={(e) => setPayInPerson(e.target.checked)}
+                  className="w-5 h-5 rounded border-2 border-gray-300 text-emerald-500 focus:ring-2 focus:ring-emerald-400 cursor-pointer"
+                  data-testid="pay-in-person-checkbox"
+                />
+                <span className="text-sm font-semibold text-gray-800">
+                  I&apos;ll pay in person (cash or card on pickup day)
+                </span>
+              </label>
             </div>
           </CardContent>
         </div>
@@ -339,7 +378,7 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
                 data-testid="venmo-booking-btn"
                 className="flex-1 h-12 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-base font-bold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                📱 Confirm Booking
+                {payInPerson ? "💵 Confirm Booking (Pay on Pickup)" : "📱 Confirm & Pay via Venmo"}
               </Button>
             )}
           </div>
