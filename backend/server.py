@@ -401,6 +401,9 @@ class Booking(BaseModel):
     priority_fee: float = 0.0            # Non-refundable surcharge added on top of quote
     equipment_required: bool = False     # Heavy-pile add-on opted in at quote time
     equipment_fee: float = 0.0           # Locked-in fee carried from quote
+    # --- Tip the Crew (15/20/25/custom/skip, set on the pay page) ---
+    tip_amount: float = 0.0              # Dollar amount, server-validated
+    tip_set_at: Optional[datetime] = None
     # --- Legal consent (defense against payment disputes) ---
     consent_accepted: bool = False
     consent_accepted_at: Optional[datetime] = None
@@ -1854,7 +1857,8 @@ async def get_booking_payment_info(booking_id: str):
     )
     priority_fee = float(booking_doc.get("priority_fee") or 0)
     equipment_fee = float(booking_doc.get("equipment_fee") or 0)
-    amount_due = float(base_amount) + priority_fee + equipment_fee
+    tip_amount = float(booking_doc.get("tip_amount") or 0)
+    amount_due = float(base_amount) + priority_fee + equipment_fee + tip_amount
 
     return {
         "booking_id": booking_doc.get("id"),
@@ -1868,9 +1872,51 @@ async def get_booking_payment_info(booking_id: str):
         "priority_fee": priority_fee,
         "equipment_required": bool(booking_doc.get("equipment_required")),
         "equipment_fee": equipment_fee,
+        "tip_amount": tip_amount,
         "status": booking_doc.get("status"),
         "payment_status": booking_doc.get("payment_status", "pending"),
         "venmo_qr_url": "https://www.paypal.com/qrcodes/venmocs/9f1f97dd-23ed-4676-82b5-3fc2126def65?created=1762118921",
+    }
+
+
+class TipUpdateRequest(BaseModel):
+    tip_amount: float
+
+
+@api_router.patch("/bookings/{booking_id}/tip")
+async def update_booking_tip(booking_id: str, body: TipUpdateRequest):
+    """Customer sets/updates a crew tip from the pay page (before paying).
+    Refused after payment is captured. Capped at $500 sanity-check.
+    """
+    if body.tip_amount < 0 or body.tip_amount > 500:
+        raise HTTPException(status_code=400, detail="Tip must be between $0 and $500")
+
+    booking_doc = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking_doc:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    if booking_doc.get("payment_status") == "paid":
+        raise HTTPException(status_code=400, detail="Booking is already paid")
+    if booking_doc.get("status") == "cancelled":
+        raise HTTPException(status_code=400, detail="Booking is cancelled")
+
+    tip = round(float(body.tip_amount), 2)
+    await db.bookings.update_one(
+        {"id": booking_id},
+        {"$set": {
+            "tip_amount": tip,
+            "tip_set_at": datetime.now(timezone.utc).isoformat(),
+        }}
+    )
+    # Return the fresh amount-due so the client doesn't have to refetch separately
+    refreshed = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    quote_doc = (
+        await db.quotes.find_one({"id": refreshed.get("quote_id")}, {"_id": 0})
+        if refreshed.get("quote_id") else None
+    )
+    return {
+        "booking_id": booking_id,
+        "tip_amount": tip,
+        "amount_due": _compute_booking_amount_due(refreshed, quote_doc),
     }
 
 
@@ -1890,7 +1936,7 @@ class StripeCheckoutCreateRequest(BaseModel):
 
 
 def _compute_booking_amount_due(booking_doc: dict, quote_doc: Optional[dict]) -> float:
-    """Server-side source of truth for what the customer owes."""
+    """Server-side source of truth for what the customer owes (incl. crew tip)."""
     base_amount = (
         (quote_doc.get("approved_price") if quote_doc else None)
         or (quote_doc.get("total_price") if quote_doc else None)
@@ -1900,6 +1946,7 @@ def _compute_booking_amount_due(booking_doc: dict, quote_doc: Optional[dict]) ->
         float(base_amount)
         + float(booking_doc.get("priority_fee") or 0)
         + float(booking_doc.get("equipment_fee") or 0)
+        + float(booking_doc.get("tip_amount") or 0)
     )
 
 

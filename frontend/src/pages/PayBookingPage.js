@@ -5,6 +5,7 @@ import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { toast } from "../lib/toast";
 import BookingJourneyProgress from "../components/customer/BookingJourneyProgress";
+import TipPicker from "../components/customer/TipPicker";
 import SiteFooter from "../components/SiteFooter";
 
 const API = process.env.REACT_APP_BACKEND_URL + "/api";
@@ -265,6 +266,12 @@ export default function PayBookingPage() {
                         ${info.amount_due?.toFixed(2)}
                       </span>
                     </div>
+                    {info.tip_amount > 0 && (
+                      <div className="flex justify-between text-xs text-emerald-800">
+                        <span>includes crew tip</span>
+                        <span className="font-semibold">+${info.tip_amount?.toFixed(2)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-sm">
                       <span>Customer</span>
                       <span className="font-semibold">{info.customer_name}</span>
@@ -334,6 +341,22 @@ export default function PayBookingPage() {
                     </p>
                     <p>3. We&apos;ll confirm by text once payment lands.</p>
                   </div>
+
+                  {/* Tip the crew (sits above payment buttons) */}
+                  <TipPicker
+                    bookingId={bookingId}
+                    baseAmount={
+                      (info.base_amount || 0) +
+                      (info.priority_fee || 0) +
+                      (info.equipment_fee || 0)
+                    }
+                    currentTip={info.tip_amount || 0}
+                    onTipApplied={(newAmountDue, newTip) =>
+                      setInfo((prev) =>
+                        prev ? { ...prev, amount_due: newAmountDue, tip_amount: newTip } : prev,
+                      )
+                    }
+                  />
 
                   {/* Actions — Card first, Venmo second */}
                   <Button

@@ -15,6 +15,21 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Test creds: `lrobe` / `L1964c10$` (see `/app/memory/test_credentials.md`)
 
 
+## Implemented (Feb 11, 2026 — later)
+- ✅ **FEATURE (Feb 11): Stripe Card Checkout — verified end-to-end**
+  - `POST /api/bookings/{id}/stripe-checkout` returns a live Stripe Checkout URL + session_id (verified: real `cs_test_*` session for booking `0e82e85a` at $180). Amount computed server-side from base + priority + equipment + tip.
+  - `GET /api/payments/checkout-status/{session_id}` returns Stripe status (verified: `status=open, payment_status=unpaid, amount_total=18000` cents).
+  - Idempotent booking update — only flips `payment_status` to `paid` once even on parallel calls.
+  - `POST /api/webhook/stripe` mirrors polling for redundancy.
+  - Frontend `/pay/:bookingId` shows "Pay with Card" button (lime CTA) above "Pay with Venmo"; polls every 5s for up to 40s after return, then surfaces a timeout banner.
+- ✅ **FEATURE (Feb 11): Tip the Crew (15 / 20 / 25 / Custom / Skip)**
+  - **Schema:** `Booking.tip_amount: float` + `tip_set_at: datetime`. `_compute_booking_amount_due()` now includes tip in the server-side total.
+  - **Endpoint:** `PATCH /api/bookings/{id}/tip` — validates `0 ≤ tip ≤ 500`, rejects if booking is paid/cancelled, returns refreshed `amount_due`. Verified all edge cases (negative, > $500, $0 skip).
+  - **UI:** `TipPicker.jsx` — branded Text2toss neon-lime card with 3 percentage chips (auto-computed dollar amounts), custom $ input, and Skip pill. Sits above Pay buttons on `/pay/:bookingId`. Live updates `amount_due`, Venmo deep-link, manual instructions, and Pay with Card / Pay with Venmo buttons.
+  - **Verified end-to-end** via headed Playwright: 20% preset → $180 base → $216 due; custom $25 → $175; Skip → $150 revert. Toast confirmation + "✅ Tip added: $X.XX" banner.
+
+
+
 ## Implemented (Feb 11, 2026)
 - ✅ **BUGFIX (Feb 11): Pay-in-person bookings invisible on calendar**
   - **Root cause:** `_build_booking()` in `server.py` checked `requires_approval` BEFORE `pay_in_person`. A quote with AI scale ≥ 9 forced status to `pending_customer_approval` even when the customer chose cash-on-pickup — so the job never landed on the admin calendar.
