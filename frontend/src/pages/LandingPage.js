@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Badge } from "../components/ui/badge";
 import PhotoCarousel from "../components/customer/PhotoCarousel";
 import QuoteAnalyzingProgress from "../components/customer/QuoteAnalyzingProgress";
+import ReviewsSection from "../components/customer/ReviewsSection";
 import BookingModal from "../components/booking/BookingModal";
 import VenmoPaymentModal from "../components/booking/VenmoPaymentModal";
 import QuoteFlowModal from "./QuoteFlowModal";
@@ -564,6 +565,9 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
+
+      {/* Reviews / Social Proof (admin-curated; hides if no reviews exist) */}
+      <ReviewsSection />
 
       {/* CTA Banner — Arizona's #1 push */}
       <section className="relative py-12 sm:py-16 bg-black overflow-hidden">

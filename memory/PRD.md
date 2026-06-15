@@ -15,6 +15,15 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Test creds: `lrobe` / `L1964c10$` (see `/app/memory/test_credentials.md`)
 
 
+## Implemented (Feb 11, 2026 — later still)
+- ✅ **FEATURE (Feb 11): Admin-editable Reviews / Social-proof on landing page**
+  - **Backend:** `Review` model `{customer_name, location, rating 1-5, body, is_published, display_order}`. Endpoints: `GET /api/reviews` (public, published only, sorted by display_order asc), `GET /api/admin/reviews` (all), `POST/PATCH/DELETE /api/admin/reviews/:id`. Idempotent startup seeder inserts 3 starter reviews (Sarah M. / Mike T. / Jenna R.) if the collection is empty.
+  - **Landing page:** `ReviewsSection.jsx` renders branded T2T cards (lime stars, big serif quote mark, avatar initials, name + location) in a 3-col grid between "How it Works" and the CTA banner. Hides itself if no published reviews exist. "Leave us a review" CTA links to Google Reviews.
+  - **Admin:** `ReviewsModal.jsx` mounted under a new ⭐ Reviews tile in the admin action grid. Inline add/edit form (star picker, location, body, display order, published checkbox), list with Edit / Hide-Publish / Delete actions per review.
+  - **Verified end-to-end** (curl + headed Playwright): list (3 seeded), create test review (returns id), patch to hide → public endpoint correctly excludes it, delete → 200, invalid rating → 400. Landing page renders 3 cards; admin modal lists all 3 with edit/hide/delete affordances.
+
+
+
 ## Implemented (Feb 11, 2026 — later)
 - ✅ **FEATURE (Feb 11): Stripe Card Checkout — verified end-to-end**
   - `POST /api/bookings/{id}/stripe-checkout` returns a live Stripe Checkout URL + session_id (verified: real `cs_test_*` session for booking `0e82e85a` at $180). Amount computed server-side from base + priority + equipment + tip.

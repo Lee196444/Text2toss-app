@@ -27,6 +27,7 @@ import CalendarModal from "./admin/CalendarModal";
 import AllJobsModal from "./admin/AllJobsModal";
 import EmailCenterModal from "./admin/EmailCenterModal";
 import PhotoGalleryModal from "./admin/PhotoGalleryModal";
+import ReviewsModal from "./admin/ReviewsModal";
 import { toast } from "../lib/toast";
 import { logger } from "../utils/logger";
 
@@ -123,6 +124,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [showQRModal, setShowQRModal] = useState(false);
+  const [showReviewsModal, setShowReviewsModal] = useState(false);
   const [completionPhoto, setCompletionPhoto] = useState(null);
   const [completionNote, setCompletionNote] = useState("");
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -1245,6 +1247,15 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
                 <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">📱</span>
                 <span className="text-xs sm:text-sm font-medium leading-tight">QR Code</span>
               </Button>
+
+              <Button
+                onClick={() => setShowReviewsModal(true)}
+                data-testid="open-reviews-btn"
+                className="bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
+              >
+                <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">⭐</span>
+                <span className="text-xs sm:text-sm font-medium leading-tight">Reviews</span>
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -1670,6 +1681,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       />
 
       <MarketingQRModal open={showQRModal} onClose={() => setShowQRModal(false)} />
+      <ReviewsModal open={showReviewsModal} onClose={() => setShowReviewsModal(false)} />
     </div>
     </FilterProvider>
   );

@@ -81,6 +81,10 @@ async def create_indexes():
         # Fuzzy lookup via perceptual hash (catches re-uploads of the same photo)
         await db.image_cache.create_index([("phash", 1), ("desc_norm", 1), ("n_images", 1)])
 
+        # Reviews collection — fast public lookup of published reviews
+        await db.reviews.create_index([("id", 1)], unique=True)
+        await db.reviews.create_index([("is_published", 1), ("display_order", 1)])
+
         logger.info("✅ Database indexes created successfully")
     except Exception as e:
         logger.warning(f"⚠️ Index creation warning (indexes may already exist): {str(e)}")
@@ -4696,6 +4700,126 @@ async def _stop_push_scheduler():
     sched = getattr(app.state, "push_scheduler", None)
     if sched:
         sched.shutdown(wait=False)
+
+
+# === Reviews / Social-Proof ============================================
+# Admin-curated customer reviews shown on the landing page.
+
+class Review(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    customer_name: str
+    location: Optional[str] = None  # e.g. "Flagstaff, AZ"
+    rating: int = 5                  # 1..5
+    body: str
+    is_published: bool = True
+    display_order: int = 0           # lower = shown first
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class ReviewCreate(BaseModel):
+    customer_name: str
+    location: Optional[str] = None
+    rating: int = 5
+    body: str
+    is_published: bool = True
+    display_order: int = 0
+
+
+class ReviewUpdate(BaseModel):
+    customer_name: Optional[str] = None
+    location: Optional[str] = None
+    rating: Optional[int] = None
+    body: Optional[str] = None
+    is_published: Optional[bool] = None
+    display_order: Optional[int] = None
+
+
+def _serialize_review(doc: dict) -> dict:
+    doc.pop("_id", None)
+    if isinstance(doc.get("created_at"), datetime):
+        doc["created_at"] = doc["created_at"].isoformat()
+    return doc
+
+
+@api_router.get("/reviews")
+async def public_reviews():
+    """Public — used by the landing page Reviews section."""
+    cursor = db.reviews.find({"is_published": True}).sort([("display_order", 1), ("created_at", -1)])
+    return [_serialize_review(r) async for r in cursor]
+
+
+@api_router.get("/admin/reviews")
+async def admin_list_reviews():
+    """Admin — every review, published or not."""
+    cursor = db.reviews.find({}).sort([("display_order", 1), ("created_at", -1)])
+    return [_serialize_review(r) async for r in cursor]
+
+
+@api_router.post("/admin/reviews", response_model=Review)
+async def admin_create_review(body: ReviewCreate):
+    if body.rating < 1 or body.rating > 5:
+        raise HTTPException(status_code=400, detail="Rating must be 1–5")
+    review = Review(**body.dict())
+    await db.reviews.insert_one(review.dict())
+    return review
+
+
+@api_router.patch("/admin/reviews/{review_id}")
+async def admin_update_review(review_id: str, body: ReviewUpdate):
+    patch = {k: v for k, v in body.dict(exclude_unset=True).items() if v is not None}
+    if "rating" in patch and (patch["rating"] < 1 or patch["rating"] > 5):
+        raise HTTPException(status_code=400, detail="Rating must be 1–5")
+    if not patch:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    result = await db.reviews.update_one({"id": review_id}, {"$set": patch})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Review not found")
+    doc = await db.reviews.find_one({"id": review_id})
+    return _serialize_review(doc) if doc else {"success": True}
+
+
+@api_router.delete("/admin/reviews/{review_id}")
+async def admin_delete_review(review_id: str):
+    result = await db.reviews.delete_one({"id": review_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Review not found")
+    return {"success": True}
+
+
+@app.on_event("startup")
+async def seed_initial_reviews():
+    """Seed 3 starter reviews if the collection is empty so the landing page
+    isn't blank for new installs. Admin can edit/delete them later."""
+    try:
+        if await db.reviews.count_documents({}) > 0:
+            return
+        starter = [
+            Review(
+                customer_name="Sarah M.",
+                location="Flagstaff, AZ",
+                rating=5,
+                body="Snapped a pic of my garage clutter, got a quote in seconds, and they showed up the next morning. Wildly easy.",
+                display_order=1,
+            ),
+            Review(
+                customer_name="Mike T.",
+                location="Sedona, AZ",
+                rating=5,
+                body="Cleaned out my parents' old furniture in one trip. Friendly crew, fair price, no surprises. Will use again.",
+                display_order=2,
+            ),
+            Review(
+                customer_name="Jenna R.",
+                location="Williams, AZ",
+                rating=5,
+                body="Booked Tuesday, picked up Wednesday. Paid in Venmo, done. This is how every service business should work.",
+                display_order=3,
+            ),
+        ]
+        await db.reviews.insert_many([r.dict() for r in starter])
+        logger.info("✅ Seeded 3 starter reviews")
+    except Exception as e:
+        logger.warning(f"Review seed skipped: {e}")
 
 
 # Include the router in the main app
