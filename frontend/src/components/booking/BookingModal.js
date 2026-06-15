@@ -108,7 +108,8 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
     setShowCalendar(false);
   };
 
-  const handleVenmoBooking = async () => {
+  const submitBooking = async (paymentChoice) => {
+    // paymentChoice: "venmo" | "card" | "in_person"
     setFieldErrors({});
     const { errors, missing } = buildMissingFields(bookingData);
 
@@ -144,8 +145,8 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
         ...bookingData,
         priority_tier: priorityTier || null,
         consent_accepted: legalConsent,
-        pay_in_person: payInPerson,
-        payment_method: payInPerson ? "cash" : "venmo",
+        pay_in_person: paymentChoice === "in_person",
+        payment_method: paymentChoice === "in_person" ? "cash" : paymentChoice,
       });
       const bookingId = res.data.id;
 
@@ -158,9 +159,8 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
         return;
       }
 
-      // Pay-in-person customers skip the Venmo step — the job is already
-      // on the admin calendar as "scheduled".
-      if (payInPerson) {
+      // Pay-in-person customers skip the payment redirect
+      if (paymentChoice === "in_person") {
         toast.success("✅ Booking confirmed! We'll see you on pickup day — please have cash or card ready.", {
           duration: 5000,
           style: { background: "#10b981", color: "#ffffff", fontSize: "16px", fontWeight: "600", padding: "16px" },
@@ -173,6 +173,26 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
         return;
       }
 
+      // Card → redirect to Stripe Checkout (returns to /pay/:id with session_id)
+      if (paymentChoice === "card") {
+        try {
+          const { data } = await axios.post(
+            `${API}/bookings/${bookingId}/stripe-checkout`,
+            { booking_id: bookingId, origin_url: window.location.origin }
+          );
+          if (data?.url) {
+            window.location.href = data.url;
+            return;
+          }
+          throw new Error("No checkout URL returned");
+        } catch (e) {
+          logger.error("Stripe checkout init failed", e);
+          toast.error("Couldn't start card payment. Please try Venmo or contact us.");
+          return;
+        }
+      }
+
+      // Venmo flow (default)
       toast.success("✅ Booking Successfully Submitted! Please complete payment to confirm.", {
         duration: 4000,
         style: { background: "#10b981", color: "#ffffff", fontSize: "16px", fontWeight: "600", padding: "16px" },
@@ -189,6 +209,9 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
       toast.error("Failed to create booking");
     }
   };
+
+  const handleVenmoBooking = () => submitBooking(payInPerson ? "in_person" : "venmo");
+  const handleCardBooking = () => submitBooking("card");
 
   if (bookingSubmitted) {
     return (
@@ -358,33 +381,74 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
             </span>
           </label>
 
-          <div className="p-4 pt-2 pb-20 sm:pb-4 flex flex-col sm:flex-row gap-3">
-            <Button
-              variant="outline"
-              onClick={onClose}
-              data-testid="cancel-booking-btn"
-              className="flex-1 h-12 border-2 text-base font-semibold"
-            >
-              Cancel
-            </Button>
+          <div className="p-4 pt-2 pb-20 sm:pb-4 flex flex-col gap-3">
             {quote.requires_approval ? (
-              <Button
-                onClick={handleVenmoBooking}
-                disabled={!legalConsent}
-                data-testid="venmo-booking-btn"
-                className="flex-1 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white text-base font-bold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                📝 Submit Booking (Pending Approval)
-              </Button>
+              <>
+                <Button
+                  onClick={handleVenmoBooking}
+                  disabled={!legalConsent}
+                  data-testid="venmo-booking-btn"
+                  className="w-full h-12 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white text-base font-bold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  📝 Submit Booking (Pending Approval)
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={onClose}
+                  data-testid="cancel-booking-btn"
+                  className="w-full h-11 border-2 text-base font-semibold"
+                >
+                  Cancel
+                </Button>
+              </>
+            ) : payInPerson ? (
+              // Pay-in-person → single confirm button (no payment redirect)
+              <>
+                <Button
+                  onClick={handleVenmoBooking}
+                  disabled={!legalConsent}
+                  data-testid="venmo-booking-btn"
+                  className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-base font-bold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  💵 Confirm Booking (Pay on Pickup)
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={onClose}
+                  data-testid="cancel-booking-btn"
+                  className="w-full h-11 border-2 text-base font-semibold"
+                >
+                  Cancel
+                </Button>
+              </>
             ) : (
-              <Button
-                onClick={handleVenmoBooking}
-                disabled={!legalConsent}
-                data-testid="venmo-booking-btn"
-                className="flex-1 h-12 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-base font-bold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {payInPerson ? "💵 Confirm Booking (Pay on Pickup)" : "📱 Confirm & Pay via Venmo"}
-              </Button>
+              // Standard checkout — two payment buttons stacked
+              <>
+                <Button
+                  onClick={handleCardBooking}
+                  disabled={!legalConsent}
+                  data-testid="card-booking-btn"
+                  className="w-full h-12 bg-lime-400 hover:bg-lime-300 text-black font-display italic uppercase tracking-wider text-base shadow-[0_4px_14px_-2px_rgba(190,242,100,0.5)] rounded-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                >
+                  💳 Pay with Card · ${totalWithPriority}
+                </Button>
+                <Button
+                  onClick={handleVenmoBooking}
+                  disabled={!legalConsent}
+                  data-testid="venmo-booking-btn"
+                  className="w-full h-12 bg-black hover:bg-gray-900 text-lime-400 border-2 border-lime-400 font-display italic uppercase tracking-wider text-base rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  📱 Pay with Venmo · ${totalWithPriority}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={onClose}
+                  data-testid="cancel-booking-btn"
+                  className="w-full h-11 border-2 text-sm font-semibold"
+                >
+                  Cancel
+                </Button>
+              </>
             )}
           </div>
         </div>

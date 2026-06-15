@@ -805,25 +805,68 @@ def _perceptual_hash_batch(paths) -> str:
 
 
 async def _check_image_cache_by_phash(phash: str, desc_norm: str, n_images: int, t0: float):
-    """Fuzzy cache lookup keyed on perceptual hash + description + image count."""
+    """Fuzzy cache lookup keyed on perceptual hash + description + image count.
+
+    Two passes:
+      1. Exact phash match (fastest path — same photo, same compression).
+      2. Hamming-distance match (≤ 10 bits across all 64-bit per-image hashes).
+         Catches the case where the customer re-snaps the same scene from a
+         slightly different angle/lighting and the dhash drifts by a few bits.
+    """
     import time as _time
     if not phash:
         return None
+
+    # 1) Exact match
     cached = await db.image_cache.find_one({
         "phash": phash,
         "desc_norm": desc_norm,
         "n_images": n_images,
     })
-    if not cached:
-        return None
-    logger.info(f"Cache HIT via phash (total {_time.monotonic()-t0:.1f}s)")
-    return (
-        [JunkItem(**item) for item in cached["items"]],
-        cached["total_price"],
-        cached["explanation"],
-        cached.get("scale_level"),
-        cached.get("breakdown")
-    )
+    if cached:
+        logger.info(f"Cache HIT via phash exact (total {_time.monotonic()-t0:.1f}s)")
+        return (
+            [JunkItem(**item) for item in cached["items"]],
+            cached["total_price"],
+            cached["explanation"],
+            cached.get("scale_level"),
+            cached.get("breakdown")
+        )
+
+    # 2) Fuzzy match — same description + same image count + close pixels.
+    HAMMING_THRESHOLD = 10  # bits of drift tolerated across the joined hash
+    new_parts = phash.split("|")
+    cursor = db.image_cache.find({
+        "desc_norm": desc_norm,
+        "n_images": n_images,
+    })
+    async for candidate in cursor:
+        cand_phash = candidate.get("phash") or ""
+        if not cand_phash:
+            continue
+        cand_parts = cand_phash.split("|")
+        if len(cand_parts) != len(new_parts):
+            continue
+        try:
+            total_diff = sum(
+                bin(int(a, 16) ^ int(b, 16)).count("1")
+                for a, b in zip(new_parts, cand_parts)
+            )
+        except ValueError:
+            continue
+        if total_diff <= HAMMING_THRESHOLD:
+            logger.info(
+                f"Cache HIT via phash fuzzy (hamming={total_diff}, "
+                f"total {_time.monotonic()-t0:.1f}s)"
+            )
+            return (
+                [JunkItem(**item) for item in candidate["items"]],
+                candidate["total_price"],
+                candidate["explanation"],
+                candidate.get("scale_level"),
+                candidate.get("breakdown")
+            )
+    return None
 
 
 def _compress_image_for_ai(image_path: str, t0: float) -> str:
@@ -1667,10 +1710,13 @@ def _build_booking(
     # "Pay in person" customers go straight to `scheduled` so the job lands on
     # the admin calendar immediately (no Venmo wait). Payment_status stays
     # `pending` until the admin marks it paid after pickup.
-    if quote_doc.get("requires_approval", False):
-        booking_status = "pending_customer_approval"
-    elif booking_data.pay_in_person:
+    # Pay-in-person OVERRIDES the high-scale approval gate — admin will see the
+    # job, talk to the customer in person, and can adjust the cash amount on
+    # pickup. No reason to bury cash bookings in approval limbo.
+    if booking_data.pay_in_person:
         booking_status = "scheduled"
+    elif quote_doc.get("requires_approval", False):
+        booking_status = "pending_customer_approval"
     else:
         booking_status = "pending_payment"
     payment_method = "cash" if booking_data.pay_in_person else "venmo"
@@ -1807,7 +1853,8 @@ async def get_booking_payment_info(booking_id: str):
         or 0
     )
     priority_fee = float(booking_doc.get("priority_fee") or 0)
-    amount_due = float(base_amount) + priority_fee
+    equipment_fee = float(booking_doc.get("equipment_fee") or 0)
+    amount_due = float(base_amount) + priority_fee + equipment_fee
 
     return {
         "booking_id": booking_doc.get("id"),
@@ -1819,10 +1866,208 @@ async def get_booking_payment_info(booking_id: str):
         "base_amount": float(base_amount) if base_amount else 0,
         "priority_tier": booking_doc.get("priority_tier"),
         "priority_fee": priority_fee,
+        "equipment_required": bool(booking_doc.get("equipment_required")),
+        "equipment_fee": equipment_fee,
         "status": booking_doc.get("status"),
         "payment_status": booking_doc.get("payment_status", "pending"),
         "venmo_qr_url": "https://www.paypal.com/qrcodes/venmocs/9f1f97dd-23ed-4676-82b5-3fc2126def65?created=1762118921",
     }
+
+
+# === Stripe Card Checkout =========================================
+# Customer can pick "Pay with Card" instead of Venmo. Amount is computed
+# server-side from the booking record so the client can't tamper.
+
+from emergentintegrations.payments.stripe.checkout import (
+    StripeCheckout,
+    CheckoutSessionRequest,
+)
+
+
+class StripeCheckoutCreateRequest(BaseModel):
+    booking_id: str
+    origin_url: str  # window.location.origin from the client
+
+
+def _compute_booking_amount_due(booking_doc: dict, quote_doc: Optional[dict]) -> float:
+    """Server-side source of truth for what the customer owes."""
+    base_amount = (
+        (quote_doc.get("approved_price") if quote_doc else None)
+        or (quote_doc.get("total_price") if quote_doc else None)
+        or 0
+    )
+    return (
+        float(base_amount)
+        + float(booking_doc.get("priority_fee") or 0)
+        + float(booking_doc.get("equipment_fee") or 0)
+    )
+
+
+@api_router.post("/bookings/{booking_id}/stripe-checkout")
+async def create_stripe_checkout(booking_id: str, body: StripeCheckoutCreateRequest, request: Request):
+    """Create a Stripe Checkout session for a booking and return its URL.
+
+    Security: amount is NEVER taken from the client. We look up the booking,
+    sum base+priority+equipment server-side, then create the session. A
+    `payment_transactions` row is inserted with status='pending' before the
+    customer is redirected.
+    """
+    api_key = os.environ.get("STRIPE_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="Stripe is not configured")
+
+    booking_doc = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking_doc:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    if booking_doc.get("payment_status") == "paid":
+        raise HTTPException(status_code=400, detail="This booking is already paid")
+
+    quote_doc = (
+        await db.quotes.find_one({"id": booking_doc.get("quote_id")}, {"_id": 0})
+        if booking_doc.get("quote_id") else None
+    )
+    amount_due = _compute_booking_amount_due(booking_doc, quote_doc)
+    if amount_due <= 0:
+        raise HTTPException(status_code=400, detail="Invalid amount due")
+
+    origin = (body.origin_url or "").rstrip("/")
+    if not origin.startswith("http"):
+        raise HTTPException(status_code=400, detail="Invalid origin_url")
+    success_url = f"{origin}/pay/{booking_id}?session_id={{CHECKOUT_SESSION_ID}}"
+    cancel_url = f"{origin}/pay/{booking_id}?stripe=cancelled"
+
+    host_url = str(request.base_url)
+    webhook_url = f"{host_url}api/webhook/stripe"
+    stripe_checkout = StripeCheckout(api_key=api_key, webhook_url=webhook_url)
+
+    checkout_req = CheckoutSessionRequest(
+        amount=float(f"{amount_due:.2f}"),
+        currency="usd",
+        success_url=success_url,
+        cancel_url=cancel_url,
+        metadata={
+            "booking_id": booking_id,
+            "source": "text2toss_booking",
+        },
+    )
+    session = await stripe_checkout.create_checkout_session(checkout_req)
+
+    # Record the pending transaction BEFORE the customer leaves the page
+    await db.payment_transactions.insert_one({
+        "session_id": session.session_id,
+        "booking_id": booking_id,
+        "amount": amount_due,
+        "currency": "usd",
+        "status": "pending",
+        "payment_status": "pending",
+        "metadata": {"booking_id": booking_id, "source": "text2toss_booking"},
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    })
+
+    return {"url": session.url, "session_id": session.session_id}
+
+
+@api_router.get("/payments/checkout-status/{session_id}")
+async def get_checkout_status(session_id: str, request: Request):
+    """Poll the Stripe session status. Idempotent — only marks the booking
+    paid once even on parallel calls."""
+    api_key = os.environ.get("STRIPE_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="Stripe is not configured")
+
+    txn = await db.payment_transactions.find_one({"session_id": session_id}, {"_id": 0})
+    if not txn:
+        raise HTTPException(status_code=404, detail="Unknown session")
+
+    host_url = str(request.base_url)
+    webhook_url = f"{host_url}api/webhook/stripe"
+    stripe_checkout = StripeCheckout(api_key=api_key, webhook_url=webhook_url)
+    status = await stripe_checkout.get_checkout_status(session_id)
+
+    # Update transaction record
+    await db.payment_transactions.update_one(
+        {"session_id": session_id},
+        {"$set": {
+            "status": status.status,
+            "payment_status": status.payment_status,
+            "amount_total": status.amount_total,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }}
+    )
+
+    # Idempotent booking update — only mark paid if not already paid
+    if status.payment_status == "paid":
+        booking_id = txn.get("booking_id") or (status.metadata or {}).get("booking_id")
+        if booking_id:
+            booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0, "payment_status": 1})
+            if booking and booking.get("payment_status") != "paid":
+                await db.bookings.update_one(
+                    {"id": booking_id},
+                    {"$set": {
+                        "payment_status": "paid",
+                        "payment_method": "stripe",
+                        "status": "scheduled",  # locked in once paid
+                        "paid_at": datetime.now(timezone.utc).isoformat(),
+                    }}
+                )
+
+    return {
+        "session_id": session_id,
+        "status": status.status,
+        "payment_status": status.payment_status,
+        "amount_total": status.amount_total,
+        "currency": status.currency,
+    }
+
+
+@api_router.post("/webhook/stripe")
+async def stripe_webhook(request: Request):
+    """Handle Stripe webhook events (mirror of polling for redundancy)."""
+    api_key = os.environ.get("STRIPE_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="Stripe is not configured")
+
+    host_url = str(request.base_url)
+    webhook_url = f"{host_url}api/webhook/stripe"
+    stripe_checkout = StripeCheckout(api_key=api_key, webhook_url=webhook_url)
+
+    body_bytes = await request.body()
+    sig = request.headers.get("Stripe-Signature", "")
+    try:
+        event = await stripe_checkout.handle_webhook(body_bytes, sig)
+    except Exception as e:
+        logger.warning(f"Stripe webhook verification failed: {e}")
+        raise HTTPException(status_code=400, detail="Invalid webhook signature")
+
+    session_id = event.session_id
+    if not session_id:
+        return {"received": True}
+
+    booking_id = (event.metadata or {}).get("booking_id")
+    if event.payment_status == "paid" and booking_id:
+        # Idempotent
+        existing = await db.bookings.find_one({"id": booking_id}, {"_id": 0, "payment_status": 1})
+        if existing and existing.get("payment_status") != "paid":
+            await db.bookings.update_one(
+                {"id": booking_id},
+                {"$set": {
+                    "payment_status": "paid",
+                    "payment_method": "stripe",
+                    "status": "scheduled",
+                    "paid_at": datetime.now(timezone.utc).isoformat(),
+                }}
+            )
+        await db.payment_transactions.update_one(
+            {"session_id": session_id},
+            {"$set": {
+                "status": "complete",
+                "payment_status": "paid",
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            }}
+        )
+
+    return {"received": True}
 
 
 @api_router.get("/bookings", response_model=List[Booking])

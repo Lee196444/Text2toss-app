@@ -14,6 +14,17 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Admin uses `username` + `password` -> JWT in httpOnly cookie `admin_session` (path=/api, max_age=8h, secure, samesite=lax). Middleware guards all `/api/admin/*` except `/login` and `/init`.
 - Test creds: `lrobe` / `L1964c10$` (see `/app/memory/test_credentials.md`)
 
+
+## Implemented (Feb 11, 2026)
+- ✅ **BUGFIX (Feb 11): Pay-in-person bookings invisible on calendar**
+  - **Root cause:** `_build_booking()` in `server.py` checked `requires_approval` BEFORE `pay_in_person`. A quote with AI scale ≥ 9 forced status to `pending_customer_approval` even when the customer chose cash-on-pickup — so the job never landed on the admin calendar.
+  - **Fix:** Reordered the branch so `pay_in_person=True` ALWAYS yields `status="scheduled"`. The admin will see them, talk to the customer in person, and adjust the cash amount on pickup if needed (no reason to bury cash bookings in approval limbo).
+  - **Backfill:** Updated 3 stuck bookings in production DB (2 for `64robertson@gmail.com` — Jun 18 + Jun 23, plus 1 test record) from `pending_customer_approval` → `scheduled`. Verified via `GET /api/admin/daily-schedule` + `GET /api/admin/calendar-data`.
+- ✅ **BUGFIX (Feb 11): Same photo yielded wildly different quotes ($63 → $380)**
+  - **Root cause:** Exact-match phash cache only catches byte-identical re-encodes. Real customers re-snap the scene with slight angle/lighting drift → dhash differs by a few bits → cache miss → AI re-runs and rates a different scale level.
+  - **Fix:** `_check_image_cache_by_phash()` now does a 2-pass lookup: (1) exact phash match, (2) Hamming-distance fuzzy match with ≤ 10 bits of drift tolerated across all per-image 64-bit hashes. Same description + same image count required. This makes re-snapping the same scene return a stable price.
+
+
 ## Implemented (Apr 26, 2026)
 - ✅ **FEATURE (Feb 11): P1 + P2 Backlog Sweep**
   - **Admin-configurable Priority Pickup fees (P1):** `MarketingSettings` model now persists `priority_fees` + `priority_max_per_day`. New public endpoint `GET /api/priority/config` and updated `GET /api/priority/availability` read from DB with in-memory cache (invalidated on save). New admin UI "🔥 Priority Pickup Pricing" panel inside the Marketing modal lets the admin change Same-Day / Next / Emergency surcharges + daily cap without redeploy. Frontend hook `usePriorityConfig()` propagates live fees to `PriorityPicker`, `BookingModal`, `QuoteFlowModal`, Venmo deep link, and confirmation email (which already used the stored `priority_fee`).

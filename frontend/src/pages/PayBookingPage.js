@@ -23,6 +23,7 @@ export default function PayBookingPage() {
   const [info, setInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [stripeStatus, setStripeStatus] = useState(null); // null | "polling" | "paid" | "cancelled" | "failed"
 
   const loadInfo = useCallback(async () => {
     setLoading(true);
@@ -44,6 +45,76 @@ export default function PayBookingPage() {
   useEffect(() => {
     loadInfo();
   }, [loadInfo]);
+
+  // === Stripe return-from-checkout flow ====================================
+  // After Stripe redirects the customer back, the URL contains either
+  // `?session_id=cs_xxx` (success path) or `?stripe=cancelled` (cancel path).
+  // Poll the backend until the status flips to "paid", then refresh booking info.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("stripe") === "cancelled") {
+      setStripeStatus("cancelled");
+      toast.error("Card payment cancelled. You can try again below or use Venmo.");
+      // Clean URL so refreshing the page doesn't re-show the message
+      window.history.replaceState({}, "", window.location.pathname);
+      return;
+    }
+    const sessionId = params.get("session_id");
+    if (!sessionId) return;
+
+    setStripeStatus("polling");
+    let attempts = 0;
+    const MAX_ATTEMPTS = 8;          // ~40s total
+    const INTERVAL_MS = 5000;
+
+    const poll = async () => {
+      attempts += 1;
+      try {
+        const { data } = await axios.get(`${API}/payments/checkout-status/${sessionId}`);
+        if (data.payment_status === "paid") {
+          setStripeStatus("paid");
+          toast.success("✅ Payment received — your pickup is locked in!");
+          await loadInfo();
+          window.history.replaceState({}, "", window.location.pathname);
+          return;
+        }
+        if (data.status === "expired") {
+          setStripeStatus("failed");
+          toast.error("That payment session expired. Please start again.");
+          window.history.replaceState({}, "", window.location.pathname);
+          return;
+        }
+        if (attempts >= MAX_ATTEMPTS) {
+          setStripeStatus("polling-timeout");
+          return;
+        }
+        setTimeout(poll, INTERVAL_MS);
+      } catch {
+        if (attempts >= MAX_ATTEMPTS) {
+          setStripeStatus("polling-timeout");
+          return;
+        }
+        setTimeout(poll, INTERVAL_MS);
+      }
+    };
+    poll();
+  }, [loadInfo]);
+
+  const startCardPayment = async () => {
+    try {
+      const { data } = await axios.post(
+        `${API}/bookings/${bookingId}/stripe-checkout`,
+        { booking_id: bookingId, origin_url: window.location.origin }
+      );
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        toast.error("Couldn't start card payment. Please try Venmo.");
+      }
+    } catch {
+      toast.error("Couldn't start card payment. Please try Venmo.");
+    }
+  };
 
   const shortId = bookingId?.substring(0, 8) || "";
 
@@ -127,6 +198,27 @@ export default function PayBookingPage() {
                 paymentStatus={info.payment_status}
               />
             </div>
+
+            {/* Stripe return banner */}
+            {stripeStatus === "polling" && info.payment_status !== "paid" && (
+              <Card className="border border-lime-400 bg-black mb-4" data-testid="stripe-polling-banner">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-lime-400 border-t-transparent flex-shrink-0"></div>
+                  <p className="text-sm text-lime-400 font-display italic uppercase tracking-wide">
+                    Confirming card payment with Stripe...
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+            {stripeStatus === "polling-timeout" && info.payment_status !== "paid" && (
+              <Card className="border border-amber-400 bg-amber-50 mb-4">
+                <CardContent className="p-4">
+                  <p className="text-sm text-amber-900">
+                    Stripe is taking longer than usual — refresh in a minute, or call us if you see this for over 5 min.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Already paid */}
             {info.payment_status === "paid" && (
@@ -240,16 +332,23 @@ export default function PayBookingPage() {
                         Copy
                       </button>
                     </p>
-                    <p>3. We'll confirm by text once payment lands.</p>
+                    <p>3. We&apos;ll confirm by text once payment lands.</p>
                   </div>
 
-                  {/* Actions */}
+                  {/* Actions — Card first, Venmo second */}
+                  <Button
+                    onClick={startCardPayment}
+                    className="w-full bg-lime-400 hover:bg-lime-300 text-black py-4 rounded-xl text-base font-display italic uppercase tracking-wider shadow-[0_4px_14px_-2px_rgba(190,242,100,0.5)]"
+                    data-testid="pay-page-card-btn"
+                  >
+                    💳 Pay with Card · ${info.amount_due}
+                  </Button>
                   <Button
                     onClick={openVenmoApp}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl text-base font-bold"
+                    className="w-full bg-black hover:bg-gray-900 text-lime-400 border-2 border-lime-400 py-4 rounded-xl text-base font-display italic uppercase tracking-wider"
                     data-testid="pay-page-open-venmo-btn"
                   >
-                    📱 Open Venmo App
+                    📱 Pay with Venmo · ${info.amount_due}
                   </Button>
 
                   {/* Disclaimer */}
