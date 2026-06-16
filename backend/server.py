@@ -1976,7 +1976,10 @@ async def get_booking_payment_info(booking_id: str):
         "tip_amount": tip_amount,
         "status": booking_doc.get("status"),
         "payment_status": booking_doc.get("payment_status", "pending"),
-        "venmo_qr_url": "https://www.paypal.com/qrcodes/venmocs/9f1f97dd-23ed-4676-82b5-3fc2126def65?created=1762118921",
+        "venmo_qr_url": os.environ.get(
+            "VENMO_QR_URL",
+            "https://www.paypal.com/qrcodes/venmocs/9f1f97dd-23ed-4676-82b5-3fc2126def65?created=1762118921",
+        ),
     }
 
 
@@ -2829,7 +2832,7 @@ async def _notify_customer_completion(booking: dict, booking_id: str, completion
         return
     phone = raw_phone if raw_phone.startswith("+") else "+1" + raw_phone
 
-    backend_url = os.environ.get("REACT_APP_BACKEND_URL")
+    backend_url = os.environ.get("BACKEND_URL") or os.environ.get("REACT_APP_BACKEND_URL")
     photo_url = f"{backend_url}/api/public/completion-photo/{booking_id}"
 
     message = f"📸 Text2toss Complete: Your junk has been removed from {booking['address']}. "
@@ -2927,7 +2930,7 @@ async def notify_customer_completion(booking_id: str):
     # Send SMS with or without photo
     if booking.get("completion_photo_path"):
         # Send with photo
-        backend_url = os.environ.get('REACT_APP_BACKEND_URL')
+        backend_url = os.environ.get('BACKEND_URL') or os.environ.get('REACT_APP_BACKEND_URL')
         photo_url = f"{backend_url}/api/public/completion-photo/{booking_id}"
         
         message = f"📸 Text2toss Complete: Your junk removal is finished at {booking['address']}. "
@@ -3054,7 +3057,7 @@ async def test_sms_photo(booking_id: str):
         raise HTTPException(status_code=400, detail="No completion photo available")
     
     # Create fully accessible URL for the completion photo
-    backend_url = os.environ.get('REACT_APP_BACKEND_URL')
+    backend_url = os.environ.get('BACKEND_URL') or os.environ.get('REACT_APP_BACKEND_URL')
     completion_photo_url = f"{backend_url}/api/public/completion-photo/{booking_id}"
     
     result = await send_sms(
@@ -3293,7 +3296,7 @@ async def _process_quote_price_increase(quote_id: str, approval_action, original
 
     try:
         price_increase = approval_action.approved_price - original_price
-        backend_url = os.environ.get("REACT_APP_BACKEND_URL")
+        backend_url = os.environ.get("BACKEND_URL") or os.environ.get("REACT_APP_BACKEND_URL")
         approval_url = f"{backend_url}/customer-approval/{approval_token}"
         message = (
             "🔔 Text2toss Price Update\n\n"
@@ -3588,7 +3591,10 @@ async def _send_one_payment_reminder(booking_doc: dict, quote_dict: dict) -> tup
             return False, None
 
         amount = quote_doc.get("total_price", 0)
-        venmo_qr_url = "https://www.paypal.com/qrcodes/venmocs/9f1f97dd-23ed-4676-82b5-3fc2126def65?created=1762118921"
+        venmo_qr_url = os.environ.get(
+            "VENMO_QR_URL",
+            "https://www.paypal.com/qrcodes/venmocs/9f1f97dd-23ed-4676-82b5-3fc2126def65?created=1762118921",
+        )
 
         email_html = create_payment_reminder_email(booking.dict(), amount, booking.id, venmo_qr_url)
         await send_email(
@@ -3859,7 +3865,7 @@ async def get_gallery_photos():
         full_urls = []
         for photo in photos:
             url = photo["url"]
-            backend_url = os.environ.get('REACT_APP_BACKEND_URL')
+            backend_url = os.environ.get('BACKEND_URL') or os.environ.get('REACT_APP_BACKEND_URL')
             if url.startswith('/static/'):
                 # Convert old /static/ URLs to new API endpoint URLs
                 url = url.replace('/static/', '/api/images/')
@@ -3895,7 +3901,7 @@ async def get_reel_photos():
             return {"photos": default_reel["photos"]}
         
         # Ensure all URLs are full URLs for consistent display
-        backend_url = os.environ.get('REACT_APP_BACKEND_URL')
+        backend_url = os.environ.get('BACKEND_URL') or os.environ.get('REACT_APP_BACKEND_URL')
         photos_with_full_urls = []
         for photo in reel["photos"]:
             if photo:
@@ -3987,7 +3993,7 @@ async def upload_gallery_photo(photo: UploadFile = File(...)):
             with open(file_path, "wb") as f:
                 f.write(jpeg_bytes)
 
-        backend_url = os.environ.get("REACT_APP_BACKEND_URL", "")
+        backend_url = os.environ.get("BACKEND_URL") or os.environ.get("REACT_APP_BACKEND_URL", "")
         photo_url = f"{backend_url}/api/images/gallery/{filename}"
 
         photo_doc = {
@@ -4076,7 +4082,7 @@ async def crop_reel_photo(payload: CropReelPayload):
 
     src_url = payload.photo_url
     # Resolve to a local file path when the URL points at our own server
-    backend_url = os.environ.get("REACT_APP_BACKEND_URL", "")
+    backend_url = os.environ.get("BACKEND_URL") or os.environ.get("REACT_APP_BACKEND_URL", "")
     local_path = None
     if backend_url and src_url.startswith(f"{backend_url}/api/images/gallery/"):
         filename = src_url.rsplit("/", 1)[-1]
@@ -4809,7 +4815,7 @@ async def _send_review_requests():
                 continue
             base = (
                 os.environ.get("PUBLIC_SITE_URL")
-                or os.environ.get("REACT_APP_BACKEND_URL")
+                or os.environ.get("BACKEND_URL") or os.environ.get("REACT_APP_BACKEND_URL")
                 or "https://text2toss.com"
             ).rstrip("/")
             review_link = f"{base}/?leave_review={b['id']}"
