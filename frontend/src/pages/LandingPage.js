@@ -249,7 +249,7 @@ const LandingPage = () => {
 
       const cleanup = () => {
         clearTimeout(timeoutId);
-        try { URL.revokeObjectURL(objectUrl); } catch (_) { /* noop */ }
+        try { URL.revokeObjectURL(objectUrl); } catch (err) { console.debug("revokeObjectURL noop:", err); }
       };
 
       img.onload = () => {

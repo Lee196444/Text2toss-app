@@ -25,8 +25,9 @@ export const FilterProvider = ({ children }) => {
       const value = typeof next === "function" ? next(prev) : next || "";
       try {
         window.localStorage.setItem(STORAGE_KEY, value);
-      } catch {
-        /* storage may be unavailable (private mode) — non-fatal */
+      } catch (err) {
+        // storage may be unavailable (private mode) — non-fatal
+        console.debug("FilterContext localStorage.setItem failed:", err);
       }
       return value;
     });

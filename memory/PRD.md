@@ -15,6 +15,29 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Test creds: `lrobe` / `L1964c10$` (see `/app/memory/test_credentials.md`)
 
 
+## Implemented (Feb 11, 2026 — content safety + review drip)
+- ✅ **FEATURE (Feb 11): AI image content filter on `/api/quotes/image`**
+  - **Approach:** Extended the existing Gemini vision prompt with a `STEP 0 — CONTENT VALIDITY CHECK` that runs BEFORE pricing. Categories the AI now refuses:
+    - Human/animal remains (corpses, bones, blood, dead pets, roadkill, body parts)
+    - Caskets / urns / coffins / funerary containers
+    - Biohazards (medical waste, needles, soiled diapers, chemical drums, asbestos, mold)
+    - Living things (people, live animals, potted plants)
+    - Weapons / ammunition / explosives / propane / oxygen tanks
+    - Joke uploads (Titanic, ships, planes, cars, buildings, mountains, celebrities, memes, screenshots, drawings, anime, video games)
+    - Nudity, sexual content, hateful imagery
+    - Empty rooms with no junk
+  - **Implementation:** New `InappropriateImageError` exception. `_parse_ai_quote_response` raises it when AI returns `is_inappropriate=true`. `analyze_image_for_quote` re-raises (no text fallback for refusals). `/api/quotes/image` catches and returns HTTP 400 with the AI's customer-friendly `rejection_reason`. Frontend already surfaces `error.response?.data?.detail`.
+  - **Verified end-to-end** (curl): random non-junk photo → "This photo doesn't show any junk items. Try a clearer shot of the pile." (400). Legitimate sofa photo → priced normally ($115, scale 7).
+
+- ✅ **FEATURE (Feb 11): Auto-email customers ~24h after pickup → 1-tap review link**
+  - **Email template:** `email_templates.review_request_email()` — branded T2T black/lime card, big yellow stars, personalized greeting, single big "Leave a quick review" CTA.
+  - **Scheduler:** New APScheduler job `_send_review_requests` running every 30 min. Finds bookings with `status="completed"` AND `completed_at` in the 23-25h window AND no `review_request_sent_at` flag. Idempotent (sets the flag immediately on send).
+  - **Prefill endpoint:** `GET /api/bookings/{id}/review-prefill` returns first name + city,state — no email/address/price leak. Returns empty strings (not 404) so we don't telegraph which IDs are valid.
+  - **Frontend:** `ReviewsSection` detects `?leave_review=<bookingId>` query param on landing-page load → fetches prefill → auto-opens `SubmitReviewModal` with location pre-filled → smooth-scrolls to reviews section.
+  - **Verified end-to-end:** scheduler sends email + marks DB flag on first run, second run = 0 sends (idempotency confirmed). Frontend Playwright: hitting `/?leave_review=...` auto-opens modal with "Flagstaff AZ" prefilled.
+
+
+
 ## Implemented (Feb 11, 2026 — security)
 - ✅ **FEATURE (Feb 11): Profanity + spam filter on `/api/reviews/submit`**
   - **Hard blocks (HTTP 400, generic message so spammers can't reverse-engineer the rules):**

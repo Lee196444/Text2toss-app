@@ -130,7 +130,7 @@ const MarketingQRModal = ({ open, onClose }) => {
     } catch (err) {
       if (err && err.name === "AbortError") return;
       toast.error("Share failed. Downloaded QR + copied caption as fallback.");
-      try { await navigator.clipboard.writeText(caption); } catch { /* ignore */ }
+      try { await navigator.clipboard.writeText(caption); } catch (clipErr) { console.debug("clipboard fallback failed:", clipErr); }
       await downloadQR();
     }
   };

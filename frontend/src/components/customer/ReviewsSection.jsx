@@ -11,6 +11,7 @@ const API = process.env.REACT_APP_BACKEND_URL + "/api";
 export default function ReviewsSection() {
   const [reviews, setReviews] = useState(null);
   const [showSubmit, setShowSubmit] = useState(false);
+  const [prefill, setPrefill] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -21,6 +22,41 @@ export default function ReviewsSection() {
       })
       .catch(() => {
         if (!cancelled) setReviews([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Detect the 1-tap "?leave_review=<bookingId>" link from the post-pickup
+  // review request email — auto-open the submit modal with name/location
+  // pre-filled and scroll the section into view.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const bookingId = params.get("leave_review");
+    if (!bookingId) return;
+    let cancelled = false;
+    axios
+      .get(`${API}/bookings/${bookingId}/review-prefill`)
+      .then((res) => {
+        if (cancelled) return;
+        setPrefill({
+          customer_name: res.data?.first_name || "",
+          location: res.data?.location || "",
+        });
+        setShowSubmit(true);
+        // Smooth-scroll to the reviews section once it's rendered
+        setTimeout(() => {
+          document
+            .getElementById("reviews")
+            ?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 200);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setPrefill({ customer_name: "", location: "" });
+          setShowSubmit(true);
+        }
       });
     return () => {
       cancelled = true;
@@ -101,7 +137,11 @@ export default function ReviewsSection() {
         </div>
       </div>
 
-      <SubmitReviewModal open={showSubmit} onClose={() => setShowSubmit(false)} />
+      <SubmitReviewModal
+        open={showSubmit}
+        onClose={() => setShowSubmit(false)}
+        prefill={prefill}
+      />
     </section>
   );
 }

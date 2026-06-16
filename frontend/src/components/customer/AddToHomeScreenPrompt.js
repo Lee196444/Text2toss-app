@@ -37,8 +37,8 @@ function setDismissed() {
   try {
     const until = Date.now() + DISMISS_DAYS * 24 * 60 * 60 * 1000;
     localStorage.setItem(DISMISS_KEY, String(until));
-  } catch {
-    /* ignore */
+  } catch (err) {
+    console.debug("setDismissed localStorage unavailable:", err);
   }
 }
 

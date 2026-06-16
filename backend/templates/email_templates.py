@@ -14,6 +14,7 @@ __all__ = [
     "quote_under_review_email",
     "quote_approval_email",
     "quote_rejection_email",
+    "review_request_email",
 ]
 
 
@@ -424,6 +425,78 @@ def quote_rejection_email(approval_action, customer_name: str) -> str:
       <p>Text2toss Junk Removal<br>Professional Junk Removal Services</p>
       <p style="margin-top: 10px; font-size: 12px; color: #9ca3af;">This is an automated notification. Please do not reply to this email.</p>
     </div>
+  </div>
+</body>
+</html>"""
+
+
+
+# ---------------------------------------------------------------------------
+# Post-pickup review request (sent ~24h after job is marked completed)
+# ---------------------------------------------------------------------------
+
+def review_request_email(
+    customer_name: str,
+    booking_id: str,
+    review_link: str,
+    completed_date: Optional[str] = None,
+) -> str:
+    """Branded T2T ask-for-review email with a single big CTA."""
+    first_name = (customer_name or "there").split()[0]
+    short_id = (booking_id or "")[:8].upper()
+    date_line = f"on {completed_date}" if completed_date else ""
+
+    return f"""<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>How did we do?</title>
+  <style>
+    body {{ margin:0; padding:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; background:#0a0a0a; color:#e5e5e5; }}
+    .wrap {{ max-width:560px; margin:0 auto; background:#0a0a0a; padding:32px 20px; }}
+    .card {{ background:#111; border:1px solid #1f1f1f; border-radius:18px; padding:32px 28px; }}
+    .brand {{ font-style:italic; font-weight:900; text-transform:uppercase; letter-spacing:2px; color:#bef264; font-size:20px; margin-bottom:6px; }}
+    .tagline {{ color:#737373; font-size:12px; letter-spacing:1px; text-transform:uppercase; }}
+    h1 {{ color:#fafafa; font-size:30px; line-height:1.2; margin:24px 0 12px; font-weight:800; }}
+    h1 .accent {{ color:#bef264; font-style:italic; }}
+    p {{ color:#a3a3a3; line-height:1.6; font-size:15px; margin:14px 0; }}
+    .stars {{ font-size:32px; letter-spacing:4px; color:#bef264; text-align:center; margin:18px 0 4px; }}
+    .stars-prompt {{ text-align:center; color:#737373; font-size:11px; letter-spacing:2px; text-transform:uppercase; margin-bottom:24px; }}
+    .cta {{ display:block; text-align:center; background:#bef264; color:#0a0a0a !important; text-decoration:none; padding:18px 24px; border-radius:999px; font-weight:900; font-style:italic; text-transform:uppercase; letter-spacing:2px; font-size:16px; margin:24px 0; }}
+    .small {{ font-size:12px; color:#525252; text-align:center; margin-top:24px; }}
+    .booking {{ font-size:11px; letter-spacing:2px; color:#525252; text-align:center; text-transform:uppercase; margin-top:18px; }}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="brand">Text2toss</div>
+      <div class="tagline">Arizona's #1 junk removal</div>
+
+      <h1>Hey {first_name} — <span class="accent">how'd we do?</span></h1>
+
+      <div class="stars">&#9733; &#9733; &#9733; &#9733; &#9733;</div>
+      <div class="stars-prompt">Tap a star to start</div>
+
+      <p>
+        Thanks for booking with us {date_line}! Your honest review takes about
+        <strong style="color:#fafafa;">30 seconds</strong> and helps neighbors find a
+        crew they can trust.
+      </p>
+
+      <a href="{review_link}" class="cta">Leave a quick review</a>
+
+      <p style="text-align:center; font-size:13px;">
+        Loved the service? Tell us in your own words.<br>
+        Had a hiccup? We want to know — reply to this email and we'll make it right.
+      </p>
+
+      <div class="booking">Booking #{short_id}</div>
+    </div>
+    <p class="small">
+      Text2toss Junk Removal &middot; Flagstaff, AZ<br>
+      You're receiving this because you booked a pickup with us.
+    </p>
   </div>
 </body>
 </html>"""

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -18,12 +18,24 @@ const EMPTY = {
 /**
  * SubmitReviewModal — public customer testimonial form.
  * Posts to /api/reviews/submit (review lands in admin queue, unpublished).
- * Props: { open, onClose }
+ * Props: { open, onClose, prefill?: { customer_name, location } }
  */
-export default function SubmitReviewModal({ open, onClose }) {
+export default function SubmitReviewModal({ open, onClose, prefill }) {
   const [form, setForm] = useState(EMPTY);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+
+  // Apply prefill when it arrives (e.g. customer clicks the review-request
+  // email link). Only overwrites empty fields so we don't blow away in-progress
+  // typing.
+  useEffect(() => {
+    if (!prefill) return;
+    setForm((prev) => ({
+      ...prev,
+      customer_name: prev.customer_name || prefill.customer_name || "",
+      location: prev.location || prefill.location || "",
+    }));
+  }, [prefill]);
 
   if (!open) return null;
 

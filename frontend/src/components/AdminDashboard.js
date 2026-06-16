@@ -99,7 +99,9 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
             try {
               alert("Your admin session has expired. Please log in again.");
             } catch (e) {
-              /* noop — running in a non-window env */
+              // running in a non-window env (SSR/test); session expiry will
+              // still trigger via onLogout below, just without the alert UI.
+              console.debug("session-expired alert suppressed:", e);
             }
             setTimeout(() => { window.__t2t_session_expired_shown = false; }, 1500);
           }

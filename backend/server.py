@@ -782,6 +782,16 @@ async def analyze_image_for_quote(image_paths, description: str) -> tuple[List[J
         await _cache_quote_analysis(cache_key, image_hash, desc_norm, items, total_price, explanation, scale_level, breakdown, phash)
         return items, total_price, explanation, scale_level, breakdown
 
+    except InappropriateImageError:
+        # Don't fallback — let the rejection bubble up to the endpoint.
+        # Clean up the compressed scratch files we created.
+        for cp, op in zip(compressed_paths, image_paths):
+            if cp != op and Path(cp).exists():
+                try:
+                    Path(cp).unlink()
+                except OSError:
+                    pass
+        raise
     except Exception as e:
         logger.error(f"AI vision analysis error: {e}")
         return await _enhanced_text_fallback(description)
@@ -943,6 +953,35 @@ def _build_vision_prompt(description: str, num_images: int = 1) -> str:
         f"Junk removal pricing expert — Text2toss, Flagstaff AZ. GROUND LEVEL/CURBSIDE ONLY.\n\n"
         f"{multi_note}"
         f"Customer note: {description or 'None'}\n\n"
+
+        "STEP 0 — CONTENT VALIDITY CHECK (most important).\n"
+        "Before pricing, decide whether this photo represents legitimate residential\n"
+        "junk-removal items that a 2-person crew would haul away in a pickup truck.\n"
+        "REJECT (set is_inappropriate=true) any of:\n"
+        "  • Human or animal remains (corpses, bones, blood, body parts, dead pets,\n"
+        "    roadkill, internal organs, hunting trophies with raw flesh)\n"
+        "  • Caskets, urns, coffins, or any funerary container\n"
+        "  • Anything biohazardous: medical waste, used needles, soiled diapers in\n"
+        "    bulk, chemical drums, asbestos, mold-infested debris\n"
+        "  • Living things (people, live animals, plants in pots that look alive)\n"
+        "  • Weapons, ammunition, explosives, propane/oxygen tanks\n"
+        "  • Photos that are obviously joke uploads: ships (Titanic, boats over 12ft),\n"
+        "    planes, helicopters, cars/trucks, buildings, mountains, celebrities,\n"
+        "    memes, screenshots, drawings, anime, video-game stills, ANY image where\n"
+        "    the primary subject is not real-world removable junk\n"
+        "  • Nudity, sexual content, hateful imagery\n"
+        "  • Empty rooms with no visible junk to remove\n"
+        "When rejecting, return ONLY this JSON (no items, no price):\n"
+        '{\"is_inappropriate\":true,\"rejection_reason\":\"<one short sentence the customer will see>\"}\n'
+        "Examples of good rejection_reason values:\n"
+        '  - \"We can\'t haul human or animal remains — please contact a licensed service.\"\n'
+        '  - \"Looks like a joke upload. Please send a photo of the actual junk you need removed.\"\n'
+        '  - \"This photo doesn\'t show any junk items. Try a clearer shot of the pile.\"\n'
+        '  - \"For your safety we can\'t remove biohazardous material.\"\n'
+        "If the photo IS legitimate junk (furniture, boxes, yard debris, appliances,\n"
+        "mattresses, construction scraps, e-waste, etc.), set is_inappropriate=false\n"
+        "and continue with the normal pricing flow below.\n\n"
+
         "STEP 1 — Estimate total cubic feet of junk in the photo(s). "
         "Use these anchors for consistency (always pick the same number for the same photo):\n"
         " - Microwave/toaster oven ≈ 3 cuft each\n"
@@ -973,8 +1012,9 @@ def _build_vision_prompt(description: str, num_images: int = 1) -> str:
         " some debris) must stay false. Single bagged item ≠ pile.\n"
         ' Set "heavy_material_type" to a short label like "dirt", "sandbags+concrete",\n'
         ' or "wood chips". Use null/empty when heavy_pile is false.\n\n'
-        'JSON only:\n'
-        '{"items":[{"name":"item","quantity":1,"size":"small/medium/large","description":"brief"}],'
+        'JSON only (legitimate junk path):\n'
+        '{"is_inappropriate":false,"rejection_reason":null,'
+        '"items":[{"name":"item","quantity":1,"size":"small/medium/large","description":"brief"}],'
         '"total_price":150.00,"scale_level":5,"cubic_feet":62,'
         '"heavy_pile":false,"heavy_material_type":null,'
         '"breakdown":{"base_price":"140.00","volume_assessment":"Medium load",'
@@ -1024,13 +1064,33 @@ async def _request_ai_vision_quote(compressed_paths, description: str, image_has
     return response.strip()
 
 
+class InappropriateImageError(Exception):
+    """Raised when the AI vision model flags the uploaded photo as
+    off-topic / unsafe / biohazardous. Bubbles up as HTTP 400 to the customer."""
+    def __init__(self, reason: str):
+        self.reason = reason
+        super().__init__(reason)
+
+
 def _parse_ai_quote_response(response_text: str):
     """Extract JSON, build JunkItems, return the 5-tuple. Cubic feet is
-    returned via the `breakdown` dict so the API response shape stays stable."""
+    returned via the `breakdown` dict so the API response shape stays stable.
+
+    Raises InappropriateImageError if the AI flagged the photo as off-topic
+    (Titanic, casket, animal remains, weapons, biohazard, joke upload, etc.).
+    """
     json_match = re.search(r"\{.*\}", response_text, re.DOTALL)
     if json_match:
         response_text = json_match.group(0)
     analysis_data = json.loads(response_text)
+
+    # Content-validity gate — AI refused the image.
+    if analysis_data.get("is_inappropriate") is True:
+        reason = (
+            analysis_data.get("rejection_reason")
+            or "This photo can't be processed. Please upload a photo of removable junk items."
+        )
+        raise InappropriateImageError(str(reason).strip()[:300])
 
     items = [
         JunkItem(
@@ -1274,6 +1334,25 @@ async def create_quote_from_image(
         )
         background_tasks.add_task(cleanup_old_quote_images, 30)
         return quote
+
+    except InappropriateImageError as exc:
+        # Content filter rejected the upload — clean up and surface 400 to client.
+        logger.info(f"Quote rejected by content filter: {exc.reason}")
+        for scratch in scratch_paths:
+            if scratch.exists():
+                try:
+                    scratch.unlink()
+                except OSError:
+                    pass
+        for db_path in db_paths:
+            if not object_storage.looks_like_storage_path(db_path):
+                orphan = Path(db_path)
+                if orphan.exists():
+                    try:
+                        orphan.unlink()
+                    except OSError:
+                        pass
+        raise HTTPException(status_code=400, detail=exc.reason)
 
     except Exception:
         # Drop scratch files + any disk-fallback orphans. We don't delete from
@@ -4679,9 +4758,76 @@ async def _start_push_scheduler():
     sched = AsyncIOScheduler(timezone="UTC")
     sched.add_job(_send_daily_reminder, "interval", minutes=1,
                   id="t2t_daily_reminder", replace_existing=True)
+    # Review-request drip: scans completed bookings every 30 min and emails
+    # those finished ~24h ago. Idempotent (per-booking flag in DB).
+    sched.add_job(_send_review_requests, "interval", minutes=30,
+                  id="t2t_review_requests", replace_existing=True)
     sched.start()
     app.state.push_scheduler = sched
     logger.info("[push] daily-reminder scheduler started")
+    logger.info("[review] review-request scheduler started (every 30m)")
+
+
+async def _send_review_requests():
+    """Background job: send a review-request email to customers ~24h after
+    their booking was marked `completed`. Idempotent — marks each booking
+    with `review_request_sent_at` so we never email twice.
+    """
+    try:
+        now = datetime.now(timezone.utc)
+        # 23h ≤ completed_at ≤ 25h ago — 2h window protects against missed runs.
+        upper = (now - timedelta(hours=23)).isoformat()
+        lower = (now - timedelta(hours=25)).isoformat()
+        cursor = db.bookings.find({
+            "status": "completed",
+            "completed_at": {"$gte": lower, "$lte": upper},
+            "review_request_sent_at": {"$exists": False},
+            "email": {"$exists": True, "$nin": [None, ""]},
+        })
+        sent = 0
+        async for b in cursor:
+            email = (b.get("email") or "").strip()
+            if not email:
+                continue
+            base = (
+                os.environ.get("PUBLIC_SITE_URL")
+                or os.environ.get("REACT_APP_BACKEND_URL")
+                or "https://text2toss.com"
+            ).rstrip("/")
+            review_link = f"{base}/?leave_review={b['id']}"
+            try:
+                completed_at = b.get("completed_at")
+                completed_str = None
+                if completed_at:
+                    try:
+                        completed_str = datetime.fromisoformat(
+                            completed_at.replace("Z", "+00:00") if isinstance(completed_at, str) else completed_at.isoformat()
+                        ).strftime("%B %d, %Y")
+                    except Exception:
+                        completed_str = None
+                html = email_templates.review_request_email(
+                    customer_name=b.get("name") or "Friend",
+                    booking_id=b["id"],
+                    review_link=review_link,
+                    completed_date=completed_str,
+                )
+                result = await send_email(
+                    to_email=email,
+                    subject="How did we do? Quick 30-second review",
+                    html_content=html,
+                )
+                if result.get("status") in ("sent", "disabled"):
+                    await db.bookings.update_one(
+                        {"id": b["id"]},
+                        {"$set": {"review_request_sent_at": now.isoformat()}},
+                    )
+                    sent += 1
+            except Exception as ex:
+                logger.warning(f"[review] failed to send for {b.get('id')}: {ex}")
+        if sent:
+            logger.info(f"[review] sent {sent} review-request email(s)")
+    except Exception as exc:
+        logger.error(f"[review] _send_review_requests error: {exc}")
 
 
 @app.on_event("startup")
@@ -4895,6 +5041,31 @@ async def public_reviews():
     """Public — used by the landing page Reviews section."""
     cursor = db.reviews.find({"is_published": True}).sort([("display_order", 1), ("created_at", -1)])
     return [_serialize_review_public(r) async for r in cursor]
+
+
+@api_router.get("/bookings/{booking_id}/review-prefill")
+async def booking_review_prefill(booking_id: str):
+    """Public — used by the 1-tap review email link to prefill the form
+    with the customer's first name. Booking UUIDs are unguessable; we expose
+    only the first name + city (no email, address, or price)."""
+    doc = await db.bookings.find_one({"id": booking_id}, {"_id": 0, "name": 1, "address": 1})
+    if not doc:
+        # 200 (not 404) so we don't telegraph which IDs are valid
+        return {"first_name": "", "location": ""}
+    full = (doc.get("name") or "").strip()
+    first = full.split()[0] if full else ""
+    addr = (doc.get("address") or "").strip()
+    # Best-effort city extraction: take chunk after the first comma, trim ZIP
+    location = ""
+    if "," in addr:
+        parts = [p.strip() for p in addr.split(",")][1:]
+        if parts:
+            # "Flagstaff, AZ 86001" → "Flagstaff, AZ"
+            tail = parts[0]
+            if len(parts) > 1:
+                tail = f"{parts[0]}, {parts[1].split()[0] if parts[1].split() else parts[1]}"
+            location = tail
+    return {"first_name": first[:40], "location": location[:80]}
 
 
 @api_router.get("/admin/reviews")
