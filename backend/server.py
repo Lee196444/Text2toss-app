@@ -4755,23 +4755,85 @@ def _serialize_review_public(doc: dict) -> dict:
     cleaned = _serialize_review(dict(doc))
     cleaned.pop("submitted_email", None)
     cleaned.pop("submitted_ip", None)
+    cleaned.pop("spam_flags", None)
     return cleaned
 
 
-@api_router.get("/reviews")
-async def public_reviews():
-    """Public — used by the landing page Reviews section."""
-    cursor = db.reviews.find({"is_published": True}).sort([("display_order", 1), ("created_at", -1)])
-    return [_serialize_review_public(r) async for r in cursor]
+# Profanity / spam filter wordlist — common English slurs and obscenities.
+# Curated to catch obvious abuse without false-flagging normal language
+# ("ass" deliberately omitted because of words like "class"/"pass"; we use
+# whole-word matching below).
+_PROFANITY_PATTERNS = [
+    r"\bfuck\w*\b", r"\bshit\w*\b", r"\bbitch\w*\b", r"\bcunt\w*\b",
+    r"\bdick\w*\b", r"\bpiss\w*\b", r"\bcock\w*\b", r"\bpussy\w*\b",
+    r"\basshole\w*\b", r"\bbastard\w*\b", r"\bdamn\b", r"\bcrap\b",
+    r"\bnigg\w*\b", r"\bfag\w*\b", r"\bretard\w*\b", r"\bwhore\w*\b",
+    r"\bslut\w*\b", r"\btwat\b", r"\bwank\w*\b",
+]
+_PROFANITY_REGEX = re.compile("|".join(_PROFANITY_PATTERNS), re.IGNORECASE)
+
+# Common spam tells: viagra/casino/loan promos + obvious link-stuffing.
+_SPAM_KEYWORD_REGEX = re.compile(
+    r"\b(viagra|cialis|casino|porn|crypto[\-\s]?(?:invest|bot|signal)|"
+    r"forex|loan|payday|seo[\-\s]services|backlink|escort|onlyfans|"
+    r"telegram[\-\s]?\@|whats?app[\-\s]?\+?\d)",
+    re.IGNORECASE,
+)
+_URL_REGEX = re.compile(r"https?://|www\.|\.(com|net|org|io|biz|ru|xyz)\b", re.IGNORECASE)
+
+
+def _classify_review_submission(name: str, body: str) -> tuple[bool, str, list[str]]:
+    """Returns (is_blocked, customer_facing_reason, flags).
+
+    Blocked submissions are rejected outright with a generic message (so we
+    don't telegraph our filter rules to spammers). Flagged-but-not-blocked
+    submissions go through with markers for admin review.
+    """
+    flags: list[str] = []
+    combined = f"{name}\n{body}"
+
+    # Hard block: obvious profanity in name OR body
+    if _PROFANITY_REGEX.search(combined):
+        return True, "Please keep your review respectful — language was flagged.", ["profanity"]
+
+    # Hard block: spam keywords (promos / illegal-content tells)
+    if _SPAM_KEYWORD_REGEX.search(combined):
+        return True, "Your review couldn't be posted — please contact us directly.", ["spam_keyword"]
+
+    # Hard block: more than 1 URL/link
+    urls_found = _URL_REGEX.findall(body)
+    if len(urls_found) >= 2:
+        return True, "Reviews can't include links.", ["multi_links"]
+    if urls_found:
+        flags.append("contains_link")
+
+    # Soft flag: > 60% uppercase (shouting / spam)
+    letters = [c for c in body if c.isalpha()]
+    if len(letters) >= 20:
+        upper_ratio = sum(1 for c in letters if c.isupper()) / len(letters)
+        if upper_ratio > 0.6:
+            flags.append("excessive_caps")
+
+    # Soft flag: same char repeated 8+ times ("aaaaaaaa", "!!!!!!!!!")
+    if re.search(r"(.)\1{7,}", body):
+        flags.append("char_spam")
+
+    # Soft flag: extremely short combined with all-caps name (typical bot)
+    if len(body) < 25 and name.isupper():
+        flags.append("low_quality")
+
+    return False, "", flags
 
 
 @api_router.post("/reviews/submit")
 async def submit_review(body: ReviewSubmission, request: Request):
     """Public — customer submits a testimonial; queued for admin approval.
 
-    Basic abuse guards: 1) rating in 1..5, 2) body length 10..1000 chars,
-    3) trims whitespace, 4) `is_published=False` so it never appears publicly
-    until admin clicks Publish in the admin modal.
+    Guards (in order):
+      1. rating 1..5, name+body present, length 10..1000
+      2. Profanity + spam keyword + multi-link block (rejects with generic msg)
+      3. Per-IP rate limit: max 3 submissions / hour
+      4. Insert with `is_published=False`; soft flags stored in `spam_flags`
     """
     if body.rating < 1 or body.rating > 5:
         raise HTTPException(status_code=400, detail="Rating must be 1–5")
@@ -4784,7 +4846,32 @@ async def submit_review(body: ReviewSubmission, request: Request):
     if len(cleaned_body) > 1000:
         raise HTTPException(status_code=400, detail="Review is too long (max 1000 chars)")
 
-    submitter_ip = request.client.host if request.client else None
+    # Profanity / spam classification
+    blocked, reason, flags = _classify_review_submission(cleaned_name, cleaned_body)
+    if blocked:
+        logger.info(f"Review submission blocked: flags={flags}, ip={request.client.host if request.client else None}")
+        raise HTTPException(status_code=400, detail=reason)
+
+    # Real client IP (we sit behind a K8s ingress — request.client.host is the proxy)
+    fwd = request.headers.get("x-forwarded-for", "")
+    submitter_ip = (
+        fwd.split(",")[0].strip() if fwd
+        else (request.client.host if request.client else None)
+    )
+
+    # Per-IP rate limit (max 3 submissions per hour) to slow flood attacks
+    if submitter_ip:
+        one_hour_ago = datetime.now(timezone.utc) - timedelta(hours=1)
+        recent_count = await db.reviews.count_documents({
+            "submitted_ip": submitter_ip,
+            "created_at": {"$gte": one_hour_ago},
+        })
+        if recent_count >= 3:
+            raise HTTPException(
+                status_code=429,
+                detail="You've submitted a few reviews already — please try again later.",
+            )
+
     review = Review(
         customer_name=cleaned_name[:80],
         location=(body.location or "").strip()[:80] or None,
@@ -4797,8 +4884,17 @@ async def submit_review(body: ReviewSubmission, request: Request):
     # Stash submitter metadata for admin reference (not exposed publicly)
     doc["submitted_email"] = (body.email or "").strip()[:120] or None
     doc["submitted_ip"] = submitter_ip
+    if flags:
+        doc["spam_flags"] = flags
     await db.reviews.insert_one(doc)
     return {"success": True, "message": "Thanks! Your review is pending admin approval."}
+
+
+@api_router.get("/reviews")
+async def public_reviews():
+    """Public — used by the landing page Reviews section."""
+    cursor = db.reviews.find({"is_published": True}).sort([("display_order", 1), ("created_at", -1)])
+    return [_serialize_review_public(r) async for r in cursor]
 
 
 @api_router.get("/admin/reviews")

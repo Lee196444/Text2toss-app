@@ -304,6 +304,14 @@ export default function ReviewsModal({ open, onClose }) {
                             New submission
                           </span>
                         )}
+                        {Array.isArray(r.spam_flags) && r.spam_flags.length > 0 && (
+                          <span
+                            className="text-[10px] uppercase tracking-wider bg-red-500 text-white px-2 py-0.5 rounded font-bold"
+                            title={r.spam_flags.join(", ")}
+                          >
+                            ⚠ {r.spam_flags.length === 1 ? r.spam_flags[0].replace(/_/g, " ") : `${r.spam_flags.length} flags`}
+                          </span>
+                        )}
                         {!r.is_published && !r.submitted_ip && (
                           <span className="text-[10px] uppercase tracking-wider bg-gray-200 text-gray-600 px-2 py-0.5 rounded">
                             Hidden

@@ -15,6 +15,22 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Test creds: `lrobe` / `L1964c10$` (see `/app/memory/test_credentials.md`)
 
 
+## Implemented (Feb 11, 2026 — security)
+- ✅ **FEATURE (Feb 11): Profanity + spam filter on `/api/reviews/submit`**
+  - **Hard blocks (HTTP 400, generic message so spammers can't reverse-engineer the rules):**
+    - Profanity wordlist (~19 patterns, whole-word regex to avoid false positives like "class" matching "ass")
+    - Spam-keyword detection (viagra, casino, crypto-invest, loan, escort, telegram contact, etc.)
+    - Multiple URLs (2+ links → blocked; 1 link → accepted but soft-flagged)
+  - **Soft flags stored in `spam_flags` array on the review doc** (visible to admin as red badge in the Reviews modal):
+    - `contains_link` — single URL detected
+    - `excessive_caps` — > 60% uppercase letters
+    - `char_spam` — same char repeated 8+ times (`aaaaaaaa`, `!!!!!!!!!!`)
+    - `low_quality` — < 25 chars + all-caps name
+  - **Per-IP rate limit:** max 3 submissions/hour → HTTP 429. Uses `X-Forwarded-For` to read the real client IP (K8s ingress strips `request.client.host` to the proxy IP).
+  - **Verified end-to-end** via curl: clean review accepted, profanity blocked, spam keyword blocked, multi-link blocked, single-link/all-caps soft-flagged (visible in admin with ⚠ badge + flag name), 4th submit within an hour → 429.
+
+
+
 ## Implemented (Feb 11, 2026 — wrap-up)
 - ✅ **FEATURE (Feb 11): Public "Submit a Review" form + admin approval queue**
   - **Backend:** `POST /api/reviews/submit` (public). Validates rating 1–5, body length 10–1000, trims name to 80 chars. Always inserts with `is_published=False` and `display_order=999` so reviews land in the admin queue, never on the public site until approved. Captures `submitted_email` (private, for follow-up) and `submitted_ip` (admin audit) — both stripped from public `/api/reviews` via `_serialize_review_public`.
