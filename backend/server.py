@@ -4725,6 +4725,15 @@ class ReviewCreate(BaseModel):
     display_order: int = 0
 
 
+class ReviewSubmission(BaseModel):
+    """Public-facing submission — auto-flagged as pending admin approval."""
+    customer_name: str
+    location: Optional[str] = None
+    rating: int = 5
+    body: str
+    email: Optional[str] = None  # captured for admin follow-up; never shown publicly
+
+
 class ReviewUpdate(BaseModel):
     customer_name: Optional[str] = None
     location: Optional[str] = None
@@ -4741,11 +4750,55 @@ def _serialize_review(doc: dict) -> dict:
     return doc
 
 
+def _serialize_review_public(doc: dict) -> dict:
+    """Strips admin-only fields before exposing to public callers."""
+    cleaned = _serialize_review(dict(doc))
+    cleaned.pop("submitted_email", None)
+    cleaned.pop("submitted_ip", None)
+    return cleaned
+
+
 @api_router.get("/reviews")
 async def public_reviews():
     """Public — used by the landing page Reviews section."""
     cursor = db.reviews.find({"is_published": True}).sort([("display_order", 1), ("created_at", -1)])
-    return [_serialize_review(r) async for r in cursor]
+    return [_serialize_review_public(r) async for r in cursor]
+
+
+@api_router.post("/reviews/submit")
+async def submit_review(body: ReviewSubmission, request: Request):
+    """Public — customer submits a testimonial; queued for admin approval.
+
+    Basic abuse guards: 1) rating in 1..5, 2) body length 10..1000 chars,
+    3) trims whitespace, 4) `is_published=False` so it never appears publicly
+    until admin clicks Publish in the admin modal.
+    """
+    if body.rating < 1 or body.rating > 5:
+        raise HTTPException(status_code=400, detail="Rating must be 1–5")
+    cleaned_name = (body.customer_name or "").strip()
+    cleaned_body = (body.body or "").strip()
+    if not cleaned_name:
+        raise HTTPException(status_code=400, detail="Please enter your name")
+    if len(cleaned_body) < 10:
+        raise HTTPException(status_code=400, detail="Please write at least 10 characters")
+    if len(cleaned_body) > 1000:
+        raise HTTPException(status_code=400, detail="Review is too long (max 1000 chars)")
+
+    submitter_ip = request.client.host if request.client else None
+    review = Review(
+        customer_name=cleaned_name[:80],
+        location=(body.location or "").strip()[:80] or None,
+        rating=body.rating,
+        body=cleaned_body,
+        is_published=False,  # admin must approve
+        display_order=999,
+    )
+    doc = review.dict()
+    # Stash submitter metadata for admin reference (not exposed publicly)
+    doc["submitted_email"] = (body.email or "").strip()[:120] or None
+    doc["submitted_ip"] = submitter_ip
+    await db.reviews.insert_one(doc)
+    return {"success": True, "message": "Thanks! Your review is pending admin approval."}
 
 
 @api_router.get("/admin/reviews")

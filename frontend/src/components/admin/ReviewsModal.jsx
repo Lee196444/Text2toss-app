@@ -136,6 +136,26 @@ export default function ReviewsModal({ open, onClose }) {
         </div>
 
         <div className="overflow-y-auto flex-1 p-4 sm:p-6 space-y-5">
+          {/* Pending submissions banner */}
+          {(() => {
+            const pending = reviews.filter((r) => !r.is_published && r.submitted_ip);
+            if (pending.length === 0) return null;
+            return (
+              <div
+                className="rounded-xl border-2 border-amber-300 bg-amber-50 px-4 py-3 flex items-center gap-3"
+                data-testid="reviews-pending-banner"
+              >
+                <span className="text-2xl">📥</span>
+                <div className="flex-1 text-sm text-amber-900">
+                  <span className="font-semibold">
+                    {pending.length} customer-submitted review
+                    {pending.length === 1 ? "" : "s"}
+                  </span>{" "}
+                  awaiting your approval below.
+                </div>
+              </div>
+            );
+          })()}
           {/* Editor */}
           <Card className="border-2 border-lime-300">
             <CardContent className="p-4 sm:p-5 space-y-3">
@@ -254,7 +274,11 @@ export default function ReviewsModal({ open, onClose }) {
                 <div
                   key={r.id}
                   className={`border rounded-xl p-4 ${
-                    r.is_published ? "border-gray-200 bg-white" : "border-gray-200 bg-gray-50 opacity-70"
+                    r.submitted_ip && !r.is_published
+                      ? "border-amber-300 bg-amber-50/40"
+                      : r.is_published
+                        ? "border-gray-200 bg-white"
+                        : "border-gray-200 bg-gray-50 opacity-70"
                   }`}
                   data-testid={`reviews-list-item-${r.id}`}
                 >
@@ -275,7 +299,12 @@ export default function ReviewsModal({ open, onClose }) {
                             {"★".repeat(5 - r.rating)}
                           </span>
                         </span>
-                        {!r.is_published && (
+                        {r.submitted_ip && !r.is_published && (
+                          <span className="text-[10px] uppercase tracking-wider bg-amber-500 text-white px-2 py-0.5 rounded font-bold">
+                            New submission
+                          </span>
+                        )}
+                        {!r.is_published && !r.submitted_ip && (
                           <span className="text-[10px] uppercase tracking-wider bg-gray-200 text-gray-600 px-2 py-0.5 rounded">
                             Hidden
                           </span>
@@ -284,6 +313,11 @@ export default function ReviewsModal({ open, onClose }) {
                       <p className="text-sm text-gray-700 mt-1">{r.body}</p>
                       <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-wider">
                         Order: {r.display_order || 0}
+                        {r.submitted_email && (
+                          <span className="ml-2 normal-case lowercase tracking-normal text-gray-500">
+                            · 📧 {r.submitted_email}
+                          </span>
+                        )}
                       </p>
                     </div>
                   </div>

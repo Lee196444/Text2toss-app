@@ -15,6 +15,17 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Test creds: `lrobe` / `L1964c10$` (see `/app/memory/test_credentials.md`)
 
 
+## Implemented (Feb 11, 2026 — wrap-up)
+- ✅ **FEATURE (Feb 11): Public "Submit a Review" form + admin approval queue**
+  - **Backend:** `POST /api/reviews/submit` (public). Validates rating 1–5, body length 10–1000, trims name to 80 chars. Always inserts with `is_published=False` and `display_order=999` so reviews land in the admin queue, never on the public site until approved. Captures `submitted_email` (private, for follow-up) and `submitted_ip` (admin audit) — both stripped from public `/api/reviews` via `_serialize_review_public`.
+  - **Customer UI:** `SubmitReviewModal.jsx` — branded T2T modal triggered from a new "✍️ Share your story" button next to the Google CTA in `ReviewsSection`. Big tappable star picker, name/location/email/body fields, 1000-char counter, success screen ("🙌 Thanks for the kind words! — queued for admin approval").
+  - **Admin:** ReviewsModal now shows an amber pending-submissions banner ("📥 N customer-submitted reviews awaiting your approval below.") and tags each new submission with a bright amber "New submission" pill + email contact line. Existing Publish / Hide / Delete actions handle the queue.
+- ✅ **UX (Feb 11): BookingModal "Pay with Card" routes through `/pay/:id`**
+  - Previously, picking Card in the booking modal kicked off Stripe Checkout immediately — bypassing the Tip-the-Crew picker. Now it saves the booking and navigates to `/pay/:bookingId` so the customer sees the tip picker first, then clicks "Pay with Card" on the pay page to launch Stripe. Toast: "Booking saved! Add an optional tip, then check out."
+- ❌ **DECLINED (Feb 11): Google Business Profile review auto-pull** — User opted to skip Google integration entirely and use the customer-submission flow instead (richer testimonials, no API/OAuth dependency).
+
+
+
 ## Implemented (Feb 11, 2026 — later still)
 - ✅ **FEATURE (Feb 11): Admin-editable Reviews / Social-proof on landing page**
   - **Backend:** `Review` model `{customer_name, location, rating 1-5, body, is_published, display_order}`. Endpoints: `GET /api/reviews` (public, published only, sorted by display_order asc), `GET /api/admin/reviews` (all), `POST/PATCH/DELETE /api/admin/reviews/:id`. Idempotent startup seeder inserts 3 starter reviews (Sarah M. / Mike T. / Jenna R.) if the collection is empty.

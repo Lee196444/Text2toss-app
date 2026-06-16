@@ -173,23 +173,16 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
         return;
       }
 
-      // Card → redirect to Stripe Checkout (returns to /pay/:id with session_id)
+      // Card → route to /pay/:id so the customer sees the Tip-the-Crew picker
+      // BEFORE we kick off Stripe Checkout. The pay page has its own
+      // "Pay with Card" button that creates the Stripe session (incl. tip).
       if (paymentChoice === "card") {
-        try {
-          const { data } = await axios.post(
-            `${API}/bookings/${bookingId}/stripe-checkout`,
-            { booking_id: bookingId, origin_url: window.location.origin }
-          );
-          if (data?.url) {
-            window.location.href = data.url;
-            return;
-          }
-          throw new Error("No checkout URL returned");
-        } catch (e) {
-          logger.error("Stripe checkout init failed", e);
-          toast.error("Couldn't start card payment. Please try Venmo or contact us.");
-          return;
-        }
+        toast.success("✅ Booking saved! Add an optional tip, then check out.", {
+          duration: 3500,
+          style: { background: "#10b981", color: "#ffffff", fontSize: "16px", fontWeight: "600", padding: "16px" },
+        });
+        window.location.href = `/pay/${bookingId}`;
+        return;
       }
 
       // Venmo flow (default)
