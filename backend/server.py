@@ -2963,6 +2963,32 @@ async def notify_customer_completion(booking_id: str):
         "sms_status": sms_result
     }
 
+@api_router.get("/admin/sms-status/{message_sid}")
+async def get_sms_status(message_sid: str):
+    """Fetch the live delivery status of a sent SMS by Twilio SID.
+
+    Carriers update status async (queued → sent → delivered or undelivered).
+    Returns error_code so the UI can show friendly help text for 30034 (A2P
+    not registered), 21610 (recipient unsubscribed), etc.
+    """
+    client = get_twilio_client()
+    if not client:
+        raise HTTPException(status_code=500, detail="SMS not configured")
+    try:
+        msg = client.messages(message_sid).fetch()
+        return {
+            "message_sid": msg.sid,
+            "status": msg.status,
+            "error_code": msg.error_code,
+            "error_message": msg.error_message,
+            "price": msg.price,
+            "to": msg.to,
+            "date_sent": msg.date_sent.isoformat() if msg.date_sent else None,
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
 @api_router.post("/admin/test-sms")
 async def test_sms_setup():
     """Test SMS configuration"""
