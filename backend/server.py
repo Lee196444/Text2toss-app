@@ -103,13 +103,24 @@ ALGORITHM = "HS256"
 
 # Twilio SMS setup
 def get_twilio_client():
-    """Get Twilio client with fallback for missing credentials"""
+    """Get Twilio client. Supports two auth methods:
+      1. API Key (preferred): TWILIO_API_KEY_SID + TWILIO_API_KEY_SECRET + TWILIO_ACCOUNT_SID
+      2. Auth Token (legacy): TWILIO_ACCOUNT_SID + TWILIO_AUTH_TOKEN
+    Returns None if credentials are missing (triggers simulation mode)."""
     account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
-    auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
-    
-    if not account_sid or not auth_token or account_sid == 'your_twilio_account_sid':
+    if not account_sid or account_sid == 'your_twilio_account_sid':
         return None
-    
+
+    # Prefer API Key auth (more secure, individually revocable)
+    api_key_sid = os.environ.get('TWILIO_API_KEY_SID')
+    api_key_secret = os.environ.get('TWILIO_API_KEY_SECRET')
+    if api_key_sid and api_key_secret:
+        return Client(api_key_sid, api_key_secret, account_sid)
+
+    # Fallback to Auth Token
+    auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
+    if not auth_token:
+        return None
     return Client(account_sid, auth_token)
 
 async def send_sms(to_phone: str, message: str, image_url: str = None):
