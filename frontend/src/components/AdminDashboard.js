@@ -1450,6 +1450,11 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
         openJobDetails={openJobDetails}
         openEmailCenter={openEmailCenter}
         setShowAllJobsModal={setShowAllJobsModal}
+        onJobUpdated={() => {
+          fetchAllJobs();
+          fetchDailySchedule?.();
+          fetchPendingPayments?.();
+        }}
       />
 
       {showDateJobsModal && selectedCalendarDate && (

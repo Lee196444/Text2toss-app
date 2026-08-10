@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
@@ -8,9 +8,12 @@ import {
   STATUS_BORDER,
   formatDate,
   formatStatus,
+  collectImagePaths,
 } from "./bucketShared";
 import { useSharedFilter } from "./FilterContext";
 import StickyFilterInput from "./StickyFilterInput";
+import PhotoCarousel from "./PhotoCarousel";
+import EditBookingModal from "./EditBookingModal";
 
 /**
  * "All Jobs History" modal. Filters its own list off the sticky shared
@@ -22,8 +25,10 @@ const AllJobsModal = ({
   openJobDetails,
   openEmailCenter,
   setShowAllJobsModal,
+  onJobUpdated,
 }) => {
   const [filter] = useSharedFilter();
+  const [editingBooking, setEditingBooking] = useState(null);
 
   const visibleJobs = useMemo(() => {
     const q = filter.trim().toLowerCase();
@@ -156,18 +161,34 @@ const AllJobsModal = ({
                         <p className="text-gray-500">⏰ {job.pickup_time || "—"}</p>
                       </div>
 
-                      {job.email && (
-                        <div className="pt-2 border-t border-gray-100">
-                          <Button
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openEmailCenter(job.email);
-                            }}
-                            className="bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white text-xs font-medium px-3 py-2 rounded-lg"
-                          >
-                            <span className="mr-1">📧</span>Email Customer
-                          </Button>
+                      {(job.email || job.payment_status !== "paid") && (
+                        <div className="pt-2 border-t border-gray-100 flex flex-wrap gap-2">
+                          {job.email && (
+                            <Button
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openEmailCenter(job.email);
+                              }}
+                              className="bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white text-xs font-medium px-3 py-2 rounded-lg"
+                            >
+                              <span className="mr-1">📧</span>Email Customer
+                            </Button>
+                          )}
+                          {job.payment_status !== "paid" && job.status !== "cancelled" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingBooking(job);
+                              }}
+                              data-testid={`edit-job-btn-${job.id}`}
+                              className="bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-300 text-xs font-medium px-3 py-2 rounded-lg"
+                            >
+                              <span className="mr-1">✏️</span>Edit
+                            </Button>
+                          )}
                         </div>
                       )}
                     </CardContent>
@@ -178,6 +199,16 @@ const AllJobsModal = ({
           )}
         </CardContent>
       </Card>
+
+      <EditBookingModal
+        open={!!editingBooking}
+        booking={editingBooking}
+        onClose={() => setEditingBooking(null)}
+        onSaved={() => {
+          setEditingBooking(null);
+          onJobUpdated?.();
+        }}
+      />
     </div>
   );
 };
