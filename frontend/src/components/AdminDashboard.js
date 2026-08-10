@@ -1691,6 +1691,11 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
         onMarkPaid={markAsPaid}
         onReject={rejectPayment}
         onRejectAll={rejectAllPendingPayments}
+        onQuoteUpdated={() => {
+          fetchPendingPayments();
+          fetchDailySchedule?.();
+          fetchAllJobs?.();
+        }}
       />
 
       <MarketingQRModal open={showQRModal} onClose={() => setShowQRModal(false)} />

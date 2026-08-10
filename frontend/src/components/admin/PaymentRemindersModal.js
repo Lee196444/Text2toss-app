@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
@@ -6,6 +6,7 @@ import { buildImageUrl, STATUS_BADGE, formatDate, collectImagePaths } from "./bu
 import { useSharedFilter } from "./FilterContext";
 import StickyFilterInput from "./StickyFilterInput";
 import PhotoCarousel from "./PhotoCarousel";
+import EditBookingModal from "./EditBookingModal";
 
 /**
  * Pending Payment Modal — bookings the customer submitted but hasn't paid
@@ -19,8 +20,10 @@ const PaymentRemindersModal = ({
   onMarkPaid,
   onReject,
   onRejectAll,
+  onQuoteUpdated,
 }) => {
   const [filter] = useSharedFilter();
+  const [editingBooking, setEditingBooking] = useState(null);
 
   const totalDue = useMemo(
     () => (pendingPayments || []).reduce((s, b) => s + (b.quote_details?.total_price || 0), 0),
@@ -176,6 +179,15 @@ const PaymentRemindersModal = ({
                         <Button
                           size="sm"
                           variant="outline"
+                          onClick={() => setEditingBooking(booking)}
+                          data-testid={`edit-booking-btn-${booking.id}`}
+                          className="bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-300 text-xs font-medium px-3 py-2 rounded-lg"
+                        >
+                          <span className="mr-1">✏️</span>Edit
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
                           onClick={() => onReject(booking.id)}
                           data-testid={`reject-payment-btn-${booking.id}`}
                           className="bg-red-50 hover:bg-red-100 text-red-600 border-red-300 text-xs font-medium px-3 py-2 rounded-lg"
@@ -191,6 +203,16 @@ const PaymentRemindersModal = ({
           )}
         </CardContent>
       </Card>
+
+      <EditBookingModal
+        open={!!editingBooking}
+        booking={editingBooking}
+        onClose={() => setEditingBooking(null)}
+        onSaved={() => {
+          setEditingBooking(null);
+          onQuoteUpdated?.();
+        }}
+      />
     </div>
   );
 };

@@ -2963,6 +2963,98 @@ async def notify_customer_completion(booking_id: str):
         "sms_status": sms_result
     }
 
+@api_router.patch("/admin/bookings/{booking_id}/quote-price")
+async def admin_adjust_quote_price(booking_id: str, body: dict):
+    """Admin fast-edit for a booking BEFORE payment.
+
+    Updates any of: price (via quote.approved_price), name, email, phone,
+    address, pickup_date, pickup_time. `_compute_booking_amount_due` reads
+    approved_price first so the customer sees the new number immediately.
+
+    Body: { new_price?: float, name?, email?, phone?, address?,
+            pickup_date?, pickup_time?, reason?: str }
+    """
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    if booking.get("payment_status") == "paid":
+        raise HTTPException(status_code=400, detail="Booking is already paid — cannot edit")
+    if booking.get("status") == "cancelled":
+        raise HTTPException(status_code=400, detail="Booking is cancelled")
+
+    reason = (body.get("reason") or "").strip()[:280]
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    # --- Optional customer-info updates on the booking doc ---
+    booking_patch = {}
+    for field in ("name", "email", "phone", "address", "pickup_date", "pickup_time"):
+        value = body.get(field)
+        if value is None:
+            continue
+        cleaned = str(value).strip()
+        if cleaned:
+            booking_patch[field] = cleaned[:200]
+
+    # --- Optional price update on the linked quote ---
+    price_change = None
+    quote_id = booking.get("quote_id")
+    if body.get("new_price") is not None:
+        try:
+            new_price = float(body["new_price"])
+        except (TypeError, ValueError):
+            raise HTTPException(status_code=400, detail="new_price must be a number")
+        if new_price < 0 or new_price > 100000:
+            raise HTTPException(status_code=400, detail="new_price out of range")
+        if not quote_id:
+            raise HTTPException(status_code=400, detail="Booking has no linked quote")
+        quote = await db.quotes.find_one({"id": quote_id}, {"_id": 0})
+        if not quote:
+            raise HTTPException(status_code=404, detail="Quote not found")
+        old_price = float(quote.get("approved_price") or quote.get("total_price") or 0)
+        await db.quotes.update_one(
+            {"id": quote_id},
+            {"$set": {
+                "approved_price": new_price,
+                "admin_notes": (reason or quote.get("admin_notes") or "")[:280],
+                "price_adjusted_at": now_iso,
+                "price_adjusted_by": "admin",
+            }},
+        )
+        price_change = {"old": old_price, "new": new_price}
+
+    if not booking_patch and price_change is None:
+        raise HTTPException(status_code=400, detail="No fields to update")
+
+    # Apply booking-level updates + recompute amount_due
+    if booking_patch:
+        booking_patch["last_admin_edit_at"] = now_iso
+        await db.bookings.update_one({"id": booking_id}, {"$set": booking_patch})
+
+    fresh_booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    fresh_quote = (
+        await db.quotes.find_one({"id": quote_id}, {"_id": 0}) if quote_id else None
+    )
+    new_amount_due = _compute_booking_amount_due(fresh_booking, fresh_quote)
+    await db.bookings.update_one(
+        {"id": booking_id},
+        {"$set": {"amount_due": new_amount_due}},
+    )
+
+    logger.info(
+        f"Admin edited booking {booking_id}: fields={list(booking_patch.keys())}, "
+        f"price={price_change}"
+    )
+    return {
+        "success": True,
+        "booking_id": booking_id,
+        "quote_id": quote_id,
+        "amount_due": new_amount_due,
+        "price_change": price_change,
+        "fields_updated": list(booking_patch.keys()),
+    }
+
+
+
 @api_router.get("/admin/sms-status/{message_sid}")
 async def get_sms_status(message_sid: str):
     """Fetch the live delivery status of a sent SMS by Twilio SID.
