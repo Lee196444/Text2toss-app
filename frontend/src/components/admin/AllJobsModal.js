@@ -49,7 +49,7 @@ const AllJobsModal = ({
   }, [allJobs, filter]);
 
   const totalRevenue = useMemo(
-    () => visibleJobs.reduce((s, j) => s + (j.quote_details?.total_price || 0), 0),
+    () => visibleJobs.reduce((s, j) => s + (j.quote_details?.approved_price ?? j.quote_details?.total_price ?? 0), 0),
     [visibleJobs],
   );
 
@@ -113,7 +113,7 @@ const AllJobsModal = ({
                     <CardContent className="p-3 sm:p-4 space-y-3">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-xl font-bold text-emerald-600">
-                          ${job.quote_details?.total_price || 0}
+                          ${job.quote_details?.approved_price ?? job.quote_details?.total_price ?? 0}
                         </span>
                         <Badge className={STATUS_BADGE[job.status] || "bg-gray-100 text-gray-700"}>
                           {formatStatus(job.status)}

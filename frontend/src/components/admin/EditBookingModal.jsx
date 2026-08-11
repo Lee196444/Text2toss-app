@@ -30,12 +30,19 @@ export default function EditBookingModal({ open, booking, onClose, onSaved }) {
       booking.quote_details?.total_price ??
       booking.amount_due ??
       0;
+    // Normalise pickup_date — Mongo sometimes stores ISO datetime like
+    // "2026-07-25T00:00:00" but <input type="date"> requires "YYYY-MM-DD".
+    const rawDate = booking.pickup_date || "";
+    const normalizedDate =
+      typeof rawDate === "string" && rawDate.length >= 10
+        ? rawDate.slice(0, 10)
+        : "";
     setForm({
       name: booking.name || "",
       email: booking.email || "",
       phone: booking.phone || "",
       address: booking.address || "",
-      pickup_date: booking.pickup_date || "",
+      pickup_date: normalizedDate,
       pickup_time: booking.pickup_time || "",
       new_price: String(currentPrice),
       reason: "",

@@ -861,13 +861,19 @@ async def _check_image_cache_by_phash(phash: str, desc_norm: str, n_images: int,
             cached.get("breakdown")
         )
 
-    # 2) Fuzzy match — same description + same image count + close pixels.
-    HAMMING_THRESHOLD = 10  # bits of drift tolerated across the joined hash
+    # 2) Fuzzy match — the photo itself is the strongest signal. We ignore
+    #    desc_norm in this pass (customers often rephrase / add typos on
+    #    re-upload) and only require the SAME NUMBER of images so we're not
+    #    comparing a single-photo quote against a 4-photo quote.
+    #
+    #    Hamming threshold: 15 bits per image (out of 64) — tight enough that
+    #    visually different photos stay separate, loose enough that the same
+    #    photo re-uploaded from a different phone / at a different JPEG
+    #    quality still hits the cache. Threshold scales with image count.
+    HAMMING_THRESHOLD_PER_IMAGE = 15
     new_parts = phash.split("|")
-    cursor = db.image_cache.find({
-        "desc_norm": desc_norm,
-        "n_images": n_images,
-    })
+    threshold = HAMMING_THRESHOLD_PER_IMAGE * len(new_parts)
+    cursor = db.image_cache.find({"n_images": n_images})
     async for candidate in cursor:
         cand_phash = candidate.get("phash") or ""
         if not cand_phash:
@@ -882,9 +888,10 @@ async def _check_image_cache_by_phash(phash: str, desc_norm: str, n_images: int,
             )
         except ValueError:
             continue
-        if total_diff <= HAMMING_THRESHOLD:
+        if total_diff <= threshold:
             logger.info(
-                f"Cache HIT via phash fuzzy (hamming={total_diff}, "
+                f"Cache HIT via phash fuzzy (hamming={total_diff}/{threshold}, "
+                f"desc_match={candidate.get('desc_norm') == desc_norm}, "
                 f"total {_time.monotonic()-t0:.1f}s)"
             )
             return (

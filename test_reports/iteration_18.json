@@ -1,0 +1,31 @@
+{
+  "summary": "Verified iteration_18 fixes: (1) widened phash fuzzy cache (15 bits/image, desc_norm no longer required) — 4/4 backend pytests pass; identical photo re-uploaded with different descriptions AND with a re-encoded (quality 30) JPEG both hit 'Cache HIT via phash fuzzy (hamming=13/15, desc_match=False)' returning the exact same total_price + scale_level as the seed. A visually distinct photo still logs 'Cache MISS' (no false collapse). (2) EditBookingModal correctly pre-fills Pickup Date from an ISO datetime (Mongo pickup_date='2026-06-15T12:00:00' → input shows 06/15/2026, YYYY-MM-DD internally) and the 'does not conform to the required format, yyyy-MM-dd' console warning is GONE. (3) Price-edit regression smoke: PATCH /api/admin/bookings/{id}/quote-price returned 200; no regression in the edit flow.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_phash_cache.py",
+    "/app/test_reports/pytest/phash_cache.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "phash fuzzy path iterates the whole `image_cache` collection filtered only by n_images — fine for now (4-20 rows) but at scale (>10k) consider a bucketed approximate index on the top-nibble of phash to bound the scan.",
+    "`_perceptual_hash_batch` swallows all PIL exceptions and returns '' — a silent empty phash disables fuzzy cache. Consider a warn-once log with the offending path when this happens repeatedly."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_phash_cache.py"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "seed_data_creation": "Reused existing quote images on disk (/app/static/quote_images/quote_0709bbde-*.jpg for IMAGE_A, quote_105f0011-*.jpg for IMAGE_B). Backend AI content filter rejected IMAGE_B (structure/building) — test tolerates 400 status because the check is against cache-lookup log lines (Cache MISS was emitted before the content-filter rejection). image_cache grew as expected during runs; no manual mongo seed was necessary.",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": true,
+  "test_credentials": "Admin: lrobe / L1964c10$ from /app/memory/test_credentials.md.",
+  "context_for_next_testing_agent": "Both fuzzy-cache widening (HAMMING_THRESHOLD_PER_IMAGE=15, desc_norm ignored on fuzzy pass) and EditBookingModal ISO-date normalisation are verified end-to-end and covered by pytest (test_phash_cache.py). The 22-second latency noted in iteration_17 (All Jobs → Save) was NOT re-observed here; PATCH returned 200 promptly. Log grep patterns to reuse: 'Cache HIT via phash fuzzy (hamming=X/Y, desc_match=bool' and 'Cache MISS for batch'.",
+  "rca_of_the_issue": "Root cause of the customer's differing-prices report: pre-fix cache lookup required BOTH desc_norm match AND ≤10-bit total hamming across all images. Real-world re-uploads (a) drift by ~10-14 bits per image due to re-encoding/compression, and (b) usually carry a slightly rephrased description. So the fuzzy path never hit and each upload got a fresh AI call with independent pricing. Fix loosens both dimensions: per-image threshold of 15 bits (empirically fits re-encodes) and desc_norm removed from the fuzzy match key. Correctness of the widening validated by TestPhashFuzzyCache.test_different_photo_does_not_hit_cache — visually distinct photos still MISS."
+}

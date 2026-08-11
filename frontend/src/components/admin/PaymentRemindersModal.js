@@ -26,7 +26,7 @@ const PaymentRemindersModal = ({
   const [editingBooking, setEditingBooking] = useState(null);
 
   const totalDue = useMemo(
-    () => (pendingPayments || []).reduce((s, b) => s + (b.quote_details?.total_price || 0), 0),
+    () => (pendingPayments || []).reduce((s, b) => s + (b.quote_details?.approved_price ?? b.quote_details?.total_price ?? 0), 0),
     [pendingPayments],
   );
 
@@ -123,7 +123,7 @@ const PaymentRemindersModal = ({
                     <CardContent className="p-3 sm:p-4 space-y-3">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-xl font-bold text-emerald-600">
-                          ${booking.quote_details?.total_price || 0}
+                          ${booking.quote_details?.approved_price ?? booking.quote_details?.total_price ?? 0}
                         </span>
                         {booking.quote_details?.scale_level !== undefined && (
                           <Badge variant="outline">Scale {booking.quote_details.scale_level}</Badge>

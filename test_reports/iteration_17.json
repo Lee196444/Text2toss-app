@@ -1,0 +1,38 @@
+{
+  "summary": "Verified the admin quote-price edit bug fix. Backend PATCH /api/admin/bookings/{id}/quote-price correctly writes quote.approved_price (keeping quote.total_price for audit) and updates booking customer fields. Both admin dashboard modals (Pending Payments AND All Jobs) now read approved_price ?? total_price at both the per-card display and the top-of-modal totals, so the card visually updates the moment onSaved refetches — the reported bug is fixed. Ran 6 pytest backend tests (all pass) + 2 Playwright E2E flows (both pass, card price visibly updated $180→$299 in Pending Payments and $299→$550 in All Jobs without any page refresh).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "All Jobs → Edit Booking → Save", "issue": "PATCH /api/admin/bookings/{id}/quote-price returned to the browser after ~22-23s (curl completes in <1s and Pending Payments flow completes in <1s). During that window the Save button correctly stays disabled/'Saving…' and the modal stays open, so no data loss — but the perceived latency is very poor. Likely a browser HTTP/2 connection or serialization delay tied to concurrent periodic admin GETs; worth a repro/profile on prod ingress.", "affected_selectors": ["[data-testid=edit-booking-save]", "[data-testid=edit-booking-modal]"]}
+    ],
+    "design_issues": [
+      {"screen": "EditBookingModal", "issues": ["Pickup Date input silently displays empty (mm/dd/yyyy) when the booking.pickup_date in Mongo is stored as an ISO datetime string like '2026-07-25T00:00:00' instead of 'YYYY-MM-DD'. Browser console prints: 'The specified value \"2026-07-25T00:00:00\" does not conform to the required format, \"yyyy-MM-dd\"'. Backend safely ignores empty strings so no data is wiped, but the admin can't see the current date. Suggest normalising pickup_date to YYYY-MM-DD before setForm({...})."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_quote_price_edit.py",
+    "/app/test_reports/pytest/quote_price_edit.xml"
+  ],
+  "action_items": [
+    "Investigate the intermittent ~22s latency on PATCH /api/admin/bookings/{id}/quote-price when triggered from the All Jobs edit flow (Pending Payments flow is fast; direct curl is fast). Possibly a connection-pool / periodic-refetch collision.",
+    "Normalise booking.pickup_date to YYYY-MM-DD (strip 'T…') in EditBookingModal's useEffect so the date field is prefilled correctly in the admin edit dialog."
+  ],
+  "critical_code_review_comments": [
+    "EditBookingModal.jsx passes pickup_date straight into a type=date input; sanitise ISO datetimes to YYYY-MM-DD or the field silently blanks and any admin edit that doesn't retype the date submits an empty string (backend then skips it, so no data loss, but a subtle UX foot-gun).",
+    "PaymentRemindersModal.js and AllJobsModal.js correctly use `quote_details?.approved_price ?? quote_details?.total_price ?? 0` at both the reducer (totalDue / totalRevenue) and card-price sites — fix is symmetric and complete."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_quote_price_edit.py"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "seed_data_creation": "Temporarily seeded quote TEST_UI_quote_pending + booking TEST_UI_booking_pending in Mongo for the UI test. Cleaned up after tests (verified deletions). Pytest fixture seeds/cleans per-test bookings with 'TEST_' prefix automatically.",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": true,
+  "test_credentials": "Admin: lrobe / L1964c10$ (from /app/memory/test_credentials.md, works via POST /api/admin/login).",
+  "context_for_next_testing_agent": "Bug fix (admin card price display) is verified end-to-end. If revisiting the Edit dialog, seed a test booking via Mongo (see /app/backend/tests/test_quote_price_edit.py fixture) or use any existing non-paid non-cancelled booking. Two follow-ups to watch: (1) date-input format normalisation in EditBookingModal, (2) intermittent long PATCH round-trip in All Jobs edit flow.",
+  "rca_of_the_issue": "Original bug: cards rendered `quote_details.total_price` only, but the PATCH endpoint stores the admin-edited price on `quote.approved_price` (leaving `total_price` intact as an audit of the original AI quote). After the fix, both display sites and both totals-reducers use `approved_price ?? total_price ?? 0`, so as soon as the parent refetch (fetchPendingPayments / fetchAllJobs) resolves, the card re-renders with the new price. Backend `_compute_booking_amount_due` already prefers `approved_price`, so booking.amount_due is consistent."
+}
