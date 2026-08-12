@@ -228,16 +228,25 @@ async def send_email(to_email: str, subject: str, html_content: str, attachments
         message['Subject'] = subject
         message['From'] = f"{email_from_name} <{email_from}>"
         message['To'] = to_email
-        
+
+        # Admin BCC — auto-copy every customer-facing email to the owner's
+        # inbox for real-time delivery visibility (set ADMIN_BCC_EMAIL in .env).
+        # Skipped if the recipient IS the admin (avoids infinite Gmail loops).
+        admin_bcc = (os.environ.get('ADMIN_BCC_EMAIL') or '').strip()
+        recipients = [to_email]
+        if admin_bcc and admin_bcc.lower() != (to_email or '').lower():
+            message['Bcc'] = admin_bcc
+            recipients.append(admin_bcc)
+
         # Add HTML content
         html_part = MIMEText(html_content, 'html')
         message.attach(html_part)
-        
+
         # Add attachments if provided
         if attachments:
             for attachment in attachments:
                 message.attach(attachment)
-        
+
         # Send email
         await aiosmtplib.send(
             message,
@@ -246,9 +255,11 @@ async def send_email(to_email: str, subject: str, html_content: str, attachments
             start_tls=True,
             username=email_user,
             password=email_password,
+            recipients=recipients,
         )
-        
-        logging.info(f"Email sent successfully to {to_email}: {subject}")
+
+        bcc_tag = f" (bcc→{admin_bcc})" if admin_bcc and admin_bcc.lower() != (to_email or '').lower() else ""
+        logging.info(f"Email sent successfully to {to_email}{bcc_tag}: {subject}")
         return {"status": "sent", "message": "Email sent successfully", "to_email": to_email}
         
     except Exception as e:
