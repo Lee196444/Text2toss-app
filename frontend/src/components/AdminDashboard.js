@@ -781,7 +781,9 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
         bins.inProgress.push(booking);
       } else if (booking.status === 'pending_customer_approval') {
         bins.new.push(booking); // approval-pending: surface as priority
-      } else if (booking.status === 'scheduled') {
+      } else if (booking.status === 'scheduled' || booking.status === 'pending_payment') {
+        // pending_payment = customer wants to pay-in-person / pay-after-job.
+        // Still needs to appear in Today/Upcoming so the crew can work it.
         if (bookingDate === today) {
           bins.new.push(booking);
         } else if (bookingDate > today) {

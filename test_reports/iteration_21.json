@@ -1,0 +1,24 @@
+{
+  "summary": "Iteration 21 regression: verified categorizBookings() in AdminDashboard.js now buckets status='pending_payment' bookings into New/Upcoming/InProgress bins alongside 'scheduled'. Seeded 6 test bookings (pp_today, pp_tomorrow, sched_today, sched_tomorrow, in_progress, pending_customer_approval) and confirmed each landed in the intended bin. Upcoming BinModal renders the pending_payment tomorrow booking with a 'PENDING PAYMENT' badge and full Route/Start Job/Complete/+Photo action buttons. Regression on all other buckets and modal action-button gates from iter20 remains intact.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/tmp/seed_iter21.py"],
+  "action_items": [
+    "Optional UX note (not a bug): the 'New' tile in the bin row wires to openCalendar(), not openBin('new'). The review request phrased the check as \"click 'New' tile → BinModal opens with today's pending_payment booking\", but clicking 'New' actually opens the Calendar modal. Today's pending_payment bookings ARE now counted in the 'New' tile badge (categorizBookings fix works), and admins can drill into any of them via Calendar → today's cell → openJobDetails → BinModal (which correctly renders the Start Job button per iter20 fix). If product wants the 'New' tile to open BinModal directly instead of the Calendar, that's a separate 1-line change: `else if (bin.type === 'new') { openBin('new'); }`."
+  ],
+  "critical_code_review_comments": [
+    "categorizBookings() line 784 now correctly widens the 'scheduled OR pending_payment' gate — no other bin logic touched. Confirmed via tile counts: Upcoming shows exactly the 2 seeded tomorrow bookings (1 pending_payment + 1 scheduled)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend-only iter)", "frontend": "100% (6/6 checks passed)"},
+  "seed_data_creation": "Seeded via /tmp/seed_iter21.py (TEST_ITER21 tag): pp_today, pp_tomorrow, sched_today, sched_tomorrow, in_progress, pending_customer_approval. All 12 records (6 bookings + 6 quotes) cleaned up post-test.",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": false,
+  "test_credentials": "Admin lrobe / L1964c10$ (from /app/memory/test_credentials.md)",
+  "context_for_next_testing_agent": "iter21 fix (categorizBookings bucketing of pending_payment) is verified end-to-end. Upcoming BinModal properly shows pending_payment jobs with a red 'PENDING PAYMENT' badge and all action buttons (Route/Start Job/Complete/+Photo). approved_price fallback from iter20 continues to render correctly ($350 shown in Job Details for the pp_today card via All Jobs → click path). Only remaining verified caveat: 'New' tile still opens Calendar (unchanged behavior); admin reaches today's pending_payment jobs via Calendar drill-in, not directly. See action_items for the optional wire-up.",
+  "rca_of_the_issue": "Bug was: categorizBookings() previously gated on `status === 'scheduled'` only, so pending_payment bookings were counted in NO bin (new/upcoming/inProgress showed stale zero for that status). Fix (line 784) widens gate to `status === 'scheduled' || status === 'pending_payment'`. Verified today→New bucket, future→Upcoming bucket, past→New bucket (fallback branch). No regression on pending_customer_approval (still lands in New via prior branch on line 782) or in_progress (line 780)."
+}

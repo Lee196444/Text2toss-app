@@ -1,0 +1,34 @@
+{
+  "summary": "Iteration 20 regression: (Bug 1) BinModal Start Job/Complete/+Photo now visible for pending_payment bookings, and (Bug 2) BinModal + CalendarModal + AutoApprovedQuotesModal read approved_price with total_price fallback. Backend mark-paid unchanged and verified. All bug fixes verified end-to-end on the deployed preview.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter20_pending_payment_and_price.py",
+    "/app/test_reports/pytest/iter20.xml",
+    "/tmp/seed_iter20.py"
+  ],
+  "action_items": [
+    "Optional: categorizBookings() in AdminDashboard.js currently omits status='pending_payment' from every bin (new/upcoming/inProgress/completed). The BinModal Start-Job fix therefore only surfaces to the admin when they open a pending_payment booking via All Jobs → click card (openJobDetails). If the intended workflow was for pending_payment jobs to appear in the 'New' or 'Upcoming' bins directly, categorizBookings needs updating too. The verified user path in this iteration is All Jobs → click → BinModal Details view."
+  ],
+  "critical_code_review_comments": [
+    "CalendarModal price display is correct but 'Revenue' aggregate only sums completed jobs (line 190) — that is intentional and matches previous behaviour, just worth confirming with product.",
+    "AutoApprovedQuotesModal header 'Booked revenue in view' now correctly excludes quotes without a booking; approved_price fallback confirmed."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter20_pending_payment_and_price.py (new)"
+  ],
+  "success_rate": {"backend": "100% (3/3 pytest)", "frontend": "100% (4/4 flows verified)"},
+  "seed_data_creation": "Seeded via /tmp/seed_iter20.py: (1) pending_payment booking, quote total_price=333 approved_price=645; (2) scheduled booking, quote total_price=444 approved_price=777; (3) standalone auto-approved quote total_price=222 approved_price=999. All TEST_ITER20-tagged data cleaned up after tests.",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": false,
+  "test_credentials": "Admin lrobe / L1964c10$ (from /app/memory/test_credentials.md)",
+  "context_for_next_testing_agent": "Bug 1 (Start Job gate widened to include pending_payment) and Bug 2 (approved_price fallback in BinModal/CalendarModal/AutoApprovedQuotesModal) are both verified on deployed preview. Backend /api/admin/bookings/{id}/mark-paid untouched and still transitions pending_payment→scheduled with payment_status→paid (pytest passes + UI Mark-as-Paid button flow verified with success toast 'Booking marked as paid and added to calendar!'). Note in action_items: pending_payment bookings only reach BinModal via the All Jobs → click card path (openJobDetails), not through any natural 'bin' tile, because categorizBookings does not bucket pending_payment. Verify with product owner if pending_payment should also live in the New bin.",
+  "rca_of_the_issue": "Bug 1: BinModal ActionButtons gate was `booking.status === 'scheduled'` — pending_payment jobs opened via openJobDetails rendered no action buttons. Fix (line 67) widens gate to include 'pending_payment'. Bug 2: quote_details.total_price is the original AI number and never changes; admin edits update quote.approved_price. Three views were still reading only total_price. Fix uses `approved_price ?? total_price ?? 0` in BinModal (lines 171, 256), CalendarModal (lines 131, 137, 190), AutoApprovedQuotesModal (lines 54, 143)."
+}

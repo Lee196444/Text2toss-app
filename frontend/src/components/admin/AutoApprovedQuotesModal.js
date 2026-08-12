@@ -51,7 +51,7 @@ const AutoApprovedQuotesModal = ({
   }, [quotes, filter, bookedOnly]);
 
   const totalRevenue = useMemo(
-    () => visibleQuotes.filter((q) => q.has_booking).reduce((s, q) => s + (q.total_price || 0), 0),
+    () => visibleQuotes.filter((q) => q.has_booking).reduce((s, q) => s + (q.approved_price ?? q.total_price ?? 0), 0),
     [visibleQuotes],
   );
 
@@ -140,7 +140,7 @@ const AutoApprovedQuotesModal = ({
                       {/* Header row */}
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-xl font-bold text-emerald-600">
-                          ${quote.total_price}
+                          ${quote.approved_price ?? quote.total_price}
                         </span>
                         <Badge variant="outline">Scale {quote.scale_level}</Badge>
                         <Badge className="bg-blue-100 text-blue-800">Auto-approved</Badge>

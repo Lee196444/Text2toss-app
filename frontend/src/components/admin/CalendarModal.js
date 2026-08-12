@@ -128,13 +128,13 @@ const CalendarModal = ({ open, currentMonth, calendarData, jobs, formatPrice, fo
                             <div 
                               key={job.id}
                               className={`text-xs p-0.5 sm:p-1 rounded truncate cursor-pointer hover:opacity-80 transition-all duration-200 ${JOB_PILL_CLASS[job.status] || DEFAULT_JOB_PILL}`}
-                              title={`Click to view details: ${job.pickup_time} - ${job.address} - $${job.quote_details?.total_price || 0}`}
+                              title={`Click to view details: ${job.pickup_time} - ${job.address} - $${job.quote_details?.approved_price ?? job.quote_details?.total_price ?? 0}`}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 openJobDetails(job);
                               }}
                             >
-                              <span className="hidden sm:inline">{job.pickup_time.split('-')[0]} </span>${job.quote_details?.total_price || 0}
+                              <span className="hidden sm:inline">{job.pickup_time.split('-')[0]} </span>${job.quote_details?.approved_price ?? job.quote_details?.total_price ?? 0}
                             </div>
                           ))}
                           {dayJobs.length > (window.innerWidth < 640 ? 2 : 3) && (
@@ -187,7 +187,7 @@ const CalendarModal = ({ open, currentMonth, calendarData, jobs, formatPrice, fo
                 </div>
                 <div className="bg-emerald-50 p-3 sm:p-4 rounded-lg text-center">
                   <div className="text-xl sm:text-2xl font-bold text-emerald-600">
-                    {formatPrice(Object.values(calendarData).flat().filter(j => j.status === 'completed').reduce((sum, job) => sum + (job.quote_details?.total_price || 0), 0))}
+                    {formatPrice(Object.values(calendarData).flat().filter(j => j.status === 'completed').reduce((sum, job) => sum + (job.quote_details?.approved_price ?? job.quote_details?.total_price ?? 0), 0))}
                   </div>
                   <div className="text-xs sm:text-sm text-emerald-800">Revenue</div>
                 </div>

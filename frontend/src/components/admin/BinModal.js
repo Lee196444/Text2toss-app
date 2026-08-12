@@ -64,7 +64,7 @@ const ActionButtons = ({
       </Button>
     )}
 
-    {booking.status === "scheduled" && (
+    {(booking.status === "scheduled" || booking.status === "pending_payment") && (
       <>
         <Button
           size="sm"
@@ -168,7 +168,7 @@ const BinModal = ({
   );
 
   const totalRevenue = useMemo(
-    () => binBookings.reduce((sum, b) => sum + (b.quote_details?.total_price || 0), 0),
+    () => binBookings.reduce((sum, b) => sum + (b.quote_details?.approved_price ?? b.quote_details?.total_price ?? 0), 0),
     [binBookings],
   );
 
@@ -253,7 +253,7 @@ const BinModal = ({
                       {/* Header row */}
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-xl font-bold text-emerald-600">
-                          ${booking.quote_details?.total_price || 0}
+                          ${booking.quote_details?.approved_price ?? booking.quote_details?.total_price ?? 0}
                         </span>
                         {booking.quote_details?.scale_level !== undefined && (
                           <Badge variant="outline">Scale {booking.quote_details.scale_level}</Badge>
