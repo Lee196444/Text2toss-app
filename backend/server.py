@@ -3051,6 +3051,76 @@ async def admin_adjust_quote_price(booking_id: str, body: dict):
         f"Admin edited booking {booking_id}: fields={list(booking_patch.keys())}, "
         f"price={price_change}"
     )
+
+    # ---- Optional customer notification (SMS + email) --------------------
+    notify_result = {"sent_email": False, "sent_sms": False}
+    if body.get("notify_customer") and (price_change or booking_patch):
+        try:
+            # Build human-friendly change list
+            field_labels = {
+                "name": "Name on the booking",
+                "email": "Email address",
+                "phone": "Phone number",
+                "address": "Pickup address",
+                "pickup_date": "Pickup date",
+                "pickup_time": "Pickup time",
+            }
+            changes = [
+                field_labels[k]
+                for k in booking_patch.keys()
+                if k in field_labels
+            ]
+            base_url = (
+                os.environ.get("PUBLIC_SITE_URL")
+                or os.environ.get("BACKEND_URL")
+                or os.environ.get("REACT_APP_BACKEND_URL")
+                or "https://text2toss.com"
+            ).rstrip("/")
+            pay_link = f"{base_url}/pay/{booking_id}"
+
+            customer_email = fresh_booking.get("email")
+            customer_phone = fresh_booking.get("phone")
+            customer_name = fresh_booking.get("name") or "Friend"
+
+            if customer_email:
+                html = email_templates.booking_updated_email(
+                    customer_name=customer_name,
+                    booking_id=booking_id,
+                    old_price=price_change["old"] if price_change else None,
+                    new_price=price_change["new"] if price_change else None,
+                    changes=changes,
+                    reason=reason or None,
+                    pay_link=pay_link,
+                )
+                subject = (
+                    f"Your Text2toss booking has been updated"
+                    + (f" — new total ${price_change['new']:.2f}" if price_change else "")
+                )
+                res = await send_email(
+                    to_email=customer_email,
+                    subject=subject,
+                    html_content=html,
+                )
+                notify_result["sent_email"] = res.get("status") == "sent"
+
+            if customer_phone:
+                sms_lines = ["Text2toss update:"]
+                if price_change:
+                    sms_lines.append(
+                        f"Your total is now ${price_change['new']:.2f} "
+                        f"(was ${price_change['old']:.2f})."
+                    )
+                if changes:
+                    sms_lines.append("Updated: " + ", ".join(changes) + ".")
+                if reason:
+                    sms_lines.append(reason[:120])
+                sms_lines.append(f"Review + pay: {pay_link}")
+                sms_body = "\n".join(sms_lines)[:1500]
+                sms_res = await send_sms(to_phone=customer_phone, message=sms_body)
+                notify_result["sent_sms"] = sms_res.get("status") == "sent"
+        except Exception as exc:
+            logger.warning(f"Notify customer failed for {booking_id}: {exc}")
+
     return {
         "success": True,
         "booking_id": booking_id,
@@ -3058,6 +3128,7 @@ async def admin_adjust_quote_price(booking_id: str, body: dict):
         "amount_due": new_amount_due,
         "price_change": price_change,
         "fields_updated": list(booking_patch.keys()),
+        "notify_result": notify_result,
     }
 
 

@@ -15,6 +15,7 @@ __all__ = [
     "quote_approval_email",
     "quote_rejection_email",
     "review_request_email",
+    "booking_updated_email",
 ]
 
 
@@ -496,6 +497,92 @@ def review_request_email(
     <p class="small">
       Text2toss Junk Removal &middot; Flagstaff, AZ<br>
       You're receiving this because you booked a pickup with us.
+    </p>
+  </div>
+</body>
+</html>"""
+
+
+
+# ---------------------------------------------------------------------------
+# Admin price/details adjustment — notify customer of the change
+# ---------------------------------------------------------------------------
+
+def booking_updated_email(
+    customer_name: str,
+    booking_id: str,
+    old_price: Optional[float],
+    new_price: Optional[float],
+    changes: list,           # list of human strings like "Address updated"
+    reason: Optional[str],
+    pay_link: str,
+) -> str:
+    """Sent when the admin edits a booking (price bump, moved date, etc)."""
+    first_name = (customer_name or "there").split()[0]
+    short_id = (booking_id or "")[:8].upper()
+
+    price_line = ""
+    if new_price is not None and old_price is not None and abs(new_price - old_price) > 0.01:
+        direction = "updated" if new_price > old_price else "adjusted down"
+        price_line = (
+            f'<div class="price-block">'
+            f'  <div class="price-label">New total</div>'
+            f'  <div class="price-value">${new_price:.2f}</div>'
+            f'  <div class="price-sub">was ${old_price:.2f} — {direction}</div>'
+            f'</div>'
+        )
+
+    changes_list = ""
+    if changes:
+        items = "".join(f"<li>{c}</li>" for c in changes)
+        changes_list = f'<div class="changes"><strong>What changed:</strong><ul>{items}</ul></div>'
+
+    reason_block = ""
+    if reason:
+        reason_block = f'<div class="reason"><strong>Note from our team:</strong><br>{reason}</div>'
+
+    return f"""<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Your Text2toss booking has been updated</title>
+  <style>
+    body {{ margin:0; padding:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; background:#0a0a0a; color:#e5e5e5; }}
+    .wrap {{ max-width:560px; margin:0 auto; padding:32px 20px; }}
+    .card {{ background:#111; border:1px solid #1f1f1f; border-radius:18px; padding:32px 28px; }}
+    .brand {{ font-style:italic; font-weight:900; text-transform:uppercase; letter-spacing:2px; color:#bef264; font-size:20px; margin-bottom:6px; }}
+    h1 {{ color:#fafafa; font-size:26px; line-height:1.2; margin:20px 0 10px; font-weight:800; }}
+    p {{ color:#a3a3a3; line-height:1.6; font-size:15px; margin:12px 0; }}
+    .price-block {{ background:#0a0a0a; border:2px solid #bef264; border-radius:14px; padding:18px; text-align:center; margin:18px 0; }}
+    .price-label {{ color:#737373; font-size:11px; letter-spacing:2px; text-transform:uppercase; }}
+    .price-value {{ color:#bef264; font-size:36px; font-weight:900; font-style:italic; margin:6px 0 2px; }}
+    .price-sub {{ color:#737373; font-size:12px; }}
+    .changes {{ background:#0a0a0a; border-left:3px solid #bef264; padding:12px 16px; border-radius:0 8px 8px 0; margin:14px 0; color:#d4d4d4; font-size:14px; }}
+    .changes ul {{ margin:6px 0 0; padding-left:18px; }}
+    .changes li {{ margin:2px 0; }}
+    .reason {{ background:#1a1a0f; border:1px solid #3f3f1a; padding:14px; border-radius:10px; color:#d4d4d4; font-size:14px; margin:12px 0; }}
+    .cta {{ display:block; text-align:center; background:#bef264; color:#0a0a0a !important; text-decoration:none; padding:18px 24px; border-radius:999px; font-weight:900; font-style:italic; text-transform:uppercase; letter-spacing:2px; font-size:16px; margin:22px 0; }}
+    .booking {{ font-size:11px; letter-spacing:2px; color:#525252; text-align:center; text-transform:uppercase; margin-top:20px; }}
+    .small {{ font-size:12px; color:#525252; text-align:center; margin-top:20px; }}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="brand">Text2toss</div>
+      <h1>Hey {first_name} — quick update on your pickup</h1>
+      <p>We adjusted a few details on your Text2toss booking. Everything else stays the same — same pickup crew, same great service.</p>
+      {price_line}
+      {changes_list}
+      {reason_block}
+      <a href="{pay_link}" class="cta">Review &amp; pay</a>
+      <p style="text-align:center; font-size:13px;">
+        Questions? Reply to this email or text us — we're happy to explain.
+      </p>
+      <div class="booking">Booking #{short_id}</div>
+    </div>
+    <p class="small">
+      Text2toss Junk Removal &middot; Flagstaff, AZ
     </p>
   </div>
 </body>

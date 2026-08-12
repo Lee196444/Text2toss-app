@@ -1,0 +1,36 @@
+{
+  "summary": "Tested the new '📣 Notify customer of change' toggle end-to-end (backend + frontend). Wrote /app/backend/tests/test_booking_notify_customer.py (10 tests, all passing) covering silent path, notify path with email, notify path with phone, no-contact case, contact-only edit still notifying, and the booking_updated_email template (price-block shown only when prices differ, hidden otherwise, reason block optional, pay-link + branding present). Ran Playwright against the preview URL: admin login → Pending Payments → Edit → verified toggle default OFF, silent helper text, lime-highlight + email/SMS helper text when checked, form re-initialises on reopen, and two save flows produce the expected differing toasts ('Booking updated' vs 'Booking updated — customer notified'). Seeded bookings and the shared booking 0e82e85a…4028f8cab2bd were reset/cleaned after tests.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_booking_notify_customer.py",
+    "/app/test_reports/pytest/notify_customer.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.py notification block silently swallows all send_email/send_sms failures via bare except and still returns notify_result=False — consider surfacing the error reason (e.g. notify_result.email_error) so admins know why the customer wasn't reached. Currently the UI toasts 'customer notified' even when the underlying send returned status='error' — misleading.",
+    "The pay_link falls back to https://text2toss.com when neither PUBLIC_SITE_URL nor BACKEND_URL are configured; on staging/preview this could send a customer to the production site. Consider making the base URL a required config with a hard fail at startup.",
+    "field_labels dict silently ignores unknown keys added to booking_patch (e.g. future fields like 'notes'); safe today but easy to forget when extending — add a test or fall back to the raw key so nothing goes un-communicated.",
+    "AdminDashboard: repeated 'LoadScript has been reloaded unintentionally' warning from @react-google-maps/api — libraries prop is being recreated on each render. Not blocking, but should be hoisted to a module-level const for perf."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_booking_notify_customer.py"
+  ],
+  "success_rate": {
+    "backend": "100% (10/10 pytest)",
+    "frontend": "100% (toggle visibility, default OFF, helper text switch, lime highlight, both toast variants)"
+  },
+  "seed_data_creation": "Created and deleted TEST_notify_b_* / TEST_notify_q_* rows per test via fixtures; created & deleted TEST_ui_b_076cbb70 + linked quote for the Playwright run; reset booking 0e82e85a-d70c-447c-85d9-4028f8cab2bd back to $180.",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": true,
+  "test_credentials": "Admin lrobe / L1964c10$ from /app/memory/test_credentials.md — worked.",
+  "context_for_next_testing_agent": "Notify toggle flow (backend + frontend) is fully green. Note: EMAIL_ENABLED=true and Twilio creds are set, so send_email/send_sms return status='sent' at API-acceptance level (Twilio may 400 on obviously-fake numbers like +1555… — use +14155552671 or similar plausible formats when testing SMS delivery). Silent path returns notify_result={sent_email:False,sent_sms:False}; notify path fires only when notify_customer=true AND (price_change OR booking_patch is non-empty).",
+  "rca_of_the_issue": "N/A — no defects found in this iteration."
+}

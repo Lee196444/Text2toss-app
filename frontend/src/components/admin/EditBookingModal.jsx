@@ -46,6 +46,7 @@ export default function EditBookingModal({ open, booking, onClose, onSaved }) {
       pickup_time: booking.pickup_time || "",
       new_price: String(currentPrice),
       reason: "",
+      notify_customer: false,
     });
   }, [open, booking]);
 
@@ -61,7 +62,7 @@ export default function EditBookingModal({ open, booking, onClose, onSaved }) {
     }
     setSaving(true);
     try {
-      await axios.patch(
+      const { data } = await axios.patch(
         `${API}/admin/bookings/${booking.id}/quote-price`,
         {
           new_price: priceNum,
@@ -72,10 +73,26 @@ export default function EditBookingModal({ open, booking, onClose, onSaved }) {
           pickup_date: form.pickup_date,
           pickup_time: form.pickup_time,
           reason: form.reason,
+          notify_customer: form.notify_customer,
         },
         { withCredentials: true },
       );
-      toast.success("Booking updated");
+      if (form.notify_customer) {
+        const nr = data?.notify_result || {};
+        const channels = [
+          nr.sent_email ? "email" : null,
+          nr.sent_sms ? "SMS" : null,
+        ].filter(Boolean);
+        if (channels.length > 0) {
+          toast.success(`Booking updated — customer notified by ${channels.join(" + ")}`);
+        } else {
+          toast.success(
+            "Booking updated — but the customer notification could NOT be sent (no email/phone on file, or the send failed). Check backend logs.",
+          );
+        }
+      } else {
+        toast.success("Booking updated");
+      }
       onSaved?.();
       onClose?.();
     } catch (err) {
@@ -235,6 +252,36 @@ export default function EditBookingModal({ open, booking, onClose, onSaved }) {
                 className="mt-1"
               />
             </div>
+
+            {/* Notify toggle — SMS + email if enabled */}
+            <label
+              className={`flex items-start gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                form.notify_customer
+                  ? "border-lime-400 bg-lime-50"
+                  : "border-gray-200 bg-gray-50"
+              }`}
+              data-testid="edit-booking-notify-label"
+            >
+              <input
+                type="checkbox"
+                checked={form.notify_customer}
+                onChange={(e) =>
+                  setForm({ ...form, notify_customer: e.target.checked })
+                }
+                className="mt-1 w-5 h-5 accent-lime-500"
+                data-testid="edit-booking-notify-toggle"
+              />
+              <div className="flex-1">
+                <div className="text-sm font-semibold text-gray-900">
+                  📣 Notify customer of the change
+                </div>
+                <div className="text-xs text-gray-600 mt-0.5">
+                  {form.notify_customer
+                    ? "Will email + SMS the customer with the new price, reason, and pay link on save."
+                    : "The change will be silent — the customer won't be told."}
+                </div>
+              </div>
+            </label>
 
             <div className="flex gap-2 pt-2 sticky bottom-0 bg-white pb-1">
               <Button
