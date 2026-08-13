@@ -3219,6 +3219,13 @@ def _build_invoice_html(booking: dict, quote: Optional[dict]) -> tuple[str, floa
     """
     from html import escape as _html_escape
 
+    # Absolute public URL for the Text2toss logo (works in browser + email clients).
+    # The frontend `public/` folder is served on non-/api paths via the same host.
+    _public_base = (os.environ.get("PUBLIC_BASE_URL")
+                    or os.environ.get("FRONTEND_URL")
+                    or "https://booking-tracker-pro-1.preview.emergentagent.com").rstrip("/")
+    logo_url = f"{_public_base}/t2t_logo.png"
+
     booking_id = booking.get("id", "")
     items = (quote or {}).get("items") or []
     base_price = float(
@@ -3330,9 +3337,9 @@ def _build_invoice_html(booking: dict, quote: Optional[dict]) -> tuple[str, floa
     @media print {{ .no-print {{ display:none; }} body {{ margin:0; background:#ffffff; }} .invoice {{ box-shadow:none; }} .header {{ background:#0a0a0a !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }} }}
     body {{ font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; margin:0; padding:32px 20px; background:#0f172a; color:#0a0a0a; }}
     .invoice {{ max-width:820px; margin:0 auto; background:#ffffff; border-radius:14px; box-shadow:0 20px 60px rgba(6,182,212,0.25); overflow:hidden; }}
-    .header {{ background:#0a0a0a; padding:28px 40px; display:flex; justify-content:space-between; align-items:center; border-bottom:4px solid #22d3ee; gap:24px; flex-wrap:wrap; }}
+    .header {{ background:#0a0a0a; padding:32px 40px; display:flex; justify-content:space-between; align-items:center; border-bottom:4px solid #22d3ee; gap:24px; flex-wrap:wrap; }}
     .header .logo-wrap {{ flex:1; min-width:220px; }}
-    .header .logo {{ display:block; width:100%; max-width:340px; aspect-ratio:2/1; background-image:url('https://customer-assets-4nw71qhi.emergentagent.net/job_d01b758d-c17a-49df-87a7-d4f10e1b12ae/artifacts/6ljihv97_Screenshot_20260812_210337_Samsung%20Browser.webp'); background-repeat:no-repeat; background-position:center 47%; background-size:135% auto; border-radius:10px; box-shadow:0 6px 20px rgba(34,211,238,0.35); -webkit-print-color-adjust:exact; print-color-adjust:exact; }}
+    .header .logo {{ display:block; width:100%; max-width:360px; height:auto; filter:drop-shadow(0 6px 20px rgba(34,211,238,0.35)); -webkit-print-color-adjust:exact; print-color-adjust:exact; }}
     .tagline {{ color:#22d3ee; font-size:11px; letter-spacing:3px; text-transform:uppercase; margin-top:10px; font-weight:700; }}
     .biz-info {{ text-align:right; font-size:12px; color:#e2e8f0; line-height:1.6; }}
     .biz-info strong {{ color:#22d3ee; font-size:13px; letter-spacing:1px; text-transform:uppercase; }}
@@ -3375,8 +3382,7 @@ def _build_invoice_html(booking: dict, quote: Optional[dict]) -> tuple[str, floa
   <div class="invoice">
     <div class="header">
       <div class="logo-wrap">
-        <div class="logo" role="img" aria-label="Text2toss Junk Removal"></div>
-        <div class="tagline">Snap it · Send it · Gone</div>
+        <img src="{logo_url}" alt="Text2toss Junk Removal · Snap it. Send it. Gone. · 928-853-9619" class="logo">
       </div>
       <div class="biz-info">
         <strong>Text2toss Junk Removal</strong><br>
