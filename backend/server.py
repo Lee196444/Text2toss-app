@@ -2757,7 +2757,7 @@ async def _maybe_email_invoice_on_complete(booking_id: str, new_status: str) -> 
     if booking.get("quote_id"):
         quote = await db.quotes.find_one({"id": booking["quote_id"]}, {"_id": 0})
     try:
-        html, grand_total = _build_invoice_html(booking, quote, for_email=True)
+        html, grand_total = _build_invoice_email_html(booking, quote)
         invoice_number = booking_id[:8].upper()
         subject = f"Your Text2toss invoice #{invoice_number} — ${grand_total:.2f}"
         pdf_attachment = _build_invoice_pdf_attachment(booking, quote)
@@ -3608,6 +3608,240 @@ def _build_invoice_html(
     return html, grand_total
 
 
+def _build_invoice_email_html(booking: dict, quote: Optional[dict]) -> tuple[str, float]:
+    """Return an email-client-friendly invoice HTML (inline styles + table
+    layout only). Gmail mobile, Apple Mail, Outlook, etc. strip most `<style>`
+    blocks and modern CSS — the branded `_build_invoice_html` version renders
+    as unstyled plain text in those clients. This version uses only the CSS
+    subset every mail client supports (backgrounds via `bgcolor=""`, spacing
+    via cellpadding/style, inline `style="…"` on every element).
+    """
+    from html import escape as _e
+
+    booking_id = booking.get("id", "")
+    invoice_number = booking_id[:8].upper()
+
+    cust = booking.get("customer_details") or {}
+    safe_name = _e(str(cust.get("name") or booking.get("name") or "Customer"))
+    safe_address = _e(str(cust.get("address") or booking.get("address") or ""))
+    safe_email = _e(str(cust.get("email") or booking.get("email") or ""))
+    safe_phone = _e(str(cust.get("phone") or booking.get("phone") or ""))
+
+    base_price = float(
+        (quote or {}).get("approved_price")
+        or (quote or {}).get("total_price")
+        or booking.get("approved_price")
+        or booking.get("total_price")
+        or booking.get("adjusted_price")
+        or booking.get("original_price")
+        or 0
+    )
+    priority_fee = float(booking.get("priority_fee") or 0)
+    equipment_fee = float(booking.get("equipment_fee") or 0)
+    tip_amount = float(booking.get("tip_amount") or 0)
+    grand_total = base_price + priority_fee + equipment_fee + tip_amount
+
+    items = (quote or {}).get("items") or []
+    # Bucket items by category (same logic as branded view)
+    groups: dict = {}
+    total_cuft = 0
+    for it in items:
+        raw_name = str(it.get("name", "Item"))
+        size = str(it.get("size", "medium")).lower()
+        qty = int(it.get("quantity", 1) or 1)
+        cuft = VOLUME_BY_SIZE.get(size, 25) * qty
+        total_cuft += cuft
+        category = _categorize_item(raw_name)
+        bucket = groups.setdefault(category, {"items": [], "cuft": 0})
+        bucket["items"].append({
+            "name": _e(raw_name), "quantity": qty, "size": _e(size.title()),
+            "description": _e(str(it.get("description", ""))), "cuft": cuft,
+        })
+        bucket["cuft"] += cuft
+    if total_cuft <= 0:
+        total_cuft = 1
+    for _, bucket in groups.items():
+        bucket["cost"] = round(base_price * (bucket["cuft"] / total_cuft), 2)
+
+    CATEGORY_ORDER = [
+        "Mattresses & Bedding", "Bulk Bags & Loose Debris", "Furniture",
+        "Appliances", "Electronics", "Yard & Construction Debris",
+        "Boxes & Containers", "Miscellaneous",
+    ]
+    sorted_groups = sorted(
+        groups.items(),
+        key=lambda kv: (CATEGORY_ORDER.index(kv[0]) if kv[0] in CATEGORY_ORDER else 999, kv[0]),
+    )
+
+    # Row builders — all inline styles
+    line_rows = []
+    for cat, bucket in sorted_groups:
+        line_rows.append(
+            f'<tr><td colspan="4" bgcolor="#ecfeff" style="background:#ecfeff;color:#0e7490;'
+            f'font-weight:800;font-size:13px;letter-spacing:1px;text-transform:uppercase;'
+            f'padding:10px 12px;border-top:2px solid #22d3ee;">{_e(cat)}</td>'
+            f'<td bgcolor="#ecfeff" align="right" style="background:#ecfeff;color:#0e7490;'
+            f'font-weight:800;padding:10px 12px;border-top:2px solid #22d3ee;">'
+            f'${bucket["cost"]:.2f}</td></tr>'
+        )
+        for it in bucket["items"]:
+            desc = (f'<div style="font-size:11px;color:#64748b;margin-top:2px;">'
+                    f'{it["description"]}</div>') if it["description"] else ""
+            line_rows.append(
+                f'<tr>'
+                f'<td width="6" bgcolor="#22d3ee" style="background:#22d3ee;">&nbsp;</td>'
+                f'<td style="padding:8px 12px;color:#0a0a0a;font-size:13px;border-bottom:1px solid #e2e8f0;">'
+                f'<strong>{it["name"]}</strong>{desc}</td>'
+                f'<td align="center" style="padding:8px 12px;color:#334155;font-size:13px;border-bottom:1px solid #e2e8f0;">{it["quantity"]}</td>'
+                f'<td align="center" style="padding:8px 12px;color:#334155;font-size:13px;border-bottom:1px solid #e2e8f0;">{it["size"]}</td>'
+                f'<td align="right" style="padding:8px 12px;color:#334155;font-size:13px;border-bottom:1px solid #e2e8f0;">{it["cuft"]} cu ft</td>'
+                f'</tr>'
+            )
+    line_rows_html = "\n".join(line_rows) or (
+        '<tr><td colspan="5" align="center" style="padding:16px;color:#94a3b8;font-style:italic;">'
+        'No line items on this invoice.</td></tr>'
+    )
+
+    extra_rows = ""
+    if priority_fee > 0:
+        extra_rows += (
+            '<tr><td colspan="4" align="right" style="padding:4px 12px;color:#475569;font-size:13px;">Priority scheduling</td>'
+            f'<td align="right" style="padding:4px 12px;color:#475569;font-size:13px;">${priority_fee:.2f}</td></tr>'
+        )
+    if equipment_fee > 0:
+        extra_rows += (
+            '<tr><td colspan="4" align="right" style="padding:4px 12px;color:#475569;font-size:13px;">Equipment fee</td>'
+            f'<td align="right" style="padding:4px 12px;color:#475569;font-size:13px;">${equipment_fee:.2f}</td></tr>'
+        )
+    if tip_amount > 0:
+        extra_rows += (
+            '<tr><td colspan="4" align="right" style="padding:4px 12px;color:#475569;font-size:13px;">Crew tip</td>'
+            f'<td align="right" style="padding:4px 12px;color:#475569;font-size:13px;">${tip_amount:.2f}</td></tr>'
+        )
+
+    is_paid = booking.get("payment_status") == "paid"
+    paid_badge = (
+        '<div style="display:inline-block;background:#22d3ee;color:#0a0a0a;'
+        'padding:6px 16px;border-radius:999px;font-size:12px;font-weight:900;'
+        'letter-spacing:2px;">PAID</div>'
+    ) if is_paid else ""
+
+    # Venmo pay button — only for unpaid invoices
+    import urllib.parse as _urlparse
+    venmo_handle = os.environ.get("VENMO_USERNAME", "Text2toss")
+    venmo_note = _urlparse.quote(f"Text2toss Invoice #{invoice_number}")
+    venmo_url = f"https://venmo.com/{venmo_handle}?txn=pay&amount={grand_total:.2f}&note={venmo_note}"
+    pay_block = "" if is_paid else f"""
+    <tr><td align="center" style="padding:24px 20px 8px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+        <td bgcolor="#008cff" style="background:#008cff;border-radius:999px;padding:16px 32px;" align="center">
+          <a href="{venmo_url}" target="_blank" style="color:#ffffff;text-decoration:none;font-family:-apple-system,Arial,sans-serif;font-weight:900;font-size:18px;">
+            <span style="font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:700;">Pay with </span>
+            <span style="font-style:italic;font-size:22px;">Venmo</span>
+            <span style="background:rgba(255,255,255,0.22);padding:4px 12px;border-radius:999px;margin-left:8px;font-size:15px;">${grand_total:.2f}</span>
+          </a>
+        </td>
+      </tr></table>
+    </td></tr>
+    <tr><td align="center" style="padding:0 20px 12px;font-size:11px;color:#64748b;font-family:-apple-system,Arial,sans-serif;">
+      Tap on your phone → Venmo opens with the amount pre-filled. Send to <strong style="color:#0891b2;">@{venmo_handle}</strong>.
+    </td></tr>"""
+
+    pickup_date = _e(str(booking.get("pickup_date") or "")[:10])
+    from datetime import datetime as _dt, timezone as _tz
+    issued_at = _dt.now(_tz.utc).strftime("%B %d, %Y")
+
+    logo_uri = _t2t_logo_data_uri()
+
+    html = f"""<!doctype html>
+<html><head><meta charset="utf-8"><title>Text2toss Invoice #{invoice_number}</title></head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;color:#0a0a0a;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f1f5f9" style="background:#f1f5f9;">
+  <tr><td align="center" style="padding:20px 12px;">
+    <table role="presentation" width="640" cellpadding="0" cellspacing="0" border="0" bgcolor="#ffffff" style="background:#ffffff;max-width:640px;border-radius:12px;border:1px solid #e2e8f0;overflow:hidden;">
+
+      <!-- HEADER: logo + business info -->
+      <tr><td style="padding:20px 24px;border-bottom:3px solid #22d3ee;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td align="left" valign="middle" style="width:60%;">
+            <img src="{logo_uri}" alt="Text2toss Junk Removal" width="240" style="display:block;width:240px;max-width:60%;height:auto;">
+          </td>
+          <td align="right" valign="middle" style="font-size:11px;color:#475569;line-height:1.5;">
+            <strong style="color:#0891b2;font-size:12px;letter-spacing:1px;text-transform:uppercase;">Text2toss Junk Removal</strong><br>
+            Flagstaff, AZ<br>
+            text2toss@gmail.com<br>
+            (928) 853-9619
+          </td>
+        </tr></table>
+      </td></tr>
+
+      <!-- BILL TO / INVOICE META -->
+      <tr><td style="padding:20px 24px 8px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td valign="top" style="width:50%;font-size:13px;color:#0a0a0a;line-height:1.5;">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:#0891b2;margin-bottom:4px;font-weight:800;">Bill to</div>
+            <strong>{safe_name}</strong><br>
+            {safe_address}<br>
+            {safe_email}<br>
+            {safe_phone}
+          </td>
+          <td valign="top" align="right" style="font-size:13px;color:#0a0a0a;line-height:1.5;">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:#0891b2;margin-bottom:4px;font-weight:800;">Invoice</div>
+            <strong>#{invoice_number}</strong><br>
+            <span style="font-size:12px;">Issued {issued_at}</span><br>
+            <span style="font-size:12px;">Service date {pickup_date}</span><br>
+            <div style="margin-top:6px;">{paid_badge}</div>
+          </td>
+        </tr></table>
+      </td></tr>
+
+      <!-- LINE ITEMS -->
+      <tr><td style="padding:8px 24px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#0891b2;font-weight:800;margin-bottom:6px;">Line items (grouped)</div>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+          <tr>
+            <td width="6" style="border-bottom:2px solid #0891b2;"></td>
+            <td style="border-bottom:2px solid #0891b2;padding:8px 12px;font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1.5px;">Item / category</td>
+            <td align="center" style="border-bottom:2px solid #0891b2;padding:8px 12px;font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1.5px;">Qty</td>
+            <td align="center" style="border-bottom:2px solid #0891b2;padding:8px 12px;font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1.5px;">Size</td>
+            <td align="right" style="border-bottom:2px solid #0891b2;padding:8px 12px;font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1.5px;">Volume / cost</td>
+          </tr>
+          {line_rows_html}
+        </table>
+        <div style="font-size:10px;color:#64748b;margin-top:8px;padding:8px 12px;background:#f0fdff;border-left:3px solid #22d3ee;">
+          Total volume hauled: <strong>{total_cuft} cu ft</strong>. Cost is shown per category, allocated proportional to volume.
+        </div>
+      </td></tr>
+
+      <!-- TOTALS -->
+      <tr><td style="padding:0 24px 8px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td colspan="4" align="right" style="padding:12px 12px 4px;border-top:2px solid #0891b2;font-size:13px;color:#475569;">Service subtotal</td>
+            <td align="right" style="padding:12px 12px 4px;border-top:2px solid #0891b2;font-size:13px;color:#475569;font-weight:700;">${base_price:.2f}</td>
+          </tr>
+          {extra_rows}
+          <tr>
+            <td colspan="4" align="right" style="padding:14px 12px 4px;font-size:20px;font-weight:900;color:#0a0a0a;">Grand total</td>
+            <td align="right" style="padding:14px 12px 4px;font-size:20px;font-weight:900;color:#0891b2;">${grand_total:.2f}</td>
+          </tr>
+        </table>
+      </td></tr>
+
+      {pay_block}
+
+      <!-- FOOTER -->
+      <tr><td align="center" style="padding:20px 24px;border-top:1px solid #e2e8f0;font-size:12px;color:#64748b;">
+        <strong style="color:#0891b2;letter-spacing:2px;text-transform:uppercase;">Thank you for choosing Text2toss</strong><br>
+        Questions? Reply to text2toss@gmail.com or call (928) 853-9619.
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body></html>"""
+    return html, grand_total
+
+
 @api_router.get("/admin/bookings/{booking_id}/invoice-data")
 async def admin_get_invoice_data(booking_id: str):
     """Return the editable payload backing an invoice (customer, pricing,
@@ -3801,6 +4035,106 @@ def _h(s) -> str:
     return _html_escape(str(s if s is not None else ""))
 
 
+@api_router.post("/webhooks/venmo-payment")
+async def venmo_payment_webhook(payload: dict, request: Request):
+    """Auto-mark-paid endpoint driven by an external Venmo bridge.
+
+    Venmo does NOT offer public webhooks for personal accounts — so this
+    endpoint is designed to be called by an **IFTTT / Zapier bridge** the
+    user configures against their own Venmo notification emails:
+
+        IFTTT applet:
+          Trigger: Gmail → New email from `venmo@venmo.com` matching "paid you"
+          Action:  Webhooks → POST to `{PUBLIC_BASE_URL}/api/webhooks/venmo-payment`
+                   Body (JSON): {
+                     "secret":  "<VENMO_WEBHOOK_SECRET from backend .env>",
+                     "amount":  "{{Amount}}",           # e.g. "645.00"
+                     "note":    "{{Note}}",             # e.g. "Text2toss Invoice #3AF2ACBF"
+                     "from":    "{{From}}"              # optional — sender handle
+                   }
+
+    The endpoint extracts the invoice number from the Venmo `note` (which our
+    invoice pre-fills as "Text2toss Invoice #XXXXXXXX") and flips that
+    booking's payment_status to `paid`. If no invoice number is found it
+    falls back to matching on the exact grand-total amount for the newest
+    unpaid booking.
+    """
+    # Auth — plain shared-secret check keeps this endpoint spam-proof.
+    expected = os.environ.get("VENMO_WEBHOOK_SECRET", "").strip()
+    supplied = (
+        (payload or {}).get("secret")
+        or request.headers.get("x-webhook-secret")
+        or ""
+    ).strip()
+    if not expected or supplied != expected:
+        raise HTTPException(status_code=401, detail="Invalid or missing webhook secret")
+
+    note = str((payload or {}).get("note") or "").strip()
+    amount_raw = str((payload or {}).get("amount") or "").replace("$", "").replace(",", "").strip()
+    try:
+        amount = float(amount_raw) if amount_raw else 0.0
+    except ValueError:
+        amount = 0.0
+
+    # 1) Try to extract the invoice number from the Venmo memo.
+    import re as _re
+    match = _re.search(r"#([A-F0-9]{8})", note.upper())
+    booking = None
+    match_method = None
+    if match:
+        prefix = match.group(1).lower()
+        booking = await db.bookings.find_one(
+            {"id": {"$regex": f"^{prefix}", "$options": "i"}, "payment_status": {"$ne": "paid"}},
+            {"_id": 0},
+        )
+        if booking:
+            match_method = "invoice_number"
+
+    # 2) Fallback: match on grand-total amount for the newest unpaid booking.
+    if not booking and amount > 0:
+        cursor = db.bookings.find({"payment_status": {"$ne": "paid"}}, {"_id": 0}).sort("created_at", -1)
+        async for b in cursor:
+            b_total = float(
+                b.get("approved_price")
+                or b.get("total_price")
+                or b.get("adjusted_price")
+                or b.get("original_price")
+                or 0
+            ) + float(b.get("tip_amount") or 0)
+            if abs(b_total - amount) < 0.01:
+                booking = b
+                match_method = "amount"
+                break
+
+    if not booking:
+        logging.warning(f"[venmo-webhook] no booking matched note={note!r} amount={amount}")
+        return {"success": False, "matched": False, "message": "No matching unpaid booking"}
+
+    await db.bookings.update_one(
+        {"id": booking["id"]},
+        {"$set": {
+            "payment_status": "paid",
+            "paid_at": datetime.now(timezone.utc).isoformat(),
+            "paid_via": "venmo_webhook",
+            "venmo_webhook_meta": {
+                "matched_by": match_method,
+                "note": note,
+                "amount": amount,
+                "sender": (payload or {}).get("from"),
+                "received_at": datetime.now(timezone.utc).isoformat(),
+            },
+        }},
+    )
+    logging.info(f"[venmo-webhook] flipped {booking['id']} to paid via {match_method}")
+    return {
+        "success": True,
+        "matched": True,
+        "booking_id": booking["id"],
+        "matched_by": match_method,
+        "amount": amount,
+    }
+
+
 @api_router.get("/admin/bookings/{booking_id}/invoice.pdf")
 async def admin_booking_invoice_pdf(booking_id: str):
     """Server-side rendered PDF of the branded invoice.
@@ -3849,7 +4183,7 @@ async def admin_email_invoice(booking_id: str):
     quote = None
     if booking.get("quote_id"):
         quote = await db.quotes.find_one({"id": booking["quote_id"]}, {"_id": 0})
-    html, grand_total = _build_invoice_html(booking, quote, for_email=True)
+    html, grand_total = _build_invoice_email_html(booking, quote)
     invoice_number = booking_id[:8].upper()
     subject = f"Your Text2toss invoice #{invoice_number} — ${grand_total:.2f}"
     pdf_attachment = _build_invoice_pdf_attachment(booking, quote)
