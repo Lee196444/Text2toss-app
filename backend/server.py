@@ -3363,6 +3363,26 @@ def _build_invoice_html(
         if booking.get("payment_status") == "paid" else ""
     )
 
+    # "Pay with Venmo" CTA — only rendered for unpaid invoices. Tapping opens
+    # the Venmo app on mobile (via https link redirect) or the web checkout
+    # on desktop, both pre-filled with the amount and invoice number.
+    import urllib.parse as _urlparse
+    _venmo_handle = os.environ.get("VENMO_USERNAME", "Text2toss")
+    _venmo_note = _urlparse.quote(f"Text2toss Invoice #{invoice_number}")
+    _venmo_amount = f"{grand_total:.2f}"
+    venmo_web_url = f"https://venmo.com/{_venmo_handle}?txn=pay&amount={_venmo_amount}&note={_venmo_note}"
+    venmo_block = ""
+    if booking.get("payment_status") != "paid":
+        venmo_block = f"""
+    <div class="pay-cta">
+      <a class="pay-btn" href="{venmo_web_url}" target="_blank" rel="noopener">
+        <span class="pay-btn-lead">Pay with</span>
+        <span class="pay-btn-brand">Venmo</span>
+        <span class="pay-btn-amount">${_venmo_amount}</span>
+      </a>
+      <div class="pay-hint">Tap on your phone → Venmo opens with the amount pre-filled. Send to <strong>@{_venmo_handle}</strong>.</div>
+    </div>"""
+
     # Interactive controls (Print / Email / PDF buttons + JS) are only rendered
     # for the browser view — stripped for email so mail clients see just the
     # branded invoice content.
@@ -3494,6 +3514,15 @@ def _build_invoice_html(
     .btn.email-btn:hover {{ background:linear-gradient(135deg,#06b6d4,#0891b2); color:#ffffff; }}
     .btn:disabled {{ opacity:0.5; cursor:not-allowed; transform:none; }}
     .cuft-note {{ font-size:10px; color:#64748b; margin-top:8px; padding:6px 10px; background:#f0fdff; border-left:3px solid #22d3ee; border-radius:4px; -webkit-print-color-adjust:exact; print-color-adjust:exact; }}
+    /* "Pay with Venmo" CTA — only rendered for unpaid invoices */
+    .pay-cta {{ margin-top:14px; text-align:center; page-break-inside:avoid; break-inside:avoid; }}
+    .pay-btn {{ display:inline-flex; align-items:center; gap:10px; background:linear-gradient(135deg,#3d95ce,#008cff); color:#ffffff !important; text-decoration:none; padding:14px 26px; border-radius:999px; font-weight:900; box-shadow:0 8px 24px -6px rgba(0,140,255,0.5); -webkit-print-color-adjust:exact; print-color-adjust:exact; }}
+    .pay-btn:hover {{ transform:translateY(-1px); box-shadow:0 12px 28px -6px rgba(0,140,255,0.6); }}
+    .pay-btn-lead {{ font-size:11px; text-transform:uppercase; letter-spacing:2px; opacity:0.9; }}
+    .pay-btn-brand {{ font-size:20px; font-style:italic; font-weight:900; letter-spacing:0.5px; }}
+    .pay-btn-amount {{ background:rgba(255,255,255,0.22); padding:3px 10px; border-radius:999px; font-size:14px; font-variant-numeric:tabular-nums; }}
+    .pay-hint {{ font-size:10px; color:#64748b; margin-top:6px; }}
+    .pay-hint strong {{ color:#0891b2; }}
     #email-status {{ margin:10px 28px 0; text-align:center; font-size:12px; font-weight:700; }}
     #email-status.ok {{ color:#059669; }}
     #email-status.err {{ color:#dc2626; }}
@@ -3565,6 +3594,7 @@ def _build_invoice_html(
         <td class="right">${grand_total:.2f}</td>
       </tr>
     </table>
+{venmo_block}
     </div>
 
     <div class="footer">
