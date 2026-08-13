@@ -3578,6 +3578,160 @@ def _build_invoice_html(
     return html, grand_total
 
 
+@api_router.get("/admin/bookings/{booking_id}/invoice-data")
+async def admin_get_invoice_data(booking_id: str):
+    """Return the editable payload backing an invoice (customer, pricing,
+    line items). Used by the admin Invoices modal to prefill the form."""
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    quote = None
+    if booking.get("quote_id"):
+        quote = await db.quotes.find_one({"id": booking["quote_id"]}, {"_id": 0})
+
+    cust = booking.get("customer_details") or {}
+    base_price = float(
+        (quote or {}).get("approved_price")
+        or (quote or {}).get("total_price")
+        or booking.get("approved_price")
+        or booking.get("total_price")
+        or booking.get("adjusted_price")
+        or booking.get("original_price")
+        or 0
+    )
+    return {
+        "id": booking_id,
+        "invoice_number": booking_id[:8].upper(),
+        "customer": {
+            "name": cust.get("name") or booking.get("name") or "",
+            "address": cust.get("address") or booking.get("address") or "",
+            "email": cust.get("email") or booking.get("email") or "",
+            "phone": cust.get("phone") or booking.get("phone") or "",
+        },
+        "pricing": {
+            "base_price": round(base_price, 2),
+            "priority_fee": float(booking.get("priority_fee") or 0),
+            "equipment_fee": float(booking.get("equipment_fee") or 0),
+            "tip_amount": float(booking.get("tip_amount") or 0),
+        },
+        "pickup_date": str(booking.get("pickup_date") or "")[:10],
+        "status": booking.get("status") or "",
+        "payment_status": booking.get("payment_status") or "",
+        "items": (quote or {}).get("items") or [],
+        "quote_id": booking.get("quote_id"),
+    }
+
+
+@api_router.patch("/admin/bookings/{booking_id}/invoice-data")
+async def admin_update_invoice_data(booking_id: str, payload: dict):
+    """Save edits made in the admin Invoices modal.
+
+    Accepts any subset of `{customer, pricing, items, pickup_date}` and
+    persists it — customer/pricing fields go on the `booking` doc while the
+    line items array is written back to the linked `quote` doc (or a
+    freshly-created quote if the booking never had one).
+    """
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+
+    booking_update: dict = {}
+    cust = payload.get("customer") or {}
+    if cust:
+        # Store both the modern nested `customer_details` shape AND the flat
+        # legacy fields so every existing UI/report keeps working.
+        booking_update["customer_details"] = {
+            "name": str(cust.get("name") or "").strip(),
+            "address": str(cust.get("address") or "").strip(),
+            "email": str(cust.get("email") or "").strip(),
+            "phone": str(cust.get("phone") or "").strip(),
+        }
+        booking_update["name"] = booking_update["customer_details"]["name"]
+        booking_update["address"] = booking_update["customer_details"]["address"]
+        booking_update["email"] = booking_update["customer_details"]["email"]
+        booking_update["phone"] = booking_update["customer_details"]["phone"]
+
+    pricing = payload.get("pricing") or {}
+    if "base_price" in pricing:
+        booking_update["approved_price"] = float(pricing["base_price"] or 0)
+        booking_update["total_price"] = float(pricing["base_price"] or 0)
+    if "priority_fee" in pricing:
+        booking_update["priority_fee"] = float(pricing["priority_fee"] or 0)
+    if "equipment_fee" in pricing:
+        booking_update["equipment_fee"] = float(pricing["equipment_fee"] or 0)
+    if "tip_amount" in pricing:
+        booking_update["tip_amount"] = float(pricing["tip_amount"] or 0)
+
+    if payload.get("pickup_date"):
+        booking_update["pickup_date"] = str(payload["pickup_date"])[:10]
+
+    # Payment status controls the diagonal PAID watermark on the invoice.
+    # Accept only the known values so admins can flip a booking paid/unpaid
+    # right from the Invoices modal without touching the DB.
+    if "payment_status" in payload:
+        raw = str(payload.get("payment_status") or "").strip().lower()
+        if raw in ("paid", "unpaid", "cancelled", "refunded"):
+            booking_update["payment_status"] = raw
+
+    if booking_update:
+        booking_update["last_admin_edit_at"] = datetime.now(timezone.utc).isoformat()
+        await db.bookings.update_one({"id": booking_id}, {"$set": booking_update})
+
+    # Items live on the quote doc. Create one on the fly for legacy bookings
+    # that never had a quote so admins can still add invoice line items.
+    if "items" in payload:
+        items = payload["items"] or []
+        # Sanitize each item — accept only known keys, coerce types.
+        clean_items = []
+        for it in items:
+            if not isinstance(it, dict):
+                continue
+            clean_items.append({
+                "name": str(it.get("name") or "").strip() or "Item",
+                "quantity": max(1, int(it.get("quantity") or 1)),
+                "size": str(it.get("size") or "medium").strip().lower(),
+                "description": str(it.get("description") or "").strip(),
+            })
+        quote_id = booking.get("quote_id")
+        if quote_id:
+            existing_quote = await db.quotes.find_one({"id": quote_id}, {"_id": 0})
+            if existing_quote:
+                await db.quotes.update_one(
+                    {"id": quote_id},
+                    {"$set": {"items": clean_items,
+                              "approved_price": float(pricing.get("base_price") or existing_quote.get("approved_price") or existing_quote.get("total_price") or 0),
+                              "total_price": float(pricing.get("base_price") or existing_quote.get("total_price") or 0),
+                              "last_admin_edit_at": datetime.now(timezone.utc).isoformat()}},
+                )
+            else:
+                # Legacy booking pointing at a missing quote — recreate it.
+                await db.quotes.insert_one({
+                    "id": quote_id,
+                    "items": clean_items,
+                    "approved_price": float(pricing.get("base_price") or 0),
+                    "total_price": float(pricing.get("base_price") or 0),
+                    "created_by_admin_edit": True,
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                })
+        else:
+            # No quote_id at all — create one and link it.
+            import uuid as _uuid
+            new_quote_id = str(_uuid.uuid4())
+            await db.quotes.insert_one({
+                "id": new_quote_id,
+                "items": clean_items,
+                "approved_price": float(pricing.get("base_price") or 0),
+                "total_price": float(pricing.get("base_price") or 0),
+                "created_by_admin_edit": True,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            })
+            await db.bookings.update_one(
+                {"id": booking_id},
+                {"$set": {"quote_id": new_quote_id}},
+            )
+    return {"success": True, "id": booking_id}
+
+
 @api_router.get("/admin/bookings/{booking_id}/invoice", response_class=HTMLResponse)
 async def admin_booking_invoice(booking_id: str):
     """Render the invoice HTML for browser view / print.

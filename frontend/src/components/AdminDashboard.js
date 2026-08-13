@@ -12,7 +12,7 @@ import RouteOptimizerModal from "./admin/RouteOptimizerModal";
 import PendingApprovalsModal from "./admin/PendingApprovalsModal";
 import AutoApprovedQuotesModal from "./admin/AutoApprovedQuotesModal";
 import { FilterProvider } from "./admin/FilterContext";
-import { CreditCard, CalendarDays, FastForward, Truck, CheckCircle2, BookOpen } from "lucide-react";
+import { CreditCard, CalendarDays, FastForward, Truck, CheckCircle2, BookOpen, FileText } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +28,7 @@ import AllJobsModal from "./admin/AllJobsModal";
 import EmailCenterModal from "./admin/EmailCenterModal";
 import PhotoGalleryModal from "./admin/PhotoGalleryModal";
 import ReviewsModal from "./admin/ReviewsModal";
+import InvoicesModal from "./admin/InvoicesModal";
 import SmsTestModal from "./admin/SmsTestModal";
 import { toast } from "../lib/toast";
 import { logger } from "../utils/logger";
@@ -154,6 +155,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
   const [smsLoading, setSmsLoading] = useState(false);
   const [newSmsMessage, setNewSmsMessage] = useState('');
   const [showAllJobsModal, setShowAllJobsModal] = useState(false);
+  const [showInvoicesModal, setShowInvoicesModal] = useState(false);
   const [allJobs, setAllJobs] = useState([]);
   const [emailCompose, setEmailCompose] = useState({
     to: '',
@@ -1278,7 +1280,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
         {/* === Job Bins (compact glance row) === */}
         <Card className="bg-white/95 backdrop-blur-sm border-gray-200 shadow-sm overflow-visible">
           <CardContent className="p-3 sm:p-4 overflow-visible">
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
+            <div className="grid grid-cols-3 sm:grid-cols-7 gap-2 sm:gap-3">
               {(() => {
                 const bins = categorizBookings();
                 const binConfigs = [
@@ -1287,6 +1289,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
                   { type: 'upcoming',       title: 'Upcoming',        Icon: FastForward,  color: 'border-orange-300 bg-orange-50 hover:bg-orange-100', textColor: 'text-orange-800', countColor: 'text-orange-600', iconColor: 'text-orange-500' },
                   { type: 'inProgress',     title: 'In Progress',     Icon: Truck,        color: 'border-yellow-300 bg-yellow-50 hover:bg-yellow-100', textColor: 'text-yellow-800', countColor: 'text-yellow-600', iconColor: 'text-yellow-500' },
                   { type: 'completed',      title: 'Completed',       Icon: CheckCircle2, color: 'border-green-300 bg-green-50 hover:bg-green-100', textColor: 'text-green-800',  countColor: 'text-green-600',  iconColor: 'text-green-500' },
+                  { type: 'invoices',       title: 'Invoices',        Icon: FileText,     color: 'border-cyan-300 bg-cyan-50 hover:bg-cyan-100',   textColor: 'text-cyan-800',   countColor: 'text-cyan-600',   iconColor: 'text-cyan-500',  showTotal: true },
                   { type: 'all',            title: 'All Jobs',        Icon: BookOpen,     color: 'border-purple-300 bg-purple-50 hover:bg-purple-100', textColor: 'text-purple-800', countColor: 'text-purple-600', iconColor: 'text-purple-500', showTotal: true },
                 ];
 
@@ -1301,6 +1304,8 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
                         openCalendar();
                       } else if (bin.type === 'all') {
                         openAllJobsModal();
+                      } else if (bin.type === 'invoices') {
+                        setShowInvoicesModal(true);
                       } else {
                         openBin(bin.type);
                       }
@@ -1454,6 +1459,16 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
         setShowAllJobsModal={setShowAllJobsModal}
         onJobUpdated={() => {
           fetchAllJobs();
+          fetchDailySchedule?.();
+          fetchPendingPayments?.();
+        }}
+      />
+
+      {/* Admin Invoices Modal — edit any invoice's fields + line items */}
+      <InvoicesModal
+        open={showInvoicesModal}
+        onClose={() => {
+          setShowInvoicesModal(false);
           fetchDailySchedule?.();
           fetchPendingPayments?.();
         }}
