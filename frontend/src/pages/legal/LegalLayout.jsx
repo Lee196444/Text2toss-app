@@ -13,8 +13,7 @@ const LegalLayout = ({ title, lastUpdated, children }) => {
       <header className="border-b border-gray-100 bg-white sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2" data-testid="legal-back-home-link">
-            <img src="/apple-touch-icon.png?v=8" alt="Text2toss" className="w-9 h-9 rounded-lg shadow-sm" />
-            <span className="font-display italic text-lg text-chrome">Text2toss</span>
+            <img src="/text2toss-wordmark-nav.png?v=9" alt="Text2toss" className="h-9 w-auto" />
           </Link>
           <nav className="flex items-center gap-4 text-xs font-display italic uppercase tracking-wider">
             <Link to="/terms" className="text-gray-600 hover:text-cyan-600 transition-colors">Terms</Link>

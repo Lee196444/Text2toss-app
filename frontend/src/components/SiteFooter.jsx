@@ -15,8 +15,7 @@ const SiteFooter = ({ variant = "light" }) => {
     <footer className={`${wrap} pt-8 pb-24 sm:pb-12`} data-testid="site-footer">
       <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <img src="/apple-touch-icon.png?v=8" alt="Text2toss" className="w-8 h-8 rounded-md" />
-          <span className="font-display italic text-white text-sm uppercase tracking-tight">Text2toss</span>
+          <img src="/text2toss-wordmark-nav.png?v=9" alt="Text2toss" className="h-8 w-auto" />
           <span className="ml-1 inline-flex items-center bg-cyan-400 text-black text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded">#1 AZ</span>
         </div>
 

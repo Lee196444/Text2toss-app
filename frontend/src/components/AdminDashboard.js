@@ -1068,15 +1068,15 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
 
   return (
     <FilterProvider>
-    <div className="min-h-screen bg-gradient-to-br from-black/40 to-emerald-900/50 p-2 sm:p-4">
+    <div className="min-h-screen bg-gradient-to-br from-black/40 to-cyan-900/50 p-2 sm:p-4">
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 overflow-visible">
         {/* Header — minimal, with live status */}
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-5 border border-white/20">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-3">
-              <img src="/apple-touch-icon.png?v=8" alt="T2T" className="w-10 h-10 rounded-lg shadow-md" />
+              <img src="/text2toss-wordmark-nav.png?v=9" alt="Text2toss" className="h-10 w-auto drop-shadow-[0_4px_12px_rgba(34,211,238,0.35)]" />
               <div>
-                <h1 className="text-xl sm:text-2xl font-display italic text-white uppercase tracking-tight leading-none">Text2toss Admin</h1>
+                <h1 className="text-xl sm:text-2xl font-display italic text-white uppercase tracking-tight leading-none">Admin</h1>
                 {(() => {
                   // Live status line computed from allJobs (date-independent)
                   const todayStr = new Date().toISOString().split('T')[0];

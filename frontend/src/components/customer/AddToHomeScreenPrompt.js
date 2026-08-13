@@ -93,18 +93,20 @@ export default function AddToHomeScreenPrompt() {
 
   return (
     <div
-      className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-4 shadow-sm"
+      className="rounded-2xl border border-cyan-200 bg-gradient-to-br from-cyan-50 to-white p-4 shadow-sm"
       data-testid="a2hs-prompt"
     >
       <div className="flex items-start gap-3">
-        <div className="shrink-0 w-12 h-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-lg shadow-md">
-          T2T
-        </div>
+        <img
+          src="/apple-touch-icon.png?v=9"
+          alt="Text2toss"
+          className="shrink-0 w-12 h-12 rounded-xl shadow-md"
+        />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-emerald-900">
+          <p className="text-sm font-bold text-cyan-900">
             Save Text2toss to your Home Screen
           </p>
-          <p className="text-xs text-emerald-700/80 mt-0.5 leading-relaxed">
+          <p className="text-xs text-cyan-700/80 mt-0.5 leading-relaxed">
             One-tap quotes next time. No app store, no signup.
           </p>
 

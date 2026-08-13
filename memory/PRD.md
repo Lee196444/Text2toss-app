@@ -8,6 +8,17 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Backend: FastAPI + Motor (async Mongo) + JWT-in-httpOnly-cookie admin auth
 - AI: emergentintegrations + Gemini 2.0 Flash (vision quote in ~2s)
 
+## Implemented (Feb 13, 2026 — logo everywhere)
+- ✅ **Unified logo across every touchpoint**: The cleaned transparent `/t2t_logo.png` is now the source of truth for:
+  - Landing-page nav (replaced the "T2T" tile + wordmark span with the actual electric-blue logo)
+  - Site footer (all public pages: landing, pay, track, legal)
+  - Legal pages header (Terms / Privacy / Refund)
+  - Admin dashboard header (cyan gradient bg to match)
+  - Booking-lookup, PayBookingPage, CustomerApproval, and AddToHomeScreenPrompt headers/CTAs
+- ✅ **Regenerated all PWA icons from source logo**: `apple-touch-icon.png` (180), `icon-192.png`, `icon-512.png`, `maskable-icon-512.png` (with PWA safe zone), `favicon-16/32.png`, `text2toss-icon.png`. All are the logo centered on a #0a0a0a rounded-square canvas — matches the invoice header aesthetic. Also emitted `text2toss-wordmark.png` (600px wide, transparent) and `text2toss-wordmark-nav.png` (300px, transparent) for nav bars.
+- ✅ **Theme color updated**: `<meta theme-color>` and `<link mask-icon color>` switched from emerald `#10b981` to cyan `#22d3ee`. Cache-busted all icon references to `?v=9`.
+
+
 ## Implemented (Feb 13, 2026 — full electric-blue brand system)
 - ✅ **BinModal invoice button**: Surfaced `📄 Invoice` on every Today's Schedule bin card (right after the 🗺️ Route button, works for all statuses) — parity with `PaymentRemindersModal` and `AllJobsModal`.
 - ✅ **Invoice rebrand → Text2Toss electric-blue**: Header is now solid black with the actual Text2Toss sticker (cropped via CSS `background-image` to hide phone chrome), electric-cyan (`#22d3ee`) accents everywhere, grouped line-items with cyan category headers, glowing gradient grand-total pill, and the new "SNAP IT · SEND IT · GONE" tagline. Business phone confirmed as **(928) 853-9619** across invoice header + footer + all customer-facing legal/tracking/payment pages.

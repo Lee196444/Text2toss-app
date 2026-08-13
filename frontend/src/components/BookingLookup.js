@@ -47,10 +47,7 @@ export default function BookingLookup() {
         <div className="max-w-3xl mx-auto px-4">
           <div className="flex justify-between items-center h-14">
             <Link to="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">T2T</span>
-              </div>
-              <span className="text-lg font-extrabold tracking-tight text-gray-900">Text2toss</span>
+              <img src="/text2toss-wordmark-nav.png?v=9" alt="Text2toss" className="h-9 w-auto" />
             </Link>
             <Link to="/">
               <Button variant="outline" size="sm" className="rounded-full border-gray-200 text-sm">

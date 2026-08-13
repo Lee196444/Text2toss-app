@@ -67,19 +67,11 @@ const CustomerApproval = () => {
   if (submitted) return <SubmittedState />;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black/40 to-emerald-900/50 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-black/40 to-cyan-900/50 p-4">
       <div className="max-w-2xl mx-auto">
         {/* Brand header */}
         <div className="text-center mb-8 pt-8">
-          <div className="flex items-center justify-center space-x-3 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-xl">T2T</span>
-            </div>
-            <div>
-              <h1 className="text-3xl font-black text-white">TEXT2TOSS</h1>
-              <p className="text-emerald-300 text-sm font-medium">Professional Junk Removal</p>
-            </div>
-          </div>
+          <img src="/text2toss-wordmark.png?v=9" alt="Text2toss Junk Removal" className="mx-auto max-w-sm w-full h-auto drop-shadow-[0_6px_20px_rgba(34,211,238,0.4)]" />
         </div>
 
         <PriceAdjustmentCard approvalData={approvalData} />

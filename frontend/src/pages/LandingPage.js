@@ -398,12 +398,11 @@ const LandingPage = () => {
           <div className="flex justify-between items-center h-14 sm:h-16">
             <div className="flex items-center gap-2">
               <img
-                src="/apple-touch-icon.png?v=8"
+                src="/text2toss-wordmark-nav.png?v=9"
                 alt="Text2toss"
-                className="w-9 h-9 rounded-lg shadow-sm"
-                data-testid="brand-icon"
+                className="h-8 sm:h-10 w-auto"
+                data-testid="brand-wordmark"
               />
-              <span className="text-lg sm:text-xl font-extrabold tracking-tight text-chrome italic" data-testid="brand-wordmark">Text2toss</span>
               <span className="md:hidden inline-flex items-center gap-1 ml-1.5" data-testid="online-status-mobile" aria-label={businessOpen ? "Online and accepting quotes" : "Closed — leave a quote anytime"}>
                 <span className="relative flex h-2 w-2">
                   {businessOpen && (
