@@ -17,9 +17,9 @@ const LegalLayout = ({ title, lastUpdated, children }) => {
             <span className="font-display italic text-lg text-chrome">Text2toss</span>
           </Link>
           <nav className="flex items-center gap-4 text-xs font-display italic uppercase tracking-wider">
-            <Link to="/terms" className="text-gray-600 hover:text-lime-600 transition-colors">Terms</Link>
-            <Link to="/privacy" className="text-gray-600 hover:text-lime-600 transition-colors">Privacy</Link>
-            <Link to="/refund-policy" className="text-gray-600 hover:text-lime-600 transition-colors">Refund</Link>
+            <Link to="/terms" className="text-gray-600 hover:text-cyan-600 transition-colors">Terms</Link>
+            <Link to="/privacy" className="text-gray-600 hover:text-cyan-600 transition-colors">Privacy</Link>
+            <Link to="/refund-policy" className="text-gray-600 hover:text-cyan-600 transition-colors">Refund</Link>
           </nav>
         </div>
       </header>

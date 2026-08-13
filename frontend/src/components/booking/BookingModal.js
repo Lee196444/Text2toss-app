@@ -218,17 +218,17 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
     <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-stretch sm:items-start justify-center sm:p-4 sm:pt-8">
       <Card className="w-full max-w-2xl shadow-2xl border-0 sm:mb-8 rounded-none sm:rounded-lg h-screen sm:h-auto sm:max-h-[calc(100vh-4rem)] flex flex-col">
         {/* Compact sticky header — title + price + step indicator on 2 rows */}
-        <div className="sticky top-0 z-10 bg-black rounded-t-none sm:rounded-t-lg flex-shrink-0 border-b-2 border-lime-400/30 relative overflow-hidden">
-          <div className="absolute -top-12 -right-12 w-40 h-40 bg-lime-400/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="sticky top-0 z-10 bg-black rounded-t-none sm:rounded-t-lg flex-shrink-0 border-b-2 border-cyan-400/30 relative overflow-hidden">
+          <div className="absolute -top-12 -right-12 w-40 h-40 bg-cyan-400/15 rounded-full blur-3xl pointer-events-none"></div>
           <div className="relative px-4 py-2 flex items-center justify-between gap-3 border-b border-white/10">
             {/* Compact step pills */}
             <div className="flex items-center gap-1.5 text-white">
-              <div className="w-5 h-5 rounded-full bg-lime-400 text-black flex items-center justify-center text-[10px] font-bold">✓</div>
-              <div className="w-3 h-0.5 bg-lime-400"></div>
-              <div className="w-5 h-5 rounded-full bg-lime-400 text-black flex items-center justify-center text-[10px] font-bold">✓</div>
-              <div className="w-3 h-0.5 bg-lime-400"></div>
-              <div className="w-5 h-5 rounded-full bg-lime-400 text-black flex items-center justify-center text-[10px] font-bold ring-2 ring-lime-400/40">3</div>
-              <span className="text-xs text-lime-400 font-display italic uppercase tracking-wider ml-1">Book &amp; Pay</span>
+              <div className="w-5 h-5 rounded-full bg-cyan-400 text-black flex items-center justify-center text-[10px] font-bold">✓</div>
+              <div className="w-3 h-0.5 bg-cyan-400"></div>
+              <div className="w-5 h-5 rounded-full bg-cyan-400 text-black flex items-center justify-center text-[10px] font-bold">✓</div>
+              <div className="w-3 h-0.5 bg-cyan-400"></div>
+              <div className="w-5 h-5 rounded-full bg-cyan-400 text-black flex items-center justify-center text-[10px] font-bold ring-2 ring-cyan-400/40">3</div>
+              <span className="text-xs text-cyan-400 font-display italic uppercase tracking-wider ml-1">Book &amp; Pay</span>
             </div>
             <button
               onClick={onClose}
@@ -241,7 +241,7 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
           </div>
           <div className="relative px-4 py-3 flex items-center justify-between gap-3 text-white">
             <div className="min-w-0">
-              <p className="text-[10px] font-display italic uppercase tracking-widest text-lime-400 leading-none mb-1">Complete Your Booking</p>
+              <p className="text-[10px] font-display italic uppercase tracking-widest text-cyan-400 leading-none mb-1">Complete Your Booking</p>
               {(priorityTier || equipmentFeeAmount > 0) && (
                 <p className="text-[10px] text-gray-400 truncate">
                   {priorityTier && <>+${priorityFeeAmount} priority</>}
@@ -252,7 +252,7 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               <span className="font-display italic text-3xl text-white leading-none">${totalWithPriority}</span>
-              <Badge className="bg-lime-400 text-black border-0 text-[10px] font-display italic uppercase px-2 py-0.5">💳 Venmo</Badge>
+              <Badge className="bg-cyan-400 text-black border-0 text-[10px] font-display italic uppercase px-2 py-0.5">💳 Venmo</Badge>
             </div>
           </div>
         </div>
@@ -346,7 +346,7 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
               type="checkbox"
               checked={legalConsent}
               onChange={(e) => setLegalConsent(e.target.checked)}
-              className="mt-0.5 w-5 h-5 rounded border-2 border-gray-300 text-lime-500 focus:ring-2 focus:ring-lime-400 cursor-pointer flex-shrink-0"
+              className="mt-0.5 w-5 h-5 rounded border-2 border-gray-300 text-cyan-500 focus:ring-2 focus:ring-cyan-400 cursor-pointer flex-shrink-0"
               data-testid="legal-consent-checkbox"
             />
             <span className="text-xs text-gray-700 leading-snug">
@@ -355,7 +355,7 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
                 href="/terms"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-lime-600 hover:text-lime-700 font-semibold underline"
+                className="text-cyan-600 hover:text-cyan-700 font-semibold underline"
                 data-testid="consent-terms-link"
               >
                 Terms of Service
@@ -365,7 +365,7 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
                 href="/refund-policy"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-lime-600 hover:text-lime-700 font-semibold underline"
+                className="text-cyan-600 hover:text-cyan-700 font-semibold underline"
                 data-testid="consent-refund-link"
               >
                 Refund Policy
@@ -421,7 +421,7 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
                   onClick={handleCardBooking}
                   disabled={!legalConsent}
                   data-testid="card-booking-btn"
-                  className="w-full h-12 bg-lime-400 hover:bg-lime-300 text-black font-display italic uppercase tracking-wider text-base shadow-[0_4px_14px_-2px_rgba(190,242,100,0.5)] rounded-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                  className="w-full h-12 bg-cyan-400 hover:bg-cyan-300 text-black font-display italic uppercase tracking-wider text-base shadow-[0_4px_14px_-2px_rgba(34, 211, 238,0.5)] rounded-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
                 >
                   💳 Pay with Card · ${totalWithPriority}
                 </Button>
@@ -429,7 +429,7 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
                   onClick={handleVenmoBooking}
                   disabled={!legalConsent}
                   data-testid="venmo-booking-btn"
-                  className="w-full h-12 bg-black hover:bg-gray-900 text-lime-400 border-2 border-lime-400 font-display italic uppercase tracking-wider text-base rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full h-12 bg-black hover:bg-gray-900 text-cyan-400 border-2 border-cyan-400 font-display italic uppercase tracking-wider text-base rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   📱 Pay with Venmo · ${totalWithPriority}
                 </Button>

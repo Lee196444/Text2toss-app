@@ -53,17 +53,17 @@ export default function HeavyPileEquipmentModal({ quote, onDone, onSkip }) {
       className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
       data-testid="heavy-pile-modal"
     >
-      <div className="w-full max-w-md bg-black border-2 border-lime-400 rounded-2xl shadow-[0_20px_60px_-10px_rgba(190,242,100,0.5)] overflow-hidden">
+      <div className="w-full max-w-md bg-black border-2 border-cyan-400 rounded-2xl shadow-[0_20px_60px_-10px_rgba(34, 211, 238,0.5)] overflow-hidden">
         {/* Header */}
-        <div className="relative bg-black px-6 py-5 border-b border-lime-400/30 overflow-hidden">
-          <div className="absolute -top-12 -right-12 w-40 h-40 bg-lime-400/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="relative bg-black px-6 py-5 border-b border-cyan-400/30 overflow-hidden">
+          <div className="absolute -top-12 -right-12 w-40 h-40 bg-cyan-400/15 rounded-full blur-3xl pointer-events-none"></div>
           <div className="relative text-center">
             <div className="text-4xl mb-2">🚜</div>
-            <p className="text-[11px] font-display italic uppercase tracking-widest text-lime-400 mb-1">
+            <p className="text-[11px] font-display italic uppercase tracking-widest text-cyan-400 mb-1">
               Heavy Pile Detected
             </p>
             <h2 className="font-display italic text-2xl uppercase tracking-tight text-white leading-tight">
-              Need <span className="text-lime-400">equipment</span> to load?
+              Need <span className="text-cyan-400">equipment</span> to load?
             </h2>
           </div>
         </div>
@@ -71,7 +71,7 @@ export default function HeavyPileEquipmentModal({ quote, onDone, onSkip }) {
         {/* Body */}
         <div className="p-5 bg-gray-950 text-gray-200 space-y-4">
           <p className="text-sm leading-relaxed">
-            Our AI spotted a pile of <span className="font-bold text-lime-400 capitalize">{material}</span>.
+            Our AI spotted a pile of <span className="font-bold text-cyan-400 capitalize">{material}</span>.
             Piles like this usually need a <strong className="text-white">dolly, ramp, or skid steer</strong> to safely load.
           </p>
 
@@ -87,7 +87,7 @@ export default function HeavyPileEquipmentModal({ quote, onDone, onSkip }) {
             onClick={() => respond(true)}
             disabled={!!submitting}
             data-testid="heavy-pile-yes-btn"
-            className="w-full rounded-xl bg-lime-400 hover:bg-lime-300 text-black p-4 text-left transition-all active:scale-[0.98] disabled:opacity-50 shadow-[0_4px_14px_-2px_rgba(190,242,100,0.5)]"
+            className="w-full rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black p-4 text-left transition-all active:scale-[0.98] disabled:opacity-50 shadow-[0_4px_14px_-2px_rgba(34, 211, 238,0.5)]"
           >
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0 flex-1">

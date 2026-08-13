@@ -61,7 +61,7 @@ export default function QuoteFlowModal({
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-stretch sm:items-center justify-center sm:p-4">
       <Card className="w-full max-w-lg h-screen sm:h-auto sm:max-h-[95vh] sm:my-0 shadow-2xl border-0 overflow-y-auto rounded-none sm:rounded-2xl">
         {/* Progress */}
-        <div className="bg-black border-b border-lime-400/30 px-4 py-3 sticky top-0 z-10">
+        <div className="bg-black border-b border-cyan-400/30 px-4 py-3 sticky top-0 z-10">
           <div className="flex items-center justify-center gap-2">
             <StepDot step={1} quoteStep={quoteStep} />
             <div className={`step-line ${quoteStep > 1 ? "done" : ""}`}></div>
@@ -70,9 +70,9 @@ export default function QuoteFlowModal({
             <StepDot step={3} quoteStep={quoteStep} />
           </div>
           <div className="flex justify-between mt-1.5 px-1">
-            <span className={`text-xs font-display italic uppercase tracking-wider ${quoteStep >= 1 ? "text-lime-400" : "text-gray-500"}`}>Upload</span>
-            <span className={`text-xs font-display italic uppercase tracking-wider ${quoteStep >= 2 ? "text-lime-400" : "text-gray-500"}`}>Quote</span>
-            <span className={`text-xs font-display italic uppercase tracking-wider ${quoteStep >= 3 ? "text-lime-400" : "text-gray-500"}`}>Book</span>
+            <span className={`text-xs font-display italic uppercase tracking-wider ${quoteStep >= 1 ? "text-cyan-400" : "text-gray-500"}`}>Upload</span>
+            <span className={`text-xs font-display italic uppercase tracking-wider ${quoteStep >= 2 ? "text-cyan-400" : "text-gray-500"}`}>Quote</span>
+            <span className={`text-xs font-display italic uppercase tracking-wider ${quoteStep >= 3 ? "text-cyan-400" : "text-gray-500"}`}>Book</span>
           </div>
         </div>
 
@@ -154,9 +154,9 @@ function UploadStep({
 
   return (
     <>
-      <CardHeader className="text-center pb-2 pt-5 bg-black border-b border-lime-400/20">
+      <CardHeader className="text-center pb-2 pt-5 bg-black border-b border-cyan-400/20">
         <CardTitle className="font-display italic text-2xl sm:text-3xl uppercase tracking-tight text-white">
-          {count === 0 ? <>Snap your <span className="text-lime-400">junk pile</span></> : <>{count} photo{count === 1 ? "" : "s"} <span className="text-lime-400">locked in</span></>}
+          {count === 0 ? <>Snap your <span className="text-cyan-400">junk pile</span></> : <>{count} photo{count === 1 ? "" : "s"} <span className="text-cyan-400">locked in</span></>}
         </CardTitle>
         <CardDescription className="text-xs sm:text-sm text-gray-400 mt-1.5 tracking-wide">
           {count === 0
@@ -178,21 +178,21 @@ function UploadStep({
           <div className="space-y-3">
             {/* Hero camera button — black + neon lime brand */}
             <label className="block cursor-pointer group" data-testid="camera-cta">
-              <div className="relative overflow-hidden rounded-2xl bg-black border-2 border-lime-400 p-5 shadow-[0_8px_24px_-6px_rgba(190,242,100,0.45)] hover:shadow-[0_10px_30px_-6px_rgba(190,242,100,0.6)] transition-all active:scale-[0.98]">
+              <div className="relative overflow-hidden rounded-2xl bg-black border-2 border-cyan-400 p-5 shadow-[0_8px_24px_-6px_rgba(34, 211, 238,0.45)] hover:shadow-[0_10px_30px_-6px_rgba(34, 211, 238,0.6)] transition-all active:scale-[0.98]">
                 {/* Subtle lime glow corner */}
-                <div className="absolute -top-12 -right-12 w-32 h-32 bg-lime-400/15 rounded-full blur-2xl pointer-events-none"></div>
+                <div className="absolute -top-12 -right-12 w-32 h-32 bg-cyan-400/15 rounded-full blur-2xl pointer-events-none"></div>
                 <div className="relative flex items-center gap-4">
-                  <div className="w-14 h-14 bg-lime-400 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                  <div className="w-14 h-14 bg-cyan-400 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
                     <svg className="w-7 h-7 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
                       <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0 text-left">
-                    <p className="font-display italic text-xl uppercase tracking-tight text-lime-400 leading-none">Take a Photo</p>
+                    <p className="font-display italic text-xl uppercase tracking-tight text-cyan-400 leading-none">Take a Photo</p>
                     <p className="text-xs text-gray-300 mt-1.5">Open camera · fastest way</p>
                   </div>
-                  <svg className="w-6 h-6 text-lime-400 group-hover:translate-x-1 transition-transform flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                  <svg className="w-6 h-6 text-cyan-400 group-hover:translate-x-1 transition-transform flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
                 </div>
@@ -233,19 +233,19 @@ function UploadStep({
                     type="button"
                     onClick={() => onRemoveImageAt(idx)}
                     disabled={imageAnalyzing}
-                    className="absolute top-1.5 right-1.5 w-7 h-7 bg-black hover:bg-gray-900 text-lime-400 rounded-full text-sm font-bold flex items-center justify-center disabled:opacity-50 shadow-lg ring-1 ring-lime-400/40"
+                    className="absolute top-1.5 right-1.5 w-7 h-7 bg-black hover:bg-gray-900 text-cyan-400 rounded-full text-sm font-bold flex items-center justify-center disabled:opacity-50 shadow-lg ring-1 ring-cyan-400/40"
                     aria-label={`Remove photo ${idx + 1}`}
                     data-testid={`remove-photo-${idx}`}
                   >
                     ✕
                   </button>
-                  <div className="absolute bottom-1.5 left-1.5 bg-lime-400 text-black text-[10px] font-black px-2 py-0.5 rounded-full shadow font-display italic">
+                  <div className="absolute bottom-1.5 left-1.5 bg-cyan-400 text-black text-[10px] font-black px-2 py-0.5 rounded-full shadow font-display italic">
                     #{idx + 1}
                   </div>
                 </div>
               ))}
               {canAddMore && (
-                <label className="aspect-square rounded-xl border-2 border-dashed border-black bg-lime-50 hover:bg-lime-100 flex flex-col items-center justify-center cursor-pointer transition-colors">
+                <label className="aspect-square rounded-xl border-2 border-dashed border-black bg-cyan-50 hover:bg-cyan-100 flex flex-col items-center justify-center cursor-pointer transition-colors">
                   <span className="text-3xl text-black leading-none mb-1">＋</span>
                   <span className="text-[11px] text-black font-display italic uppercase tracking-wide">Add photo</span>
                   <Input type="file" accept="image/*" multiple onChange={onImageUpload} className="hidden" data-testid="add-more-input" />
@@ -278,7 +278,7 @@ function UploadStep({
             placeholder={count > 1 ? "e.g., 4 piles: garage, side yard, curb, back patio…" : "e.g., Old couch, broken washer, lots of boxes…"}
             value={imageDescription}
             onChange={(e) => setImageDescription(e.target.value)}
-            className="min-h-[72px] text-sm resize-none rounded-xl border-2 border-gray-300 focus:border-lime-500 focus:ring-2 focus:ring-lime-100 bg-white"
+            className="min-h-[72px] text-sm resize-none rounded-xl border-2 border-gray-300 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 bg-white"
             maxLength={200}
             data-testid="image-description-input"
           />
@@ -287,7 +287,7 @@ function UploadStep({
         {/* Brand info card — black header strip + clean content */}
         <div className="rounded-xl overflow-hidden border-2 border-black shadow-sm">
           <div className="bg-black px-3 py-1.5">
-            <p className="font-display italic uppercase text-[11px] tracking-wider text-lime-400">Quick Heads-Up</p>
+            <p className="font-display italic uppercase text-[11px] tracking-wider text-cyan-400">Quick Heads-Up</p>
           </div>
           <div className="bg-white p-3 space-y-1.5">
             <div className="flex items-start gap-2">
@@ -306,7 +306,7 @@ function UploadStep({
         </div>
       </CardContent>
 
-      <div className="p-5 bg-black border-t-2 border-lime-400/30 flex justify-between gap-3">
+      <div className="p-5 bg-black border-t-2 border-cyan-400/30 flex justify-between gap-3">
         <Button
           variant="outline"
           onClick={onCancel}
@@ -319,7 +319,7 @@ function UploadStep({
         <Button
           onClick={onAnalyze}
           disabled={!imageFiles || imageFiles.length === 0 || imageAnalyzing}
-          className="h-12 bg-lime-400 hover:bg-lime-300 text-black rounded-xl px-6 font-display italic uppercase tracking-wider shadow-[0_4px_14px_-2px_rgba(190,242,100,0.5)] disabled:opacity-40 disabled:shadow-none flex-1"
+          className="h-12 bg-cyan-400 hover:bg-cyan-300 text-black rounded-xl px-6 font-display italic uppercase tracking-wider shadow-[0_4px_14px_-2px_rgba(34, 211, 238,0.5)] disabled:opacity-40 disabled:shadow-none flex-1"
           data-testid="get-instant-quote-btn"
         >
           {imageAnalyzing ? (
@@ -348,18 +348,18 @@ function QuoteStep({ quote, onContinueToBooking, onCloseAfterQuote, priorityTier
   const hasAddons = priorityFee > 0 || equipmentFee > 0;
   return (
     <>
-      <CardHeader className="text-center pb-3 pt-6 bg-black border-b border-lime-400/30 relative overflow-hidden">
+      <CardHeader className="text-center pb-3 pt-6 bg-black border-b border-cyan-400/30 relative overflow-hidden">
         {/* Lime glow corner */}
-        <div className="absolute -top-12 -right-12 w-40 h-40 bg-lime-400/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute -top-12 -right-12 w-40 h-40 bg-cyan-400/15 rounded-full blur-3xl pointer-events-none"></div>
         <div className="relative">
           <div className="flex items-center justify-center gap-2 mb-3">
-            <div className="w-10 h-10 bg-lime-400 rounded-full flex items-center justify-center shadow-[0_0_16px_-2px_rgba(190,242,100,0.6)]">
+            <div className="w-10 h-10 bg-cyan-400 rounded-full flex items-center justify-center shadow-[0_0_16px_-2px_rgba(34, 211, 238,0.6)]">
               <svg className="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
               </svg>
             </div>
           </div>
-          <p className="text-[11px] font-display italic uppercase tracking-widest text-lime-400 mb-2" data-testid="quote-success-msg">
+          <p className="text-[11px] font-display italic uppercase tracking-widest text-cyan-400 mb-2" data-testid="quote-success-msg">
             Quote Locked In
           </p>
           <div className="font-display italic text-6xl text-white mb-1 leading-none" data-testid="quote-total-price">${totalWithPriority}</div>
@@ -367,7 +367,7 @@ function QuoteStep({ quote, onContinueToBooking, onCloseAfterQuote, priorityTier
             {hasAddons ? <>Total with add-ons</> : <>Your instant AI quote</>}
           </CardDescription>
           <div className="mt-3">
-            <span className="inline-block border border-lime-400/40 text-lime-400 text-[10px] font-display italic uppercase tracking-wider px-3 py-1 rounded-full bg-lime-400/5">
+            <span className="inline-block border border-cyan-400/40 text-cyan-400 text-[10px] font-display italic uppercase tracking-wider px-3 py-1 rounded-full bg-cyan-400/5">
               Quote #{quote.id?.substring(0, 8)}
             </span>
           </div>
@@ -385,7 +385,7 @@ function QuoteStep({ quote, onContinueToBooking, onCloseAfterQuote, priorityTier
             data-testid="price-breakdown-card"
           >
             <div className="px-4 py-2 bg-black">
-              <h4 className="font-display italic text-xs text-lime-400 uppercase tracking-widest">Price Breakdown</h4>
+              <h4 className="font-display italic text-xs text-cyan-400 uppercase tracking-widest">Price Breakdown</h4>
             </div>
             <div className="divide-y divide-gray-200 bg-white">
               <div className="flex justify-between items-center px-4 py-2.5">
@@ -393,7 +393,7 @@ function QuoteStep({ quote, onContinueToBooking, onCloseAfterQuote, priorityTier
                 <span className="text-sm font-bold text-gray-900">${quote.total_price}</span>
               </div>
               {priorityFee > 0 && (
-                <div className="flex justify-between items-center px-4 py-2.5 bg-lime-400/10">
+                <div className="flex justify-between items-center px-4 py-2.5 bg-cyan-400/10">
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="text-base">{priorityIcon}</span>
                     <div className="min-w-0">
@@ -417,8 +417,8 @@ function QuoteStep({ quote, onContinueToBooking, onCloseAfterQuote, priorityTier
                 </div>
               )}
               <div className="flex justify-between items-center px-4 py-3 bg-black">
-                <span className="font-display italic text-base text-lime-400 uppercase tracking-wider">Total</span>
-                <span className="font-display italic text-2xl text-lime-400">${totalWithPriority}</span>
+                <span className="font-display italic text-base text-cyan-400 uppercase tracking-wider">Total</span>
+                <span className="font-display italic text-2xl text-cyan-400">${totalWithPriority}</span>
               </div>
             </div>
           </div>
@@ -427,7 +427,7 @@ function QuoteStep({ quote, onContinueToBooking, onCloseAfterQuote, priorityTier
         {quote.breakdown?.items?.length > 0 && (
           <div className="rounded-xl border-2 border-black overflow-hidden bg-white shadow-sm">
             <div className="px-4 py-2 bg-black">
-              <h4 className="text-[11px] font-display italic text-lime-400 uppercase tracking-widest">Items Identified</h4>
+              <h4 className="text-[11px] font-display italic text-cyan-400 uppercase tracking-widest">Items Identified</h4>
             </div>
             <div className="divide-y divide-gray-100">
               {quote.breakdown.items.map((item, index) => (
@@ -466,10 +466,10 @@ function QuoteStep({ quote, onContinueToBooking, onCloseAfterQuote, priorityTier
         <AddToHomeScreenPrompt />
       </CardContent>
 
-      <div className="p-5 bg-black border-t-2 border-lime-400/30 space-y-3">
+      <div className="p-5 bg-black border-t-2 border-cyan-400/30 space-y-3">
         <Button
           onClick={onContinueToBooking}
-          className="w-full h-12 bg-lime-400 hover:bg-lime-300 text-black rounded-xl font-display italic uppercase tracking-wider text-base shadow-[0_4px_14px_-2px_rgba(190,242,100,0.5)]"
+          className="w-full h-12 bg-cyan-400 hover:bg-cyan-300 text-black rounded-xl font-display italic uppercase tracking-wider text-base shadow-[0_4px_14px_-2px_rgba(34, 211, 238,0.5)]"
           data-testid="book-pickup-btn"
         >
           Continue to Booking →

@@ -3327,61 +3327,66 @@ def _build_invoice_html(booking: dict, quote: Optional[dict]) -> tuple[str, floa
   <meta charset="utf-8">
   <title>Text2toss Invoice #{invoice_number}</title>
   <style>
-    @media print {{ .no-print {{ display:none; }} body {{ margin:0; }} }}
-    body {{ font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; margin:0; padding:32px 20px; background:#f5f5f5; color:#0a0a0a; }}
-    .invoice {{ max-width:820px; margin:0 auto; background:#ffffff; padding:48px 40px; border-radius:14px; box-shadow:0 8px 40px rgba(0,0,0,0.08); }}
-    .header {{ display:flex; justify-content:space-between; align-items:flex-start; border-bottom:3px solid #bef264; padding-bottom:24px; margin-bottom:32px; }}
-    .brand {{ font-style:italic; font-weight:900; text-transform:uppercase; letter-spacing:2px; color:#0a0a0a; font-size:32px; margin:0; }}
-    .brand .accent {{ color:#84cc16; }}
-    .tagline {{ color:#737373; font-size:12px; letter-spacing:1px; text-transform:uppercase; margin-top:4px; }}
-    .biz-info {{ text-align:right; font-size:13px; color:#525252; line-height:1.5; }}
-    h2 {{ font-size:14px; text-transform:uppercase; letter-spacing:2px; color:#737373; margin:0 0 8px; }}
+    @media print {{ .no-print {{ display:none; }} body {{ margin:0; background:#ffffff; }} .invoice {{ box-shadow:none; }} .header {{ background:#0a0a0a !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }} }}
+    body {{ font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; margin:0; padding:32px 20px; background:#0f172a; color:#0a0a0a; }}
+    .invoice {{ max-width:820px; margin:0 auto; background:#ffffff; border-radius:14px; box-shadow:0 20px 60px rgba(6,182,212,0.25); overflow:hidden; }}
+    .header {{ background:#0a0a0a; padding:28px 40px; display:flex; justify-content:space-between; align-items:center; border-bottom:4px solid #22d3ee; gap:24px; flex-wrap:wrap; }}
+    .header .logo-wrap {{ flex:1; min-width:220px; }}
+    .header .logo {{ display:block; width:100%; max-width:340px; aspect-ratio:2/1; background-image:url('https://customer-assets-4nw71qhi.emergentagent.net/job_d01b758d-c17a-49df-87a7-d4f10e1b12ae/artifacts/6ljihv97_Screenshot_20260812_210337_Samsung%20Browser.webp'); background-repeat:no-repeat; background-position:center 47%; background-size:135% auto; border-radius:10px; box-shadow:0 6px 20px rgba(34,211,238,0.35); -webkit-print-color-adjust:exact; print-color-adjust:exact; }}
+    .tagline {{ color:#22d3ee; font-size:11px; letter-spacing:3px; text-transform:uppercase; margin-top:10px; font-weight:700; }}
+    .biz-info {{ text-align:right; font-size:12px; color:#e2e8f0; line-height:1.6; }}
+    .biz-info strong {{ color:#22d3ee; font-size:13px; letter-spacing:1px; text-transform:uppercase; }}
+    .body {{ padding:40px; }}
+    h2 {{ font-size:12px; text-transform:uppercase; letter-spacing:3px; color:#0891b2; margin:0 0 10px; font-weight:800; }}
     .meta {{ display:grid; grid-template-columns:1fr 1fr; gap:32px; margin-bottom:32px; }}
     .meta-block {{ font-size:14px; color:#0a0a0a; line-height:1.5; }}
-    .meta-block .label {{ text-transform:uppercase; font-size:11px; letter-spacing:2px; color:#a3a3a3; margin-bottom:4px; }}
-    .paid-badge {{ display:inline-block; background:#bef264; color:#0a0a0a; padding:4px 14px; border-radius:999px; font-size:11px; font-weight:900; letter-spacing:2px; }}
+    .meta-block .label {{ text-transform:uppercase; font-size:10px; letter-spacing:2px; color:#0891b2; margin-bottom:6px; font-weight:800; }}
+    .paid-badge {{ display:inline-block; background:linear-gradient(135deg,#22d3ee,#06b6d4); color:#0a0a0a; padding:5px 16px; border-radius:999px; font-size:11px; font-weight:900; letter-spacing:2px; box-shadow:0 4px 12px rgba(34,211,238,0.35); }}
     table {{ width:100%; border-collapse:collapse; margin-top:8px; }}
-    th {{ font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:#737373; text-align:left; padding:10px 6px; border-bottom:2px solid #0a0a0a; }}
+    th {{ font-size:10px; text-transform:uppercase; letter-spacing:1.5px; color:#64748b; text-align:left; padding:12px 6px; border-bottom:2px solid #0a0a0a; }}
     th.right, td.right {{ text-align:right; }}
-    td {{ padding:12px 6px; border-bottom:1px solid #e5e5e5; font-size:14px; vertical-align:top; }}
-    tr.group-header td {{ background:#f5f5f5; border-top:2px solid #0a0a0a; font-size:15px; color:#0a0a0a; }}
-    tr.group-item td {{ background:#ffffff; font-size:13px; color:#525252; padding-top:8px; padding-bottom:8px; }}
-    tr.group-item td:first-child {{ width:20px; border-right:2px solid #bef264; padding:0; }}
+    td {{ padding:12px 6px; border-bottom:1px solid #e2e8f0; font-size:14px; vertical-align:top; }}
+    tr.group-header td {{ background:#0a0a0a; color:#22d3ee; border-top:2px solid #22d3ee; font-size:14px; font-weight:800; letter-spacing:1px; text-transform:uppercase; }}
+    tr.group-item td {{ background:#f8fafc; font-size:13px; color:#334155; padding-top:8px; padding-bottom:8px; }}
+    tr.group-item td:first-child {{ width:20px; border-right:3px solid #22d3ee; padding:0; }}
     .item-name .name {{ font-weight:600; color:#0a0a0a; }}
-    .item-name .desc {{ font-size:12px; color:#a3a3a3; margin-top:2px; }}
+    .item-name .desc {{ font-size:12px; color:#94a3b8; margin-top:2px; }}
     .money {{ font-weight:700; font-variant-numeric:tabular-nums; }}
-    .totals {{ margin-top:8px; }}
-    .totals td {{ border-bottom:0; padding:6px; font-size:14px; color:#525252; }}
+    .totals {{ margin-top:12px; }}
+    .totals td {{ border-bottom:0; padding:6px; font-size:14px; color:#475569; }}
     .totals .subtotal {{ padding-top:14px; border-top:2px solid #0a0a0a; }}
     .totals .grand td {{ font-size:22px; font-weight:900; color:#0a0a0a; padding:18px 6px 6px; }}
-    .totals .grand td.right {{ color:#84cc16; }}
-    .footer {{ margin-top:40px; text-align:center; font-size:12px; color:#737373; padding-top:24px; border-top:1px solid #e5e5e5; }}
-    .actions {{ text-align:center; margin:24px 0 0; display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }}
-    .btn {{ display:inline-block; background:#0a0a0a; color:#bef264; padding:12px 24px; border-radius:999px; text-decoration:none; font-weight:700; font-style:italic; text-transform:uppercase; letter-spacing:2px; font-size:13px; border:0; cursor:pointer; }}
-    .btn.email-btn {{ background:#bef264; color:#0a0a0a; }}
-    .btn.email-btn:hover {{ background:#a3e635; }}
-    .btn:disabled {{ opacity:0.5; cursor:not-allowed; }}
-    .cuft-note {{ font-size:11px; color:#a3a3a3; margin-top:8px; }}
-    #email-status {{ margin-top:12px; font-size:13px; font-weight:600; }}
-    #email-status.ok {{ color:#16a34a; }}
+    .totals .grand td.right {{ background:linear-gradient(135deg,#0a0a0a,#0e7490); color:#22d3ee; border-radius:8px; }}
+    .footer {{ margin-top:40px; text-align:center; font-size:12px; color:#64748b; padding:24px 40px; border-top:1px solid #e2e8f0; background:#f8fafc; }}
+    .footer strong {{ color:#0891b2; letter-spacing:2px; text-transform:uppercase; }}
+    .actions {{ text-align:center; margin:24px 40px 32px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }}
+    .btn {{ display:inline-block; background:#0a0a0a; color:#22d3ee; padding:12px 26px; border-radius:999px; text-decoration:none; font-weight:800; text-transform:uppercase; letter-spacing:2px; font-size:12px; border:2px solid #22d3ee; cursor:pointer; transition:all 0.2s ease; }}
+    .btn:hover {{ background:#22d3ee; color:#0a0a0a; transform:translateY(-1px); }}
+    .btn.email-btn {{ background:linear-gradient(135deg,#22d3ee,#06b6d4); color:#0a0a0a; border-color:transparent; }}
+    .btn.email-btn:hover {{ background:linear-gradient(135deg,#06b6d4,#0891b2); color:#ffffff; }}
+    .btn:disabled {{ opacity:0.5; cursor:not-allowed; transform:none; }}
+    .cuft-note {{ font-size:11px; color:#64748b; margin-top:10px; padding:8px 12px; background:#f0fdff; border-left:3px solid #22d3ee; border-radius:4px; }}
+    #email-status {{ margin:12px 40px 0; text-align:center; font-size:13px; font-weight:700; }}
+    #email-status.ok {{ color:#059669; }}
     #email-status.err {{ color:#dc2626; }}
   </style>
 </head>
 <body>
   <div class="invoice">
     <div class="header">
-      <div>
-        <h1 class="brand">Text<span class="accent">2</span>toss</h1>
-        <div class="tagline">Arizona's #1 junk removal</div>
+      <div class="logo-wrap">
+        <div class="logo" role="img" aria-label="Text2toss Junk Removal"></div>
+        <div class="tagline">Snap it · Send it · Gone</div>
       </div>
       <div class="biz-info">
         <strong>Text2toss Junk Removal</strong><br>
         Flagstaff, AZ<br>
         text2toss@gmail.com<br>
-        (928) 395-6444
+        (928) 853-9619
       </div>
     </div>
 
+    <div class="body">
     <div class="meta">
       <div class="meta-block">
         <div class="label">Bill to</div>
@@ -3428,10 +3433,11 @@ def _build_invoice_html(booking: dict, quote: Optional[dict]) -> tuple[str, floa
         <td class="right">${grand_total:.2f}</td>
       </tr>
     </table>
+    </div>
 
     <div class="footer">
-      Thank you for choosing Text2toss.<br>
-      Questions about this invoice? Reply to text2toss@gmail.com.
+      <strong>Thank you for choosing Text2toss</strong><br>
+      Questions? Reply to text2toss@gmail.com or call (928) 853-9619.
     </div>
 
     <div class="actions no-print">

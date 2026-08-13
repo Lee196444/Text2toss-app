@@ -188,6 +188,20 @@ const PaymentRemindersModal = ({
                         <Button
                           size="sm"
                           variant="outline"
+                          onClick={() =>
+                            window.open(
+                              `${process.env.REACT_APP_BACKEND_URL}/api/admin/bookings/${booking.id}/invoice`,
+                              "_blank",
+                            )
+                          }
+                          data-testid={`invoice-btn-${booking.id}`}
+                          className="bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-300 text-xs font-medium px-3 py-2 rounded-lg"
+                        >
+                          <span className="mr-1">📄</span>Invoice
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
                           onClick={() => onReject(booking.id)}
                           data-testid={`reject-payment-btn-${booking.id}`}
                           className="bg-red-50 hover:bg-red-100 text-red-600 border-red-300 text-xs font-medium px-3 py-2 rounded-lg"

@@ -85,7 +85,7 @@ export default function SubmitReviewModal({ open, onClose, prefill }) {
         {/* Header */}
         <div className="bg-black text-white px-5 py-4 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-display italic uppercase tracking-wider text-lime-400">
+            <h2 className="text-lg font-display italic uppercase tracking-wider text-cyan-400">
               Leave a Review
             </h2>
             <p className="text-xs text-gray-400 mt-0.5">
@@ -113,7 +113,7 @@ export default function SubmitReviewModal({ open, onClose, prefill }) {
             </p>
             <Button
               onClick={close}
-              className="bg-black text-lime-400 hover:bg-gray-900 font-display italic uppercase tracking-wider mt-2"
+              className="bg-black text-cyan-400 hover:bg-gray-900 font-display italic uppercase tracking-wider mt-2"
               data-testid="submit-review-done-btn"
             >
               Done
@@ -133,7 +133,7 @@ export default function SubmitReviewModal({ open, onClose, prefill }) {
                     type="button"
                     onClick={() => setForm({ ...form, rating: n })}
                     className={`text-4xl leading-none transition-transform active:scale-90 ${
-                      n <= form.rating ? "text-lime-500" : "text-gray-300 hover:text-lime-200"
+                      n <= form.rating ? "text-cyan-500" : "text-gray-300 hover:text-cyan-200"
                     }`}
                     data-testid={`submit-star-${n}`}
                     aria-label={`${n} star${n > 1 ? "s" : ""}`}
@@ -206,7 +206,7 @@ export default function SubmitReviewModal({ open, onClose, prefill }) {
             <Button
               onClick={submit}
               disabled={submitting}
-              className="w-full bg-lime-400 hover:bg-lime-500 text-black font-display italic uppercase tracking-wider text-base py-6 shadow-lg shadow-lime-400/30"
+              className="w-full bg-cyan-400 hover:bg-cyan-500 text-black font-display italic uppercase tracking-wider text-base py-6 shadow-lg shadow-cyan-400/30"
               data-testid="submit-review-btn"
             >
               {submitting ? "Sending..." : "Submit Review"}

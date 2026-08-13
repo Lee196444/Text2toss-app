@@ -89,13 +89,13 @@ export default function TipPicker({
 
   return (
     <Card
-      className="border-2 border-lime-400 bg-black overflow-hidden"
+      className="border-2 border-cyan-400 bg-black overflow-hidden"
       data-testid="tip-picker-card"
     >
       <CardContent className="p-5 space-y-4">
         <div className="text-center">
           <div className="text-3xl mb-1">🙌</div>
-          <h3 className="text-lg font-display italic uppercase tracking-wider text-lime-400">
+          <h3 className="text-lg font-display italic uppercase tracking-wider text-cyan-400">
             Tip the Crew
           </h3>
           <p className="text-xs text-gray-400 mt-1">
@@ -116,8 +116,8 @@ export default function TipPicker({
                 data-testid={`tip-preset-${p.pct}`}
                 className={`rounded-xl py-3 px-2 border-2 transition-all ${
                   isActive
-                    ? "bg-lime-400 border-lime-400 text-black shadow-[0_0_18px_rgba(190,242,100,0.6)]"
-                    : "bg-black border-gray-700 text-gray-100 hover:border-lime-400"
+                    ? "bg-cyan-400 border-cyan-400 text-black shadow-[0_0_18px_rgba(34, 211, 238,0.6)]"
+                    : "bg-black border-gray-700 text-gray-100 hover:border-cyan-400"
                 } disabled:opacity-50`}
               >
                 <div className="font-display italic text-lg leading-none">
@@ -148,8 +148,8 @@ export default function TipPicker({
             onFocus={() => setMode("custom")}
             disabled={submitting}
             data-testid="tip-custom-input"
-            className={`bg-black border-2 text-lime-400 placeholder:text-gray-600 font-display italic ${
-              mode === "custom" ? "border-lime-400" : "border-gray-700"
+            className={`bg-black border-2 text-cyan-400 placeholder:text-gray-600 font-display italic ${
+              mode === "custom" ? "border-cyan-400" : "border-gray-700"
             }`}
           />
           <Button
@@ -170,7 +170,7 @@ export default function TipPicker({
 
         {currentTip > 0 && (
           <div
-            className="text-center text-sm text-lime-400 font-bold"
+            className="text-center text-sm text-cyan-400 font-bold"
             data-testid="tip-applied-amount"
           >
             ✅ Tip added: ${Number(currentTip).toFixed(2)}

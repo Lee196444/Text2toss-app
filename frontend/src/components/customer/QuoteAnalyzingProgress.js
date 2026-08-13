@@ -39,14 +39,14 @@ const TIPS = [
 // were nested 2-3 ternaries deep.
 const stepRowClass = ({ isDone, isActive }) => {
   const base = "flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-300";
-  if (isActive) return `${base} bg-lime-400/10 border border-lime-400 shadow-sm`;
+  if (isActive) return `${base} bg-cyan-400/10 border border-cyan-400 shadow-sm`;
   if (isDone) return `${base} bg-white/5 border border-white/10`;
   return `${base} bg-white/[0.02] border border-white/5`;
 };
 
 const stepLabelClass = ({ isDone, isActive }) => {
   const base = "flex-1 text-sm font-medium transition-colors";
-  if (isActive) return `${base} text-lime-300`;
+  if (isActive) return `${base} text-cyan-300`;
   if (isDone) return `${base} text-gray-200`;
   return `${base} text-gray-500`;
 };
@@ -54,7 +54,7 @@ const stepLabelClass = ({ isDone, isActive }) => {
 function StepStatusIcon({ isDone, isActive, icon }) {
   if (isDone) {
     return (
-      <div className="w-7 h-7 rounded-full bg-lime-400 text-black flex items-center justify-center shadow-[0_0_10px_-2px_rgba(190,242,100,0.55)]">
+      <div className="w-7 h-7 rounded-full bg-cyan-400 text-black flex items-center justify-center shadow-[0_0_10px_-2px_rgba(34, 211, 238,0.55)]">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
         </svg>
@@ -64,7 +64,7 @@ function StepStatusIcon({ isDone, isActive, icon }) {
   if (isActive) {
     return (
       <div className="relative">
-        <div className="w-7 h-7 rounded-full border-2 border-lime-400 border-t-transparent animate-spin"></div>
+        <div className="w-7 h-7 rounded-full border-2 border-cyan-400 border-t-transparent animate-spin"></div>
         <span className="absolute inset-0 flex items-center justify-center text-base">{icon}</span>
       </div>
     );
@@ -143,15 +143,15 @@ export default function QuoteAnalyzingProgress({ quote, error, onDone }) {
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-black rounded-2xl shadow-[0_20px_60px_-10px_rgba(190,242,100,0.4)] overflow-hidden border-2 border-lime-400/40">
+      <div className="w-full max-w-md bg-black rounded-2xl shadow-[0_20px_60px_-10px_rgba(34, 211, 238,0.4)] overflow-hidden border-2 border-cyan-400/40">
         {/* Header — black with lime accent stripe */}
-        <div className="bg-black px-6 py-5 text-center border-b border-lime-400/30 relative overflow-hidden">
+        <div className="bg-black px-6 py-5 text-center border-b border-cyan-400/30 relative overflow-hidden">
           {/* Lime glow corner */}
-          <div className="absolute -top-10 -right-10 w-32 h-32 bg-lime-400/20 rounded-full blur-2xl pointer-events-none"></div>
+          <div className="absolute -top-10 -right-10 w-32 h-32 bg-cyan-400/20 rounded-full blur-2xl pointer-events-none"></div>
           <div className="relative flex items-center justify-center gap-2 mb-1.5">
             <span className="text-2xl">🧠</span>
             <h2 className="font-display italic text-xl uppercase tracking-tight text-white">
-              AI is <span className="text-lime-400">reviewing</span> your photo
+              AI is <span className="text-cyan-400">reviewing</span> your photo
             </h2>
           </div>
           <p className="text-xs uppercase tracking-wider text-gray-400 font-medium">
@@ -165,11 +165,11 @@ export default function QuoteAnalyzingProgress({ quote, error, onDone }) {
           <div>
             <div className="flex justify-between text-[11px] uppercase tracking-wider font-bold text-gray-400 mb-2">
               <span>Progress</span>
-              <span className="text-lime-400" data-testid="analyze-pct">{totalProgress}%</span>
+              <span className="text-cyan-400" data-testid="analyze-pct">{totalProgress}%</span>
             </div>
             <div className="h-2 bg-white/10 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-lime-400 to-lime-300 rounded-full transition-all duration-500 ease-out shadow-[0_0_8px_rgba(190,242,100,0.6)]"
+                className="h-full bg-gradient-to-r from-cyan-400 to-cyan-300 rounded-full transition-all duration-500 ease-out shadow-[0_0_8px_rgba(34, 211, 238,0.6)]"
                 style={{ width: `${totalProgress}%` }}
               ></div>
             </div>
@@ -201,14 +201,14 @@ export default function QuoteAnalyzingProgress({ quote, error, onDone }) {
                   {/* Real values shown once the step is done */}
                   {value && (
                     <span
-                      className="text-xs font-black text-black bg-lime-400 px-2 py-0.5 rounded-full font-display italic"
+                      className="text-xs font-black text-black bg-cyan-400 px-2 py-0.5 rounded-full font-display italic"
                       data-testid={`analyze-step-${id}-value`}
                     >
                       {value}
                     </span>
                   )}
                   {!value && isDone && (
-                    <span className="text-[10px] uppercase tracking-widest text-lime-400 font-display italic">Done</span>
+                    <span className="text-[10px] uppercase tracking-widest text-cyan-400 font-display italic">Done</span>
                   )}
                   {isPending && (
                     <span className="text-[10px] uppercase tracking-widest text-gray-600 font-display italic">Queued</span>
@@ -238,7 +238,7 @@ export default function QuoteAnalyzingProgress({ quote, error, onDone }) {
         {/* Footer */}
         <div
           className={`px-6 py-3 text-center border-t transition-colors ${
-            done ? "bg-lime-400 border-lime-300" : "bg-black border-lime-400/20"
+            done ? "bg-cyan-400 border-cyan-300" : "bg-black border-cyan-400/20"
           }`}
         >
           {done ? (

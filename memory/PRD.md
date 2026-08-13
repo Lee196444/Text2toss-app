@@ -7,6 +7,13 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Frontend: React + Tailwind + Shadcn UI, axios with `withCredentials=true`
 - Backend: FastAPI + Motor (async Mongo) + JWT-in-httpOnly-cookie admin auth
 - AI: emergentintegrations + Gemini 2.0 Flash (vision quote in ~2s)
+
+## Implemented (Feb 13, 2026 — full electric-blue brand system)
+- ✅ **BinModal invoice button**: Surfaced `📄 Invoice` on every Today's Schedule bin card (right after the 🗺️ Route button, works for all statuses) — parity with `PaymentRemindersModal` and `AllJobsModal`.
+- ✅ **Invoice rebrand → Text2Toss electric-blue**: Header is now solid black with the actual Text2Toss sticker (cropped via CSS `background-image` to hide phone chrome), electric-cyan (`#22d3ee`) accents everywhere, grouped line-items with cyan category headers, glowing gradient grand-total pill, and the new "SNAP IT · SEND IT · GONE" tagline. Business phone confirmed as **(928) 853-9619** across invoice header + footer + all customer-facing legal/tracking/payment pages.
+- ✅ **Site-wide recolor (lime → cyan)**: 159 Tailwind class instances + 11 raw hex codes + ~15 `rgba(190,242,100,…)` glow shadows swapped from lime to `cyan-*` / `#22d3ee` / `rgba(34,211,238,…)`. Landing hero H1 "Junk removal, made simple." now reads electric blue; upload/get-quote buttons, badges, tracking progress bar, tip picker, quote analyzing overlay all match the sticker's electric-blue palette.
+- 📞 **Twilio SMS sender caveat**: `TWILIO_PHONE_NUMBER=+19283956444` is still the carrier-provisioned outbound number in `backend/.env`. Cannot be swapped to 928-853-9619 without purchasing/porting that number on Twilio. All *displayed* customer-facing numbers now use 928-853-9619.
+
 - Payments: Venmo QR (image), Stripe wired
 - Static assets: Pillow-generated magnets/QRs at `/api/images/quote_images/...`
 

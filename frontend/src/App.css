@@ -168,13 +168,13 @@ img { background-color: #f3f4f6; }
 }
 
 .step-dot.active {
-  background: #bef264; /* lime-400 */
+  background: #22d3ee; /* cyan-400 */
   color: #000;
-  box-shadow: 0 0 0 4px rgba(190, 242, 100, 0.25);
+  box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.25);
 }
 
 .step-dot.done {
-  background: #bef264; /* lime-400 */
+  background: #22d3ee; /* cyan-400 */
   color: #000;
 }
 
@@ -191,5 +191,5 @@ img { background-color: #f3f4f6; }
 }
 
 .step-line.done {
-  background: #bef264; /* lime-400 */
+  background: #22d3ee; /* cyan-400 */
 }

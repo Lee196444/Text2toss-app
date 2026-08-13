@@ -131,7 +131,7 @@ export default function SmsTestModal({ open, onClose }) {
         {/* Header */}
         <div className="bg-black text-white px-5 py-4 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-display italic uppercase tracking-wider text-lime-400">
+            <h2 className="text-lg font-display italic uppercase tracking-wider text-cyan-400">
               💬 Test SMS
             </h2>
             <p className="text-xs text-gray-400 mt-0.5">
@@ -203,7 +203,7 @@ export default function SmsTestModal({ open, onClose }) {
           <Button
             onClick={sendNow}
             disabled={sending}
-            className="w-full bg-lime-400 hover:bg-lime-500 text-black font-display italic uppercase tracking-wider text-base py-6 shadow-lg shadow-lime-400/30"
+            className="w-full bg-cyan-400 hover:bg-cyan-500 text-black font-display italic uppercase tracking-wider text-base py-6 shadow-lg shadow-cyan-400/30"
             data-testid="sms-test-send-btn"
           >
             {sending ? "Sending..." : "Send Test SMS"}

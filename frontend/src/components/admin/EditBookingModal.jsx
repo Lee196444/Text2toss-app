@@ -112,7 +112,7 @@ export default function EditBookingModal({ open, booking, onClose, onSaved }) {
         {/* Header */}
         <div className="bg-black text-white px-5 py-4 flex items-center justify-between sticky top-0 z-10">
           <div>
-            <h2 className="text-lg font-display italic uppercase tracking-wider text-lime-400">
+            <h2 className="text-lg font-display italic uppercase tracking-wider text-cyan-400">
               ✏️ Edit Booking
             </h2>
             <p className="text-xs text-gray-400 mt-0.5 font-mono">
@@ -135,7 +135,7 @@ export default function EditBookingModal({ open, booking, onClose, onSaved }) {
         ) : (
           <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
             {/* Price */}
-            <Card className="border-2 border-lime-300">
+            <Card className="border-2 border-cyan-300">
               <CardContent className="p-4">
                 <label className="text-xs text-gray-500 uppercase tracking-wider">
                   Price ($) — adjusted total
@@ -257,7 +257,7 @@ export default function EditBookingModal({ open, booking, onClose, onSaved }) {
             <label
               className={`flex items-start gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
                 form.notify_customer
-                  ? "border-lime-400 bg-lime-50"
+                  ? "border-cyan-400 bg-cyan-50"
                   : "border-gray-200 bg-gray-50"
               }`}
               data-testid="edit-booking-notify-label"
@@ -268,7 +268,7 @@ export default function EditBookingModal({ open, booking, onClose, onSaved }) {
                 onChange={(e) =>
                   setForm({ ...form, notify_customer: e.target.checked })
                 }
-                className="mt-1 w-5 h-5 accent-lime-500"
+                className="mt-1 w-5 h-5 accent-cyan-500"
                 data-testid="edit-booking-notify-toggle"
               />
               <div className="flex-1">
@@ -297,7 +297,7 @@ export default function EditBookingModal({ open, booking, onClose, onSaved }) {
                 onClick={save}
                 disabled={saving}
                 data-testid="edit-booking-save"
-                className="flex-1 bg-lime-400 hover:bg-lime-500 text-black font-display italic uppercase tracking-wider shadow-lg shadow-lime-400/30"
+                className="flex-1 bg-cyan-400 hover:bg-cyan-500 text-black font-display italic uppercase tracking-wider shadow-lg shadow-cyan-400/30"
               >
                 {saving ? "Saving…" : "Save Changes"}
               </Button>

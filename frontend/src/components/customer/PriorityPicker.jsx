@@ -97,7 +97,7 @@ const PriorityPicker = ({ value, onChange, pickupDate }) => {
 
   return (
     <div
-      className="rounded-2xl border-2 border-lime-300 bg-gradient-to-br from-lime-50 to-white p-4"
+      className="rounded-2xl border-2 border-cyan-300 bg-gradient-to-br from-cyan-50 to-white p-4"
       data-testid="priority-picker"
     >
       <div className="flex items-start justify-between gap-3">
@@ -116,7 +116,7 @@ const PriorityPicker = ({ value, onChange, pickupDate }) => {
           <button
             type="button"
             onClick={() => setExpanded(true)}
-            className="shrink-0 text-xs font-display italic uppercase tracking-wider text-lime-700 hover:text-lime-800 underline"
+            className="shrink-0 text-xs font-display italic uppercase tracking-wider text-cyan-700 hover:text-cyan-800 underline"
             data-testid="priority-picker-expand"
           >
             See options
@@ -156,10 +156,10 @@ const PriorityPicker = ({ value, onChange, pickupDate }) => {
                 onClick={() => handleChange(tier.id)}
                 className={`w-full mt-2 text-left rounded-xl border-2 p-3 transition-all flex items-center justify-between gap-2 ${
                   selected
-                    ? "border-lime-500 bg-lime-100 shadow-lg ring-2 ring-lime-400/40"
+                    ? "border-cyan-500 bg-cyan-100 shadow-lg ring-2 ring-cyan-400/40"
                     : disabled
                     ? "border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed"
-                    : "border-gray-200 bg-white hover:border-lime-400 hover:bg-lime-50"
+                    : "border-gray-200 bg-white hover:border-cyan-400 hover:bg-cyan-50"
                 }`}
                 data-testid={`priority-tier-${tier.id}`}
               >
@@ -170,7 +170,7 @@ const PriorityPicker = ({ value, onChange, pickupDate }) => {
                     <p className="text-xs text-gray-500 leading-snug">{tier.description}</p>
                   </div>
                 </div>
-                <span className={`font-display italic text-base shrink-0 ${selected ? "text-lime-700" : "text-black"}`}>
+                <span className={`font-display italic text-base shrink-0 ${selected ? "text-cyan-700" : "text-black"}`}>
                   +${tier.fee}
                 </span>
               </button>

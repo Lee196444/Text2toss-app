@@ -407,25 +407,25 @@ const LandingPage = () => {
               <span className="md:hidden inline-flex items-center gap-1 ml-1.5" data-testid="online-status-mobile" aria-label={businessOpen ? "Online and accepting quotes" : "Closed — leave a quote anytime"}>
                 <span className="relative flex h-2 w-2">
                   {businessOpen && (
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-lime-400 opacity-75"></span>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
                   )}
                   <span
                     className={`relative inline-flex rounded-full h-2 w-2 ${
                       businessOpen
-                        ? "bg-lime-400 shadow-[0_0_8px_rgba(190,242,100,0.85)]"
+                        ? "bg-cyan-400 shadow-[0_0_8px_rgba(34, 211, 238,0.85)]"
                         : "bg-gray-400"
                     }`}
                   ></span>
                 </span>
                 <span
                   className={`text-[9px] font-display italic uppercase tracking-widest leading-none ${
-                    businessOpen ? "text-lime-600" : "text-gray-500"
+                    businessOpen ? "text-cyan-600" : "text-gray-500"
                   }`}
                 >
                   {businessOpen ? "Online" : "Closed"}
                 </span>
               </span>
-              <span className="hidden md:inline-flex items-center gap-1 ml-2 bg-black text-lime-400 text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded">
+              <span className="hidden md:inline-flex items-center gap-1 ml-2 bg-black text-cyan-400 text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded">
                 <span className="text-white">#1</span> in AZ
               </span>
             </div>
@@ -459,11 +459,11 @@ const LandingPage = () => {
             {/* Left - Copy */}
             <div className="space-y-6 sm:space-y-8 animate-fade-up">
               <div>
-                <div className="inline-flex items-center gap-2 bg-black text-lime-400 text-xs sm:text-sm font-black uppercase tracking-widest px-3 py-1.5 rounded-full mb-4 sm:mb-6 shadow-lg shadow-lime-400/20" data-testid="az-number-one-badge">
-                  <svg className="w-4 h-4 fill-lime-400" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                <div className="inline-flex items-center gap-2 bg-black text-cyan-400 text-xs sm:text-sm font-black uppercase tracking-widest px-3 py-1.5 rounded-full mb-4 sm:mb-6 shadow-lg shadow-cyan-400/20" data-testid="az-number-one-badge">
+                  <svg className="w-4 h-4 fill-cyan-400" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                   Arizona's #1 Junk Removal
                 </div>
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-lime-500 tracking-tight leading-[1.05]">
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-cyan-500 tracking-tight leading-[1.05]">
                   <span className="block text-base sm:text-lg font-extrabold uppercase tracking-[0.25em] text-black mb-2">Trash Today.</span>
                   Junk removal,<br />
                   <span className="text-chrome">made simple.</span>
@@ -500,7 +500,7 @@ const LandingPage = () => {
                 <div className="flex items-center gap-2">
                   <div className="flex -space-x-0.5">
                     {[0,1,2,3,4].map(i => (
-                      <svg key={i} className="w-3.5 h-3.5 fill-lime-400" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                      <svg key={i} className="w-3.5 h-3.5 fill-cyan-400" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                     ))}
                   </div>
                   <div>
@@ -509,14 +509,14 @@ const LandingPage = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <svg className="w-7 h-7 text-lime-500 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                  <svg className="w-7 h-7 text-cyan-500 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                   <div>
                     <div className="font-display italic text-base text-black leading-none">Same-Day</div>
                     <div className="text-[10px] text-gray-400 uppercase tracking-wider mt-0.5">Pickups</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <svg className="w-7 h-7 text-lime-500 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                  <svg className="w-7 h-7 text-cyan-500 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                   <div>
                     <div className="font-display italic text-base text-black leading-none">Licensed</div>
                     <div className="text-[10px] text-gray-400 uppercase tracking-wider mt-0.5">& Insured</div>
@@ -551,12 +551,12 @@ const LandingPage = () => {
               { step: "2", title: "Get your quote", desc: "Receive transparent pricing in seconds. No hidden fees, no surprises, no waiting for callbacks.", icon: <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg> },
               { step: "3", title: "Schedule & pay", desc: "Pick a convenient Mon-Thu time slot and pay via Venmo. We handle the rest — ground level and curbside.", icon: <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg> }
             ].map((item) => (
-              <div key={item.step} className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-100 hover:border-lime-300 hover:shadow-lg transition-all duration-300">
-                <div className="w-12 h-12 bg-black text-lime-400 rounded-xl flex items-center justify-center mb-5">
+              <div key={item.step} className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-100 hover:border-cyan-300 hover:shadow-lg transition-all duration-300">
+                <div className="w-12 h-12 bg-black text-cyan-400 rounded-xl flex items-center justify-center mb-5">
                   {item.icon}
                 </div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="font-display italic text-xs text-black bg-lime-300 px-2 py-0.5 rounded-full uppercase tracking-wider">Step {item.step}</span>
+                  <span className="font-display italic text-xs text-black bg-cyan-300 px-2 py-0.5 rounded-full uppercase tracking-wider">Step {item.step}</span>
                 </div>
                 <h3 className="font-display italic text-xl text-black mb-2 uppercase tracking-tight">{item.title}</h3>
                 <p className="text-sm text-gray-500 leading-relaxed">{item.desc}</p>
@@ -582,17 +582,17 @@ const LandingPage = () => {
           }}
         />
         {/* Lime accent stripe */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-lime-400 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-lime-400 to-transparent" />
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
 
         <div className="relative max-w-4xl mx-auto px-4 text-center">
-          <div className="inline-flex items-center gap-2 bg-lime-400 text-black text-xs font-black uppercase tracking-widest px-3 py-1.5 rounded-full mb-4">
+          <div className="inline-flex items-center gap-2 bg-cyan-400 text-black text-xs font-black uppercase tracking-widest px-3 py-1.5 rounded-full mb-4">
             <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
             Arizona's #1 — Trusted statewide
           </div>
           <h2 className="text-3xl sm:text-4xl font-black text-white mb-3 italic tracking-tight">
             Trash today.<br className="sm:hidden" />
-            <span className="text-lime-400"> Tomorrow clean.</span>
+            <span className="text-cyan-400"> Tomorrow clean.</span>
           </h2>
           <p className="text-gray-300 text-base mb-8 max-w-xl mx-auto">
             Snap, quote, schedule — done in under 30 seconds. Same-day pickup available.
@@ -600,7 +600,7 @@ const LandingPage = () => {
           <Button
             onClick={() => setShowQuote(true)}
             size="lg"
-            className="bg-lime-400 text-black hover:bg-lime-300 text-base font-black uppercase tracking-wider px-8 h-14 rounded-xl shadow-2xl shadow-lime-400/30 hover:shadow-lime-400/50 transition-all"
+            className="bg-cyan-400 text-black hover:bg-cyan-300 text-base font-black uppercase tracking-wider px-8 h-14 rounded-xl shadow-2xl shadow-cyan-400/30 hover:shadow-cyan-400/50 transition-all"
             data-testid="cta-banner-quote-btn"
           >
             Get Your Free Quote
@@ -617,29 +617,29 @@ const LandingPage = () => {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            <a href="tel:9288539619" className="group flex flex-col items-center p-6 rounded-2xl border border-gray-100 hover:border-lime-300 hover:shadow-md transition-all">
-              <div className="w-12 h-12 bg-black text-lime-400 rounded-xl flex items-center justify-center mb-3 group-hover:bg-gray-900 transition-colors">
+            <a href="tel:9288539619" className="group flex flex-col items-center p-6 rounded-2xl border border-gray-100 hover:border-cyan-300 hover:shadow-md transition-all">
+              <div className="w-12 h-12 bg-black text-cyan-400 rounded-xl flex items-center justify-center mb-3 group-hover:bg-gray-900 transition-colors">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
               </div>
               <span className="font-display italic text-base text-black tracking-tight">(928) 853-9619</span>
               <span className="text-xs text-gray-400 mt-1">Mon-Sat 8AM-6PM</span>
             </a>
-            <a href="mailto:text2toss@gmail.com" className="group flex flex-col items-center p-6 rounded-2xl border border-gray-100 hover:border-lime-300 hover:shadow-md transition-all">
-              <div className="w-12 h-12 bg-black text-lime-400 rounded-xl flex items-center justify-center mb-3 group-hover:bg-gray-900 transition-colors">
+            <a href="mailto:text2toss@gmail.com" className="group flex flex-col items-center p-6 rounded-2xl border border-gray-100 hover:border-cyan-300 hover:shadow-md transition-all">
+              <div className="w-12 h-12 bg-black text-cyan-400 rounded-xl flex items-center justify-center mb-3 group-hover:bg-gray-900 transition-colors">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
               </div>
               <span className="font-display italic text-sm text-black tracking-tight">text2toss@gmail.com</span>
               <span className="text-xs text-gray-400 mt-1">Quick response</span>
             </a>
-            <a href="https://www.facebook.com/share/17Vsc23wKL/" target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center p-6 rounded-2xl border border-gray-100 hover:border-lime-300 hover:shadow-md transition-all">
-              <div className="w-12 h-12 bg-black text-lime-400 rounded-xl flex items-center justify-center mb-3 group-hover:bg-gray-900 transition-colors">
+            <a href="https://www.facebook.com/share/17Vsc23wKL/" target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center p-6 rounded-2xl border border-gray-100 hover:border-cyan-300 hover:shadow-md transition-all">
+              <div className="w-12 h-12 bg-black text-cyan-400 rounded-xl flex items-center justify-center mb-3 group-hover:bg-gray-900 transition-colors">
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
               </div>
               <span className="font-display italic text-base text-black uppercase tracking-tight">Facebook</span>
               <span className="text-xs text-gray-400 mt-1">Follow us</span>
             </a>
-            <a href="https://g.page/r/CaN7_KQsxQCdEAE/review" target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center p-6 rounded-2xl border border-gray-100 hover:border-lime-300 hover:shadow-md transition-all" data-testid="google-review-link">
-              <div className="w-12 h-12 bg-black text-lime-400 rounded-xl flex items-center justify-center mb-3 group-hover:bg-gray-900 transition-colors">
+            <a href="https://g.page/r/CaN7_KQsxQCdEAE/review" target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center p-6 rounded-2xl border border-gray-100 hover:border-cyan-300 hover:shadow-md transition-all" data-testid="google-review-link">
+              <div className="w-12 h-12 bg-black text-cyan-400 rounded-xl flex items-center justify-center mb-3 group-hover:bg-gray-900 transition-colors">
                 <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
               </div>
               <span className="font-display italic text-base text-black uppercase tracking-tight">Leave a Review</span>
@@ -649,7 +649,7 @@ const LandingPage = () => {
 
           {/* Track booking link */}
           <div className="mt-8 text-center">
-            <Link to="/track" className="inline-flex items-center gap-2 text-lime-600 hover:text-lime-700 font-display italic uppercase tracking-wider text-sm transition-colors" data-testid="track-booking-link">
+            <Link to="/track" className="inline-flex items-center gap-2 text-cyan-600 hover:text-cyan-700 font-display italic uppercase tracking-wider text-sm transition-colors" data-testid="track-booking-link">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
               Track your booking status
             </Link>
@@ -658,13 +658,13 @@ const LandingPage = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 pt-10 pb-24 sm:pt-14 sm:pb-16 border-t-2 border-lime-400/20">
+      <footer className="bg-gray-900 pt-10 pb-24 sm:pt-14 sm:pb-16 border-t-2 border-cyan-400/20">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2">
               <img src="/apple-touch-icon.png?v=8" alt="Text2toss" className="w-9 h-9 rounded-lg" />
               <span className="text-lg font-extrabold italic text-white">Text2toss</span>
-              <span className="ml-2 inline-flex items-center bg-lime-400 text-black text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded">#1 AZ</span>
+              <span className="ml-2 inline-flex items-center bg-cyan-400 text-black text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded">#1 AZ</span>
             </div>
             <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-gray-400">
               <span>Flagstaff, AZ</span>
@@ -675,11 +675,11 @@ const LandingPage = () => {
           {/* Legal links + copyright */}
           <div className="border-t border-gray-800 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
             <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-display italic uppercase tracking-wider text-gray-400">
-              <Link to="/terms" className="hover:text-lime-400 transition-colors" data-testid="landing-terms-link">Terms of Service</Link>
+              <Link to="/terms" className="hover:text-cyan-400 transition-colors" data-testid="landing-terms-link">Terms of Service</Link>
               <span className="text-gray-700">|</span>
-              <Link to="/privacy" className="hover:text-lime-400 transition-colors" data-testid="landing-privacy-link">Privacy Policy</Link>
+              <Link to="/privacy" className="hover:text-cyan-400 transition-colors" data-testid="landing-privacy-link">Privacy Policy</Link>
               <span className="text-gray-700">|</span>
-              <Link to="/refund-policy" className="hover:text-lime-400 transition-colors" data-testid="landing-refund-link">Refund Policy</Link>
+              <Link to="/refund-policy" className="hover:text-cyan-400 transition-colors" data-testid="landing-refund-link">Refund Policy</Link>
             </nav>
             <p className="text-xs text-gray-500 text-center sm:text-right">
               &copy; {new Date().getFullYear()} Text2toss · Flagstaff, AZ
@@ -750,7 +750,7 @@ const LandingPage = () => {
       {showApprovalModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl my-8 max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="bg-lime-400 text-white p-6 flex-shrink-0 text-center">
+            <div className="bg-cyan-400 text-white p-6 flex-shrink-0 text-center">
               <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
                 <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               </div>
@@ -758,9 +758,9 @@ const LandingPage = () => {
             </div>
             
             <div className="p-6 space-y-4 overflow-y-auto flex-1">
-              <div className="bg-lime-50 border border-lime-300 rounded-xl p-4">
-                <p className="text-sm font-semibold text-lime-700 mb-1">Quote submitted successfully</p>
-                <p className="text-xs text-lime-600">Our team is reviewing your request and will provide an accurate quote.</p>
+              <div className="bg-cyan-50 border border-cyan-300 rounded-xl p-4">
+                <p className="text-sm font-semibold text-cyan-700 mb-1">Quote submitted successfully</p>
+                <p className="text-xs text-cyan-600">Our team is reviewing your request and will provide an accurate quote.</p>
               </div>
               
               <div className="space-y-3">

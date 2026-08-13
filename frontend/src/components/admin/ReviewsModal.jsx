@@ -119,7 +119,7 @@ export default function ReviewsModal({ open, onClose }) {
         {/* Header */}
         <div className="bg-black text-white px-5 py-4 flex items-center justify-between sticky top-0">
           <div>
-            <h2 className="text-lg font-display italic uppercase tracking-wider text-lime-400">
+            <h2 className="text-lg font-display italic uppercase tracking-wider text-cyan-400">
               ⭐ Customer Reviews
             </h2>
             <p className="text-xs text-gray-400 mt-0.5">
@@ -157,7 +157,7 @@ export default function ReviewsModal({ open, onClose }) {
             );
           })()}
           {/* Editor */}
-          <Card className="border-2 border-lime-300">
+          <Card className="border-2 border-cyan-300">
             <CardContent className="p-4 sm:p-5 space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="font-display italic uppercase tracking-wider text-sm text-gray-700">
@@ -207,7 +207,7 @@ export default function ReviewsModal({ open, onClose }) {
                         type="button"
                         onClick={() => setDraft({ ...draft, rating: n })}
                         className={`text-2xl leading-none ${
-                          n <= draft.rating ? "text-lime-500" : "text-gray-300"
+                          n <= draft.rating ? "text-cyan-500" : "text-gray-300"
                         }`}
                         data-testid={`reviews-star-${n}`}
                       >
@@ -234,7 +234,7 @@ export default function ReviewsModal({ open, onClose }) {
                     type="checkbox"
                     checked={draft.is_published}
                     onChange={(e) => setDraft({ ...draft, is_published: e.target.checked })}
-                    className="w-4 h-4 accent-lime-500"
+                    className="w-4 h-4 accent-cyan-500"
                     data-testid="reviews-published-checkbox"
                   />
                   <span className="text-gray-700">Published</span>
@@ -244,7 +244,7 @@ export default function ReviewsModal({ open, onClose }) {
               <Button
                 onClick={save}
                 disabled={saving}
-                className="w-full bg-black text-lime-400 hover:bg-gray-900 font-display italic uppercase tracking-wider"
+                className="w-full bg-black text-cyan-400 hover:bg-gray-900 font-display italic uppercase tracking-wider"
                 data-testid="reviews-save-btn"
               >
                 {saving ? "Saving..." : editingId ? "Update review" : "Add review"}
@@ -293,7 +293,7 @@ export default function ReviewsModal({ open, onClose }) {
                             · {r.location}
                           </span>
                         )}
-                        <span className="text-lime-500 text-sm">
+                        <span className="text-cyan-500 text-sm">
                           {"★".repeat(r.rating)}
                           <span className="text-gray-300">
                             {"★".repeat(5 - r.rating)}

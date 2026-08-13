@@ -202,10 +202,10 @@ export default function PayBookingPage() {
 
             {/* Stripe return banner */}
             {stripeStatus === "polling" && info.payment_status !== "paid" && (
-              <Card className="border border-lime-400 bg-black mb-4" data-testid="stripe-polling-banner">
+              <Card className="border border-cyan-400 bg-black mb-4" data-testid="stripe-polling-banner">
                 <CardContent className="p-4 flex items-center gap-3">
-                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-lime-400 border-t-transparent flex-shrink-0"></div>
-                  <p className="text-sm text-lime-400 font-display italic uppercase tracking-wide">
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-cyan-400 border-t-transparent flex-shrink-0"></div>
+                  <p className="text-sm text-cyan-400 font-display italic uppercase tracking-wide">
                     Confirming card payment with Stripe...
                   </p>
                 </CardContent>
@@ -361,14 +361,14 @@ export default function PayBookingPage() {
                   {/* Actions — Card first, Venmo second */}
                   <Button
                     onClick={startCardPayment}
-                    className="w-full bg-lime-400 hover:bg-lime-300 text-black py-4 rounded-xl text-base font-display italic uppercase tracking-wider shadow-[0_4px_14px_-2px_rgba(190,242,100,0.5)]"
+                    className="w-full bg-cyan-400 hover:bg-cyan-300 text-black py-4 rounded-xl text-base font-display italic uppercase tracking-wider shadow-[0_4px_14px_-2px_rgba(34, 211, 238,0.5)]"
                     data-testid="pay-page-card-btn"
                   >
                     💳 Pay with Card · ${info.amount_due}
                   </Button>
                   <Button
                     onClick={openVenmoApp}
-                    className="w-full bg-black hover:bg-gray-900 text-lime-400 border-2 border-lime-400 py-4 rounded-xl text-base font-display italic uppercase tracking-wider"
+                    className="w-full bg-black hover:bg-gray-900 text-cyan-400 border-2 border-cyan-400 py-4 rounded-xl text-base font-display italic uppercase tracking-wider"
                     data-testid="pay-page-open-venmo-btn"
                   >
                     📱 Pay with Venmo · ${info.amount_due}

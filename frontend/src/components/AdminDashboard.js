@@ -1090,14 +1090,14 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
 
                   if (inProg > 0) {
                     return (
-                      <p className="text-lime-300 text-xs sm:text-sm mt-1 font-display italic uppercase tracking-wider" data-testid="admin-status-line">
+                      <p className="text-cyan-300 text-xs sm:text-sm mt-1 font-display italic uppercase tracking-wider" data-testid="admin-status-line">
                         🚛 {inProg} job{inProg > 1 ? 's' : ''} in progress now
                       </p>
                     );
                   }
                   if (todayJobs.length > 0) {
                     return (
-                      <p className="text-lime-300 text-xs sm:text-sm mt-1 font-display italic uppercase tracking-wider" data-testid="admin-status-line">
+                      <p className="text-cyan-300 text-xs sm:text-sm mt-1 font-display italic uppercase tracking-wider" data-testid="admin-status-line">
                         📍 {todayJobs.length} pickup{todayJobs.length > 1 ? 's' : ''} today · Next at {todayJobs[0].pickup_time || 'TBD'}
                       </p>
                     );
@@ -1106,7 +1106,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
                     const d = new Date(nextJob._date + 'T00:00:00');
                     const dayLabel = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
                     return (
-                      <p className="text-lime-300 text-xs sm:text-sm mt-1 font-display italic uppercase tracking-wider" data-testid="admin-status-line">
+                      <p className="text-cyan-300 text-xs sm:text-sm mt-1 font-display italic uppercase tracking-wider" data-testid="admin-status-line">
                         ⏭ Next pickup {dayLabel} · {nextJob.pickup_time || 'TBD'}
                       </p>
                     );
