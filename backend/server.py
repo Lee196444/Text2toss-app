@@ -2757,7 +2757,7 @@ async def _maybe_email_invoice_on_complete(booking_id: str, new_status: str) -> 
     if booking.get("quote_id"):
         quote = await db.quotes.find_one({"id": booking["quote_id"]}, {"_id": 0})
     try:
-        html, grand_total = _build_invoice_html(booking, quote)
+        html, grand_total = _build_invoice_html(booking, quote, for_email=True)
         invoice_number = booking_id[:8].upper()
         subject = f"Your Text2toss invoice #{invoice_number} — ${grand_total:.2f}"
         res = await send_email(
@@ -3209,22 +3209,55 @@ def _categorize_item(name: str) -> str:
     return "Miscellaneous"
 
 
-def _build_invoice_html(booking: dict, quote: Optional[dict]) -> tuple[str, float]:
+def _t2t_logo_data_uri() -> str:
+    """Base64-encoded transparent-TEXT logo, cached at module import for
+    inline embedding in invoice emails so mail clients that block remote
+    images (Gmail default, Outlook, etc.) still render the branding."""
+    import base64, functools
+    global _T2T_LOGO_DATA_URI
+    try:
+        return _T2T_LOGO_DATA_URI
+    except NameError:
+        pass
+    logo_path = "/app/frontend/public/t2t_logo_light.png"
+    try:
+        with open(logo_path, "rb") as f:
+            b64 = base64.b64encode(f.read()).decode("ascii")
+        _T2T_LOGO_DATA_URI = f"data:image/png;base64,{b64}"  # noqa: F841
+        return _T2T_LOGO_DATA_URI
+    except Exception as exc:
+        logging.warning(f"[invoice] could not load logo for inline embed: {exc}")
+        return ""
+
+
+def _build_invoice_html(
+    booking: dict,
+    quote: Optional[dict],
+    *,
+    for_email: bool = False,
+) -> tuple[str, float]:
     """Shared invoice HTML builder used by both the view endpoint and the
     email endpoint. Returns (html, grand_total).
 
     Line items are grouped by category (Mattresses, Furniture, Bulk bags,
     etc.) with subtotals per group — much easier for customers to read than
     a raw AI-parsed item dump.
+
+    When `for_email=True`, the logo is inlined as a base64 data-URI and the
+    interactive Print / Email / status controls are stripped so the HTML
+    renders cleanly inside mail clients that block remote images or scripts.
     """
     from html import escape as _html_escape
 
-    # Absolute public URL for the Text2toss logo (works in browser + email clients).
-    # The frontend `public/` folder is served on non-/api paths via the same host.
-    _public_base = (os.environ.get("PUBLIC_BASE_URL")
-                    or os.environ.get("FRONTEND_URL")
-                    or "https://booking-tracker-pro-1.preview.emergentagent.com").rstrip("/")
-    logo_url = f"{_public_base}/t2t_logo_light.png"
+    # For email: inline base64 logo so it always renders (Gmail/Outlook block
+    # remote images by default). For browser view: use the hosted URL.
+    if for_email:
+        logo_url = _t2t_logo_data_uri()
+    else:
+        _public_base = (os.environ.get("PUBLIC_BASE_URL")
+                        or os.environ.get("FRONTEND_URL")
+                        or "https://booking-tracker-pro-1.preview.emergentagent.com").rstrip("/")
+        logo_url = f"{_public_base}/t2t_logo_light.png"
 
     booking_id = booking.get("id", "")
     items = (quote or {}).get("items") or []
@@ -3293,6 +3326,56 @@ def _build_invoice_html(booking: dict, quote: Optional[dict]) -> tuple[str, floa
     safe_phone = _html_escape(str(booking.get("phone") or ""))
 
     paid_badge = '<span class="paid-badge">PAID</span>' if booking.get("payment_status") == "paid" else ""
+    # Big diagonal watermark stamped on paid invoices (auto-hidden when unpaid)
+    paid_watermark = (
+        '<div class="paid-watermark" aria-hidden="true">PAID</div>'
+        if booking.get("payment_status") == "paid" else ""
+    )
+
+    # Interactive controls (Print / Email / PDF buttons + JS) are only rendered
+    # for the browser view — stripped for email so mail clients see just the
+    # branded invoice content.
+    actions_block = "" if for_email else f"""
+    <div class="actions no-print">
+      <button class="btn" onclick="window.print()">🖨️ Print</button>
+      <a class="btn" href="/api/admin/bookings/{booking_id}/invoice.pdf" target="_blank" rel="noopener">📥 Download PDF</a>
+      <button class="btn email-btn" id="email-btn" onclick="emailInvoice()">📧 Email to customer</button>
+    </div>
+    <div id="email-status" class="no-print"></div>
+
+    <script>
+      async function emailInvoice() {{
+        const btn = document.getElementById('email-btn');
+        const status = document.getElementById('email-status');
+        btn.disabled = true;
+        btn.textContent = 'Sending…';
+        status.textContent = '';
+        status.className = '';
+        try {{
+          const res = await fetch(
+            '/api/admin/bookings/{booking_id}/invoice/email',
+            {{ method: 'POST', credentials: 'include' }}
+          );
+          const data = await res.json();
+          if (res.ok && data.success) {{
+            status.textContent = '✅ Invoice emailed to ' + (data.to_email || 'customer');
+            status.className = 'ok';
+            btn.textContent = '✉️ Sent';
+          }} else {{
+            status.textContent = '❌ ' + (data.detail || 'Send failed');
+            status.className = 'err';
+            btn.disabled = false;
+            btn.textContent = '📧 Email to customer';
+          }}
+        }} catch (err) {{
+          status.textContent = '❌ Network error — try again';
+          status.className = 'err';
+          btn.disabled = false;
+          btn.textContent = '📧 Email to customer';
+        }}
+      }}
+    </script>
+"""
 
     # Group rows: header row + itemized detail rows + subtotal row
     group_rows = ""
@@ -3375,10 +3458,15 @@ def _build_invoice_html(booking: dict, quote: Optional[dict]) -> tuple[str, floa
     #email-status {{ margin:12px 40px 0; text-align:center; font-size:13px; font-weight:700; }}
     #email-status.ok {{ color:#059669; }}
     #email-status.err {{ color:#dc2626; }}
+    /* Diagonal PAID watermark — only rendered when payment_status == 'paid' */
+    .invoice {{ position:relative; }}
+    .paid-watermark {{ position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) rotate(-22deg); font-family:'Anton','Bebas Neue',Impact,sans-serif; font-size:220px; font-weight:900; letter-spacing:16px; color:#22d3ee; opacity:0.11; pointer-events:none; user-select:none; z-index:5; text-transform:uppercase; white-space:nowrap; -webkit-print-color-adjust:exact; print-color-adjust:exact; }}
+    @media (max-width:640px) {{ .paid-watermark {{ font-size:120px; letter-spacing:10px; }} }}
   </style>
 </head>
 <body>
   <div class="invoice">
+    {paid_watermark}
     <div class="header">
       <div class="logo-wrap">
         <img src="{logo_url}" alt="Text2toss Junk Removal · Snap it. Send it. Gone. · 928-853-9619" class="logo">
@@ -3444,45 +3532,7 @@ def _build_invoice_html(booking: dict, quote: Optional[dict]) -> tuple[str, floa
       <strong>Thank you for choosing Text2toss</strong><br>
       Questions? Reply to text2toss@gmail.com or call (928) 853-9619.
     </div>
-
-    <div class="actions no-print">
-      <button class="btn" onclick="window.print()">Print / Save as PDF</button>
-      <button class="btn email-btn" id="email-btn" onclick="emailInvoice()">📧 Email to customer</button>
-    </div>
-    <div id="email-status" class="no-print"></div>
-
-    <script>
-      async function emailInvoice() {{
-        const btn = document.getElementById('email-btn');
-        const status = document.getElementById('email-status');
-        btn.disabled = true;
-        btn.textContent = 'Sending…';
-        status.textContent = '';
-        status.className = '';
-        try {{
-          const res = await fetch(
-            '/api/admin/bookings/{booking_id}/invoice/email',
-            {{ method: 'POST', credentials: 'include' }}
-          );
-          const data = await res.json();
-          if (res.ok && data.success) {{
-            status.textContent = '✅ Invoice emailed to ' + (data.to_email || 'customer');
-            status.className = 'ok';
-            btn.textContent = '✉️ Sent';
-          }} else {{
-            status.textContent = '❌ ' + (data.detail || 'Send failed');
-            status.className = 'err';
-            btn.disabled = false;
-            btn.textContent = '📧 Email to customer';
-          }}
-        }} catch (err) {{
-          status.textContent = '❌ Network error — try again';
-          status.className = 'err';
-          btn.disabled = false;
-          btn.textContent = '📧 Email to customer';
-        }}
-      }}
-    </script>
+{actions_block}
   </div>
 </body>
 </html>"""
@@ -3502,6 +3552,38 @@ async def admin_booking_invoice(booking_id: str):
     return html
 
 
+@api_router.get("/admin/bookings/{booking_id}/invoice.pdf")
+async def admin_booking_invoice_pdf(booking_id: str):
+    """Server-side rendered PDF of the branded invoice.
+
+    Uses WeasyPrint to convert the same HTML the browser view produces
+    into a clean, single-file PDF that customers can save/attach without
+    fiddling with browser print dialogs.
+    """
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    quote = None
+    if booking.get("quote_id"):
+        quote = await db.quotes.find_one({"id": booking["quote_id"]}, {"_id": 0})
+    # `for_email=True` gives us: inlined base64 logo (no network fetch during
+    # PDF rendering) + no interactive script/print buttons in the output.
+    html, _ = _build_invoice_html(booking, quote, for_email=True)
+    try:
+        from weasyprint import HTML as _WHtml
+        pdf_bytes = _WHtml(string=html).write_pdf()
+    except Exception as exc:
+        logging.error(f"[invoice-pdf] weasyprint failed for {booking_id}: {exc}")
+        raise HTTPException(status_code=500, detail="PDF render failed")
+    invoice_number = booking_id[:8].upper()
+    filename = f"text2toss-invoice-{invoice_number}.pdf"
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'inline; filename="{filename}"'},
+    )
+
+
 @api_router.post("/admin/bookings/{booking_id}/invoice/email")
 async def admin_email_invoice(booking_id: str):
     """One-click send: emails the branded invoice to the customer on file."""
@@ -3514,7 +3596,7 @@ async def admin_email_invoice(booking_id: str):
     quote = None
     if booking.get("quote_id"):
         quote = await db.quotes.find_one({"id": booking["quote_id"]}, {"_id": 0})
-    html, grand_total = _build_invoice_html(booking, quote)
+    html, grand_total = _build_invoice_html(booking, quote, for_email=True)
     invoice_number = booking_id[:8].upper()
     subject = f"Your Text2toss invoice #{invoice_number} — ${grand_total:.2f}"
     res = await send_email(
