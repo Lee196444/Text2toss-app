@@ -3261,9 +3261,16 @@ def _build_invoice_html(
 
     booking_id = booking.get("id", "")
     items = (quote or {}).get("items") or []
+    # Base price fallback chain — covers new bookings (approved_price on quote,
+    # then quote.total_price) AND older bookings that stored the final price
+    # directly on the booking as adjusted_price / original_price / total_price.
     base_price = float(
         (quote or {}).get("approved_price")
         or (quote or {}).get("total_price")
+        or booking.get("approved_price")
+        or booking.get("total_price")
+        or booking.get("adjusted_price")
+        or booking.get("original_price")
         or 0
     )
     priority_fee = float(booking.get("priority_fee") or 0)
@@ -3320,10 +3327,13 @@ def _build_invoice_html(
     pickup_date = str(pickup_date_raw)[:10] if pickup_date_raw else "—"
     issued_at = datetime.now(timezone.utc).strftime("%B %d, %Y")
 
-    safe_name = _html_escape(str(booking.get("name") or "Customer"))
-    safe_address = _html_escape(str(booking.get("address") or ""))
-    safe_email = _html_escape(str(booking.get("email") or ""))
-    safe_phone = _html_escape(str(booking.get("phone") or ""))
+    # Customer fields: new bookings store these inside `customer_details`,
+    # older ones use flat top-level keys. Fall back through both shapes.
+    cust = booking.get("customer_details") or {}
+    safe_name = _html_escape(str(cust.get("name") or booking.get("name") or "Customer"))
+    safe_address = _html_escape(str(cust.get("address") or booking.get("address") or ""))
+    safe_email = _html_escape(str(cust.get("email") or booking.get("email") or ""))
+    safe_phone = _html_escape(str(cust.get("phone") or booking.get("phone") or ""))
 
     paid_badge = '<span class="paid-badge">PAID</span>' if booking.get("payment_status") == "paid" else ""
     # Big diagonal watermark stamped on paid invoices (auto-hidden when unpaid)
@@ -3549,15 +3559,41 @@ def _build_invoice_html(
 
 @api_router.get("/admin/bookings/{booking_id}/invoice", response_class=HTMLResponse)
 async def admin_booking_invoice(booking_id: str):
-    """Render the invoice HTML for browser view / print."""
+    """Render the invoice HTML for browser view / print.
+
+    Wrapped in a try/except so any legacy-booking data-shape surprise still
+    returns a readable HTML page (never a blank white screen).
+    """
     booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
     quote = None
     if booking.get("quote_id"):
         quote = await db.quotes.find_one({"id": booking["quote_id"]}, {"_id": 0})
-    html, _ = _build_invoice_html(booking, quote)
-    return html
+    try:
+        html, _ = _build_invoice_html(booking, quote)
+        return html
+    except Exception as exc:  # noqa: BLE001
+        logging.exception(f"[invoice-html] render failed for {booking_id}")
+        fallback = f"""<!doctype html><html><head><meta charset='utf-8'>
+<title>Invoice #{booking_id[:8].upper()}</title>
+<style>body{{font-family:-apple-system,Arial,sans-serif;max-width:640px;margin:60px auto;padding:24px;color:#0f172a}}
+h1{{color:#0891b2}} .err{{background:#fee2e2;border:1px solid #fecaca;padding:12px;border-radius:8px;color:#991b1b;font-size:13px}}</style></head>
+<body>
+<h1>Invoice #{booking_id[:8].upper()}</h1>
+<p><strong>Customer:</strong> {_h(booking.get('name') or booking.get('email') or 'Customer')}</p>
+<p><strong>Pickup date:</strong> {_h(str(booking.get('pickup_date') or '—')[:10])}</p>
+<p><strong>Total:</strong> ${float(booking.get('approved_price') or booking.get('adjusted_price') or booking.get('original_price') or 0):.2f}</p>
+<p><strong>Status:</strong> {_h(booking.get('status') or 'unknown')}</p>
+<div class='err'>Some legacy fields on this booking couldn't be rendered as a full branded invoice. If you need a formal copy, please edit the booking to fill in the missing fields, then reopen this invoice.</div>
+</body></html>"""
+        return HTMLResponse(content=fallback, status_code=200)
+
+
+def _h(s) -> str:
+    """Lightweight HTML escape used by the invoice fallback template."""
+    from html import escape as _html_escape
+    return _html_escape(str(s if s is not None else ""))
 
 
 @api_router.get("/admin/bookings/{booking_id}/invoice.pdf")
@@ -3576,7 +3612,11 @@ async def admin_booking_invoice_pdf(booking_id: str):
         quote = await db.quotes.find_one({"id": booking["quote_id"]}, {"_id": 0})
     # `for_email=True` gives us: inlined base64 logo (no network fetch during
     # PDF rendering) + no interactive script/print buttons in the output.
-    html, _ = _build_invoice_html(booking, quote, for_email=True)
+    try:
+        html, _ = _build_invoice_html(booking, quote, for_email=True)
+    except Exception as exc:  # noqa: BLE001
+        logging.exception(f"[invoice-pdf] html build failed for {booking_id}")
+        raise HTTPException(status_code=500, detail="Invoice data incomplete — open the booking, fill in missing fields, then retry")
     try:
         from weasyprint import HTML as _WHtml
         pdf_bytes = _WHtml(string=html).write_pdf()
