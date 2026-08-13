@@ -2760,10 +2760,12 @@ async def _maybe_email_invoice_on_complete(booking_id: str, new_status: str) -> 
         html, grand_total = _build_invoice_html(booking, quote, for_email=True)
         invoice_number = booking_id[:8].upper()
         subject = f"Your Text2toss invoice #{invoice_number} — ${grand_total:.2f}"
+        pdf_attachment = _build_invoice_pdf_attachment(booking, quote)
         res = await send_email(
             to_email=customer_email,
             subject=subject,
             html_content=html,
+            attachments=[pdf_attachment] if pdf_attachment else None,
         )
         if res.get("status") == "sent":
             await db.bookings.update_one(
@@ -3230,6 +3232,25 @@ def _t2t_logo_data_uri() -> str:
         return ""
 
 
+def _build_invoice_pdf_attachment(booking: dict, quote: Optional[dict]):
+    """Render the invoice HTML to a PDF and return a `MIMEApplication` ready
+    to attach to an outgoing email. Returns `None` if the PDF cannot be
+    rendered (never blocks the email itself)."""
+    try:
+        from weasyprint import HTML as _WHtml
+        from email.mime.application import MIMEApplication
+        html, _ = _build_invoice_html(booking, quote, for_email=True)
+        pdf_bytes = _WHtml(string=html).write_pdf()
+        invoice_number = str(booking.get("id", ""))[:8].upper()
+        filename = f"text2toss-invoice-{invoice_number}.pdf"
+        att = MIMEApplication(pdf_bytes, _subtype="pdf")
+        att.add_header("Content-Disposition", "attachment", filename=filename)
+        return att
+    except Exception as exc:  # noqa: BLE001
+        logging.warning(f"[invoice-pdf-attach] render failed: {exc}")
+        return None
+
+
 def _build_invoice_html(
     booking: dict,
     quote: Optional[dict],
@@ -3647,10 +3668,12 @@ async def admin_email_invoice(booking_id: str):
     html, grand_total = _build_invoice_html(booking, quote, for_email=True)
     invoice_number = booking_id[:8].upper()
     subject = f"Your Text2toss invoice #{invoice_number} — ${grand_total:.2f}"
+    pdf_attachment = _build_invoice_pdf_attachment(booking, quote)
     res = await send_email(
         to_email=customer_email,
         subject=subject,
         html_content=html,
+        attachments=[pdf_attachment] if pdf_attachment else None,
     )
     if res.get("status") != "sent":
         raise HTTPException(status_code=500, detail=f"Email send failed: {res.get('message', 'unknown error')}")
