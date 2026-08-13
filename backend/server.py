@@ -1,6 +1,6 @@
 from fastapi import FastAPI, APIRouter, HTTPException, UploadFile, File, Form, Request, BackgroundTasks, Response
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, StreamingResponse, JSONResponse
+from fastapi.responses import FileResponse, StreamingResponse, JSONResponse, HTMLResponse
 from dotenv import load_dotenv
 import csv
 import io
@@ -3141,6 +3141,209 @@ async def admin_adjust_quote_price(booking_id: str, body: dict):
         "fields_updated": list(booking_patch.keys()),
         "notify_result": notify_result,
     }
+
+
+
+@api_router.get("/admin/bookings/{booking_id}/invoice", response_class=HTMLResponse)
+async def admin_booking_invoice(booking_id: str):
+    """Generate a printable HTML invoice for a booking.
+
+    Shows itemized line items with per-item cubic feet + proportionally
+    allocated cost, plus priority/equipment/tip breakdown and grand total.
+    User can print → Save as PDF from the browser.
+    """
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    quote = None
+    if booking.get("quote_id"):
+        quote = await db.quotes.find_one({"id": booking["quote_id"]}, {"_id": 0})
+
+    items = (quote or {}).get("items") or []
+    base_price = float(
+        (quote or {}).get("approved_price")
+        or (quote or {}).get("total_price")
+        or 0
+    )
+    priority_fee = float(booking.get("priority_fee") or 0)
+    equipment_fee = float(booking.get("equipment_fee") or 0)
+    tip_amount = float(booking.get("tip_amount") or 0)
+    grand_total = base_price + priority_fee + equipment_fee + tip_amount
+
+    # Compute total cuft + per-item cuft and proportional cost
+    from html import escape as _html_escape
+    per_item = []
+    total_cuft = 0
+    for i in items:
+        size = str(i.get("size", "medium")).lower()
+        qty = int(i.get("quantity", 1) or 1)
+        item_cuft = VOLUME_BY_SIZE.get(size, 25) * qty
+        total_cuft += item_cuft
+        per_item.append({
+            # HTML-escape user-supplied text to prevent stored-XSS since these
+            # values come from AI-parsed customer quote content.
+            "name": _html_escape(str(i.get("name", "Item"))),
+            "quantity": qty,
+            "size": _html_escape(size.title()),
+            "description": _html_escape(str(i.get("description", ""))),
+            "cuft": item_cuft,
+        })
+
+    if total_cuft <= 0:
+        total_cuft = 1  # avoid div/0
+
+    for row in per_item:
+        row["cost"] = round(base_price * (row["cuft"] / total_cuft), 2)
+
+    invoice_number = booking_id[:8].upper()
+    pickup_date_raw = booking.get("pickup_date") or ""
+    pickup_date = str(pickup_date_raw)[:10] if pickup_date_raw else "—"
+    issued_at = datetime.now(timezone.utc).strftime("%B %d, %Y")
+
+    # Escape customer-supplied strings before HTML interpolation
+    from html import escape as _html_escape
+    safe_name = _html_escape(str(booking.get("name") or "Customer"))
+    safe_address = _html_escape(str(booking.get("address") or ""))
+    safe_email = _html_escape(str(booking.get("email") or ""))
+    safe_phone = _html_escape(str(booking.get("phone") or ""))
+
+    paid_badge = ""
+    if booking.get("payment_status") == "paid":
+        paid_badge = '<span class="paid-badge">PAID</span>'
+
+    items_html = "".join(
+        f"""
+        <tr>
+          <td class="item-name">
+            <div class="name">{row['name']}</div>
+            <div class="desc">{row['description'] or ''}</div>
+          </td>
+          <td class="right">{row['quantity']}</td>
+          <td class="right">{row['size']}</td>
+          <td class="right">{row['cuft']} cu ft</td>
+          <td class="right money">${row['cost']:.2f}</td>
+        </tr>
+        """
+        for row in per_item
+    ) or '<tr><td colspan="5" class="right" style="padding:24px;color:#737373">No line items on this quote.</td></tr>'
+
+    extras_rows = ""
+    if priority_fee > 0:
+        extras_rows += f'<tr><td colspan="4" class="right">Priority scheduling fee</td><td class="right money">${priority_fee:.2f}</td></tr>'
+    if equipment_fee > 0:
+        extras_rows += f'<tr><td colspan="4" class="right">Heavy-pile equipment fee</td><td class="right money">${equipment_fee:.2f}</td></tr>'
+    if tip_amount > 0:
+        extras_rows += f'<tr><td colspan="4" class="right">Crew tip</td><td class="right money">${tip_amount:.2f}</td></tr>'
+
+    return f"""<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Text2toss Invoice #{invoice_number}</title>
+  <style>
+    @media print {{ .no-print {{ display:none; }} body {{ margin:0; }} }}
+    body {{ font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; margin:0; padding:32px 20px; background:#f5f5f5; color:#0a0a0a; }}
+    .invoice {{ max-width:820px; margin:0 auto; background:#ffffff; padding:48px 40px; border-radius:14px; box-shadow:0 8px 40px rgba(0,0,0,0.08); }}
+    .header {{ display:flex; justify-content:space-between; align-items:flex-start; border-bottom:3px solid #bef264; padding-bottom:24px; margin-bottom:32px; }}
+    .brand {{ font-style:italic; font-weight:900; text-transform:uppercase; letter-spacing:2px; color:#0a0a0a; font-size:32px; margin:0; }}
+    .brand .accent {{ color:#84cc16; }}
+    .tagline {{ color:#737373; font-size:12px; letter-spacing:1px; text-transform:uppercase; margin-top:4px; }}
+    .biz-info {{ text-align:right; font-size:13px; color:#525252; line-height:1.5; }}
+    h2 {{ font-size:14px; text-transform:uppercase; letter-spacing:2px; color:#737373; margin:0 0 8px; }}
+    .meta {{ display:grid; grid-template-columns:1fr 1fr; gap:32px; margin-bottom:32px; }}
+    .meta-block {{ font-size:14px; color:#0a0a0a; line-height:1.5; }}
+    .meta-block .label {{ text-transform:uppercase; font-size:11px; letter-spacing:2px; color:#a3a3a3; margin-bottom:4px; }}
+    .paid-badge {{ display:inline-block; background:#bef264; color:#0a0a0a; padding:4px 14px; border-radius:999px; font-size:11px; font-weight:900; letter-spacing:2px; }}
+    table {{ width:100%; border-collapse:collapse; margin-top:8px; }}
+    th {{ font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:#737373; text-align:left; padding:10px 6px; border-bottom:2px solid #0a0a0a; }}
+    th.right, td.right {{ text-align:right; }}
+    td {{ padding:14px 6px; border-bottom:1px solid #e5e5e5; font-size:14px; vertical-align:top; }}
+    .item-name .name {{ font-weight:700; color:#0a0a0a; }}
+    .item-name .desc {{ font-size:12px; color:#737373; margin-top:2px; }}
+    .money {{ font-weight:700; font-variant-numeric:tabular-nums; }}
+    .totals {{ margin-top:8px; }}
+    .totals td {{ border-bottom:0; padding:6px; font-size:14px; color:#525252; }}
+    .totals .subtotal {{ padding-top:14px; border-top:2px solid #0a0a0a; }}
+    .totals .grand td {{ font-size:22px; font-weight:900; color:#0a0a0a; padding:18px 6px 6px; }}
+    .totals .grand td.right {{ color:#84cc16; }}
+    .footer {{ margin-top:40px; text-align:center; font-size:12px; color:#737373; padding-top:24px; border-top:1px solid #e5e5e5; }}
+    .actions {{ text-align:center; margin:24px 0 0; }}
+    .btn {{ display:inline-block; background:#0a0a0a; color:#bef264; padding:12px 24px; border-radius:999px; text-decoration:none; font-weight:700; font-style:italic; text-transform:uppercase; letter-spacing:2px; font-size:13px; border:0; cursor:pointer; }}
+    .cuft-note {{ font-size:11px; color:#a3a3a3; margin-top:8px; }}
+  </style>
+</head>
+<body>
+  <div class="invoice">
+    <div class="header">
+      <div>
+        <h1 class="brand">Text<span class="accent">2</span>toss</h1>
+        <div class="tagline">Arizona&apos;s #1 junk removal</div>
+      </div>
+      <div class="biz-info">
+        <strong>Text2toss Junk Removal</strong><br>
+        Flagstaff, AZ<br>
+        text2toss@gmail.com<br>
+        (928) 395-6444
+      </div>
+    </div>
+
+    <div class="meta">
+      <div class="meta-block">
+        <div class="label">Bill to</div>
+        <strong>{safe_name}</strong><br>
+        {safe_address}<br>
+        {safe_email}<br>
+        {safe_phone}
+      </div>
+      <div class="meta-block" style="text-align:right;">
+        <div class="label">Invoice</div>
+        <strong>#{invoice_number}</strong><br>
+        <span style="font-size:12px;">Issued {issued_at}</span><br>
+        <span style="font-size:12px;">Service date {pickup_date}</span><br>
+        <div style="margin-top:8px;">{paid_badge}</div>
+      </div>
+    </div>
+
+    <h2>Line items</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th class="right">Qty</th>
+          <th class="right">Size</th>
+          <th class="right">Volume</th>
+          <th class="right">Cost</th>
+        </tr>
+      </thead>
+      <tbody>
+        {items_html}
+      </tbody>
+    </table>
+    <div class="cuft-note">Total volume hauled: <strong>{total_cuft} cu ft</strong>. Costs are proportional to volume from the total service price.</div>
+
+    <table class="totals">
+      <tr>
+        <td colspan="4" class="right subtotal">Service subtotal</td>
+        <td class="right money subtotal">${base_price:.2f}</td>
+      </tr>
+      {extras_rows}
+      <tr class="grand">
+        <td colspan="4" class="right">Grand total</td>
+        <td class="right">${grand_total:.2f}</td>
+      </tr>
+    </table>
+
+    <div class="footer">
+      Thank you for choosing Text2toss.<br>
+      Questions about this invoice? Reply to text2toss@gmail.com.
+    </div>
+
+    <div class="actions no-print">
+      <button class="btn" onclick="window.print()">Print / Save as PDF</button>
+    </div>
+  </div>
+</body>
+</html>"""
 
 
 
