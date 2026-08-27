@@ -3206,6 +3206,36 @@ def _categorize_item(name: str) -> str:
     return "Miscellaneous"
 
 
+def _venmo_qr_data_uri(venmo_url: str) -> str:
+    """Return a base64-encoded PNG data URI of a Venmo-blue QR code for the
+    given deep-link URL. Cached per-URL for the process lifetime so repeated
+    invoice renders don't re-encode."""
+    global _VENMO_QR_CACHE
+    try:
+        _VENMO_QR_CACHE  # type: ignore[used-before-def]
+    except NameError:
+        _VENMO_QR_CACHE = {}
+    if venmo_url in _VENMO_QR_CACHE:
+        return _VENMO_QR_CACHE[venmo_url]
+    try:
+        import qrcode, io
+        qr = qrcode.QRCode(
+            error_correction=qrcode.constants.ERROR_CORRECT_M,
+            box_size=6, border=2,
+        )
+        qr.add_data(venmo_url)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="#0891b2", back_color="white")
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        data_uri = f"data:image/png;base64,{base64.b64encode(buf.getvalue()).decode('ascii')}"
+        _VENMO_QR_CACHE[venmo_url] = data_uri
+        return data_uri
+    except Exception as exc:
+        logging.warning(f"[venmo-qr] generation failed: {exc}")
+        return ""
+
+
 def _t2t_logo_data_uri() -> str:
     """Base64-encoded transparent-TEXT logo, cached at module import for
     inline embedding in invoice emails so mail clients that block remote
@@ -3367,14 +3397,24 @@ def _build_invoice_html(
     venmo_web_url = f"https://venmo.com/{_venmo_handle}?txn=pay&amount={_venmo_amount}&note={_venmo_note}"
     venmo_block = ""
     if booking.get("payment_status") != "paid":
+        _venmo_qr = _venmo_qr_data_uri(venmo_web_url)
+        _qr_img = f'<img src="{_venmo_qr}" alt="Scan to pay with Venmo" class="pay-qr" width="120" height="120">' if _venmo_qr else ""
         venmo_block = f"""
     <div class="pay-cta">
-      <a class="pay-btn" href="{venmo_web_url}" target="_blank" rel="noopener">
-        <span class="pay-btn-lead">Pay with</span>
-        <span class="pay-btn-brand">Venmo</span>
-        <span class="pay-btn-amount">${_venmo_amount}</span>
-      </a>
-      <div class="pay-hint">Tap on your phone → Venmo opens with the amount pre-filled. Send to <strong>@{_venmo_handle}</strong>.</div>
+      <div class="pay-cta-inner">
+        <div class="pay-cta-main">
+          <a class="pay-btn" href="{venmo_web_url}" target="_blank" rel="noopener">
+            <span class="pay-btn-lead">Pay with</span>
+            <span class="pay-btn-brand">Venmo</span>
+            <span class="pay-btn-amount">${_venmo_amount}</span>
+          </a>
+          <div class="pay-hint">Tap on your phone → Venmo opens with the amount pre-filled. Send to <strong>@{_venmo_handle}</strong>.</div>
+        </div>
+        <div class="pay-qr-wrap">
+          {_qr_img}
+          <div class="pay-qr-label">Scan to pay</div>
+        </div>
+      </div>
     </div>"""
 
     # Interactive controls (Print / Email / PDF buttons + JS) are only rendered
@@ -3510,6 +3550,12 @@ def _build_invoice_html(
     .cuft-note {{ font-size:10px; color:#64748b; margin-top:8px; padding:6px 10px; background:#f0fdff; border-left:3px solid #22d3ee; border-radius:4px; -webkit-print-color-adjust:exact; print-color-adjust:exact; }}
     /* "Pay with Venmo" CTA — only rendered for unpaid invoices */
     .pay-cta {{ margin-top:14px; text-align:center; page-break-inside:avoid; break-inside:avoid; }}
+    .pay-cta-inner {{ display:inline-flex; align-items:center; gap:24px; flex-wrap:wrap; justify-content:center; }}
+    .pay-cta-main {{ display:flex; flex-direction:column; align-items:center; gap:6px; }}
+    .pay-qr-wrap {{ display:flex; flex-direction:column; align-items:center; gap:4px; }}
+    .pay-qr {{ display:block; width:120px; height:120px; border-radius:10px; border:3px solid #22d3ee; padding:4px; background:#ffffff; -webkit-print-color-adjust:exact; print-color-adjust:exact; }}
+    .pay-qr-label {{ font-size:10px; text-transform:uppercase; letter-spacing:2px; color:#0891b2; font-weight:800; }}
+    @media (max-width:480px) {{ .pay-qr-wrap {{ display:none; }} }}
     .pay-btn {{ display:inline-flex; align-items:center; gap:10px; background:linear-gradient(135deg,#3d95ce,#008cff); color:#ffffff !important; text-decoration:none; padding:14px 26px; border-radius:999px; font-weight:900; box-shadow:0 8px 24px -6px rgba(0,140,255,0.5); -webkit-print-color-adjust:exact; print-color-adjust:exact; }}
     .pay-btn:hover {{ transform:translateY(-1px); box-shadow:0 12px 28px -6px rgba(0,140,255,0.6); }}
     .pay-btn-lead {{ font-size:11px; text-transform:uppercase; letter-spacing:2px; opacity:0.9; }}
@@ -3725,16 +3771,29 @@ def _build_invoice_email_html(booking: dict, quote: Optional[dict]) -> tuple[str
     venmo_handle = os.environ.get("VENMO_USERNAME", "Text2toss")
     venmo_note = _urlparse.quote(f"Text2toss Invoice #{invoice_number}")
     venmo_url = f"https://venmo.com/{venmo_handle}?txn=pay&amount={grand_total:.2f}&note={venmo_note}"
+    venmo_qr_uri = _venmo_qr_data_uri(venmo_url) if not is_paid else ""
+    qr_cell = (
+        f'<td width="130" align="center" valign="middle" style="padding:0 0 0 20px;">'
+        f'<img src="{venmo_qr_uri}" alt="Scan to pay with Venmo" width="120" height="120" '
+        f'style="display:block;width:120px;height:120px;border:3px solid #22d3ee;border-radius:10px;padding:4px;background:#ffffff;">'
+        f'<div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:#0891b2;font-weight:800;margin-top:4px;">Scan to pay</div>'
+        f'</td>'
+    ) if venmo_qr_uri else ""
     pay_block = "" if is_paid else f"""
     <tr><td align="center" style="padding:24px 20px 8px;">
       <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-        <td bgcolor="#008cff" style="background:#008cff;border-radius:999px;padding:16px 32px;" align="center">
-          <a href="{venmo_url}" target="_blank" style="color:#ffffff;text-decoration:none;font-family:-apple-system,Arial,sans-serif;font-weight:900;font-size:18px;">
-            <span style="font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:700;">Pay with </span>
-            <span style="font-style:italic;font-size:22px;">Venmo</span>
-            <span style="background:rgba(255,255,255,0.22);padding:4px 12px;border-radius:999px;margin-left:8px;font-size:15px;">${grand_total:.2f}</span>
-          </a>
+        <td valign="middle">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+            <td bgcolor="#008cff" style="background:#008cff;border-radius:999px;padding:16px 32px;" align="center">
+              <a href="{venmo_url}" target="_blank" style="color:#ffffff;text-decoration:none;font-family:-apple-system,Arial,sans-serif;font-weight:900;font-size:18px;">
+                <span style="font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:700;">Pay with </span>
+                <span style="font-style:italic;font-size:22px;">Venmo</span>
+                <span style="background:rgba(255,255,255,0.22);padding:4px 12px;border-radius:999px;margin-left:8px;font-size:15px;">${grand_total:.2f}</span>
+              </a>
+            </td>
+          </tr></table>
         </td>
+        {qr_cell}
       </tr></table>
     </td></tr>
     <tr><td align="center" style="padding:0 20px 12px;font-size:11px;color:#64748b;font-family:-apple-system,Arial,sans-serif;">
