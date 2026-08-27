@@ -1462,13 +1462,11 @@ async def _save_images_permanently(files: List[UploadFile]) -> tuple[List[str], 
             object_storage.put_bytes(storage_key, data, file.content_type or "image/jpeg")
             db_paths.append(storage_key)
         except Exception as exc:
-            logger.warning("[storage] quote upload failed, using disk: %s", exc)
-            quote_images_dir = Path("/app/static/quote_images")
-            quote_images_dir.mkdir(parents=True, exist_ok=True)
-            disk_path = quote_images_dir / filename
-            async with aiofiles.open(disk_path, "wb") as fh:
-                await fh.write(data)
-            db_paths.append(str(disk_path))
+            logger.error("[storage] quote upload failed for %s: %s", filename, exc)
+            # Fail loudly instead of writing to ephemeral pod disk — files
+            # persisted only on the pod are invisible after redeploys and
+            # will 404 in production.
+            raise HTTPException(status_code=502, detail="Image upload failed — please retry") from exc
 
     return db_paths, scratch_paths
 
@@ -2882,13 +2880,10 @@ async def _save_completion_photo(booking_id: str, file: UploadFile) -> str:
         )
         return storage_key
     except Exception as exc:
-        logger.warning("[storage] completion photo upload failed, using disk: %s", exc)
-        completion_dir = Path("/app/backend/static/completion_photos")
-        completion_dir.mkdir(parents=True, exist_ok=True)
-        photo_path = completion_dir / photo_filename
-        async with aiofiles.open(photo_path, "wb") as f:
-            await f.write(data)
-        return str(photo_path)
+        logger.error("[storage] completion photo upload failed for booking %s: %s", booking_id, exc)
+        # Fail loudly — pod-local files disappear on redeploy and would
+        # 404 the moment production restarts.
+        raise HTTPException(status_code=502, detail="Photo upload failed — please retry") from exc
 
 
 async def _persist_completion_metadata(booking_id: str, photo_path: str, completion_note: str):
@@ -3215,7 +3210,6 @@ def _t2t_logo_data_uri() -> str:
     """Base64-encoded transparent-TEXT logo, cached at module import for
     inline embedding in invoice emails so mail clients that block remote
     images (Gmail default, Outlook, etc.) still render the branding."""
-    import base64, functools
     global _T2T_LOGO_DATA_URI
     try:
         return _T2T_LOGO_DATA_URI

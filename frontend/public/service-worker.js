@@ -30,11 +30,11 @@ self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const target = (event.notification.data && event.notification.data.url) || '/admin';
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((all) => {
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((all) => {
       for (const c of all) {
         if (c.url.includes(target) && 'focus' in c) return c.focus();
       }
-      if (clients.openWindow) return clients.openWindow(target);
+      if (self.clients.openWindow) return self.clients.openWindow(target);
       return null;
     })
   );

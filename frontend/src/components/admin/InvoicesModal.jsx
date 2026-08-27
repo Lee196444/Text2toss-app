@@ -47,6 +47,12 @@ const InvoicesModal = ({ open, onClose }) => {
       const res = await fetch(`${API}/api/admin/bookings/${id}/invoice-data`, { credentials: "include" });
       if (!res.ok) throw new Error("load failed");
       const data = await res.json();
+      // Attach a stable client-side UID to every item so React keys survive
+      // reorder / add / remove without losing input focus or state.
+      data.items = (data.items || []).map((it) => ({
+        _uid: (globalThis.crypto?.randomUUID?.() || `it-${Date.now()}-${Math.random()}`),
+        ...it,
+      }));
       setInvoice(data);
       setPreviewNonce((n) => n + 1);
     } catch (e) {
@@ -104,7 +110,10 @@ const InvoicesModal = ({ open, onClose }) => {
   const addItem = () => {
     setInvoice((prev) => ({
       ...prev,
-      items: [...(prev.items || []), { name: "", quantity: 1, size: "medium", description: "" }],
+      items: [...(prev.items || []), {
+        _uid: (globalThis.crypto?.randomUUID?.() || `it-${Date.now()}-${Math.random()}`),
+        name: "", quantity: 1, size: "medium", description: "",
+      }],
     }));
   };
 
@@ -133,7 +142,8 @@ const InvoicesModal = ({ open, onClose }) => {
         body: JSON.stringify({
           customer: invoice.customer,
           pricing: invoice.pricing,
-          items: invoice.items,
+          // Strip the client-side `_uid` before sending — backend never sees it.
+          items: (invoice.items || []).map(({ _uid, ...rest }) => rest),
           pickup_date: invoice.pickup_date,
           payment_status: invoice.payment_status,
         }),
@@ -315,7 +325,7 @@ const InvoicesModal = ({ open, onClose }) => {
                     </div>
                     <div className="space-y-2">
                       {(invoice.items || []).map((it, idx) => (
-                        <div key={idx} data-testid={`inv-item-${idx}`} className="rounded-lg border border-slate-200 bg-slate-50 p-2 space-y-1.5">
+                        <div key={it._uid || idx} data-testid={`inv-item-${idx}`} className="rounded-lg border border-slate-200 bg-slate-50 p-2 space-y-1.5">
                           <div className="flex items-start gap-2">
                             <Input data-testid={`inv-item-name-${idx}`} placeholder="Item name" value={it.name} onChange={(e) => updateItem(idx, "name", e.target.value)} className="flex-1 h-8 text-sm" />
                             <Input data-testid={`inv-item-qty-${idx}`} type="number" min="1" value={it.quantity} onChange={(e) => updateItem(idx, "quantity", parseInt(e.target.value) || 1)} className="w-16 h-8 text-sm" />

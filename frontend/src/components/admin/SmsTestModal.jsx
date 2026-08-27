@@ -84,8 +84,11 @@ export default function SmsTestModal({ open, onClose }) {
           clearInterval(pollRef.current);
           pollRef.current = null;
         }
-      } catch {
-        /* keep polling — Twilio is eventually consistent */
+      } catch (err) {
+        // Twilio status is eventually consistent — a transient 4xx/5xx or
+        // network blip is expected. Log at debug level so the poll loop
+        // keeps running but the error is captured for diagnosis.
+        console.debug("[sms-test] status poll error, will retry:", err?.message || err);
       }
     }, 3000);
   };
