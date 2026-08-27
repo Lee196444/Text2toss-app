@@ -143,6 +143,58 @@ templates are pure (no branching) string builders. Already extracted out of
 
 ---
 
+## 8. `[...Array(N)].map((_, i) => …)` flagged as "index-as-key anti-pattern"
+
+**Verdict:** False positive when the mapped elements are **identical, non-reorderable** repetition.
+
+**Where it applies:**
+- `src/components/customer/ReviewsSection.jsx:170` — 5 identical `<svg>` stars
+
+**Why it's correct:** Index-as-key is a bug only when the array is data that can reorder / add / remove. `[...Array(N)]` is pure visual repetition of the same element — the index literally IS the identity.
+
+Real data lists in this codebase (bookings, line items, reviews) DO use stable IDs (`review.id`, `item._uid`, etc.). Do not touch the star / skeleton / spinner repetitions.
+
+---
+
+## 9. `localStorage` on non-sensitive UI state flagged as "insecure storage"
+
+**Verdict:** False positive.
+
+**Where it applies:**
+- `src/components/customer/AddToHomeScreenPrompt.js` — boolean "user dismissed banner"
+- `src/components/admin/FilterContext.jsx` — admin filter dropdown selections
+
+**Why it's correct:** These values are UI-only preferences. **Nothing sensitive** (no tokens, no PII, no credentials, no auth) is ever stored in `localStorage` in this codebase. Auth uses `httpOnly` secure cookies. Encrypting a boolean or a filter enum adds zero real security.
+
+The tool's rule fires on the presence of the `localStorage` API rather than on the actual data classification — that's a lint smell, not a security bug.
+
+---
+
+## 10. High cyclomatic complexity / long components flagged as "critical"
+
+**Verdict:** Tracked, not fixed inline.
+
+**Where it applies:** `server.py` handlers (`create_quote_from_image`, `analyze_image_for_quote`, `_build_vision_prompt`), `AdminDashboard.js`, `LandingPage.js`, `ImprovedQuoteFlow.js`, and other 300+ line files.
+
+**Why it's not urgent:** These are stable, well-tested branchy state machines (pricing rules, quote validation, dashboard tabs). Refactoring is a separate initiative logged in `ROADMAP.md`. Splitting them mid-feature would inflate diffs, risk regressions, and delay real user value with no runtime benefit.
+
+Refactor only when a specific bug or feature demands it, not because the tool complained.
+
+---
+
+## 11. Empty catch blocks in polling / eventual-consistency loops
+
+**Verdict:** Already fixed everywhere it masked bugs. Remaining catches are intentional retries.
+
+**Where it applies:**
+- `src/components/admin/SmsTestModal.jsx:87` — Twilio delivery status poll (already logs at `console.debug`)
+
+**Why it's correct:** Twilio's delivery status API is eventually consistent — a transient 4xx/5xx during the poll is expected and the loop must keep running. The catch logs the error at debug level (not silent), but does not surface it as a toast, because it'd flood the UI on every retry.
+
+Do not "fix" polling retries by escalating their logging without a real user complaint.
+
+---
+
 ## How to silence a category permanently
 
 Add the rule key to `.codereviewignore` at the repo root with a one-line
