@@ -301,6 +301,15 @@ const InvoicesModal = ({ open, onClose }) => {
                       <Input data-testid="inv-customer-phone" placeholder="Phone" value={invoice.customer.phone} onChange={(e) => patchField("customer.phone", e.target.value)} />
                       <Input data-testid="inv-customer-email" placeholder="Email" value={invoice.customer.email} onChange={(e) => patchField("customer.email", e.target.value)} className="col-span-2" />
                       <Input data-testid="inv-customer-address" placeholder="Address" value={invoice.customer.address} onChange={(e) => patchField("customer.address", e.target.value)} className="col-span-2" />
+                      <label className="text-xs text-slate-600 col-span-2 flex flex-col gap-1">
+                        Service date
+                        <Input
+                          data-testid="inv-service-date"
+                          type="date"
+                          value={invoice.pickup_date || ""}
+                          onChange={(e) => patchField("pickup_date", e.target.value)}
+                        />
+                      </label>
                     </div>
                   </div>
 
