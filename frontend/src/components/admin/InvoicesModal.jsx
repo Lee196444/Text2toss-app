@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { toast } from "sonner";
-import { X, Search, Plus, Trash2, FileText, Mail, Download, Save } from "lucide-react";
+import { X, Search, Plus, Trash2, FileText, Mail, Download, Save, FilePlus } from "lucide-react";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -25,6 +25,27 @@ const InvoicesModal = ({ open, onClose }) => {
   const [emailing, setEmailing] = useState(false);
   const [search, setSearch] = useState("");
   const [previewNonce, setPreviewNonce] = useState(0);
+  const [creating, setCreating] = useState(false);
+
+  const createManualInvoice = async () => {
+    setCreating(true);
+    try {
+      const res = await fetch(`${API}/api/admin/bookings/manual-invoice`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      toast.success("Blank invoice created — fill in the details");
+      await fetchBookings();
+      setSelectedId(data.id);
+      await fetchInvoice(data.id);
+    } catch (e) {
+      toast.error("Couldn't create invoice");
+    } finally {
+      setCreating(false);
+    }
+  };
 
   const fetchBookings = async () => {
     setLoadingList(true);
@@ -191,14 +212,25 @@ const InvoicesModal = ({ open, onClose }) => {
             <DialogTitle className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
               <FileText className="w-5 h-5 text-cyan-600" /> Invoices
             </DialogTitle>
-            <button
-              onClick={onClose}
-              data-testid="invoices-close-btn"
-              className="p-1.5 hover:bg-slate-200 rounded-md"
-              aria-label="Close"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-2">
+              <Button
+                data-testid="new-invoice-btn"
+                onClick={createManualInvoice}
+                disabled={creating}
+                size="sm"
+                className="bg-cyan-600 hover:bg-cyan-700 text-white gap-1 h-8"
+              >
+                <FilePlus className="w-4 h-4" /> {creating ? "Creating…" : "New invoice"}
+              </Button>
+              <button
+                onClick={onClose}
+                data-testid="invoices-close-btn"
+                className="p-1.5 hover:bg-slate-200 rounded-md"
+                aria-label="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </DialogHeader>
 

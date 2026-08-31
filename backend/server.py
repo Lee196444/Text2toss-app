@@ -3895,6 +3895,45 @@ def _build_invoice_email_html(booking: dict, quote: Optional[dict]) -> tuple[str
     return html, grand_total
 
 
+@api_router.post("/admin/bookings/manual-invoice")
+async def admin_create_manual_invoice():
+    """Create a blank booking + quote pair so admins can compose a manual
+    invoice from scratch (e.g. an in-person job that never went through the
+    self-serve quote flow). Returns the new booking ID so the frontend can
+    open it directly in the Invoices modal editor.
+    """
+    import uuid as _uuid
+    from datetime import datetime as _dt, timezone as _tz
+    now_iso = _dt.now(_tz.utc).isoformat()
+    today = _dt.now(_tz.utc).strftime("%Y-%m-%d")
+
+    quote_id = str(_uuid.uuid4())
+    booking_id = str(_uuid.uuid4())
+
+    await db.quotes.insert_one({
+        "id": quote_id,
+        "items": [],
+        "approved_price": 0,
+        "total_price": 0,
+        "created_by_admin_manual": True,
+        "created_at": now_iso,
+    })
+    await db.bookings.insert_one({
+        "id": booking_id,
+        "quote_id": quote_id,
+        "status": "manual",
+        "payment_status": "unpaid",
+        "pickup_date": today,
+        "customer_details": {"name": "", "address": "", "email": "", "phone": ""},
+        "name": "", "address": "", "email": "", "phone": "",
+        "approved_price": 0, "total_price": 0,
+        "priority_fee": 0, "equipment_fee": 0, "tip_amount": 0,
+        "created_by_admin_manual": True,
+        "created_at": now_iso,
+    })
+    return {"success": True, "id": booking_id, "quote_id": quote_id}
+
+
 @api_router.get("/admin/bookings/{booking_id}/invoice-data")
 async def admin_get_invoice_data(booking_id: str):
     """Return the editable payload backing an invoice (customer, pricing,
