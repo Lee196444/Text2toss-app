@@ -437,3 +437,9 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Backend `_attach_returning_flags()` sets `booking.returning_customer = {previous_jobs, first_name} | null` on daily-schedule, weekly-schedule, pending-payments, all-bookings. Customer key = email → phone (last 10 digits); cancelled bookings never count as prior jobs.
 - `ReturningCustomerBadge.jsx` (amber, "🔁 Returning · Nova · 1 prior job") rendered in AllJobsModal, PaymentRemindersModal, BinModal (job details) header rows.
 - `lib/chime.js` Web-Audio "ka-ching" (no asset) played once per Venmo poll batch in `VenmoPaidWatcher`. No mute toggle yet (backlog P3).
+
+## 2026-06 Chime Toggle + Invoice Notes + Customer History Peek (DONE)
+- `ChimeToggle.jsx` (speaker icon next to Logout) persists mute in localStorage `t2t_chime_muted`; `playCashChime({force})` previews on unmute.
+- `booking.invoice_notes` (≤1000 chars) edited via textarea in InvoicesModal; rendered (escaped, newlines→<br>) as an amber "Notes & payment terms" box above the footer in both the WeasyPrint/HTML invoice and the Gmail-safe email invoice.
+- `GET /admin/customers/history?email|phone&exclude=` → past non-cancelled jobs (date, invoice #, total incl. tip, items, payment status) + lifetime_paid. `ReturningCustomerBadge` is now a Popover trigger (z-[10000] to sit above the z-[9999] modals; stopPropagation so cards don't open).
+- **PERF FIX**: `/api/images/{folder}/{filename}` and gallery/completion uploads/crops called `requests` synchronously → blocked the uvicorn event loop for up to 60s per flaky storage call (all other API calls stalled while photos loaded). Now `asyncio.to_thread(...)`; storage GET timeout tightened to (10s connect, 30s read).

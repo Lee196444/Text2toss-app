@@ -188,6 +188,7 @@ const InvoicesModal = ({ open, onClose }) => {
           pickup_date: invoice.pickup_date,
           payment_status: invoice.payment_status,
           invoice_number: (invoice.invoice_number || "").trim().toUpperCase(),
+          invoice_notes: invoice.invoice_notes || "",
         }),
       });
       if (!res.ok) {
@@ -404,6 +405,20 @@ const InvoicesModal = ({ open, onClose }) => {
                         <option value="cancelled">Cancelled — no watermark</option>
                       </select>
                     </label>
+                  </div>
+
+                  <div>
+                    <p className="text-[10px] uppercase tracking-widest font-bold text-cyan-600 mb-2">Notes &amp; payment terms</p>
+                    <textarea
+                      data-testid="inv-notes"
+                      rows={3}
+                      maxLength={1000}
+                      placeholder="Printed at the bottom of the invoice — e.g. “Payment due within 7 days. Thanks for keeping Flagstaff clean!”"
+                      value={invoice.invoice_notes || ""}
+                      onChange={(e) => patchField("invoice_notes", e.target.value)}
+                      className="w-full text-sm border border-slate-300 rounded-md px-3 py-2 bg-white resize-y focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                    />
+                    <p className="text-[10px] text-slate-400 text-right">{(invoice.invoice_notes || "").length}/1000</p>
                   </div>
 
                   <div>

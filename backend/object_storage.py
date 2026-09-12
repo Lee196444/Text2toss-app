@@ -95,7 +95,7 @@ def get_bytes(path: str) -> Tuple[bytes, str]:
     resp = _request_with_refresh(
         "GET",
         f"{STORAGE_URL}/objects/{path}",
-        timeout=60,
+        timeout=(10, 30),
     )
     resp.raise_for_status()
     return resp.content, resp.headers.get("Content-Type", "application/octet-stream")

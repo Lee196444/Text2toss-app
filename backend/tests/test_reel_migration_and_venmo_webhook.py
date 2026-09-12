@@ -210,3 +210,44 @@ class TestReturningCustomerFlag:
             assert data[ids[2]]["returning_customer"] == {"previous_jobs": 1, "first_name": "Jane"}
         finally:
             db.bookings.delete_many({"id": {"$in": ids}})
+
+
+class TestInvoiceNotesAndCustomerHistory:
+    def test_invoice_notes_saved_escaped_and_rendered(self, db, admin_session):
+        new_id = admin_session.post(f"{BASE_URL}/api/admin/bookings/manual-invoice", json={}).json()["id"]
+        url = f"{BASE_URL}/api/admin/bookings/{new_id}/invoice-data"
+        try:
+            assert admin_session.patch(url, json={"invoice_notes": "x" * 1001}).status_code == 400
+            assert admin_session.patch(url, json={"invoice_notes": "Due in 7 days.\n<b>Thanks</b> & bye"}).status_code == 200
+            assert admin_session.get(url).json()["invoice_notes"] == "Due in 7 days.\n<b>Thanks</b> & bye"
+            html = admin_session.get(f"{BASE_URL}/api/admin/bookings/{new_id}/invoice").text
+            assert "Notes &amp; payment terms" in html
+            assert "Due in 7 days.<br>&lt;b&gt;Thanks&lt;/b&gt; &amp; bye" in html
+            assert admin_session.patch(url, json={"invoice_notes": ""}).status_code == 200
+            assert "Notes &amp; payment terms" not in admin_session.get(f"{BASE_URL}/api/admin/bookings/{new_id}/invoice").text
+        finally:
+            b = db.bookings.find_one({"id": new_id})
+            db.quotes.delete_one({"id": b["quote_id"]})
+            db.bookings.delete_one({"id": new_id})
+
+    def test_customer_history_by_email_excludes_current_and_cancelled(self, db, admin_session):
+        email = f"hist_{uuid.uuid4().hex[:6]}@x.com"
+        ids = [str(uuid.uuid4()) for _ in range(3)]
+        qid = str(uuid.uuid4())
+        db.quotes.insert_one({"id": qid, "items": [{"name": "Couch", "quantity": 2}], "approved_price": 200.0})
+        db.bookings.insert_many([
+            {"id": ids[0], "email": email, "quote_id": qid, "status": "completed", "payment_status": "paid", "pickup_date": "2030-01-01", "tip_amount": 20, "created_at": "2030-01-01"},
+            {"id": ids[1], "customer_details": {"email": email}, "status": "cancelled", "payment_status": "paid", "approved_price": 999, "pickup_date": "2030-01-02", "created_at": "2030-01-02"},
+            {"id": ids[2], "customer_details": {"email": email}, "status": "scheduled", "payment_status": "unpaid", "approved_price": 50, "pickup_date": "2030-01-03", "created_at": "2030-01-03"},
+        ])
+        try:
+            r = admin_session.get(f"{BASE_URL}/api/admin/customers/history", params={"email": email.upper(), "exclude": ids[2]})
+            assert r.status_code == 200, r.text
+            d = r.json()
+            assert [j["id"] for j in d["jobs"]] == [ids[0]]
+            assert d["jobs"][0]["total"] == 220.0 and d["jobs"][0]["items"] == ["2× Couch"]
+            assert d["lifetime_paid"] == 220.0 and d["job_count"] == 1
+            assert admin_session.get(f"{BASE_URL}/api/admin/customers/history").status_code == 400
+        finally:
+            db.bookings.delete_many({"id": {"$in": ids}})
+            db.quotes.delete_one({"id": qid})

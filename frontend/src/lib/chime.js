@@ -1,5 +1,14 @@
 // Synthesised cash-register "ka-ching" via Web Audio — no asset file needed.
 let ctx;
+const MUTE_KEY = "t2t_chime_muted";
+
+export const isChimeMuted = () => {
+  try { return localStorage.getItem(MUTE_KEY) === "1"; } catch (e) { return false; }
+};
+
+export const setChimeMuted = (muted) => {
+  try { localStorage.setItem(MUTE_KEY, muted ? "1" : "0"); } catch (e) { /* ignore */ }
+};
 
 const tone = (ac, freq, start, dur, gain, type = "sine") => {
   const osc = ac.createOscillator();
@@ -14,7 +23,8 @@ const tone = (ac, freq, start, dur, gain, type = "sine") => {
   osc.stop(start + dur + 0.02);
 };
 
-export const playCashChime = () => {
+export const playCashChime = ({ force = false } = {}) => {
+  if (!force && isChimeMuted()) return;
   try {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;

@@ -22,6 +22,7 @@ from emergentintegrations.llm.chat import LlmChat, UserMessage, FileContentWithM
 import json
 import secrets
 import re
+import asyncio
 import base64
 import aiofiles
 import shutil
@@ -1459,7 +1460,7 @@ async def _save_images_permanently(files: List[UploadFile]) -> tuple[List[str], 
 
         try:
             storage_key = object_storage.storage_path("quote_images", filename)
-            object_storage.put_bytes(storage_key, data, file.content_type or "image/jpeg")
+            await asyncio.to_thread(object_storage.put_bytes, storage_key, data, file.content_type or "image/jpeg")
             db_paths.append(storage_key)
         except Exception as exc:
             logger.error("[storage] quote upload failed for %s: %s", filename, exc)
@@ -2359,6 +2360,39 @@ async def _attach_returning_flags(bookings: list) -> None:
             b["returning_customer"] = None
 
 
+@api_router.get("/admin/customers/history")
+async def admin_customer_history(email: Optional[str] = None, phone: Optional[str] = None, exclude: Optional[str] = None):
+    """Past jobs for one customer (matched by email, else phone) for the returning-customer peek."""
+    key = _customer_key({"email": email or "", "phone": phone or ""})
+    if not key:
+        raise HTTPException(status_code=400, detail="email or phone is required")
+    cursor = db.bookings.find(
+        {"status": {"$ne": "cancelled"}},
+        {"_id": 0, "id": 1, "email": 1, "phone": 1, "customer_details": 1, "created_at": 1, "pickup_date": 1,
+         "status": 1, "payment_status": 1, "approved_price": 1, "total_price": 1, "adjusted_price": 1,
+         "original_price": 1, "tip_amount": 1, "quote_id": 1, "address": 1, "paid_via": 1, "invoice_number": 1},
+    )
+    matched = [b async for b in cursor if _customer_key(b) == key and b.get("id") != exclude]
+    quote_dict = await _fetch_quotes_for_bookings(matched)
+    jobs = []
+    for b in sorted(matched, key=lambda x: str(x.get("pickup_date") or x.get("created_at") or ""), reverse=True):
+        q = quote_dict.get(b.get("quote_id")) or {}
+        base = float(q.get("approved_price") or q.get("total_price") or b.get("approved_price") or b.get("total_price") or b.get("adjusted_price") or b.get("original_price") or 0)
+        jobs.append({
+            "id": b["id"],
+            "invoice_number": _invoice_number(b),
+            "pickup_date": str(b.get("pickup_date") or "")[:10],
+            "status": b.get("status") or "",
+            "payment_status": b.get("payment_status") or "",
+            "paid_via": b.get("paid_via"),
+            "total": round(base + float(b.get("tip_amount") or 0), 2),
+            "address": (b.get("customer_details") or {}).get("address") or b.get("address") or "",
+            "items": [f"{int(i.get('quantity') or 1)}× {i.get('name') or 'Item'}" for i in (q.get("items") or [])][:6],
+        })
+    paid = [j["total"] for j in jobs if j["payment_status"] == "paid"]
+    return {"jobs": jobs, "lifetime_paid": round(sum(paid), 2), "job_count": len(jobs)}
+
+
 @api_router.get("/admin/daily-schedule")
 async def get_daily_schedule(date: str = None):
     """Get all PAID bookings for a specific date (YYYY-MM-DD format) or today if no date specified. Only shows jobs that are scheduled/in_progress/completed (payment confirmed)."""
@@ -2912,7 +2946,8 @@ async def _save_completion_photo(booking_id: str, file: UploadFile) -> str:
 
     try:
         storage_key = object_storage.storage_path("completion_photos", photo_filename)
-        object_storage.put_bytes(
+        await asyncio.to_thread(
+            object_storage.put_bytes,
             storage_key,
             data,
             file.content_type or "image/jpeg",
@@ -3314,6 +3349,26 @@ def _build_invoice_pdf_attachment(booking: dict, quote: Optional[dict]):
         return None
 
 
+def _invoice_notes_html(booking: dict, inline: bool = False) -> str:
+    notes = str(booking.get("invoice_notes") or "").strip()
+    if not notes:
+        return ""
+    from html import escape as _esc
+    body = _esc(notes).replace("\n", "<br>")
+    if inline:
+        return (
+            '<tr><td style="padding:0 24px 16px;">'
+            '<div style="font-size:12px;color:#334155;padding:12px 14px;background:#fffbeb;border-left:3px solid #f59e0b;border-radius:4px;">'
+            '<div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#b45309;margin-bottom:4px;">Notes &amp; payment terms</div>'
+            f'{body}</div></td></tr>'
+        )
+    return (
+        '<div class="invoice-notes" style="margin:14px 28px 0;font-size:11.5px;color:#334155;padding:12px 14px;background:#fffbeb;border-left:3px solid #f59e0b;border-radius:4px;page-break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact;">'
+        '<div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#b45309;margin-bottom:4px;">Notes &amp; payment terms</div>'
+        f'{body}</div>'
+    )
+
+
 def _build_invoice_html(
     booking: dict,
     quote: Optional[dict],
@@ -3675,6 +3730,7 @@ def _build_invoice_html(
     </table>
 {venmo_block}
     </div>
+{_invoice_notes_html(booking)}
 
     <div class="footer">
       <strong>Thank you for choosing Text2toss</strong><br>
@@ -3921,6 +3977,7 @@ def _build_invoice_email_html(booking: dict, quote: Optional[dict]) -> tuple[str
       </td></tr>
 
       {pay_block}
+      {_invoice_notes_html(booking, inline=True)}
 
       <!-- FOOTER -->
       <tr><td align="center" style="padding:20px 24px;border-top:1px solid #e2e8f0;font-size:12px;color:#64748b;">
@@ -4033,6 +4090,7 @@ async def admin_get_invoice_data(booking_id: str):
         "payment_status": booking.get("payment_status") or "",
         "items": (quote or {}).get("items") or [],
         "quote_id": booking.get("quote_id"),
+        "invoice_notes": str(booking.get("invoice_notes") or ""),
     }
 
 
@@ -4078,6 +4136,12 @@ async def admin_update_invoice_data(booking_id: str, payload: dict):
 
     if payload.get("pickup_date"):
         booking_update["pickup_date"] = str(payload["pickup_date"])[:10]
+
+    if "invoice_notes" in payload:
+        notes = str(payload.get("invoice_notes") or "").strip()
+        if len(notes) > 1000:
+            raise HTTPException(status_code=400, detail="Invoice notes must be 1000 characters or fewer")
+        booking_update["invoice_notes"] = notes
 
     if "invoice_number" in payload:
         new_num = str(payload.get("invoice_number") or "").strip().upper()
@@ -5471,7 +5535,7 @@ async def upload_gallery_photo(photo: UploadFile = File(...)):
 
         try:
             storage_key = object_storage.storage_path("gallery", filename)
-            object_storage.put_bytes(storage_key, jpeg_bytes, "image/jpeg")
+            await asyncio.to_thread(object_storage.put_bytes, storage_key, jpeg_bytes, "image/jpeg")
         except Exception as exc:
             logger.warning("[storage] gallery upload failed, using disk: %s", exc)
             file_path = f"/app/static/gallery/{filename}"
@@ -5577,7 +5641,7 @@ async def crop_reel_photo(payload: CropReelPayload):
         img = None
         if filename:
             try:
-                data, _ = object_storage.get_bytes(object_storage.storage_path("gallery", filename))
+                data, _ = await asyncio.to_thread(object_storage.get_bytes, object_storage.storage_path("gallery", filename))
                 img = Image.open(BytesIO(data)).convert("RGB")
             except Exception:
                 local_path = f"/app/static/gallery/{filename}"
@@ -5604,7 +5668,7 @@ async def crop_reel_photo(payload: CropReelPayload):
     cropped.save(out, "JPEG", quality=88, optimize=True)
     jpeg_bytes = out.getvalue()
     try:
-        object_storage.put_bytes(object_storage.storage_path("gallery", new_filename), jpeg_bytes, "image/jpeg")
+        await asyncio.to_thread(object_storage.put_bytes, object_storage.storage_path("gallery", new_filename), jpeg_bytes, "image/jpeg")
     except Exception as exc:
         logger.warning("[storage] crop upload failed, using disk: %s", exc)
         new_path = f"/app/static/gallery/{new_filename}"
@@ -5748,7 +5812,7 @@ async def serve_image(folder: str, filename: str):
 
     # Try object storage first.
     try:
-        data, content_type = object_storage.get_bytes(storage_key)
+        data, content_type = await asyncio.to_thread(object_storage.get_bytes, storage_key)
         if not content_type or content_type == "application/octet-stream":
             content_type, _ = mimetypes.guess_type(filename)
             content_type = content_type or "application/octet-stream"

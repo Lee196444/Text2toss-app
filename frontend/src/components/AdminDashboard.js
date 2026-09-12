@@ -30,6 +30,7 @@ import PhotoGalleryModal from "./admin/PhotoGalleryModal";
 import ReviewsModal from "./admin/ReviewsModal";
 import InvoicesModal from "./admin/InvoicesModal";
 import VenmoPaidWatcher from "./admin/VenmoPaidWatcher";
+import ChimeToggle from "./admin/ChimeToggle";
 import SmsTestModal from "./admin/SmsTestModal";
 import { toast } from "../lib/toast";
 import { logger } from "../utils/logger";
@@ -1126,15 +1127,18 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
               </div>
             </div>
 
-            <Button
-              onClick={onLogout}
-              size="sm"
-              variant="outline"
-              className="bg-white/10 border-white/30 text-white hover:bg-white/20"
-              data-testid="admin-logout-btn"
-            >
-              Logout
-            </Button>
+            <div className="flex items-center gap-2">
+              <ChimeToggle />
+              <Button
+                onClick={onLogout}
+                size="sm"
+                variant="outline"
+                className="bg-white/10 border-white/30 text-white hover:bg-white/20"
+                data-testid="admin-logout-btn"
+              >
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
 
