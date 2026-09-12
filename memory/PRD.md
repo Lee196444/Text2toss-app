@@ -1,5 +1,9 @@
 # Text2Toss — Product Requirements
 
+## Implemented (Feb 2026 — Photo Reel Expansion + Robust Gallery Deletion)
+- ✅ **10-slot photo reel (was 6)**: Backend endpoints (`/reel-photos`, `/admin/update-reel-photo`, `/admin/reorder-reel`, `/admin/crop-reel-photo`) all accept 10-slot arrays. `get_reel_photos` auto-pads legacy 6-slot stored reels to 10 so migration is zero-touch. Frontend `AdminDashboard.reelPhotos` initialised to `Array(10)`, `PhotoGalleryModal` grid now `lg:grid-cols-5` (2 rows × 5 = 10), header text bumped to "10 Slots".
+- ✅ **Hardened gallery photo deletion**: `DELETE /admin/gallery-photo` used to match by exact URL, silently failing on older photos whose stored URL had drifted (legacy `text2toss-junk.preview.emergentagent.com` domain, `/static/` vs `/api/images/` path, protocol mismatch). Now falls back to filename-tail regex match, deletes all duplicates, unpins from any reel slot referencing the URL, and best-effort cleans up the disk file. Returns `{removed_count}` so the UI can toast accurately. Returns 400 on empty payload (was crashing 500).
+
 ## Original Problem Statement
 A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instant AI-generated quote (Gemini 2.0 Flash Vision), and book pickup. Admin (lrobe) manages bookings, payments, scheduling, and now markets the business via in-app share tools and printed magnets.
 

@@ -228,7 +228,7 @@ const PhotoGalleryModal = ({
                   📸 Photo Upload & Management
                 </CardTitle>
                 <CardDescription className="text-purple-100">
-                  Upload, drag-to-reorder, and crop the 6 customer-page reel slots
+                  Upload, drag-to-reorder, and crop the 10 customer-page reel slots
                 </CardDescription>
               </div>
               <Button
@@ -271,13 +271,13 @@ const PhotoGalleryModal = ({
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold flex items-center gap-2">
-                  🎭 Customer Page Photo Reel (6 Slots)
+                  🎭 Customer Page Photo Reel (10 Slots)
                 </h3>
                 <span className="text-xs text-purple-700 bg-purple-50 border border-purple-200 px-2 py-1 rounded">
                   {savingOrder ? "Saving order…" : "Drag any slot to reorder · ✂️ to crop"}
                 </span>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 {reelPhotos.map((photo, index) => (
                   <SlotCard
                     key={`reel-slot-${index}`}

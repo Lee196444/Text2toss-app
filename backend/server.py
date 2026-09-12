@@ -5258,7 +5258,7 @@ async def get_reel_photos():
                 "photos": [
                     "https://customer-assets.emergentagent.com/job_clutterclear-1/artifacts/j1lldodm_20250618_102613.jpg",
                     "https://customer-assets.emergentagent.com/job_text2toss/artifacts/mjas9jtq_image000000%2819%29.jpg",
-                    None, None, None, None
+                    None, None, None, None, None, None, None, None
                 ]
             }
             await db.photo_reel.insert_one(default_reel)
@@ -5286,7 +5286,14 @@ async def get_reel_photos():
                 elif photo.startswith('/api/images/'):
                     photo = f"{backend_url}{photo}"
             photos_with_full_urls.append(photo)
-        
+
+        # Legacy reels stored only 6 slots — pad up to 10 so the customer
+        # carousel and admin modal always see a consistent length.
+        if len(photos_with_full_urls) < 10:
+            photos_with_full_urls = photos_with_full_urls + [None] * (10 - len(photos_with_full_urls))
+        elif len(photos_with_full_urls) > 10:
+            photos_with_full_urls = photos_with_full_urls[:10]
+
         return {"photos": photos_with_full_urls}
     except Exception as e:
         logger.error(f"Failed to get reel photos: {str(e)}")
@@ -5381,13 +5388,16 @@ async def update_reel_photo(request: dict):
         slot_index = request.get("slot_index")
         photo_url = request.get("photo_url")
         
-        if slot_index < 0 or slot_index >= 6:
+        if slot_index < 0 or slot_index >= 10:
             raise HTTPException(status_code=400, detail="Invalid slot index")
         
         # Get current reel
         reel = await db.photo_reel.find_one({"type": "main_reel"})
         if not reel:
-            reel = {"type": "main_reel", "photos": [None] * 6}
+            reel = {"type": "main_reel", "photos": [None] * 10}
+        # Pad legacy 6-slot reels up to 10
+        if len(reel["photos"]) < 10:
+            reel["photos"] = reel["photos"] + [None] * (10 - len(reel["photos"]))
         
         # Update the specific slot
         reel["photos"][slot_index] = photo_url
@@ -5412,10 +5422,10 @@ class ReelReorderPayload(BaseModel):
 
 @api_router.post("/admin/reorder-reel")
 async def reorder_reel(payload: ReelReorderPayload):
-    """Persist a new order for the 6 reel slots."""
+    """Persist a new order for the 10 reel slots."""
     photos = payload.photos
-    if len(photos) != 6:
-        raise HTTPException(status_code=400, detail="Reel must have exactly 6 slots")
+    if len(photos) != 10:
+        raise HTTPException(status_code=400, detail="Reel must have exactly 10 slots")
     await db.photo_reel.update_one(
         {"type": "main_reel"},
         {"$set": {"photos": photos}},
@@ -5433,7 +5443,7 @@ class CropArea(BaseModel):
 
 
 class CropReelPayload(BaseModel):
-    slot_index: int = Field(..., ge=0, le=5)
+    slot_index: int = Field(..., ge=0, le=9)
     photo_url: str
     crop: CropArea
 
@@ -5490,7 +5500,9 @@ async def crop_reel_photo(payload: CropReelPayload):
     # Replace the slot in the reel
     reel = await db.photo_reel.find_one({"type": "main_reel"})
     if not reel:
-        reel = {"type": "main_reel", "photos": [None] * 6}
+        reel = {"type": "main_reel", "photos": [None] * 10}
+    if len(reel["photos"]) < 10:
+        reel["photos"] = reel["photos"] + [None] * (10 - len(reel["photos"]))
     reel["photos"][payload.slot_index] = new_url
     await db.photo_reel.update_one(
         {"type": "main_reel"},
@@ -5501,24 +5513,66 @@ async def crop_reel_photo(payload: CropReelPayload):
 
 @api_router.delete("/admin/gallery-photo")
 async def remove_gallery_photo(request: dict):
-    """Remove a photo from the gallery (DB row + file on disk).
+    """Remove a photo from the gallery (DB row + file on disk + reel slot).
 
-    Refactored helpers:
-      - _resolve_gallery_file_path  → handles all 4 URL formats (modern + legacy)
-      - _delete_disk_file_silently  → unlink + log on any error
+    Hardened to remove *older* photos whose stored URL doesn't exactly
+    match what the frontend sends back (legacy domains, protocol mismatch,
+    path-format drift). Fallback strategy:
+      1. Exact URL match (fast path for modern uploads)
+      2. Filename-tail match  (last path segment, escapes regex)
+      3. Also unpin from any photo_reel slot referencing the deleted URL
     """
     try:
-        photo_url = request.get("photo_url") or ""
+        photo_url = (request.get("photo_url") or "").strip()
+        if not photo_url:
+            raise HTTPException(status_code=400, detail="photo_url is required")
 
-        result = await db.gallery_photos.delete_one({"url": photo_url})
+        # 1) Exact match — fast path
+        result = await db.gallery_photos.delete_many({"url": photo_url})
+        deleted_urls = [photo_url] if result.deleted_count else []
+
+        # 2) Fallback — match by filename tail (handles legacy domains,
+        #    protocol drift, and duplicate rows stored under stale URLs).
         if result.deleted_count == 0:
+            import re as _re
+            filename = photo_url.rsplit("/", 1)[-1].split("?", 1)[0]
+            if filename:
+                pattern = f"/{_re.escape(filename)}(?:\\?|$)"
+                cursor = db.gallery_photos.find({"url": {"$regex": pattern}})
+                async for doc in cursor:
+                    deleted_urls.append(doc.get("url"))
+                if deleted_urls:
+                    await db.gallery_photos.delete_many({"url": {"$in": deleted_urls}})
+
+        if not deleted_urls:
             raise HTTPException(status_code=404, detail="Photo not found")
 
-        file_path = _resolve_gallery_file_path(photo_url)
-        if file_path:
-            _delete_disk_file_silently(file_path, photo_url)
+        # 3) Unpin from reel slots so the trash icon actually clears it
+        #    from the customer-facing carousel too.
+        reel = await db.photo_reel.find_one({"type": "main_reel"})
+        if reel and reel.get("photos"):
+            filename = photo_url.rsplit("/", 1)[-1].split("?", 1)[0]
+            def _matches(slot: Optional[str]) -> bool:
+                if not slot:
+                    return False
+                if slot in deleted_urls:
+                    return True
+                # filename-tail comparison for cross-domain drift
+                return bool(filename) and slot.rsplit("/", 1)[-1].split("?", 1)[0] == filename
+            new_photos = [None if _matches(p) else p for p in reel["photos"]]
+            if new_photos != reel["photos"]:
+                await db.photo_reel.update_one(
+                    {"type": "main_reel"},
+                    {"$set": {"photos": new_photos}}
+                )
 
-        return {"message": "Photo removed successfully"}
+        # 4) Best-effort file cleanup on disk (only for local uploads)
+        for url in deleted_urls:
+            file_path = _resolve_gallery_file_path(url)
+            if file_path:
+                _delete_disk_file_silently(file_path, url)
+
+        return {"message": "Photo removed successfully", "removed_count": len(deleted_urls)}
 
     except HTTPException:
         raise

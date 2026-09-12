@@ -189,7 +189,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
   // Photo Management States
   const [showPhotoGallery, setShowPhotoGallery] = useState(false);
   const [galleryPhotos, setGalleryPhotos] = useState([]);
-  const [reelPhotos, setReelPhotos] = useState(Array(6).fill(null));
+  const [reelPhotos, setReelPhotos] = useState(Array(10).fill(null));
   const [uploadingGalleryPhoto, setUploadingGalleryPhoto] = useState(false);
   
   // Customer Photo Viewing States
@@ -225,7 +225,10 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       const response = await axios.get(`${API}/admin/reel-photos`);
       
       // Backend now returns full URLs
-      setReelPhotos(response.data.photos || Array(6).fill(null));
+      // Pad legacy 6-slot reels up to 10 so the UI always renders 10 boxes
+      const photos = response.data.photos || [];
+      const padded = photos.length < 10 ? [...photos, ...Array(10 - photos.length).fill(null)] : photos.slice(0, 10);
+      setReelPhotos(padded.length ? padded : Array(10).fill(null));
     } catch (error) {
       logger.error('Failed to fetch reel photos:', error);
       toast.error('Failed to load photo reel');
