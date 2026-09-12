@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
+import ReturningCustomerBadge from "./ReturningCustomerBadge";
 import {
   buildImageUrl,
   STATUS_BADGE,
@@ -118,6 +119,7 @@ const AllJobsModal = ({
                         <Badge className={STATUS_BADGE[job.status] || "bg-gray-100 text-gray-700"}>
                           {formatStatus(job.status)}
                         </Badge>
+                        <ReturningCustomerBadge booking={job} />
                         {job.payment_status && (
                           <Badge variant="outline" className="text-xs text-gray-500">
                             {job.payment_status}

@@ -2323,6 +2323,42 @@ async def send_payment_reminder(booking_id: str):
     else:
         return {"success": False, "message": "No notification method enabled"}
 
+def _customer_key(b: dict) -> Optional[str]:
+    cd = b.get("customer_details") or {}
+    email = str(cd.get("email") or b.get("email") or "").strip().lower()
+    if email:
+        return f"e:{email}"
+    phone = re.sub(r"\D", "", str(cd.get("phone") or b.get("phone") or ""))
+    return f"p:{phone[-10:]}" if len(phone) >= 7 else None
+
+
+async def _attach_returning_flags(bookings: list) -> None:
+    """Sets `returning_customer` on each booking: {previous_jobs, first_name} or None."""
+    keys = {k for k in (_customer_key(b) for b in bookings) if k}
+    if not keys:
+        for b in bookings:
+            b["returning_customer"] = None
+        return
+    history: dict = {}
+    cursor = db.bookings.find(
+        {"status": {"$ne": "cancelled"}},
+        {"_id": 0, "id": 1, "email": 1, "phone": 1, "customer_details": 1, "created_at": 1, "name": 1},
+    )
+    async for h in cursor:
+        k = _customer_key(h)
+        if k in keys:
+            history.setdefault(k, []).append((str(h.get("created_at") or ""), h["id"]))
+    for b in bookings:
+        k = _customer_key(b)
+        prior = [x for x in history.get(k, []) if x[1] != b.get("id") and x[0] < str(b.get("created_at") or "")] if k else []
+        if prior:
+            cd = b.get("customer_details") or {}
+            full = str(cd.get("name") or b.get("name") or "").strip()
+            b["returning_customer"] = {"previous_jobs": len(prior), "first_name": full.split(" ")[0] if full else ""}
+        else:
+            b["returning_customer"] = None
+
+
 @api_router.get("/admin/daily-schedule")
 async def get_daily_schedule(date: str = None):
     """Get all PAID bookings for a specific date (YYYY-MM-DD format) or today if no date specified. Only shows jobs that are scheduled/in_progress/completed (payment confirmed)."""
@@ -2379,6 +2415,7 @@ async def get_daily_schedule(date: str = None):
 
         result.append(booking_data)  # Return raw data instead of Pydantic object
     
+    await _attach_returning_flags(result)
     return result
 
 @api_router.get("/admin/pending-payments")
@@ -2412,6 +2449,7 @@ async def get_pending_payments():
         
         result.append(booking_data)
     
+    await _attach_returning_flags(result)
     return result
 
 @api_router.post("/admin/bookings/{booking_id}/mark-paid")
@@ -2493,6 +2531,7 @@ async def get_weekly_schedule(start_date: str = None):
             
         schedule[date_key].append(booking_data)
     
+    await _attach_returning_flags([b for day in schedule.values() for b in day])
     return schedule
 
 @api_router.get("/admin/calendar-data")
@@ -5210,6 +5249,7 @@ async def get_all_bookings():
             booking_data = parse_from_mongo(booking)
             _attach_quote_details_inplace(booking_data, quote_dict)
             result.append(booking_data)
+        await _attach_returning_flags(result)
         return result
     except Exception as e:
         logger.error(f"Error fetching all bookings: {str(e)}")

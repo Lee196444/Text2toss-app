@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
+import ReturningCustomerBadge from "./ReturningCustomerBadge";
 import { buildImageUrl, STATUS_BADGE, formatDate, collectImagePaths } from "./bucketShared";
 import { useSharedFilter } from "./FilterContext";
 import StickyFilterInput from "./StickyFilterInput";
@@ -129,6 +130,7 @@ const PaymentRemindersModal = ({
                           <Badge variant="outline">Scale {booking.quote_details.scale_level}</Badge>
                         )}
                         <Badge className={STATUS_BADGE.pending_payment}>AWAITING VENMO</Badge>
+                        <ReturningCustomerBadge booking={booking} />
                         <span className="ml-auto text-xs text-gray-500">
                           {formatDate(booking.pickup_date)}
                           {booking.pickup_time ? ` · ${booking.pickup_time}` : ""}

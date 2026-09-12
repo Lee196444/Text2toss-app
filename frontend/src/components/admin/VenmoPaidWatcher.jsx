@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { toast } from "../../lib/toast";
+import { playCashChime } from "../../lib/chime";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const POLL_MS = 20000;
@@ -20,6 +21,7 @@ const VenmoPaidWatcher = ({ onPayment }) => {
         const data = await res.json();
         const fresh = (data.payments || []).filter((p) => !seenRef.current.has(p.booking_id));
         if (fresh.length) {
+          playCashChime();
           fresh.forEach((p) => {
             seenRef.current.add(p.booking_id);
             const who = p.customer_name || p.sender || "a customer";

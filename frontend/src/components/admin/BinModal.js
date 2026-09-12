@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
+import ReturningCustomerBadge from "./ReturningCustomerBadge";
 import {
   buildImageUrl,
   STATUS_BADGE,
@@ -276,6 +277,7 @@ const BinModal = ({
                         <Badge className={STATUS_BADGE[booking.status] || "bg-gray-100 text-gray-700"}>
                           {formatStatus(booking.status)}
                         </Badge>
+                        <ReturningCustomerBadge booking={booking} />
                         {imagePaths.length > 0 && (
                           <Badge variant="outline" className="text-blue-600">
                             📸 {imagePaths.length > 1 ? `${imagePaths.length} Photos` : "Photo"}

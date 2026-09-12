@@ -432,3 +432,8 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - **Venmo Paid Alert**: `GET /admin/venmo-payments/recent?since=ISO` + `VenmoPaidWatcher.jsx` mounted in AdminDashboard (polls 20s, toasts once per booking, refreshes schedule/pending payments). Webhook now matches custom invoice numbers first, then 8-hex id prefix.
 - Tests appended to `tests/test_reel_migration_and_venmo_webhook.py` (4 new). Screenshot-verified popover + warning UI.
 - Backlog: Abandoned-quote email recovery (P2); Twilio A2P 10DLC (waiting on carrier).
+
+## 2026-06 Repeat Customer Badge + Payment Chime (DONE)
+- Backend `_attach_returning_flags()` sets `booking.returning_customer = {previous_jobs, first_name} | null` on daily-schedule, weekly-schedule, pending-payments, all-bookings. Customer key = email → phone (last 10 digits); cancelled bookings never count as prior jobs.
+- `ReturningCustomerBadge.jsx` (amber, "🔁 Returning · Nova · 1 prior job") rendered in AllJobsModal, PaymentRemindersModal, BinModal (job details) header rows.
+- `lib/chime.js` Web-Audio "ka-ching" (no asset) played once per Venmo poll batch in `VenmoPaidWatcher`. No mute toggle yet (backlog P3).

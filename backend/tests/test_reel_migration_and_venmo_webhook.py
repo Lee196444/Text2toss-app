@@ -192,3 +192,21 @@ class TestInvoiceNumberAndDuplicate:
             assert all(p["booking_id"] != bid for p in later)
         finally:
             db.bookings.delete_one({"id": bid})
+
+
+class TestReturningCustomerFlag:
+    def test_all_bookings_flags_repeat_customer_by_email(self, db, admin_session):
+        email = f"repeat_{uuid.uuid4().hex[:6]}@x.com"
+        ids = [str(uuid.uuid4()) for _ in range(3)]
+        db.bookings.insert_many([
+            {"id": ids[0], "email": email, "name": "Jane Repeat", "status": "completed", "payment_status": "paid", "created_at": "2030-01-01T00:00:00"},
+            {"id": ids[1], "customer_details": {"email": email.upper(), "name": "Jane Repeat"}, "status": "cancelled", "created_at": "2030-01-02T00:00:00"},
+            {"id": ids[2], "customer_details": {"email": email, "name": "Jane Repeat"}, "status": "scheduled", "payment_status": "paid", "created_at": "2030-01-03T00:00:00"},
+        ])
+        try:
+            data = {b["id"]: b for b in admin_session.get(f"{BASE_URL}/api/admin/all-bookings").json()}
+            assert data[ids[0]]["returning_customer"] is None
+            # cancelled bookings don't count as prior jobs, so the third sees exactly 1
+            assert data[ids[2]]["returning_customer"] == {"previous_jobs": 1, "first_name": "Jane"}
+        finally:
+            db.bookings.delete_many({"id": {"$in": ids}})
