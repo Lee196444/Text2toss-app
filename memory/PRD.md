@@ -418,3 +418,10 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - **Global CSS** (`src/index.css`): added `.font-display`, `.btn-badass`, `.btn-chrome` utility classes. Badass = lime-300 bg, black border, italic uppercase Anton, hover-glow + 2-px drop shadow press effect.
 - **Button component** (`src/components/ui/button.jsx`): `default` variant now wires in `.btn-badass` (lime/black aggressive); new `chrome` variant for dark/secondary; `outline` redesigned with bold black border + lime hover; rounded-lg standard.
 - **Result**: every page across customer + admin flows (Landing, QuoteFlow, BookingModal, AdminDashboard, AdminLogin, PayBookingPage, CustomerApproval) inherits the new look automatically without per-component edits.
+
+## 2026-06 T2T Parity Audit + Gap Fixes (DONE)
+- User pasted the T2T→Booking Tracker Pro porting spec into THIS chat (T2T). Audited: invoices, WeasyPrint/qrcode, Venmo webhook, reviews CRUD, admin modals, 10-slot reel, robust delete, .codereviewignore/FAQ all already present.
+- Gaps closed: Venmo webhook now parses raw IFTTT Gmail `{subject, body}` payloads (amount `$x.xx`, `Invoice #XXXXXXXX`, sender "<name> paid you"); `/app/IFTTT_VENMO_SETUP.md` created; `VENMO_USERNAME` added to backend/.env.
+- Bug fixed: `POST /admin/crop-reel-photo` failed for object-storage gallery photos (only read disk/public URL). Now reads from object storage → disk → URL and writes the crop back to object storage.
+- Tests: new `tests/test_reel_migration_and_venmo_webhook.py` (6→10 pad-on-read, legacy-URL delete + reel unpin, webhook 401 + Gmail-payload paid flip). Stale 6-slot / disk-path / per-item-cost assertions in `test_photo_reel_crop.py` + `test_iter22_invoice.py` updated to current behaviour. 24/24 passing.
+- NOTE: webhook amount-fallback can match ANY unpaid booking with the same total — never curl it with real-looking amounts on prod data.

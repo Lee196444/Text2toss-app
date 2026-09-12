@@ -4,8 +4,8 @@ gallery upload endpoint.
 
 Acceptance criteria (review request):
 - POST /api/admin/reorder-reel
-    * 6 photos -> 200 with {message, photos}; persisted to db.photo_reel
-    * != 6 photos -> 400 "Reel must have exactly 6 slots"
+    * 10 photos -> 200 with {message, photos}; persisted to db.photo_reel
+    * != 10 photos -> 400 "Reel must have exactly 10 slots"
     * no admin cookie -> 401
 - POST /api/admin/crop-reel-photo
     * valid local-gallery URL + crop -> 200 {message, url, slot_index};
@@ -78,11 +78,11 @@ def original_reel(admin_session):
     r = admin_session.get(f"{BASE_URL}/api/admin/reel-photos")
     assert r.status_code == 200, r.text
     photos = r.json().get("photos", [])
-    # Normalise to length 6
-    if len(photos) < 6:
-        photos = photos + [None] * (6 - len(photos))
-    elif len(photos) > 6:
-        photos = photos[:6]
+    # Normalise to length 10
+    if len(photos) < 10:
+        photos = photos + [None] * (10 - len(photos))
+    elif len(photos) > 10:
+        photos = photos[:10]
     yield list(photos)
     # Teardown: restore
     try:
@@ -147,20 +147,20 @@ class TestReorderReel:
     def test_no_cookie_returns_401(self, anon_session):
         r = anon_session.post(
             f"{BASE_URL}/api/admin/reorder-reel",
-            json={"photos": [None] * 6},
+            json={"photos": [None] * 10},
         )
         assert r.status_code == 401, f"expected 401, got {r.status_code}: {r.text}"
 
     def test_wrong_length_returns_400(self, admin_session, original_reel):
         r = admin_session.post(
             f"{BASE_URL}/api/admin/reorder-reel",
-            json={"photos": [None] * 5},
+            json={"photos": [None] * 6},
         )
         assert r.status_code == 400, r.text
         body = r.json()
-        assert body.get("detail") == "Reel must have exactly 6 slots"
+        assert body.get("detail") == "Reel must have exactly 10 slots"
 
-    def test_six_slots_persists_and_reverses(self, admin_session, original_reel):
+    def test_ten_slots_persists_and_reverses(self, admin_session, original_reel):
         # Reverse the order and verify persistence via GET
         new_order = list(reversed(original_reel))
         r = admin_session.post(
@@ -176,9 +176,7 @@ class TestReorderReel:
         assert r2.status_code == 200
         # GET endpoint may rewrite URLs, but length and None-positions must match
         got = r2.json().get("photos", [])
-        if len(got) < 6:
-            got = got + [None] * (6 - len(got))
-        assert len(got) == 6
+        assert len(got) == 10
         # None positions must align with new_order's None positions
         for i, val in enumerate(new_order):
             if val is None:
@@ -214,10 +212,11 @@ class TestUploadGalleryPhotoHardened:
         assert url and url.endswith(".jpg")
         created_gallery_urls.append(url)
 
-        filename = url.rsplit("/", 1)[-1]
-        path = f"/app/static/gallery/{filename}"
-        assert os.path.exists(path), f"expected saved file at {path}"
-        size = os.path.getsize(path)
+        # Uploads now live in object storage (disk is only a fallback), so
+        # verify through the public image endpoint instead of the filesystem.
+        img_r = admin_session.get(url, timeout=30)
+        assert img_r.status_code == 200, f"could not fetch {url}: {img_r.status_code}"
+        size = len(img_r.content)
         # Resize applied -> stored file must be smaller than the multi-MB upload.
         assert size < len(big), (
             f"saved file ({size}) not smaller than source ({len(big)})"
@@ -225,7 +224,7 @@ class TestUploadGalleryPhotoHardened:
 
         # Verify resize: longest edge <= 2000px (this is the actual hardening
         # guarantee that keeps natural-photo uploads under ~500KB).
-        with Image.open(path) as im:
+        with Image.open(io.BytesIO(img_r.content)) as im:
             w, h = im.size
         assert max(w, h) <= 2000, f"image not resized: {w}x{h}"
 
@@ -270,7 +269,7 @@ class TestCropReelPhoto:
         r = admin_session.post(
             f"{BASE_URL}/api/admin/crop-reel-photo",
             json={
-                "slot_index": 9,  # > 5
+                "slot_index": 10,  # > 9
                 "photo_url": f"{BASE_URL}/api/images/gallery/whatever.jpg",
                 "crop": {"x": 0, "y": 0, "width": 10, "height": 10},
             },
@@ -322,11 +321,10 @@ class TestCropReelPhoto:
         assert "/api/images/gallery/gallery_crop_" in new_url
         created_gallery_urls.append(new_url)
 
-        # 3) Verify file exists on disk
-        new_filename = new_url.rsplit("/", 1)[-1]
-        new_path = f"/app/static/gallery/{new_filename}"
-        assert os.path.exists(new_path), f"cropped file missing: {new_path}"
-        with Image.open(new_path) as im:
+        # 3) Verify the cropped image is served (storage or disk fallback)
+        img_r = admin_session.get(new_url, timeout=30)
+        assert img_r.status_code == 200, f"cropped image not served: {img_r.status_code}"
+        with Image.open(io.BytesIO(img_r.content)) as im:
             w, h = im.size
         # Cropped to 400x300 (within source bounds)
         assert (w, h) == (400, 300), f"expected 400x300 crop, got {w}x{h}"

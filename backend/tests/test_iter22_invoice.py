@@ -207,18 +207,15 @@ class TestInvoiceRendering:
         html = r.text
         for expected in ["8 cu ft", "25 cu ft", "60 cu ft"]:
             assert expected in html, f"missing {expected}"
-        # Extract all "$X.XX" that appear next to per-item money cells.
-        # Simpler: parse all currency amounts from item rows
-        # base cost distribution: 300 * (8/93, 25/93, 60/93)
-        expected_costs = [
-            round(300 * 8 / 93, 2),
-            round(300 * 25 / 93, 2),
-            round(300 * 60 / 93, 2),
+        # Cost is allocated per *category* bucket proportional to cu ft;
+        # the bucket costs must sum back to the base price.
+        bucket_costs = [
+            float(m) for m in re.findall(
+                r'class="right money"><strong>\$([\d.]+)</strong>', html
+            )
         ]
-        for c in expected_costs:
-            assert f"${c:.2f}" in html, f"missing per-item cost ${c:.2f}"
-        # Sum equals base within rounding
-        assert abs(sum(expected_costs) - 300.0) < 0.02
+        assert bucket_costs, "no category cost cells rendered"
+        assert abs(sum(bucket_costs) - 300.0) < 0.02, bucket_costs
 
     def test_approved_price_overrides_total(self, mongo_db, admin_session,
                                             cleanup_ids):

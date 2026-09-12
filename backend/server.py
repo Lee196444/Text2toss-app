@@ -4161,15 +4161,30 @@ async def venmo_payment_webhook(payload: dict, request: Request):
     if not expected or supplied != expected:
         raise HTTPException(status_code=401, detail="Invalid or missing webhook secret")
 
+    import re as _re
     note = str((payload or {}).get("note") or "").strip()
     amount_raw = str((payload or {}).get("amount") or "").replace("$", "").replace(",", "").strip()
+
+    # Raw Gmail payload from IFTTT ({subject, body}) — pull amount + memo out of the receipt text.
+    sender = (payload or {}).get("from")
+    email_text = " ".join(str((payload or {}).get(k) or "") for k in ("subject", "body"))
+    if email_text.strip():
+        if not amount_raw:
+            m_amt = _re.search(r"\$\s?([\d,]+(?:\.\d{2})?)", email_text)
+            amount_raw = m_amt.group(1).replace(",", "") if m_amt else ""
+        if not note:
+            m_inv = _re.search(r"invoice\s*#?\s*([A-Fa-f0-9]{8})", email_text, _re.I)
+            note = f"Invoice #{m_inv.group(1)}" if m_inv else ""
+        m_from = _re.search(r"^\s*(.+?)\s+paid you", email_text, _re.I | _re.M)
+        if m_from:
+            sender = m_from.group(1).strip()
+
     try:
         amount = float(amount_raw) if amount_raw else 0.0
     except ValueError:
         amount = 0.0
 
     # 1) Try to extract the invoice number from the Venmo memo.
-    import re as _re
     match = _re.search(r"#([A-F0-9]{8})", note.upper())
     booking = None
     match_method = None
@@ -4212,7 +4227,7 @@ async def venmo_payment_webhook(payload: dict, request: Request):
                 "matched_by": match_method,
                 "note": note,
                 "amount": amount,
-                "sender": (payload or {}).get("from"),
+                "sender": sender,
                 "received_at": datetime.now(timezone.utc).isoformat(),
             },
         }},
@@ -5455,18 +5470,20 @@ async def crop_reel_photo(payload: CropReelPayload):
     from PIL import Image
 
     src_url = payload.photo_url
-    # Resolve to a local file path when the URL points at our own server
     backend_url = os.environ.get("BACKEND_URL") or os.environ.get("REACT_APP_BACKEND_URL", "")
-    local_path = None
-    if backend_url and src_url.startswith(f"{backend_url}/api/images/gallery/"):
-        filename = src_url.rsplit("/", 1)[-1]
-        local_path = f"/app/static/gallery/{filename}"
+    filename = src_url.rsplit("/", 1)[-1].split("?", 1)[0] if "/api/images/gallery/" in src_url else None
 
     try:
-        if local_path and os.path.exists(local_path):
-            img = Image.open(local_path).convert("RGB")
-        else:
-            # Fallback: fetch the remote image
+        img = None
+        if filename:
+            try:
+                data, _ = object_storage.get_bytes(object_storage.storage_path("gallery", filename))
+                img = Image.open(BytesIO(data)).convert("RGB")
+            except Exception:
+                local_path = f"/app/static/gallery/{filename}"
+                if os.path.exists(local_path):
+                    img = Image.open(local_path).convert("RGB")
+        if img is None:
             import urllib.request
             with urllib.request.urlopen(src_url, timeout=15) as resp:
                 img = Image.open(BytesIO(resp.read())).convert("RGB")
@@ -5482,11 +5499,18 @@ async def crop_reel_photo(payload: CropReelPayload):
     bottom = max(top + 1, min(c.y + c.height, h))
     cropped = img.crop((left, top, right, bottom))
 
-    # Save the new cropped JPEG
     new_filename = f"gallery_crop_{uuid.uuid4()}.jpg"
-    new_path = f"/app/static/gallery/{new_filename}"
-    os.makedirs(os.path.dirname(new_path), exist_ok=True)
-    cropped.save(new_path, "JPEG", quality=88, optimize=True)
+    out = BytesIO()
+    cropped.save(out, "JPEG", quality=88, optimize=True)
+    jpeg_bytes = out.getvalue()
+    try:
+        object_storage.put_bytes(object_storage.storage_path("gallery", new_filename), jpeg_bytes, "image/jpeg")
+    except Exception as exc:
+        logger.warning("[storage] crop upload failed, using disk: %s", exc)
+        new_path = f"/app/static/gallery/{new_filename}"
+        os.makedirs(os.path.dirname(new_path), exist_ok=True)
+        with open(new_path, "wb") as f:
+            f.write(jpeg_bytes)
     new_url = f"{backend_url}/api/images/gallery/{new_filename}"
 
     # Add to gallery DB so it appears in the gallery grid
