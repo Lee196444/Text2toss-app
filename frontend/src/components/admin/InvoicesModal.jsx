@@ -3,11 +3,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { toast } from "sonner";
-import { X, Search, Plus, Trash2, FileText, Mail, Download, Save, FilePlus } from "lucide-react";
+import { X, Search, Plus, Trash2, FileText, Mail, Download, Save, FilePlus, AlertTriangle } from "lucide-react";
+import DuplicateCustomerPicker from "./DuplicateCustomerPicker";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
 const SIZE_OPTIONS = ["small", "medium", "large", "xlarge"];
+const INVOICE_NUMBER_RE = /^[A-Z0-9][A-Z0-9-]{2,15}$/;
 
 /**
  * Admin Invoices modal — browse every booking, then edit customer info,
@@ -26,17 +28,20 @@ const InvoicesModal = ({ open, onClose }) => {
   const [search, setSearch] = useState("");
   const [previewNonce, setPreviewNonce] = useState(0);
   const [creating, setCreating] = useState(false);
+  const [originalInvoiceNumber, setOriginalInvoiceNumber] = useState("");
 
-  const createManualInvoice = async () => {
+  const createManualInvoice = async (fromBookingId = null) => {
     setCreating(true);
     try {
       const res = await fetch(`${API}/api/admin/bookings/manual-invoice`, {
         method: "POST",
         credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(fromBookingId ? { from_booking_id: fromBookingId } : {}),
       });
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
-      toast.success("Blank invoice created — fill in the details");
+      toast.success(fromBookingId ? "Invoice created — customer details copied" : "Blank invoice created — fill in the details");
       await fetchBookings();
       setSelectedId(data.id);
       await fetchInvoice(data.id);
@@ -75,6 +80,7 @@ const InvoicesModal = ({ open, onClose }) => {
         ...it,
       }));
       setInvoice(data);
+      setOriginalInvoiceNumber(data.invoice_number || "");
       setPreviewNonce((n) => n + 1);
     } catch (e) {
       toast.error("Couldn't load invoice");
@@ -99,7 +105,7 @@ const InvoicesModal = ({ open, onClose }) => {
     return bookings.filter((b) => {
       const cust = b.customer_details || {};
       const hay = [
-        b.id, b.name, b.email, b.phone, b.address,
+        b.id, b.invoice_number, b.name, b.email, b.phone, b.address,
         cust.name, cust.email, cust.phone, cust.address,
         b.status, b.payment_status,
       ].filter(Boolean).join(" ").toLowerCase();
@@ -152,8 +158,22 @@ const InvoicesModal = ({ open, onClose }) => {
     }));
   };
 
+  const invoiceNumberChanged = !!invoice && (invoice.invoice_number || "").trim().toUpperCase() !== originalInvoiceNumber;
+  const invoiceNumberInvalid = invoiceNumberChanged && !INVOICE_NUMBER_RE.test((invoice.invoice_number || "").trim().toUpperCase());
+
   const save = async () => {
     if (!invoice) return;
+    if (invoiceNumberInvalid) {
+      toast.error("Invoice # must be 3-16 letters, numbers or dashes");
+      return;
+    }
+    if (invoiceNumberChanged) {
+      const ok = window.confirm(
+        `Change invoice number from #${originalInvoiceNumber} to #${invoice.invoice_number.trim().toUpperCase()}?\n\n` +
+        "Any invoice already emailed to the customer will show the old number, and Venmo payments referencing the old number won't auto-match."
+      );
+      if (!ok) return;
+    }
     setSaving(true);
     try {
       const res = await fetch(`${API}/api/admin/bookings/${invoice.id}/invoice-data`, {
@@ -167,14 +187,20 @@ const InvoicesModal = ({ open, onClose }) => {
           items: (invoice.items || []).map(({ _uid, ...rest }) => rest),
           pickup_date: invoice.pickup_date,
           payment_status: invoice.payment_status,
+          invoice_number: (invoice.invoice_number || "").trim().toUpperCase(),
         }),
       });
-      if (!res.ok) throw new Error(await res.text());
+      if (!res.ok) {
+        let detail = "Save failed";
+        try { detail = (await res.json()).detail || detail; } catch (_) { /* ignore */ }
+        throw new Error(detail);
+      }
       toast.success("Invoice updated");
+      setOriginalInvoiceNumber((invoice.invoice_number || "").trim().toUpperCase());
       setPreviewNonce((n) => n + 1);
       fetchBookings(); // refresh list totals in case name/email changed
     } catch (e) {
-      toast.error("Save failed");
+      toast.error(e.message || "Save failed");
     } finally {
       setSaving(false);
     }
@@ -213,15 +239,18 @@ const InvoicesModal = ({ open, onClose }) => {
               <FileText className="w-5 h-5 text-cyan-600" /> Invoices
             </DialogTitle>
             <div className="flex items-center gap-2">
-              <Button
-                data-testid="new-invoice-btn"
-                onClick={createManualInvoice}
-                disabled={creating}
-                size="sm"
-                className="bg-cyan-600 hover:bg-cyan-700 text-white gap-1 h-8"
-              >
-                <FilePlus className="w-4 h-4" /> {creating ? "Creating…" : "New invoice"}
-              </Button>
+              <div className="flex items-center rounded-md overflow-hidden">
+                <Button
+                  data-testid="new-invoice-btn"
+                  onClick={() => createManualInvoice()}
+                  disabled={creating}
+                  size="sm"
+                  className="bg-cyan-600 hover:bg-cyan-700 text-white gap-1 h-8 rounded-none"
+                >
+                  <FilePlus className="w-4 h-4" /> {creating ? "Creating…" : "New invoice"}
+                </Button>
+                <DuplicateCustomerPicker bookings={bookings} disabled={creating} onPick={(id) => createManualInvoice(id)} />
+              </div>
               <button
                 onClick={onClose}
                 data-testid="invoices-close-btn"
@@ -275,7 +304,7 @@ const InvoicesModal = ({ open, onClose }) => {
                         <span className="text-xs font-mono text-cyan-700 whitespace-nowrap">${Number(price).toFixed(0)}</span>
                       </div>
                       <div className="flex items-center justify-between gap-2 mt-0.5">
-                        <span className="text-[11px] text-slate-500 truncate">#{b.id.slice(0, 8).toUpperCase()}</span>
+                        <span className="text-[11px] text-slate-500 truncate">#{b.invoice_number || b.id.slice(0, 8).toUpperCase()}</span>
                         <span className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-bold ${b.payment_status === "paid" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>{b.payment_status || "unpaid"}</span>
                       </div>
                     </button>
@@ -301,7 +330,7 @@ const InvoicesModal = ({ open, onClose }) => {
                       <Input data-testid="inv-customer-phone" placeholder="Phone" value={invoice.customer.phone} onChange={(e) => patchField("customer.phone", e.target.value)} />
                       <Input data-testid="inv-customer-email" placeholder="Email" value={invoice.customer.email} onChange={(e) => patchField("customer.email", e.target.value)} className="col-span-2" />
                       <Input data-testid="inv-customer-address" placeholder="Address" value={invoice.customer.address} onChange={(e) => patchField("customer.address", e.target.value)} className="col-span-2" />
-                      <label className="text-xs text-slate-600 col-span-2 flex flex-col gap-1">
+                      <label className="text-xs text-slate-600 flex flex-col gap-1">
                         Service date
                         <Input
                           data-testid="inv-service-date"
@@ -310,6 +339,26 @@ const InvoicesModal = ({ open, onClose }) => {
                           onChange={(e) => patchField("pickup_date", e.target.value)}
                         />
                       </label>
+                      <label className="text-xs text-slate-600 flex flex-col gap-1">
+                        Invoice #
+                        <Input
+                          data-testid="inv-invoice-number"
+                          className={`font-mono uppercase ${invoiceNumberInvalid ? "border-red-400" : invoiceNumberChanged ? "border-amber-400" : ""}`}
+                          maxLength={16}
+                          value={invoice.invoice_number || ""}
+                          onChange={(e) => patchField("invoice_number", e.target.value.toUpperCase())}
+                        />
+                      </label>
+                      {invoiceNumberChanged && (
+                        <div data-testid="inv-invoice-number-warning" className={`col-span-2 flex items-start gap-1.5 rounded-md px-2 py-1.5 text-[11px] ${invoiceNumberInvalid ? "bg-red-50 text-red-700 border border-red-200" : "bg-amber-50 text-amber-800 border border-amber-200"}`}>
+                          <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                          <span>
+                            {invoiceNumberInvalid
+                              ? "Invoice # must be 3-16 letters, numbers or dashes."
+                              : <>Changing from <b>#{originalInvoiceNumber}</b>. Emailed copies keep the old number and Venmo payments referencing it won&apos;t auto-match. You&apos;ll be asked to confirm on save.</>}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
 

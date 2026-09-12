@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, UploadFile, File, Form, Request, BackgroundTasks, Response
+from fastapi import FastAPI, APIRouter, HTTPException, UploadFile, File, Form, Request, BackgroundTasks, Response, Body
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse, JSONResponse, HTMLResponse
 from dotenv import load_dotenv
@@ -2756,7 +2756,7 @@ async def _maybe_email_invoice_on_complete(booking_id: str, new_status: str) -> 
         quote = await db.quotes.find_one({"id": booking["quote_id"]}, {"_id": 0})
     try:
         html, grand_total = _build_invoice_email_html(booking, quote)
-        invoice_number = booking_id[:8].upper()
+        invoice_number = _invoice_number(booking)
         subject = f"Your Text2toss invoice #{invoice_number} — ${grand_total:.2f}"
         pdf_attachment = _build_invoice_pdf_attachment(booking, quote)
         res = await send_email(
@@ -3265,7 +3265,7 @@ def _build_invoice_pdf_attachment(booking: dict, quote: Optional[dict]):
         from email.mime.application import MIMEApplication
         html, _ = _build_invoice_html(booking, quote, for_email=True)
         pdf_bytes = _WHtml(string=html).write_pdf()
-        invoice_number = str(booking.get("id", ""))[:8].upper()
+        invoice_number = _invoice_number(booking)
         filename = f"text2toss-invoice-{invoice_number}.pdf"
         att = MIMEApplication(pdf_bytes, _subtype="pdf")
         att.add_header("Content-Disposition", "attachment", filename=filename)
@@ -3367,7 +3367,7 @@ def _build_invoice_html(
         key=lambda kv: (CATEGORY_ORDER.index(kv[0]) if kv[0] in CATEGORY_ORDER else 999, kv[0]),
     )
 
-    invoice_number = booking_id[:8].upper()
+    invoice_number = _invoice_number(booking)
     pickup_date_raw = booking.get("pickup_date") or ""
     pickup_date = str(pickup_date_raw)[:10] if pickup_date_raw else "—"
     issued_at = datetime.now(timezone.utc).strftime("%B %d, %Y")
@@ -3659,7 +3659,7 @@ def _build_invoice_email_html(booking: dict, quote: Optional[dict]) -> tuple[str
     from html import escape as _e
 
     booking_id = booking.get("id", "")
-    invoice_number = booking_id[:8].upper()
+    invoice_number = _invoice_number(booking)
 
     cust = booking.get("customer_details") or {}
     safe_name = _e(str(cust.get("name") or booking.get("name") or "Customer"))
@@ -3895,8 +3895,17 @@ def _build_invoice_email_html(booking: dict, quote: Optional[dict]) -> tuple[str
     return html, grand_total
 
 
+def _invoice_number(booking: dict) -> str:
+    """Custom admin-set invoice number, else the first 8 chars of the booking id."""
+    custom = str(booking.get("invoice_number") or "").strip()
+    return custom.upper() if custom else str(booking.get("id", ""))[:8].upper()
+
+
+_INVOICE_NUMBER_RE = re.compile(r"^[A-Z0-9][A-Z0-9-]{2,15}$")
+
+
 @api_router.post("/admin/bookings/manual-invoice")
-async def admin_create_manual_invoice():
+async def admin_create_manual_invoice(payload: Optional[dict] = Body(None)):
     """Create a blank booking + quote pair so admins can compose a manual
     invoice from scratch (e.g. an in-person job that never went through the
     self-serve quote flow). Returns the new booking ID so the frontend can
@@ -3909,6 +3918,15 @@ async def admin_create_manual_invoice():
 
     quote_id = str(_uuid.uuid4())
     booking_id = str(_uuid.uuid4())
+
+    customer = {"name": "", "address": "", "email": "", "phone": ""}
+    source_id = str((payload or {}).get("from_booking_id") or "").strip()
+    if source_id:
+        src = await db.bookings.find_one({"id": source_id}, {"_id": 0})
+        if not src:
+            raise HTTPException(status_code=404, detail="Source booking not found")
+        sc = src.get("customer_details") or {}
+        customer = {k: str(sc.get(k) or src.get(k) or "").strip() for k in customer}
 
     await db.quotes.insert_one({
         "id": quote_id,
@@ -3924,8 +3942,9 @@ async def admin_create_manual_invoice():
         "status": "manual",
         "payment_status": "unpaid",
         "pickup_date": today,
-        "customer_details": {"name": "", "address": "", "email": "", "phone": ""},
-        "name": "", "address": "", "email": "", "phone": "",
+        "customer_details": customer,
+        **customer,
+        "duplicated_from": source_id or None,
         "approved_price": 0, "total_price": 0,
         "priority_fee": 0, "equipment_fee": 0, "tip_amount": 0,
         "created_by_admin_manual": True,
@@ -3957,7 +3976,7 @@ async def admin_get_invoice_data(booking_id: str):
     )
     return {
         "id": booking_id,
-        "invoice_number": booking_id[:8].upper(),
+        "invoice_number": _invoice_number(booking),
         "customer": {
             "name": cust.get("name") or booking.get("name") or "",
             "address": cust.get("address") or booking.get("address") or "",
@@ -4020,6 +4039,21 @@ async def admin_update_invoice_data(booking_id: str, payload: dict):
 
     if payload.get("pickup_date"):
         booking_update["pickup_date"] = str(payload["pickup_date"])[:10]
+
+    if "invoice_number" in payload:
+        new_num = str(payload.get("invoice_number") or "").strip().upper()
+        if not new_num or new_num == booking_id[:8].upper():
+            booking_update["invoice_number"] = None
+        else:
+            if not _INVOICE_NUMBER_RE.match(new_num):
+                raise HTTPException(status_code=400, detail="Invoice # must be 3-16 letters, numbers or dashes")
+            clash = await db.bookings.find_one(
+                {"id": {"$ne": booking_id}, "$or": [{"invoice_number": new_num}, {"id": {"$regex": f"^{new_num.lower()}"}}]},
+                {"_id": 0, "id": 1},
+            )
+            if clash:
+                raise HTTPException(status_code=409, detail=f"Invoice #{new_num} is already used by another booking")
+            booking_update["invoice_number"] = new_num
 
     # Payment status controls the diagonal PAID watermark on the invoice.
     # Accept only the known values so admins can flip a booking paid/unpaid
@@ -4107,11 +4141,11 @@ async def admin_booking_invoice(booking_id: str):
     except Exception as exc:  # noqa: BLE001
         logging.exception(f"[invoice-html] render failed for {booking_id}")
         fallback = f"""<!doctype html><html><head><meta charset='utf-8'>
-<title>Invoice #{booking_id[:8].upper()}</title>
+<title>Invoice #{_invoice_number(booking)}</title>
 <style>body{{font-family:-apple-system,Arial,sans-serif;max-width:640px;margin:60px auto;padding:24px;color:#0f172a}}
 h1{{color:#0891b2}} .err{{background:#fee2e2;border:1px solid #fecaca;padding:12px;border-radius:8px;color:#991b1b;font-size:13px}}</style></head>
 <body>
-<h1>Invoice #{booking_id[:8].upper()}</h1>
+<h1>Invoice #{_invoice_number(booking)}</h1>
 <p><strong>Customer:</strong> {_h(booking.get('name') or booking.get('email') or 'Customer')}</p>
 <p><strong>Pickup date:</strong> {_h(str(booking.get('pickup_date') or '—')[:10])}</p>
 <p><strong>Total:</strong> ${float(booking.get('approved_price') or booking.get('adjusted_price') or booking.get('original_price') or 0):.2f}</p>
@@ -4173,7 +4207,7 @@ async def venmo_payment_webhook(payload: dict, request: Request):
             m_amt = _re.search(r"\$\s?([\d,]+(?:\.\d{2})?)", email_text)
             amount_raw = m_amt.group(1).replace(",", "") if m_amt else ""
         if not note:
-            m_inv = _re.search(r"invoice\s*#?\s*([A-Fa-f0-9]{8})", email_text, _re.I)
+            m_inv = _re.search(r"invoice\s*#?\s*([A-Za-z0-9][A-Za-z0-9-]{2,15})", email_text, _re.I)
             note = f"Invoice #{m_inv.group(1)}" if m_inv else ""
         m_from = _re.search(r"^\s*(.+?)\s+paid you", email_text, _re.I | _re.M)
         if m_from:
@@ -4185,15 +4219,19 @@ async def venmo_payment_webhook(payload: dict, request: Request):
         amount = 0.0
 
     # 1) Try to extract the invoice number from the Venmo memo.
-    match = _re.search(r"#([A-F0-9]{8})", note.upper())
+    match = _re.search(r"#\s?([A-Z0-9][A-Z0-9-]{2,15})", note.upper())
     booking = None
     match_method = None
     if match:
-        prefix = match.group(1).lower()
+        num = match.group(1)
         booking = await db.bookings.find_one(
-            {"id": {"$regex": f"^{prefix}", "$options": "i"}, "payment_status": {"$ne": "paid"}},
-            {"_id": 0},
+            {"invoice_number": num, "payment_status": {"$ne": "paid"}}, {"_id": 0}
         )
+        if not booking and _re.fullmatch(r"[A-F0-9]{8}", num):
+            booking = await db.bookings.find_one(
+                {"id": {"$regex": f"^{num.lower()}", "$options": "i"}, "payment_status": {"$ne": "paid"}},
+                {"_id": 0},
+            )
         if booking:
             match_method = "invoice_number"
 
@@ -4242,6 +4280,28 @@ async def venmo_payment_webhook(payload: dict, request: Request):
     }
 
 
+@api_router.get("/admin/venmo-payments/recent")
+async def admin_recent_venmo_payments(since: Optional[str] = None):
+    """Bookings auto-marked paid by the Venmo webhook after `since` (ISO). Polled by the admin dashboard for live toasts."""
+    query: dict = {"paid_via": "venmo_webhook", "payment_status": "paid"}
+    if since:
+        query["paid_at"] = {"$gt": since}
+    cursor = db.bookings.find(query, {"_id": 0, "id": 1, "invoice_number": 1, "paid_at": 1, "venmo_webhook_meta": 1, "customer_details": 1, "name": 1}).sort("paid_at", -1).limit(20)
+    out = []
+    async for b in cursor:
+        meta = b.get("venmo_webhook_meta") or {}
+        cust = b.get("customer_details") or {}
+        out.append({
+            "booking_id": b["id"],
+            "invoice_number": _invoice_number(b),
+            "paid_at": b.get("paid_at"),
+            "amount": float(meta.get("amount") or 0),
+            "customer_name": cust.get("name") or b.get("name") or "",
+            "sender": meta.get("sender"),
+        })
+    return {"payments": out, "server_time": datetime.now(timezone.utc).isoformat()}
+
+
 @api_router.get("/admin/bookings/{booking_id}/invoice.pdf")
 async def admin_booking_invoice_pdf(booking_id: str):
     """Server-side rendered PDF of the branded invoice.
@@ -4269,7 +4329,7 @@ async def admin_booking_invoice_pdf(booking_id: str):
     except Exception as exc:
         logging.error(f"[invoice-pdf] weasyprint failed for {booking_id}: {exc}")
         raise HTTPException(status_code=500, detail="PDF render failed")
-    invoice_number = booking_id[:8].upper()
+    invoice_number = _invoice_number(booking)
     filename = f"text2toss-invoice-{invoice_number}.pdf"
     return Response(
         content=pdf_bytes,
@@ -4291,7 +4351,7 @@ async def admin_email_invoice(booking_id: str):
     if booking.get("quote_id"):
         quote = await db.quotes.find_one({"id": booking["quote_id"]}, {"_id": 0})
     html, grand_total = _build_invoice_email_html(booking, quote)
-    invoice_number = booking_id[:8].upper()
+    invoice_number = _invoice_number(booking)
     subject = f"Your Text2toss invoice #{invoice_number} — ${grand_total:.2f}"
     pdf_attachment = _build_invoice_pdf_attachment(booking, quote)
     res = await send_email(

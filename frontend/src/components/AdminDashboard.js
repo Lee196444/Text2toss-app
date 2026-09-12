@@ -29,6 +29,7 @@ import EmailCenterModal from "./admin/EmailCenterModal";
 import PhotoGalleryModal from "./admin/PhotoGalleryModal";
 import ReviewsModal from "./admin/ReviewsModal";
 import InvoicesModal from "./admin/InvoicesModal";
+import VenmoPaidWatcher from "./admin/VenmoPaidWatcher";
 import SmsTestModal from "./admin/SmsTestModal";
 import { toast } from "../lib/toast";
 import { logger } from "../utils/logger";
@@ -1466,6 +1467,9 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
           fetchPendingPayments?.();
         }}
       />
+
+      {/* Live toast whenever the Venmo webhook auto-marks an invoice paid */}
+      <VenmoPaidWatcher onPayment={() => { fetchDailySchedule?.(); fetchPendingPayments?.(); }} />
 
       {/* Admin Invoices Modal — edit any invoice's fields + line items */}
       <InvoicesModal

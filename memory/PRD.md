@@ -425,3 +425,10 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Bug fixed: `POST /admin/crop-reel-photo` failed for object-storage gallery photos (only read disk/public URL). Now reads from object storage → disk → URL and writes the crop back to object storage.
 - Tests: new `tests/test_reel_migration_and_venmo_webhook.py` (6→10 pad-on-read, legacy-URL delete + reel unpin, webhook 401 + Gmail-payload paid flip). Stale 6-slot / disk-path / per-item-cost assertions in `test_photo_reel_crop.py` + `test_iter22_invoice.py` updated to current behaviour. 24/24 passing.
 - NOTE: webhook amount-fallback can match ANY unpaid booking with the same total — never curl it with real-looking amounts on prod data.
+
+## 2026-06 Invoice Power Features (DONE)
+- **Editable Invoice #**: `booking.invoice_number` override (3-16 chars `[A-Z0-9-]`, unique vs other custom numbers AND id-prefixes; 400/409 on bad input). `_invoice_number(booking)` helper used by HTML/PDF/email/filename/invoice-data. Modal shows amber warning when changed + `window.confirm` before save. Resetting to the default 8-char id clears the override.
+- **Duplicate From Customer**: `POST /admin/bookings/manual-invoice` accepts `{from_booking_id}` → copies name/address/email/phone (`duplicated_from` stored). Split button in InvoicesModal header: `DuplicateCustomerPicker.jsx` (popover, searchable, deduped by email→phone→name).
+- **Venmo Paid Alert**: `GET /admin/venmo-payments/recent?since=ISO` + `VenmoPaidWatcher.jsx` mounted in AdminDashboard (polls 20s, toasts once per booking, refreshes schedule/pending payments). Webhook now matches custom invoice numbers first, then 8-hex id prefix.
+- Tests appended to `tests/test_reel_migration_and_venmo_webhook.py` (4 new). Screenshot-verified popover + warning UI.
+- Backlog: Abandoned-quote email recovery (P2); Twilio A2P 10DLC (waiting on carrier).

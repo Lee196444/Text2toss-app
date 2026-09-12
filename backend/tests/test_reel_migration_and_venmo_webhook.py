@@ -129,3 +129,66 @@ class TestVenmoWebhook:
             assert doc["venmo_webhook_meta"]["sender"] == "Jane Doe"
         finally:
             db.bookings.delete_one({"id": booking_id})
+
+
+class TestInvoiceNumberAndDuplicate:
+    def _cleanup(self, db, bid):
+        b = db.bookings.find_one({"id": bid})
+        if b:
+            db.quotes.delete_one({"id": b.get("quote_id")})
+            db.bookings.delete_one({"id": bid})
+
+    def test_duplicate_from_customer_copies_details(self, db, admin_session):
+        src_id = str(uuid.uuid4())
+        db.bookings.insert_one({"id": src_id, "customer_details": {"name": "Dup Src", "email": "dup@x.com", "phone": "555", "address": "1 Main"}, "payment_status": "paid", "created_at": "2030-01-01"})
+        r = admin_session.post(f"{BASE_URL}/api/admin/bookings/manual-invoice", json={"from_booking_id": src_id})
+        assert r.status_code == 200, r.text
+        new_id = r.json()["id"]
+        try:
+            data = admin_session.get(f"{BASE_URL}/api/admin/bookings/{new_id}/invoice-data").json()
+            assert data["customer"] == {"name": "Dup Src", "email": "dup@x.com", "phone": "555", "address": "1 Main"}
+            assert data["invoice_number"] == new_id[:8].upper()
+        finally:
+            self._cleanup(db, new_id)
+            db.bookings.delete_one({"id": src_id})
+
+    def test_duplicate_unknown_source_404(self, admin_session):
+        r = admin_session.post(f"{BASE_URL}/api/admin/bookings/manual-invoice", json={"from_booking_id": "nope"})
+        assert r.status_code == 404
+
+    def test_editable_invoice_number_validation_clash_and_render(self, db, admin_session):
+        other_id = str(uuid.uuid4())
+        db.bookings.insert_one({"id": other_id, "invoice_number": "TAKEN-1", "payment_status": "paid"})
+        new_id = admin_session.post(f"{BASE_URL}/api/admin/bookings/manual-invoice", json={}).json()["id"]
+        url = f"{BASE_URL}/api/admin/bookings/{new_id}/invoice-data"
+        try:
+            assert admin_session.patch(url, json={"invoice_number": "a!"}).status_code == 400
+            assert admin_session.patch(url, json={"invoice_number": "taken-1"}).status_code == 409
+            assert admin_session.patch(url, json={"invoice_number": other_id[:8]}).status_code == 409
+            assert admin_session.patch(url, json={"invoice_number": "inv-2026-7"}).status_code == 200
+            assert admin_session.get(url).json()["invoice_number"] == "INV-2026-7"
+            assert "Invoice #INV-2026-7" in admin_session.get(f"{BASE_URL}/api/admin/bookings/{new_id}/invoice").text
+            # resetting to the default clears the override
+            assert admin_session.patch(url, json={"invoice_number": new_id[:8]}).status_code == 200
+            assert db.bookings.find_one({"id": new_id})["invoice_number"] is None
+        finally:
+            self._cleanup(db, new_id)
+            db.bookings.delete_one({"id": other_id})
+
+    def test_webhook_matches_custom_number_and_recent_feed(self, db, admin_session):
+        secret = _backend_env("VENMO_WEBHOOK_SECRET")
+        if not secret:
+            pytest.skip("VENMO_WEBHOOK_SECRET not set")
+        bid = str(uuid.uuid4())
+        db.bookings.insert_one({"id": bid, "invoice_number": "CUST-99", "payment_status": "unpaid", "approved_price": 12345.67, "created_at": "2030-01-01", "customer_details": {"name": "Custom Num"}})
+        try:
+            r = requests.post(f"{BASE_URL}/api/webhooks/venmo-payment", headers={"X-Webhook-Secret": secret},
+                              json={"subject": "Pat paid you $12,345.67", "body": "Pat paid you $12,345.67\nText2toss Invoice #CUST-99"})
+            assert r.status_code == 200 and r.json()["booking_id"] == bid and r.json()["matched_by"] == "invoice_number"
+            feed = admin_session.get(f"{BASE_URL}/api/admin/venmo-payments/recent", params={"since": "2020-01-01T00:00:00"}).json()["payments"]
+            hit = next(p for p in feed if p["booking_id"] == bid)
+            assert hit["invoice_number"] == "CUST-99" and hit["amount"] == 12345.67 and hit["customer_name"] == "Custom Num"
+            later = admin_session.get(f"{BASE_URL}/api/admin/venmo-payments/recent", params={"since": "2999-01-01T00:00:00"}).json()["payments"]
+            assert all(p["booking_id"] != bid for p in later)
+        finally:
+            db.bookings.delete_one({"id": bid})
