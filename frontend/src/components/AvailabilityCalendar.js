@@ -109,24 +109,25 @@ const AvailabilityCalendar = ({ selectedDate, onDateSelect, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl sm:max-w-4xl">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="text-lg sm:text-xl">Select Pickup Date</CardTitle>
-            <p className="text-sm text-gray-600 mt-1">
-              {currentMonth.toLocaleDateString("en-US", { month: "short" })} – {new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-2xl sm:max-w-4xl overflow-hidden border-2 border-cyan-400/40 shadow-2xl">
+        <CardHeader className="flex flex-row items-center justify-between bg-black text-white border-b-2 border-cyan-400/30 relative overflow-hidden py-3 sm:py-4">
+          <div className="absolute -top-12 -right-12 w-40 h-40 bg-cyan-400/15 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="relative">
+            <CardTitle className="text-lg sm:text-xl font-display italic uppercase tracking-wider text-cyan-400">Select Pickup Date</CardTitle>
+            <p className="text-xs sm:text-sm text-white/70 mt-0.5">
+              {currentMonth.toLocaleDateString("en-US", { month: "short" })} – {new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1).toLocaleDateString("en-US", { month: "short", year: "numeric" })} · Mon–Thu pickups
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => changeMonth(-1)} disabled={loading || isCurrentOrPastMonth} data-testid="calendar-prev-month">←</Button>
-            <Button variant="outline" size="sm" onClick={() => changeMonth(1)} disabled={loading} data-testid="calendar-next-month">→</Button>
-            <Button variant="outline" size="sm" onClick={onClose}>✕</Button>
+          <div className="relative flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => changeMonth(-1)} disabled={loading || isCurrentOrPastMonth} data-testid="calendar-prev-month" className="bg-white/10 border-white/30 text-white hover:bg-cyan-400 hover:text-black hover:border-cyan-400 disabled:opacity-30">←</Button>
+            <Button variant="outline" size="sm" onClick={() => changeMonth(1)} disabled={loading} data-testid="calendar-next-month" className="bg-white/10 border-white/30 text-white hover:bg-cyan-400 hover:text-black hover:border-cyan-400">→</Button>
+            <Button variant="outline" size="sm" onClick={onClose} data-testid="calendar-close" aria-label="Close" className="bg-white/10 border-white/30 text-white hover:bg-white/25">✕</Button>
           </div>
         </CardHeader>
         <CardContent className="max-h-[70vh] overflow-y-auto">
           {loading ? (
-            <div className="text-center py-8 text-gray-500">Loading availability...</div>
+            <div className="text-center py-8 text-cyan-600 animate-pulse font-display italic uppercase tracking-wider">Loading availability…</div>
           ) : (
             [currentMonth, new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1)].map((month, idx) => {
               const cells = renderCalendar(month);
@@ -134,10 +135,10 @@ const AvailabilityCalendar = ({ selectedDate, onDateSelect, onClose }) => {
               const label = month.toLocaleDateString("en-US", { month: "long", year: "numeric" });
               return (
                 <section key={label} data-testid={`calendar-month-${idx}`} className={idx > 0 ? "mt-6 pt-4 border-t border-cyan-100" : ""}>
-                  <h3 className="text-sm font-bold uppercase tracking-widest text-cyan-700 mb-2">{label}</h3>
+                  <h3 className="text-sm font-display italic uppercase tracking-widest text-cyan-600 mb-2">{label}</h3>
                   <div className="grid grid-cols-7 gap-2 mb-2">
                     {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                      <div key={day} className="py-1 text-center font-semibold text-gray-500 text-xs sm:text-sm">
+                      <div key={day} className="py-1 text-center font-semibold text-slate-400 text-[11px] sm:text-sm uppercase tracking-wide">
                         {day}
                       </div>
                     ))}

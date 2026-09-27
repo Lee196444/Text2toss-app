@@ -497,3 +497,4 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 
 ## 2026-06 Two-Month Customer Calendar (DONE)
 - `AvailabilityCalendar.js` renders the rest of the current month + the full next month in one scrollable view (fetches a 2-month range); arrows page by month; header shows "Sep – Oct 2026". Restricted (Fri–Sun) days now grey "Unavailable" (no red ✕) so only truly booked days are red.
+- Calendar cyan restyle: black header w/ cyan title + glass arrow buttons, available days cyan (hover lift), limited amber, full muted rose with "FULL" tag, restricted/past slate spacers; slot count badge black/cyan; legend updated.
