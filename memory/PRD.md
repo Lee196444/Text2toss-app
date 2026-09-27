@@ -472,3 +472,8 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 ## 2026-06 Branded Emails — cyan theme + logo on every send (DONE)
 - `templates/email_brand.py`: `finalize()` applied inside `send_email()` for ALL outgoing mail → recolors legacy green palette (#10b981/#059669/#14b8a6/#d1fae5/rgba(16,185,129)) to cyan (#06b6d4/#0891b2/#22d3ee/#cffafe), injects hosted logo `{BACKEND_URL}/email_logo.png` (26KB optimized copy in frontend/public) above the first `.container`/`<body>`, wraps bare fragments. Marker `<!-- t2t-brand -->` skips injection (invoice email already carries its own logo). Idempotent.
 - Tests: `tests/test_email_brand.py` (5). Verified visually (Quote Submitted email now cyan gradient + logo).
+
+## 2026-06 Personal Greeting + Footer Links + Email Test Center (DONE)
+- `email_brand.finalize(html, recipient_name, recipient_email)`: replaces generic greetings (Dear Valued Customer / Hi Friend / Hi there…) with `Hi <First>,` (name from bookings by email via `_recipient_name_for`, else alphabetic email local-part, else "there"); appends footer (tel:+19288539619, PUBLIC_SITE_URL, venmo.com/u/VENMO_USERNAME) before </body>, idempotent. Booking-confirmation + payment-reminder templates gained a greeting line.
+- Admin **Emails** tile → `EmailPreviewModal.jsx`: 10 templates (`GET /admin/emails/templates`), iframe preview `GET /admin/emails/preview?template=` (fully branded, sample data), `POST /admin/emails/test {template,to}` sends "[TEST] …" (invoice attaches PDF of latest booking). Default recipient ADMIN_BCC_EMAIL.
+- Tests: test_email_brand.py 7/7; real test email sent to text2toss@gmail.com.

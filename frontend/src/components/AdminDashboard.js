@@ -12,7 +12,7 @@ import RouteOptimizerModal from "./admin/RouteOptimizerModal";
 import PendingApprovalsModal from "./admin/PendingApprovalsModal";
 import AutoApprovedQuotesModal from "./admin/AutoApprovedQuotesModal";
 import { FilterProvider } from "./admin/FilterContext";
-import { CreditCard, CalendarDays, FastForward, Truck, CheckCircle2, BookOpen, FileText, Fuel } from "lucide-react";
+import { CreditCard, CalendarDays, FastForward, Truck, CheckCircle2, BookOpen, FileText, Fuel, Mail } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,6 +32,7 @@ import InvoicesModal from "./admin/InvoicesModal";
 import VenmoPaidWatcher from "./admin/VenmoPaidWatcher";
 import ChimeToggle from "./admin/ChimeToggle";
 import PricingSettingsModal from "./admin/PricingSettingsModal";
+import EmailPreviewModal from "./admin/EmailPreviewModal";
 import SmsTestModal from "./admin/SmsTestModal";
 import { toast } from "../lib/toast";
 import { logger } from "../utils/logger";
@@ -160,6 +161,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
   const [showAllJobsModal, setShowAllJobsModal] = useState(false);
   const [showInvoicesModal, setShowInvoicesModal] = useState(false);
   const [showPricingSettings, setShowPricingSettings] = useState(false);
+  const [showEmailPreview, setShowEmailPreview] = useState(false);
   const [allJobs, setAllJobs] = useState([]);
   const [emailCompose, setEmailCompose] = useState({
     to: '',
@@ -1302,6 +1304,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
                   { type: 'invoices',       title: 'Invoices',        Icon: FileText,     color: 'border-cyan-300 bg-cyan-50 hover:bg-cyan-100',   textColor: 'text-cyan-800',   countColor: 'text-cyan-600',   iconColor: 'text-cyan-500',  showTotal: true },
                   { type: 'all',            title: 'All Jobs',        Icon: BookOpen,     color: 'border-purple-300 bg-purple-50 hover:bg-purple-100', textColor: 'text-purple-800', countColor: 'text-purple-600', iconColor: 'text-purple-500', showTotal: true },
                   { type: 'pricing',        title: 'Pricing',         Icon: Fuel,         color: 'border-slate-300 bg-slate-50 hover:bg-slate-100',   textColor: 'text-slate-800',  countColor: 'text-slate-600',  iconColor: 'text-slate-500', showGear: true },
+                  { type: 'emails',         title: 'Emails',          Icon: Mail,         color: 'border-sky-300 bg-sky-50 hover:bg-sky-100',         textColor: 'text-sky-800',    countColor: 'text-sky-600',    iconColor: 'text-sky-500', showGear: true },
                 ];
 
                 return binConfigs.map(bin => (
@@ -1319,6 +1322,8 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
                         setShowInvoicesModal(true);
                       } else if (bin.type === 'pricing') {
                         setShowPricingSettings(true);
+                      } else if (bin.type === 'emails') {
+                        setShowEmailPreview(true);
                       } else {
                         openBin(bin.type);
                       }
@@ -1483,6 +1488,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
 
       {/* Admin Invoices Modal — edit any invoice's fields + line items */}
       <PricingSettingsModal open={showPricingSettings} onClose={() => setShowPricingSettings(false)} />
+      <EmailPreviewModal open={showEmailPreview} onClose={() => setShowEmailPreview(false)} />
       <InvoicesModal
         open={showInvoicesModal}
         onClose={() => {

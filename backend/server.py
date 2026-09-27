@@ -23,6 +23,7 @@ import json
 import secrets
 import re
 import asyncio
+from types import SimpleNamespace
 import base64
 import aiofiles
 import shutil
@@ -207,14 +208,32 @@ def is_sms_enabled():
     """Check if SMS notifications are enabled"""
     return os.environ.get('SMS_ENABLED', 'false').lower() == 'true'
 
-async def send_email(to_email: str, subject: str, html_content: str, attachments: list = None):
+async def _recipient_name_for(to_email: str) -> str:
+    """Most recent name we have on file for this address (bookings, then reviews)."""
+    if not to_email:
+        return ""
+    try:
+        doc = await db.bookings.find_one(
+            {"$or": [{"email": to_email}, {"customer_details.email": to_email}]},
+            {"_id": 0, "name": 1, "customer_details.name": 1},
+            sort=[("created_at", -1)],
+        )
+        if doc:
+            return ((doc.get("customer_details") or {}).get("name") or doc.get("name") or "").strip()
+    except Exception:
+        pass
+    return ""
+
+
+async def send_email(to_email: str, subject: str, html_content: str, attachments: list = None, recipient_name: str = ""):
     """Send email via Gmail SMTP"""
     if not is_email_enabled():
         logging.info(f"Email disabled - skipping: {subject} to {to_email}")
         return {"status": "disabled", "message": "Email notifications disabled"}
     
-    # Every outgoing email gets the cyan brand palette + logo header.
-    html_content = email_brand.finalize(html_content)
+    # Every outgoing email gets the cyan brand palette, logo header, personal greeting + contact footer.
+    name = recipient_name or await _recipient_name_for(to_email)
+    html_content = email_brand.finalize(html_content, recipient_name=name, recipient_email=to_email)
     try:
         # Email configuration
         email_host = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
@@ -1786,6 +1805,99 @@ async def admin_log_callback(booking_id: str, request: Request, payload: Optiona
 async def places_suggest(q: str = "", session: str = ""):
     """Customer address autocomplete via server-side Google Places (no key in the client)."""
     return {"suggestions": await travel_pricing.google_place_suggestions(q, session)}
+
+
+# === Admin email template previews / test sends =============================
+_EMAIL_TEMPLATE_CATALOG = [
+    ("quote_under_review", "Quote submitted — under review"),
+    ("booking_confirmation", "Booking confirmed"),
+    ("payment_reminder", "Payment reminder (Venmo)"),
+    ("quote_approval", "Quote approved (admin-adjusted price)"),
+    ("quote_rejection", "Quote declined"),
+    ("booking_updated", "Booking updated by admin"),
+    ("review_request", "Review request (after completion)"),
+    ("invoice", "Invoice (latest booking, with PDF)"),
+    ("manual_review_alert", "Admin alert — manual review / out of area"),
+    ("admin_new_booking", "Admin alert — new booking received"),
+]
+
+
+async def _render_email_template(key: str) -> tuple[str, str, list]:
+    """Returns (subject, html, attachments) rendered with realistic sample data."""
+    from datetime import datetime as _dt
+    sample_booking = {
+        "id": "a1b2c3d4-0000-4000-8000-000000000000", "quote_id": "q-sample", "name": "Jane Sample",
+        "email": "jane@example.com", "phone": "+19285550100", "address": "1500 N Fort Valley Rd, Flagstaff, AZ 86001",
+        "pickup_date": "2031-03-04", "pickup_time": "9:00 AM", "priority_tier": None, "priority_fee": 0,
+        "equipment_fee": 0, "special_instructions": "Items are in the driveway", "curbside_confirmed": True,
+    }
+    sample_quote = {"id": "q-sample", "total_price": 265.0, "approved_price": 265.0,
+                    "items": [{"name": "Sofa", "quantity": 1, "size": "large"}, {"name": "Mattress", "quantity": 1, "size": "large"}]}
+    base = (os.environ.get("PUBLIC_SITE_URL") or os.environ.get("BACKEND_URL") or "https://text2toss.com").rstrip("/")
+    pay_link = f"{base}/pay/{sample_booking['id']}"
+    if key == "quote_under_review":
+        b = SimpleNamespace(**{**sample_booking, "pickup_date": _dt(2031, 3, 4)})
+        return "Quote Submitted - Under Review | Text2toss", email_templates.quote_under_review_email(b, sample_quote), []
+    if key == "booking_confirmation":
+        return "✅ Booking Confirmed - A1B2C3D4", email_templates.booking_confirmation_email(sample_booking, sample_quote), []
+    if key == "payment_reminder":
+        return "💳 Payment Reminder - Booking a1b2c3d4", email_templates.payment_reminder_email(sample_booking, 265.0, sample_booking["id"]), []
+    if key == "quote_approval":
+        action = QuoteApprovalAction(action="approve", approved_price=245.0, admin_notes="Adjusted after reviewing photos — thanks for your patience!")
+        return "✅ Your Quote Has Been Approved - Text2toss", email_templates.quote_approval_email(sample_quote, action, "Jane Sample", 245.0, sample_booking["id"]), []
+    if key == "quote_rejection":
+        action = QuoteApprovalAction(action="reject", admin_notes="We can't take hazardous materials (paint/chemicals).")
+        return "Quote Decision - Text2toss", email_templates.quote_rejection_email(action, "Jane Sample"), []
+    if key == "booking_updated":
+        html = email_templates.booking_updated_email("Jane Sample", sample_booking["id"], 265.0, 285.0, ["Pickup moved to Mar 5, 9:00 AM", "Added 1 mattress"], "Extra item spotted on arrival", pay_link)
+        return "Your Text2toss booking was updated", html, []
+    if key == "review_request":
+        return "How did we do? Quick 30-second review", email_templates.review_request_email("Jane Sample", sample_booking["id"], f"{base}/?leave_review={sample_booking['id']}", "March 4, 2031"), []
+    if key == "invoice":
+        booking = await db.bookings.find_one({"payment_status": {"$exists": True}}, {"_id": 0}, sort=[("created_at", -1)])
+        if not booking:
+            raise HTTPException(status_code=404, detail="No booking available to render an invoice")
+        quote = await db.quotes.find_one({"id": booking.get("quote_id")}, {"_id": 0}) if booking.get("quote_id") else None
+        html, grand_total = _build_invoice_email_html(booking, quote)
+        pdf = _build_invoice_pdf_attachment(booking, quote)
+        return f"Your Text2toss invoice #{_invoice_number(booking)} — ${grand_total:.2f}", html, [pdf] if pdf else []
+    if key == "manual_review_alert":
+        body = ("Text2toss OUT OF AREA: #A1B2C3D4 — 1 Far Away Rd, Phoenix, AZ. AI base $265. "
+                "Pickup is 145.2 mi one-way — beyond the 40 mi service radius. Call +19285550100 (jane@example.com). Pickup 2031-03-04 9:00 AM.")
+        return "⚠️ OUT OF AREA: booking #A1B2C3D4 needs a price", f"<p>{_h(body)}</p>", []
+    if key == "admin_new_booking":
+        b = SimpleNamespace(**{**sample_booking, "pickup_date": _dt(2031, 3, 4)})
+        return "🆕 New Booking - A1B2C3D4", _build_admin_booking_notification(b, sample_quote, False), []
+    raise HTTPException(status_code=404, detail="Unknown template")
+
+
+@api_router.get("/admin/emails/templates")
+async def admin_email_templates():
+    admin_default = (os.environ.get("ADMIN_BCC_EMAIL") or "").strip()
+    return {"templates": [{"key": k, "label": v} for k, v in _EMAIL_TEMPLATE_CATALOG], "default_to": admin_default}
+
+
+@api_router.get("/admin/emails/preview", response_class=HTMLResponse)
+async def admin_email_preview(template: str):
+    """Fully branded HTML exactly as it would be sent (logo, colors, greeting, footer)."""
+    _subject, html, _att = await _render_email_template(template)
+    return HTMLResponse(email_brand.finalize(html, recipient_name="Jane Sample", recipient_email="jane@example.com"))
+
+
+@api_router.post("/admin/emails/test")
+async def admin_email_test(payload: dict):
+    template = str(payload.get("template") or "")
+    to = str(payload.get("to") or os.environ.get("ADMIN_BCC_EMAIL") or "").strip()
+    if not to or "@" not in to:
+        raise HTTPException(status_code=400, detail="Provide a destination email (or set ADMIN_BCC_EMAIL)")
+    subject, html, attachments = await _render_email_template(template)
+    res = await send_email(to, f"[TEST] {subject}", html, attachments=attachments or None, recipient_name="Jane Sample")
+    status = (res or {}).get("status")
+    if status == "disabled":
+        raise HTTPException(status_code=503, detail="Email sending is disabled on the server (EMAIL_ENABLED=false)")
+    if status and status not in ("sent", "success", "ok"):
+        raise HTTPException(status_code=502, detail=(res or {}).get("message") or "Email failed to send")
+    return {"success": True, "to": to, "subject": f"[TEST] {subject}"}
 
 
 async def _alert_admin_manual_review(booking: "Booking", quote_doc: dict, travel: dict) -> None:

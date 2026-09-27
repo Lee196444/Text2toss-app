@@ -36,3 +36,21 @@ def test_real_templates_have_no_green_left():
     assert "#10b981" not in html.lower() and "email_logo.png" in html
     html2 = email_brand.finalize(email_templates.quote_rejection_email(type("A", (), {"admin_notes": "", "rejection_reason": "n/a"})(), "Jane"))
     assert "email_logo.png" in html2
+
+
+def test_personal_greeting_variants():
+    assert email_brand.first_name_for("Jane Sample", "") == "Jane"
+    assert email_brand.first_name_for("", "jane.doe@x.com") == "Jane"
+    assert email_brand.first_name_for("", "64robertson@gmail.com") == "there"
+    assert email_brand.first_name_for("Valued Customer", "") == "there"
+    out = email_brand.personalize_greeting("<p>Dear Valued Customer,</p>", "Jane Sample")
+    assert "Hi Jane," in out and "Valued Customer" not in out
+    assert "Hi there," in email_brand.personalize_greeting("<p>Hi Friend,</p>", "", "")
+
+
+def test_footer_has_one_tap_links_once():
+    out = email_brand.finalize("<html><body><div class='container'>x</div></body></html>")
+    assert 'href="tel:+19288539619"' in out and "venmo.com/u/" in out and "text2toss" in out.lower()
+    assert out.count(email_brand.FOOTER_MARKER) == 1
+    assert email_brand.finalize(out).count(email_brand.FOOTER_MARKER) == 1
+    assert out.index(email_brand.FOOTER_MARKER) < out.index("</body>")

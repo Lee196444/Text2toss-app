@@ -102,6 +102,7 @@ def booking_confirmation_email(booking_data: dict, quote_data: dict) -> str:
                 <p>Your junk removal is scheduled</p>
             </div>
             <div class="content">
+                <p style="font-size:16px;margin:0 0 14px;">Hi Valued Customer,</p>
                 <h2 style="color: #10b981;">Booking Details</h2>
                 <div class="booking-details">
                     <div class="detail-row"><span class="detail-label">Booking ID:</span><span class="detail-value">{booking_id_short}</span></div>
@@ -187,6 +188,7 @@ def payment_reminder_email(
                 <p>Complete your booking payment</p>
             </div>
             <div class="content">
+                <p style="font-size:16px;margin:0 0 14px;">Hi Valued Customer,</p>
                 <h2 style="color: #3b82f6;">Booking Summary</h2>
                 <div class="payment-box">
                     <p><strong>Booking ID:</strong> {short_id}</p>
