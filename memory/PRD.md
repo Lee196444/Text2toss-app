@@ -451,3 +451,10 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Admin: `PricingSettingsModal.jsx` (⚙ Pricing tile) incl. preview sandbox `POST /admin/pricing/preview`; `TravelBreakdown.jsx` on BinModal + AllJobs cards (collapsible internal itemization or red manual-review box).
 - Customer: BookingModal debounced estimate on address → header "Your Text2Toss Quote: $X"; Venmo modal gets `amount` override.
 - ⚠️ BLOCKER (user side): GOOGLE_MAPS_API_KEY project has **no billing enabled** → Directions returns REQUEST_DENIED → every live quote goes to manual review until billing is enabled. Math + flows verified via pytest (`test_travel_pricing.py`, `test_iter23_travel_review.py`) and testing agent iteration_23 (100%).
+
+## 2026-06 Service Radius Cap (DONE)
+- Settings: `max_service_miles` (one-way Base→Pickup leg, default 40, 0 = unlimited) + `out_of_area_message` (default includes (928) 853-9619). Editable in Pricing Settings modal (`ps-max_service_miles`, `ps-out-of-area-message`).
+- `_compute_travel_for_quote` / preview return `status:"out_of_area"` (route, pickup_miles, reason, message) when over the cap. Customer estimate returns only status + message.
+- BookingModal: header shows "Call us" instead of a price; pay buttons replaced by amber "call us" card (tel: link parsed from message) + "request a custom quote" (posts booking as `callback` → server flags manual review; customer sees "we'll call you" success screen).
+- create_booking treats out_of_area like manual_review (quote → pending_approval, admin_notes "Out of service area: …", booking.requires_manual_review). `TravelBreakdown` shows amber "Outside service area" box. Booking POST response now honoured client-side via `requires_manual_review`.
+- Tests: `test_travel_pricing.py` 10/10 (cap logic, settings roundtrip, out-of-area booking flow); Playwright-verified customer card with mocked estimate.

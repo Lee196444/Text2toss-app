@@ -1637,14 +1637,16 @@ async def create_booking(booking_data: BookingCreate, request: Request, token: s
     pickup_datetime = await _validate_pickup_request(booking_data)
 
     travel = await _resolve_travel_pricing(quote_doc, booking_data.address)
-    if travel and travel.get("status") == "manual_review":
-        # Routing/validation failed → never auto-issue a final price. Park the
-        # quote in the existing approvals bucket so the admin prices it by hand.
+    if travel and travel.get("status") in ("manual_review", "out_of_area"):
+        # Routing/validation failed or pickup is beyond the service radius →
+        # never auto-issue a final price. Park the quote in the existing
+        # approvals bucket so the admin prices it (or calls the customer).
         quote_doc["requires_approval"] = True
+        label = "Out of service area" if travel.get("status") == "out_of_area" else "Manual review"
         await db.quotes.update_one(
             {"id": quote_doc["id"]},
             {"$set": {"requires_approval": True, "approval_status": "pending_approval",
-                      "admin_notes": f"Manual review: {travel.get('reason')}"}},
+                      "admin_notes": f"{label}: {travel.get('reason')}"}},
         )
     elif travel and travel.get("status") == "ok":
         # approved_price is the existing source of truth for what the customer
@@ -1658,7 +1660,7 @@ async def create_booking(booking_data: BookingCreate, request: Request, token: s
     booking = _build_booking(booking_data, pickup_datetime, quote_doc, user_id, consent_meta)
     if travel:
         booking.travel_pricing = travel
-        booking.requires_manual_review = travel.get("status") == "manual_review"
+        booking.requires_manual_review = travel.get("status") in ("manual_review", "out_of_area")
         if travel.get("status") == "ok":
             booking.final_quote_price = travel["breakdown"]["final_price"]
     await db.bookings.insert_one(prepare_for_mongo(booking.dict()))
@@ -1708,6 +1710,11 @@ async def _compute_travel_for_quote(quote_doc: dict, address: str) -> dict:
     except travel_pricing.RoutingError as exc:
         logger.warning("[travel-pricing] quote %s address %r: %s", quote_doc.get("id"), address, exc)
         return {"status": "manual_review", "address": address, "reason": str(exc)}
+    if travel_pricing.outside_service_area(route, settings):
+        miles = travel_pricing.pickup_leg_miles(route)
+        return {"status": "out_of_area", "address": address, "route": route, "pickup_miles": miles,
+                "reason": f"Pickup is {miles:.1f} mi one-way — beyond the {settings['max_service_miles']:.0f} mi service radius",
+                "message": settings["out_of_area_message"]}
     base, heavy = _quote_base_and_heavy(quote_doc)
     if base <= 0:
         return {"status": "manual_review", "address": address, "reason": "Quote has no base price"}
@@ -1719,9 +1726,9 @@ async def _resolve_travel_pricing(quote_doc: dict, address: str) -> Optional[dic
     """Reuse the customer-visible estimate if it was computed for this exact
     address (so the price they saw is the price they pay); else compute fresh."""
     cached = quote_doc.get("travel_estimate") or {}
-    if cached.get("status") in ("ok", "manual_review") and (cached.get("address") or "").strip().lower() == (address or "").strip().lower():
+    if cached.get("status") in ("ok", "manual_review", "out_of_area") and (cached.get("address") or "").strip().lower() == (address or "").strip().lower():
         base, heavy = _quote_base_and_heavy(quote_doc)
-        if cached.get("status") == "manual_review" or (
+        if cached.get("status") != "ok" or (
             abs(cached["breakdown"]["base_price"] - base) < 0.01 and abs(cached["breakdown"]["heavy_item_fees"] - heavy) < 0.01
         ):
             return cached
@@ -1736,6 +1743,8 @@ def _customer_travel_view(result: dict) -> dict:
         return {"status": "ok", "final_price": price, "display": f"Your Text2Toss Quote: ${price:,.0f}" if price == int(price) else f"Your Text2Toss Quote: ${price:,.2f}"}
     if result.get("status") == "manual_review":
         return {"status": "manual_review", "message": "We couldn't confirm driving directions to that address automatically. You can still book — we'll confirm your final price before pickup."}
+    if result.get("status") == "out_of_area":
+        return {"status": "out_of_area", "message": result.get("message") or travel_pricing.DEFAULT_SETTINGS["out_of_area_message"]}
     return {"status": "disabled"}
 
 
@@ -1784,6 +1793,11 @@ async def preview_pricing(payload: dict):
         route = await travel_pricing.google_route_miles(settings["base_address"], address, settings["disposal_address"])
     except travel_pricing.RoutingError as exc:
         return {"status": "manual_review", "reason": str(exc)}
+    if travel_pricing.outside_service_area(route, settings):
+        miles = travel_pricing.pickup_leg_miles(route)
+        return {"status": "out_of_area", "route": route, "pickup_miles": miles,
+                "reason": f"Pickup is {miles:.1f} mi one-way — beyond the {settings['max_service_miles']:.0f} mi service radius",
+                "message": settings["out_of_area_message"]}
     breakdown = travel_pricing.compute_pricing(base, route["miles"], settings, heavy_item_fees=float(payload.get("heavy_item_fees") or 0))
     return {"status": "ok", "breakdown": breakdown, "route": route}
 

@@ -25,6 +25,8 @@ DEFAULT_SETTINGS = {
     "disposal_address": "Cinder Lake Landfill, 10955 N US-89, Flagstaff, AZ 86004",
     "default_disposal_fee": 35.0,
     "rounding_increment": 5.0,
+    "max_service_miles": 40.0,
+    "out_of_area_message": "Looks like you're a bit outside our regular service area. Give us a call at (928) 853-9619 and we'll put together a custom quote for you.",
 }
 
 _NUMERIC_BOUNDS = {
@@ -35,6 +37,7 @@ _NUMERIC_BOUNDS = {
     "processing_fixed_fee": (0.0, 10.0),
     "default_disposal_fee": (0.0, 5000.0),
     "rounding_increment": (0.01, 500.0),
+    "max_service_miles": (0.0, 2000.0),
 }
 
 
@@ -52,10 +55,22 @@ def coerce_settings(raw: Optional[dict]) -> dict:
     for key in ("travel_pricing_enabled", "recover_processing_fees"):
         if key in raw:
             out[key] = bool(raw[key])
-    for key in ("base_address", "disposal_address"):
+    for key in ("base_address", "disposal_address", "out_of_area_message"):
         if key in raw and raw[key] is not None:
-            out[key] = str(raw[key]).strip()
+            out[key] = str(raw[key]).strip()[:500]
     return out
+
+
+def pickup_leg_miles(route: dict) -> float:
+    """One-way Base → Pickup distance (first leg) for the service-radius cap."""
+    legs = route.get("legs") or []
+    return float(legs[0]["miles"]) if legs else 0.0
+
+
+def outside_service_area(route: dict, settings: dict) -> bool:
+    """True when a cap is set (>0) and the pickup is farther than it (one-way)."""
+    cap = float(settings.get("max_service_miles") or 0)
+    return cap > 0 and pickup_leg_miles(route) > cap
 
 
 def missing_required(settings: dict) -> list:

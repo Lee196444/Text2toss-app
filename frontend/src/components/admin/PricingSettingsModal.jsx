@@ -16,6 +16,7 @@ const NUM_FIELDS = [
   ["processing_fixed_fee", "Processing fixed fee ($)", "0.01"],
   ["default_disposal_fee", "Default disposal fee ($)", "0.01"],
   ["rounding_increment", "Round final price UP to ($)", "0.01"],
+  ["max_service_miles", "Max service radius, one-way mi (0 = none)", "1"],
 ];
 
 const PricingSettingsModal = ({ open, onClose }) => {
@@ -106,6 +107,11 @@ const PricingSettingsModal = ({ open, onClose }) => {
               <label className="mt-2 flex items-center gap-2 text-xs text-slate-700">
                 <input type="checkbox" data-testid="ps-recover-fees" checked={!!s.recover_processing_fees} onChange={(e) => set("recover_processing_fees", e.target.checked)} className="w-4 h-4 accent-cyan-600" />
                 Gross-up quotes so the NET after card processing fees equals the internal price
+              </label>
+              <label className="mt-3 text-xs text-slate-600 flex flex-col gap-1">
+                "Call us" message shown when a pickup is beyond the service radius
+                <textarea data-testid="ps-out-of-area-message" rows={2} maxLength={500} value={s.out_of_area_message || ""} onChange={(e) => set("out_of_area_message", e.target.value)}
+                  className="w-full text-sm border border-slate-300 rounded-md px-3 py-2 bg-white resize-y focus:outline-none focus:ring-2 focus:ring-cyan-400" />
               </label>
               <p className="text-[11px] text-slate-400 mt-1">Changes apply to new quotes only — every booking keeps a frozen copy of the inputs used.</p>
             </div>

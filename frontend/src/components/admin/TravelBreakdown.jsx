@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Route, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
+import { Route, ChevronDown, ChevronUp, AlertTriangle, MapPinOff } from "lucide-react";
 
 const money = (v) => `$${Number(v || 0).toFixed(2)}`;
 
@@ -7,6 +7,15 @@ const money = (v) => `$${Number(v || 0).toFixed(2)}`;
 const TravelBreakdown = ({ travel, defaultOpen = false }) => {
   const [open, setOpen] = useState(defaultOpen);
   if (!travel || travel.status === "disabled") return null;
+
+  if (travel.status === "out_of_area") {
+    return (
+      <div data-testid="travel-out-of-area" className="rounded-md border border-amber-300 bg-amber-50 px-2.5 py-2 text-xs text-amber-900 flex items-start gap-1.5">
+        <MapPinOff className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+        <span><b>Outside service area</b> — customer was shown the "call us" message. {travel.reason}</span>
+      </div>
+    );
+  }
 
   if (travel.status === "manual_review") {
     return (

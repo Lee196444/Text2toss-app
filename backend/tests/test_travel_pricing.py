@@ -142,3 +142,54 @@ class TestApi:
             db.quotes.delete_one({"id": qid})
             if bid:
                 db.bookings.delete_one({"id": bid})
+
+
+class TestServiceRadius:
+    def _route(self, pickup_mi):
+        return {"miles": pickup_mi * 2 + 12, "legs": [{"miles": pickup_mi}, {"miles": 12.0}, {"miles": pickup_mi}]}
+
+    def test_cap_logic(self):
+        s = tp.coerce_settings({"max_service_miles": 40})
+        assert tp.outside_service_area(self._route(39.9), s) is False
+        assert tp.outside_service_area(self._route(40.1), s) is True
+        assert tp.outside_service_area(self._route(500), tp.coerce_settings({"max_service_miles": 0})) is False
+        assert tp.pickup_leg_miles(self._route(17.25)) == 17.25
+
+    def test_message_setting_roundtrip(self, admin_session):
+        original = admin_session.get(f"{BASE_URL}/api/admin/pricing/settings").json()
+        assert original["max_service_miles"] == 40.0 or original["max_service_miles"] >= 0
+        try:
+            r = admin_session.post(f"{BASE_URL}/api/admin/pricing/settings", json={**original, "max_service_miles": 25, "out_of_area_message": "Call us at (928) 853-9619!"})
+            assert r.status_code == 200
+            got = admin_session.get(f"{BASE_URL}/api/admin/pricing/settings").json()
+            assert got["max_service_miles"] == 25.0 and got["out_of_area_message"] == "Call us at (928) 853-9619!"
+        finally:
+            admin_session.post(f"{BASE_URL}/api/admin/pricing/settings", json=original)
+
+    def test_out_of_area_booking_is_flagged_for_manual_review(self, db):
+        qid = str(uuid.uuid4())
+        addr = "1 Far Away Rd, Phoenix, AZ 85001"
+        db.quotes.insert_one({"id": qid, "user_id": "anonymous", "items": [{"name": "Sofa", "size": "large", "quantity": 1}],
+                              "total_price": 180.0, "description": "t", "requires_approval": False, "approval_status": "auto_approved",
+                              "created_at": "2030-01-01T00:00:00",
+                              "travel_estimate": {"status": "out_of_area", "address": addr, "pickup_miles": 145.2,
+                                                  "reason": "Pickup is 145.2 mi one-way — beyond the 40 mi service radius",
+                                                  "message": "Call us", "route": {"miles": 302.4, "legs": [{"miles": 145.2}, {"miles": 12}, {"miles": 145.2}]}}})
+        bid = None
+        try:
+            rb = requests.post(f"{BASE_URL}/api/bookings", json={
+                "quote_id": qid, "pickup_date": "2031-03-04", "pickup_time": "9:00 AM", "address": addr,
+                "phone": "9285550100", "email": "travel@test.com", "consent_accepted": True, "curbside_confirmed": True})
+            assert rb.status_code == 200, rb.text
+            bid = rb.json()["id"]
+            assert rb.json()["requires_manual_review"] is True
+            bdoc = db.bookings.find_one({"id": bid})
+            assert bdoc["travel_pricing"]["status"] == "out_of_area" and bdoc["final_quote_price"] is None
+            assert bdoc["status"] == "pending_customer_approval"
+            q = db.quotes.find_one({"id": qid})
+            assert q["approval_status"] == "pending_approval" and q["admin_notes"].startswith("Out of service area")
+            assert "approved_price" not in q or q["approved_price"] is None
+        finally:
+            db.quotes.delete_one({"id": qid})
+            if bid:
+                db.bookings.delete_one({"id": bid})

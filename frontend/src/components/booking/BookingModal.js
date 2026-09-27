@@ -169,9 +169,22 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
         priority_tier: priorityTier || null,
         consent_accepted: legalConsent,
         pay_in_person: paymentChoice === "in_person",
-        payment_method: paymentChoice === "in_person" ? "cash" : paymentChoice,
+        payment_method: paymentChoice === "in_person" ? "cash" : paymentChoice === "callback" ? "venmo" : paymentChoice,
       });
       const bookingId = res.data.id;
+
+      if (paymentChoice === "callback" || res.data.requires_manual_review) {
+        toast.success("✅ Request received! We'll call you shortly to confirm a custom quote.", {
+          duration: 5000,
+          style: { background: "#10b981", color: "#ffffff", fontSize: "16px", fontWeight: "600", padding: "16px" },
+        });
+        setBookingSubmitted(true);
+        setTimeout(() => {
+          setBookingSubmitted(false);
+          onSuccess();
+        }, 6000);
+        return;
+      }
 
       if (quote.requires_approval) {
         setBookingSubmitted(true);
@@ -271,6 +284,9 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
               {!travelLoading && travelQuote?.status === "manual_review" && (
                 <p className="text-[10px] text-amber-300" data-testid="travel-quote-manual-review">We'll confirm your final price before pickup</p>
               )}
+              {!travelLoading && travelQuote?.status === "out_of_area" && (
+                <p className="text-[10px] text-amber-300" data-testid="travel-quote-out-of-area-hint">Outside our regular service area — see below</p>
+              )}
               {!travelLoading && travelQuote?.status !== "manual_review" && (priorityTier || equipmentFeeAmount > 0) && (
                 <p className="text-[10px] text-gray-400 truncate">
                   {priorityTier && <>+${priorityFeeAmount} priority</>}
@@ -280,7 +296,7 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
               )}
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
-              <span className="font-display italic text-3xl text-white leading-none" data-testid="booking-total-price">${totalWithPriority}</span>
+              <span className="font-display italic text-3xl text-white leading-none" data-testid="booking-total-price">{travelQuote?.status === "out_of_area" ? "Call us" : `$${totalWithPriority}`}</span>
               <Badge className="bg-cyan-400 text-black border-0 text-[10px] font-display italic uppercase px-2 py-0.5">💳 Venmo</Badge>
             </div>
           </div>
@@ -404,7 +420,35 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
           </label>
 
           <div className="p-4 pt-2 pb-20 sm:pb-4 flex flex-col gap-3">
-            {quote.requires_approval ? (
+            {travelQuote?.status === "out_of_area" ? (
+              // Beyond the service radius — no automatic price; "call us" instead
+              <>
+                <div data-testid="out-of-area-card" className="rounded-xl border-2 border-amber-300 bg-amber-50 p-4 text-center space-y-2">
+                  <p className="text-2xl">📞</p>
+                  <p className="font-display italic uppercase tracking-wider text-amber-900">Let's talk about your pickup</p>
+                  <p className="text-sm text-amber-900" data-testid="out-of-area-message">{travelQuote.message}</p>
+                  <a
+                    href={`tel:${(travelQuote.message.match(/\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}/) || ["9288539619"])[0].replace(/\D/g, "")}`}
+                    data-testid="out-of-area-call-btn"
+                    className="inline-flex items-center justify-center w-full h-12 rounded-xl bg-black text-cyan-400 border-2 border-cyan-400 font-display italic uppercase tracking-wider text-base"
+                  >
+                    📞 Call Text2Toss
+                  </a>
+                </div>
+                <Button
+                  onClick={() => submitBooking("callback")}
+                  disabled={!legalConsent}
+                  data-testid="out-of-area-request-btn"
+                  variant="outline"
+                  className="w-full h-11 border-2 border-amber-300 text-amber-900 hover:bg-amber-100 text-sm font-semibold disabled:opacity-50"
+                >
+                  Or request a custom quote — we'll call you
+                </Button>
+                <Button variant="outline" onClick={onClose} data-testid="cancel-booking-btn" className="w-full h-11 border-2 text-sm font-semibold">
+                  Cancel
+                </Button>
+              </>
+            ) : quote.requires_approval ? (
               <>
                 <Button
                   onClick={handleVenmoBooking}
