@@ -10,10 +10,11 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 // Venmo Payment Modal Component
-const VenmoPaymentModal = ({ quote, bookingId, qrCode, onClose }) => {
+const VenmoPaymentModal = ({ quote, bookingId, qrCode, onClose, amount }) => {
+  const payAmount = amount ?? quote.total_price;
   // Use the real Text2toss Venmo QR code
   const venmoQRCodeUrl = "https://www.paypal.com/qrcodes/venmocs/9f1f97dd-23ed-4676-82b5-3fc2126def65?created=1762118921";
-  const venmoUrl = `venmo://paycharge?txn=pay&recipients=Text2toss&amount=${quote.total_price}&note=Text2toss%20Booking%20${bookingId.substring(0, 8)}`;
+  const venmoUrl = `venmo://paycharge?txn=pay&recipients=Text2toss&amount=${payAmount}&note=Text2toss%20Booking%20${bookingId.substring(0, 8)}`;
   
   const copyBookingId = () => {
     const textToCopy = bookingId.substring(0, 8);
@@ -64,7 +65,7 @@ const VenmoPaymentModal = ({ quote, bookingId, qrCode, onClose }) => {
     window.location.href = venmoUrl;
     // Fallback to web after 1 second if app doesn't open
     setTimeout(() => {
-      window.open(`https://venmo.com/?txn=pay&recipients=Text2toss&amount=${quote.total_price}&note=Booking%20${bookingId.substring(0, 8)}`, '_blank');
+      window.open(`https://venmo.com/?txn=pay&recipients=Text2toss&amount=${payAmount}&note=Booking%20${bookingId.substring(0, 8)}`, '_blank');
     }, 1000);
   };
 
@@ -106,7 +107,7 @@ const VenmoPaymentModal = ({ quote, bookingId, qrCode, onClose }) => {
             <div className="space-y-2 text-emerald-800">
               <div className="flex justify-between">
                 <span className="font-medium">Amount Due:</span>
-                <span className="font-bold text-xl">${quote.total_price}</span>
+                <span className="font-bold text-xl">${payAmount}</span>
               </div>
               <div className="flex justify-between">
                 <span className="font-medium">Service:</span>
@@ -156,7 +157,7 @@ const VenmoPaymentModal = ({ quote, bookingId, qrCode, onClose }) => {
                 <li className="flex items-start gap-2">
                   <span className="font-bold text-lg">1.</span>
                   <span className="font-medium">
-                    Send <span className="font-bold text-xl text-blue-600">${quote.total_price}</span> to <span className="font-bold">@Text2toss</span>
+                    Send <span className="font-bold text-xl text-blue-600">${payAmount}</span> to <span className="font-bold">@Text2toss</span>
                   </span>
                 </li>
                 <li className="flex items-start gap-2">

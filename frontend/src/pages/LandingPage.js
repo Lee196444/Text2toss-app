@@ -46,6 +46,7 @@ const LandingPage = () => {
   const [showVenmoPayment, setShowVenmoPayment] = useState(false);
   const [venmoBookingId, setVenmoBookingId] = useState('');
   const [venmoQRCode, setVenmoQRCode] = useState('');
+  const [venmoFinalTotal, setVenmoFinalTotal] = useState(null);
   const [quoteError, setQuoteError] = useState(''); // NEW: Error handling
   const [showApprovalModal, setShowApprovalModal] = useState(false); // NEW: Approval notification modal
   const [fieldErrors, setFieldErrors] = useState({}); // NEW: Track which fields have errors
@@ -729,7 +730,7 @@ const LandingPage = () => {
           quote={quote} 
           onClose={() => setShowBooking(false)}
           onSuccess={() => { setShowBooking(false); setShowQuote(false); toast.success("Pickup scheduled successfully!"); }}
-          onVenmoPayment={(bookingId, qrCode) => { setVenmoBookingId(bookingId); setVenmoQRCode(qrCode); setShowBooking(false); setShowVenmoPayment(true); }}
+          onVenmoPayment={(bookingId, qrCode, finalTotal) => { setVenmoBookingId(bookingId); setVenmoQRCode(qrCode); setVenmoFinalTotal(finalTotal); setShowBooking(false); setShowVenmoPayment(true); }}
           priorityTier={priorityTier}
           onPriorityChange={setPriorityTier}
         />
@@ -739,6 +740,7 @@ const LandingPage = () => {
       {showVenmoPayment && (
         <VenmoPaymentModal 
           quote={quote}
+          amount={venmoFinalTotal}
           bookingId={venmoBookingId}
           qrCode={venmoQRCode}
           onClose={() => { setShowVenmoPayment(false); setShowQuote(false); toast.success("Booking confirmed! Payment instructions sent via SMS."); }}

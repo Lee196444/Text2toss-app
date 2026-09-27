@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import QRCode from "qrcode";
 import { Card, CardContent } from "../ui/card";
@@ -71,7 +71,30 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
     ? (priorityFees?.[priorityTier] ?? PRIORITY_TIERS.find(t => t.id === priorityTier)?.fee ?? 0)
     : 0;
   const equipmentFeeAmount = quote.equipment_required ? (quote.equipment_fee || 0) : 0;
-  const totalWithPriority = (quote.total_price || 0) + priorityFeeAmount + equipmentFeeAmount;
+  // Route-based all-in price (computed server-side once the address is entered).
+  // null = not yet computed / disabled → fall back to the AI price + add-ons.
+  const [travelQuote, setTravelQuote] = useState(null);
+  const [travelLoading, setTravelLoading] = useState(false);
+  const allInBase = travelQuote?.status === "ok" ? travelQuote.final_price : (quote.total_price || 0) + equipmentFeeAmount;
+  const totalWithPriority = allInBase + priorityFeeAmount;
+
+  useEffect(() => {
+    const addr = (bookingData.address || "").trim();
+    if (addr.length < 8) { setTravelQuote(null); return undefined; }
+    const t = setTimeout(async () => {
+      setTravelLoading(true);
+      try {
+        const res = await axios.post(`${API}/quotes/${quote.id}/travel-estimate`, { address: addr });
+        setTravelQuote(res.data);
+      } catch (err) {
+        logger.error("travel estimate failed", err);
+        setTravelQuote(null);
+      } finally {
+        setTravelLoading(false);
+      }
+    }, 900);
+    return () => clearTimeout(t);
+  }, [bookingData.address, quote.id]);
 
   const checkAvailableTimeSlots = async (selectedDate) => {
     if (!selectedDate || !isDateAllowed(selectedDate)) {
@@ -197,7 +220,7 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
         margin: 2,
         color: { dark: "#000000", light: "#FFFFFF" },
       });
-      onVenmoPayment(bookingId, qrCodeDataUrl);
+      onVenmoPayment(bookingId, qrCodeDataUrl, totalWithPriority);
     } catch (err) {
       toast.error("Failed to create booking");
     }
@@ -241,17 +264,23 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
           </div>
           <div className="relative px-4 py-3 flex items-center justify-between gap-3 text-white">
             <div className="min-w-0">
-              <p className="text-[10px] font-display italic uppercase tracking-widest text-cyan-400 leading-none mb-1">Complete Your Booking</p>
-              {(priorityTier || equipmentFeeAmount > 0) && (
+              <p className="text-[10px] font-display italic uppercase tracking-widest text-cyan-400 leading-none mb-1" data-testid="booking-price-label">
+                {travelQuote?.status === "ok" ? "Your Text2Toss Quote" : "Complete Your Booking"}
+              </p>
+              {travelLoading && <p className="text-[10px] text-cyan-300 animate-pulse" data-testid="travel-quote-loading">Calculating travel to your address…</p>}
+              {!travelLoading && travelQuote?.status === "manual_review" && (
+                <p className="text-[10px] text-amber-300" data-testid="travel-quote-manual-review">We'll confirm your final price before pickup</p>
+              )}
+              {!travelLoading && travelQuote?.status !== "manual_review" && (priorityTier || equipmentFeeAmount > 0) && (
                 <p className="text-[10px] text-gray-400 truncate">
                   {priorityTier && <>+${priorityFeeAmount} priority</>}
-                  {priorityTier && equipmentFeeAmount > 0 && " · "}
-                  {equipmentFeeAmount > 0 && <>+${equipmentFeeAmount} equipment</>}
+                  {priorityTier && equipmentFeeAmount > 0 && travelQuote?.status !== "ok" && " · "}
+                  {equipmentFeeAmount > 0 && travelQuote?.status !== "ok" && <>+${equipmentFeeAmount} equipment</>}
                 </p>
               )}
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
-              <span className="font-display italic text-3xl text-white leading-none">${totalWithPriority}</span>
+              <span className="font-display italic text-3xl text-white leading-none" data-testid="booking-total-price">${totalWithPriority}</span>
               <Badge className="bg-cyan-400 text-black border-0 text-[10px] font-display italic uppercase px-2 py-0.5">💳 Venmo</Badge>
             </div>
           </div>

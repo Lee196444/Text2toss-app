@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import ReturningCustomerBadge from "./ReturningCustomerBadge";
+import TravelBreakdown from "./TravelBreakdown";
 import {
   buildImageUrl,
   STATUS_BADGE,
@@ -336,6 +337,7 @@ const BinModal = ({
                       </div>
 
                       {/* Customer details */}
+                      {booking.travel_pricing && <TravelBreakdown travel={booking.travel_pricing} />}
                       <div className="border-t pt-2 text-xs sm:text-sm text-gray-700 space-y-0.5">
                         <p>📍 {booking.address || "—"}</p>
                         <p>📞 {booking.phone || "—"}{booking.email ? `   ✉️ ${booking.email}` : ""}</p>

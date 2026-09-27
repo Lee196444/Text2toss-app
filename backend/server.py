@@ -29,6 +29,7 @@ import shutil
 from twilio.rest import Client
 from templates import email_templates
 import object_storage
+import travel_pricing
 
 # Register HEIC/HEIF (iPhone default) so any endpoint using PIL can decode it.
 # Safe to call once at import time — register_heif_opener is idempotent.
@@ -437,6 +438,10 @@ class Booking(BaseModel):
     consent_ip: Optional[str] = None
     consent_user_agent: Optional[str] = None
     consent_version: Optional[str] = None  # snapshot of policy version at acceptance
+    # --- Route-based travel pricing (frozen snapshot of inputs + result) ---
+    travel_pricing: Optional[dict] = None
+    final_quote_price: Optional[float] = None
+    requires_manual_review: bool = False
 
 class BookingCreate(BaseModel):
     quote_id: str
@@ -1631,8 +1636,31 @@ async def create_booking(booking_data: BookingCreate, request: Request, token: s
 
     pickup_datetime = await _validate_pickup_request(booking_data)
 
+    travel = await _resolve_travel_pricing(quote_doc, booking_data.address)
+    if travel and travel.get("status") == "manual_review":
+        # Routing/validation failed → never auto-issue a final price. Park the
+        # quote in the existing approvals bucket so the admin prices it by hand.
+        quote_doc["requires_approval"] = True
+        await db.quotes.update_one(
+            {"id": quote_doc["id"]},
+            {"$set": {"requires_approval": True, "approval_status": "pending_approval",
+                      "admin_notes": f"Manual review: {travel.get('reason')}"}},
+        )
+    elif travel and travel.get("status") == "ok":
+        # approved_price is the existing source of truth for what the customer
+        # owes (+ booking.equipment_fee/priority/tip). Heavy-item fees are
+        # already inside final_price, so subtract them here to avoid double count.
+        locked_base = round(travel["breakdown"]["final_price"] - travel["breakdown"]["heavy_item_fees"], 2)
+        await db.quotes.update_one({"id": quote_doc["id"]}, {"$set": {"approved_price": locked_base}})
+        quote_doc["approved_price"] = locked_base
+
     consent_meta = _capture_consent_metadata(request)
     booking = _build_booking(booking_data, pickup_datetime, quote_doc, user_id, consent_meta)
+    if travel:
+        booking.travel_pricing = travel
+        booking.requires_manual_review = travel.get("status") == "manual_review"
+        if travel.get("status") == "ok":
+            booking.final_quote_price = travel["breakdown"]["final_price"]
     await db.bookings.insert_one(prepare_for_mongo(booking.dict()))
 
     quote_requires_approval = quote_doc.get("requires_approval", False)
@@ -1644,6 +1672,120 @@ async def create_booking(booking_data: BookingCreate, request: Request, token: s
     await _send_post_booking_emails(booking, quote_doc, quote_requires_approval)
     await _send_post_booking_sms(booking)
     return booking
+
+
+# === Route-based travel pricing =========================================
+_PRICING_SETTINGS_CACHE: dict = {"settings": None}
+
+
+async def _get_pricing_settings() -> dict:
+    cached = _PRICING_SETTINGS_CACHE.get("settings")
+    if cached is not None:
+        return cached
+    doc = await db.pricing_settings.find_one({"_id": "singleton"}, {"_id": 0})
+    settings = travel_pricing.coerce_settings(doc)
+    _PRICING_SETTINGS_CACHE["settings"] = settings
+    return settings
+
+
+def _quote_base_and_heavy(quote_doc: dict) -> tuple[float, float]:
+    base = float(quote_doc.get("total_price") or 0)
+    heavy = float(quote_doc.get("equipment_fee") or 0) if quote_doc.get("equipment_required") else 0.0
+    return base, heavy
+
+
+async def _compute_travel_for_quote(quote_doc: dict, address: str) -> dict:
+    """Returns {status:'ok', breakdown, route, address} or {status:'manual_review', reason, address}
+    or {status:'disabled'}."""
+    settings = await _get_pricing_settings()
+    if not settings.get("travel_pricing_enabled"):
+        return {"status": "disabled"}
+    missing = travel_pricing.missing_required(settings)
+    if missing:
+        return {"status": "manual_review", "address": address, "reason": f"Pricing settings missing: {', '.join(missing)}"}
+    try:
+        route = await travel_pricing.google_route_miles(settings["base_address"], address, settings["disposal_address"])
+    except travel_pricing.RoutingError as exc:
+        logger.warning("[travel-pricing] quote %s address %r: %s", quote_doc.get("id"), address, exc)
+        return {"status": "manual_review", "address": address, "reason": str(exc)}
+    base, heavy = _quote_base_and_heavy(quote_doc)
+    if base <= 0:
+        return {"status": "manual_review", "address": address, "reason": "Quote has no base price"}
+    breakdown = travel_pricing.compute_pricing(base, route["miles"], settings, heavy_item_fees=heavy)
+    return {"status": "ok", "address": address, "breakdown": breakdown, "route": route}
+
+
+async def _resolve_travel_pricing(quote_doc: dict, address: str) -> Optional[dict]:
+    """Reuse the customer-visible estimate if it was computed for this exact
+    address (so the price they saw is the price they pay); else compute fresh."""
+    cached = quote_doc.get("travel_estimate") or {}
+    if cached.get("status") in ("ok", "manual_review") and (cached.get("address") or "").strip().lower() == (address or "").strip().lower():
+        base, heavy = _quote_base_and_heavy(quote_doc)
+        if cached.get("status") == "manual_review" or (
+            abs(cached["breakdown"]["base_price"] - base) < 0.01 and abs(cached["breakdown"]["heavy_item_fees"] - heavy) < 0.01
+        ):
+            return cached
+    result = await _compute_travel_for_quote(quote_doc, address)
+    return None if result.get("status") == "disabled" else result
+
+
+def _customer_travel_view(result: dict) -> dict:
+    """Customer-safe projection — never itemizes fuel/maintenance/processing."""
+    if result.get("status") == "ok":
+        price = result["breakdown"]["final_price"]
+        return {"status": "ok", "final_price": price, "display": f"Your Text2Toss Quote: ${price:,.0f}" if price == int(price) else f"Your Text2Toss Quote: ${price:,.2f}"}
+    if result.get("status") == "manual_review":
+        return {"status": "manual_review", "message": "We couldn't confirm driving directions to that address automatically. You can still book — we'll confirm your final price before pickup."}
+    return {"status": "disabled"}
+
+
+class TravelEstimateRequest(BaseModel):
+    address: str
+
+
+@api_router.post("/quotes/{quote_id}/travel-estimate")
+async def quote_travel_estimate(quote_id: str, body: TravelEstimateRequest):
+    """Customer enters pickup address → all-in price (no internal itemization)."""
+    quote_doc = await db.quotes.find_one({"id": quote_id}, {"_id": 0})
+    if not quote_doc:
+        raise HTTPException(status_code=404, detail="Quote not found")
+    address = (body.address or "").strip()
+    if len(address) < 5:
+        raise HTTPException(status_code=400, detail="Please enter a full pickup address")
+    result = await _compute_travel_for_quote(quote_doc, address)
+    if result.get("status") != "disabled":
+        await db.quotes.update_one({"id": quote_id}, {"$set": {"travel_estimate": result}})
+    return _customer_travel_view(result)
+
+
+@api_router.get("/admin/pricing/settings")
+async def get_pricing_settings():
+    return await _get_pricing_settings()
+
+
+@api_router.post("/admin/pricing/settings")
+async def save_pricing_settings(payload: dict):
+    settings = travel_pricing.coerce_settings(payload)
+    await db.pricing_settings.update_one({"_id": "singleton"}, {"$set": settings}, upsert=True)
+    _PRICING_SETTINGS_CACHE["settings"] = None
+    return {"success": True, **settings}
+
+
+@api_router.post("/admin/pricing/preview")
+async def preview_pricing(payload: dict):
+    """Admin sandbox: run the full internal breakdown for an address + base price."""
+    address = str(payload.get("address") or "").strip()
+    base = float(payload.get("base_price") or 0)
+    settings = travel_pricing.coerce_settings({**(await _get_pricing_settings()), **(payload.get("settings") or {})})
+    missing = travel_pricing.missing_required(settings)
+    if missing:
+        return {"status": "manual_review", "reason": f"Pricing settings missing: {', '.join(missing)}"}
+    try:
+        route = await travel_pricing.google_route_miles(settings["base_address"], address, settings["disposal_address"])
+    except travel_pricing.RoutingError as exc:
+        return {"status": "manual_review", "reason": str(exc)}
+    breakdown = travel_pricing.compute_pricing(base, route["miles"], settings, heavy_item_fees=float(payload.get("heavy_item_fees") or 0))
+    return {"status": "ok", "breakdown": breakdown, "route": route}
 
 
 async def _resolve_user_id(token: Optional[str]) -> str:
