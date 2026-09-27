@@ -158,7 +158,7 @@ const AllJobsModal = ({
                         </div>
                       </div>
 
-                      {job.travel_pricing && <TravelBreakdown travel={job.travel_pricing} />}
+                      {job.travel_pricing && <TravelBreakdown travel={job.travel_pricing} booking={job} />}
                       <div className="border-t pt-2 text-xs sm:text-sm text-gray-700 space-y-0.5">
                         <p>📍 {job.address || "—"}</p>
                         <p>📞 {job.phone || "—"}{job.email ? `   ✉️ ${job.email}` : ""}</p>

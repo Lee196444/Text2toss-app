@@ -211,3 +211,22 @@ class TestPlacesAndAlerts:
             assert got["alert_phone"] == "+19285550100" and got["alert_email"] == "a@b.com"
         finally:
             admin_session.post(f"{BASE_URL}/api/admin/pricing/settings", json=original)
+
+
+class TestCallbackLog:
+    def test_callback_log_appends_with_admin_name(self, db, admin_session):
+        bid = str(uuid.uuid4())
+        db.bookings.insert_one({"id": bid, "phone": "+19285550100", "requires_manual_review": True, "payment_status": "pending", "created_at": "2030-01-01"})
+        try:
+            r = admin_session.post(f"{BASE_URL}/api/admin/bookings/{bid}/callback-log", json={"note": "left voicemail"})
+            assert r.status_code == 200, r.text
+            log = r.json()["callback_log"]
+            assert len(log) == 1 and log[0]["note"] == "left voicemail" and log[0]["by"]
+            r2 = admin_session.post(f"{BASE_URL}/api/admin/bookings/{bid}/callback-log")
+            assert len(r2.json()["callback_log"]) == 2
+            doc = db.bookings.find_one({"id": bid})
+            assert doc["last_callback_at"] == doc["callback_log"][-1]["at"]
+            assert requests.post(f"{BASE_URL}/api/admin/bookings/{bid}/callback-log").status_code == 401
+            assert admin_session.post(f"{BASE_URL}/api/admin/bookings/nope/callback-log").status_code == 404
+        finally:
+            db.bookings.delete_one({"id": bid})

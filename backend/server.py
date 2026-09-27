@@ -442,6 +442,7 @@ class Booking(BaseModel):
     travel_pricing: Optional[dict] = None
     final_quote_price: Optional[float] = None
     requires_manual_review: bool = False
+    callback_log: List[dict] = Field(default_factory=list)  # admin "called customer" entries
 
 class BookingCreate(BaseModel):
     quote_id: str
@@ -1752,6 +1753,30 @@ def _customer_travel_view(result: dict) -> dict:
 
 class TravelEstimateRequest(BaseModel):
     address: str
+
+
+@api_router.post("/admin/bookings/{booking_id}/callback-log")
+async def admin_log_callback(booking_id: str, request: Request, payload: Optional[dict] = Body(None)):
+    """Record that the admin phoned the customer (one-tap 'Call customer')."""
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0, "id": 1})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    try:
+        admin = await verify_admin_token(request)
+        who = admin.get("display_name") or admin.get("username") or "admin"
+    except HTTPException:
+        who = "admin"
+    entry = {
+        "at": datetime.now(timezone.utc).isoformat(),
+        "by": who,
+        "note": str((payload or {}).get("note") or "").strip()[:300],
+    }
+    await db.bookings.update_one(
+        {"id": booking_id},
+        {"$push": {"callback_log": entry}, "$set": {"last_callback_at": entry["at"]}},
+    )
+    doc = await db.bookings.find_one({"id": booking_id}, {"_id": 0, "callback_log": 1})
+    return {"success": True, "callback_log": doc.get("callback_log") or []}
 
 
 @api_router.get("/places/suggest")

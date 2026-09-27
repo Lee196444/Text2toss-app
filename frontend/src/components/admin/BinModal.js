@@ -337,7 +337,7 @@ const BinModal = ({
                       </div>
 
                       {/* Customer details */}
-                      {booking.travel_pricing && <TravelBreakdown travel={booking.travel_pricing} />}
+                      {booking.travel_pricing && <TravelBreakdown travel={booking.travel_pricing} booking={booking} />}
                       <div className="border-t pt-2 text-xs sm:text-sm text-gray-700 space-y-0.5">
                         <p>📍 {booking.address || "—"}</p>
                         <p>📞 {booking.phone || "—"}{booking.email ? `   ✉️ ${booking.email}` : ""}</p>

@@ -1,27 +1,34 @@
 import React, { useState } from "react";
 import { Route, ChevronDown, ChevronUp, AlertTriangle, MapPinOff } from "lucide-react";
+import CallCustomerButton from "./CallCustomerButton";
 
 const money = (v) => `$${Number(v || 0).toFixed(2)}`;
 
 // Admin-only internal breakdown of a route-based travel quote (booking.travel_pricing)
-const TravelBreakdown = ({ travel, defaultOpen = false }) => {
+const TravelBreakdown = ({ travel, booking = null, defaultOpen = false }) => {
   const [open, setOpen] = useState(defaultOpen);
   if (!travel || travel.status === "disabled") return null;
 
   if (travel.status === "out_of_area") {
     return (
-      <div data-testid="travel-out-of-area" className="rounded-md border border-amber-300 bg-amber-50 px-2.5 py-2 text-xs text-amber-900 flex items-start gap-1.5">
-        <MapPinOff className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-        <span><b>Outside service area</b> — customer was shown the "call us" message. {travel.reason}</span>
+      <div data-testid="travel-out-of-area" className="rounded-md border border-amber-300 bg-amber-50 px-2.5 py-2 text-xs text-amber-900">
+        <div className="flex items-start gap-1.5">
+          <MapPinOff className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+          <span><b>Outside service area</b> — customer was shown the "call us" message. {travel.reason}</span>
+        </div>
+        {booking && <CallCustomerButton booking={booking} />}
       </div>
     );
   }
 
   if (travel.status === "manual_review") {
     return (
-      <div data-testid="travel-manual-review" className="rounded-md border border-red-200 bg-red-50 px-2.5 py-2 text-xs text-red-800 flex items-start gap-1.5">
-        <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-        <span><b>Manual review needed</b> — travel cost not auto-priced. {travel.reason}</span>
+      <div data-testid="travel-manual-review" className="rounded-md border border-red-200 bg-red-50 px-2.5 py-2 text-xs text-red-800">
+        <div className="flex items-start gap-1.5">
+          <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+          <span><b>Manual review needed</b> — travel cost not auto-priced. {travel.reason}</span>
+        </div>
+        {booking && <CallCustomerButton booking={booking} />}
       </div>
     );
   }

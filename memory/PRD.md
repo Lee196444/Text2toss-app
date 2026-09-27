@@ -463,3 +463,8 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - `GET /api/places/suggest?q=&session=` public proxy → Google Places Autocomplete (types=address, US) using server-side GOOGLE_MAPS_API_KEY; returns [] on failure (degrades to free text). `AddressSuggestions.js` wraps the pickup Textarea in ContactFields (debounce 300ms, keyboard nav, session token per pick). Picking sets the full description → triggers travel estimate.
 - `_alert_admin_manual_review()` after create_booking when travel status ∈ {manual_review, out_of_area}: SMS to `alert_phone` and/or email to `alert_email` (fallback ADMIN_BCC_EMAIL) with booking #, address, AI base, reason, customer phone, pickup. Settings in Pricing modal (`ps-alert-phone`, `ps-alert-email`).
 - Tests: test_travel_pricing.py 12/12; Playwright verified suggestion dropdown → pick → "$265" all-in quote with mocked routes. Note: Places also needs Google billing; Twilio SMS still pending A2P 10DLC approval.
+
+## 2026-06 One-Tap Callback (DONE)
+- `POST /admin/bookings/{id}/callback-log` (admin cookie) pushes `{at, by(display_name), note}` to `booking.callback_log` + `last_callback_at`.
+- `CallCustomerButton.jsx` (tel: link + logs on click, shows "Called N× · last <time> by <admin>") rendered inside `TravelBreakdown` manual-review / out-of-area boxes when a `booking` prop is passed (AllJobsModal, BinModal). Card click propagation stopped.
+- Test: `test_travel_pricing.py::TestCallbackLog` (13/13 suite) + Playwright verified click → log update.
