@@ -13,6 +13,7 @@ import ContactFields from "./ContactFields";
 import RequirementsSection from "./RequirementsSection";
 import ScrollHint from "./ScrollHint";
 import GuidedFooter, { bookingStepStatus, BOOKING_STEPS } from "./GuidedFooter";
+import StepDots, { scrollToSection } from "./StepDots";
 import PriorityPicker, { PRIORITY_TIERS } from "../customer/PriorityPicker";
 import usePriorityConfig from "../../hooks/usePriorityConfig";
 import { logger } from "../../utils/logger";
@@ -80,6 +81,25 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
   const bodyScrollRef = useRef(null);
   const stepStatus = bookingStepStatus(bookingData);
   const formComplete = BOOKING_STEPS.every((st) => stepStatus[st.key]);
+  const activeStepKey = (BOOKING_STEPS.find((st) => !stepStatus[st.key]) || { key: "requirements" }).key;
+  const prevStatusRef = useRef(stepStatus);
+
+  // Auto-advance: the moment a step flips to complete, glide to the next unfinished section.
+  useEffect(() => {
+    const prev = prevStatusRef.current;
+    prevStatusRef.current = stepStatus;
+    const justDone = BOOKING_STEPS.find((st) => stepStatus[st.key] && !prev[st.key]);
+    if (!justDone) return undefined;
+    const next = BOOKING_STEPS.find((st) => !stepStatus[st.key]);
+    const targetId = next ? next.id : "bk-pay";
+    const t = setTimeout(() => {
+      if (document.activeElement && ["INPUT", "TEXTAREA"].includes(document.activeElement.tagName) && next?.key === "requirements" && justDone.key === "contact") {
+        document.activeElement.blur();
+      }
+      scrollToSection(bodyScrollRef, targetId, !!next);
+    }, 650);
+    return () => clearTimeout(t);
+  }, [stepStatus.schedule, stepStatus.contact, stepStatus.requirements]);
   const allInBase = travelQuote?.status === "ok" ? travelQuote.final_price : (quote.total_price || 0) + equipmentFeeAmount;
   const totalWithPriority = allInBase + priorityFeeAmount;
 
@@ -262,15 +282,8 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
         <div className="sticky top-0 z-10 bg-black rounded-t-none sm:rounded-t-lg flex-shrink-0 border-b-2 border-cyan-400/30 relative overflow-hidden">
           <div className="absolute -top-12 -right-12 w-40 h-40 bg-cyan-400/15 rounded-full blur-3xl pointer-events-none"></div>
           <div className="relative px-4 py-2 flex items-center justify-between gap-3 border-b border-white/10">
-            {/* Compact step pills */}
-            <div className="flex items-center gap-1.5 text-white">
-              <div className="w-5 h-5 rounded-full bg-cyan-400 text-black flex items-center justify-center text-[10px] font-bold">✓</div>
-              <div className="w-3 h-0.5 bg-cyan-400"></div>
-              <div className="w-5 h-5 rounded-full bg-cyan-400 text-black flex items-center justify-center text-[10px] font-bold">✓</div>
-              <div className="w-3 h-0.5 bg-cyan-400"></div>
-              <div className="w-5 h-5 rounded-full bg-cyan-400 text-black flex items-center justify-center text-[10px] font-bold ring-2 ring-cyan-400/40">3</div>
-              <span className="text-xs text-cyan-400 font-display italic uppercase tracking-wider ml-1">Book &amp; Pay</span>
-            </div>
+            {/* Tappable step pills: Date → Contact → Pay */}
+            <StepDots stepStatus={stepStatus} activeKey={activeStepKey} scrollRef={bodyScrollRef} />
             <button
               onClick={onClose}
               data-testid="modal-close-x"
@@ -365,7 +378,7 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
             />
             </section>
 
-            <div className={`rounded-xl p-4 border-2 transition-colors ${
+            <div id="bk-pay" className={`rounded-xl p-4 border-2 transition-colors ${
               payInPerson
                 ? "bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-400"
                 : "bg-gradient-to-br from-blue-50 to-blue-100 border-blue-300"

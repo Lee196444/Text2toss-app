@@ -487,3 +487,7 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 
 ## 2026-06 Guided Booking Flow (DONE)
 - `GuidedFooter.jsx` (+ `bookingStepStatus`, `BOOKING_STEPS`): while date/time, address+phone, or curbside confirmation are incomplete the sticky footer shows a 3-segment progress bar + single "Next: <step>" button that smooth-scrolls to and briefly highlights the section (`#bk-schedule`, `#bk-contact`, `#bk-requirements`), plus Cancel. Consent + pay buttons render only once all three are done (out-of-area card unaffected). ScrollHint now only shows in the complete state ("Scroll to review & pay").
+
+## 2026-06 Tappable Step Dots + Auto-Advance (DONE)
+- `StepDots.jsx` replaces the static header pills: Date → Contact → Pay, each tappable (`step-dot-schedule|contact|requirements`), ✓ when done, ring on active; shared `scrollToSection(scrollRef, id, highlight)` helper (also used by GuidedFooter). Pay section anchor `#bk-pay` on the payment-choice card.
+- Auto-advance effect in BookingModal: when a step flips incomplete→complete, waits 650ms then scrolls to the next unfinished section (or #bk-pay when all done); blurs the active input when leaving Contact so the keyboard drops.

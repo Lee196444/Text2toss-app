@@ -1,5 +1,6 @@
 import React from "react";
 import { ArrowDown, Check } from "lucide-react";
+import { scrollToSection } from "./StepDots";
 
 // Compact "what's next" footer shown until the form is complete; then the
 // parent swaps in the consent + pay buttons. Keeps the mobile view uncluttered.
@@ -24,15 +25,7 @@ const GuidedFooter = ({ bookingData, scrollRef, onCancel }) => {
   if (!next) return null;
   const doneCount = BOOKING_STEPS.filter((s) => status[s.key]).length;
 
-  const jump = () => {
-    const el = document.getElementById(next.id);
-    const container = scrollRef?.current;
-    if (el && container) {
-      container.scrollTo({ top: el.offsetTop - container.offsetTop - 8, behavior: "smooth" });
-      el.classList.add("ring-2", "ring-cyan-400", "rounded-xl");
-      setTimeout(() => el.classList.remove("ring-2", "ring-cyan-400", "rounded-xl"), 1400);
-    }
-  };
+  const jump = () => scrollToSection(scrollRef, next.id);
 
   return (
     <div className="px-4 pt-3 pb-3 sm:pb-4" data-testid="guided-footer">
