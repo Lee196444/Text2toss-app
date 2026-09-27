@@ -230,3 +230,34 @@ class TestCallbackLog:
             assert admin_session.post(f"{BASE_URL}/api/admin/bookings/nope/callback-log").status_code == 404
         finally:
             db.bookings.delete_one({"id": bid})
+
+
+class TestApproveWithPrice:
+    def test_customer_agreed_skips_sms_and_schedules_payment(self, db, admin_session):
+        qid, bid = str(uuid.uuid4()), str(uuid.uuid4())
+        db.quotes.insert_one({"id": qid, "total_price": 180.0, "items": [], "requires_approval": True, "approval_status": "pending_approval", "created_at": "2031-01-01"})
+        db.bookings.insert_one({"id": bid, "quote_id": qid, "phone": "+19285550100", "email": "approve-test@example.invalid", "status": "pending_customer_approval",
+                                "payment_status": "pending", "requires_manual_review": True, "travel_pricing": {"status": "manual_review", "reason": "x"}, "created_at": "2031-01-01"})
+        try:
+            r = admin_session.post(f"{BASE_URL}/api/admin/quotes/{qid}/approve", json={"action": "approve", "approved_price": 450.0, "customer_agreed": True, "admin_notes": "phone"})
+            assert r.status_code == 200, r.text
+            q = db.quotes.find_one({"id": qid}); b = db.bookings.find_one({"id": bid})
+            assert q["approved_price"] == 450.0 and q["approval_status"] == "approved"
+            assert b["status"] == "pending_payment" and b["requires_manual_review"] is False
+            assert b["travel_pricing"]["status"] == "priced_by_admin" and b["travel_pricing"]["admin_price"] == 450.0
+            assert not b.get("customer_approval_token")
+        finally:
+            db.quotes.delete_one({"id": qid}); db.bookings.delete_one({"id": bid})
+
+    def test_editable_email_text_roundtrip(self, admin_session):
+        r = admin_session.get(f"{BASE_URL}/api/admin/emails/editable", params={"template": "quote_under_review"})
+        assert r.status_code == 200 and any(f["key"] == "title" for f in r.json()["fields"])
+        try:
+            assert admin_session.post(f"{BASE_URL}/api/admin/emails/editable", json={"template": "quote_under_review", "values": {"title": "We got your photos!", "bogus": "x"}}).status_code == 200
+            html = admin_session.get(f"{BASE_URL}/api/admin/emails/preview", params={"template": "quote_under_review"}).text
+            assert "We got your photos!" in html and "Quote Successfully Submitted" not in html
+        finally:
+            admin_session.post(f"{BASE_URL}/api/admin/emails/editable", json={"template": "quote_under_review", "values": {}})
+        html = admin_session.get(f"{BASE_URL}/api/admin/emails/preview", params={"template": "quote_under_review"}).text
+        assert "Quote Successfully Submitted" in html
+        assert admin_session.get(f"{BASE_URL}/api/admin/emails/editable", params={"template": "manual_review_alert"}).status_code == 404

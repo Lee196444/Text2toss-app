@@ -12,14 +12,14 @@ const API = `${BACKEND_URL}/api`;
 // Pure helpers for the calendar's status → className lookups. Replaces the
 // chained ternaries that lived inline in the JSX.
 const getCellClass = (isToday, isSelected) => {
-  if (isToday) return "bg-yellow-50 border-yellow-300";
-  if (isSelected) return "bg-blue-50 border-blue-300";
+  if (isToday) return "bg-cyan-50 border-cyan-400 ring-1 ring-cyan-300";
+  if (isSelected) return "bg-cyan-100 border-cyan-500";
   return "bg-white border-gray-200";
 };
 
 const getDayNumberClass = (isToday, isSelected) => {
-  if (isToday) return "text-yellow-800";
-  if (isSelected) return "text-blue-800";
+  if (isToday) return "text-cyan-800";
+  if (isSelected) return "text-cyan-900";
   return "text-gray-700";
 };
 
@@ -51,7 +51,7 @@ const CalendarModal = ({ open, currentMonth, calendarData, jobs, formatPrice, fo
                 variant="outline" 
                 size="sm"
                 onClick={() => changeMonth(-1)}
-                className="bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300 text-gray-600 hover:text-gray-800 text-xs sm:text-sm px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium"
+                className="bg-white hover:bg-cyan-50 border-2 border-cyan-300 hover:border-cyan-500 text-cyan-800 text-xs sm:text-sm px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-semibold"
               >
                 <span className="mr-1">←</span>
                 Prev
@@ -60,7 +60,7 @@ const CalendarModal = ({ open, currentMonth, calendarData, jobs, formatPrice, fo
                 variant="outline" 
                 size="sm"
                 onClick={() => changeMonth(1)}
-                className="bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300 text-gray-600 hover:text-gray-800 text-xs sm:text-sm px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium"
+                className="bg-white hover:bg-cyan-50 border-2 border-cyan-300 hover:border-cyan-500 text-cyan-800 text-xs sm:text-sm px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-semibold"
               >
                 Next
                 <span className="ml-1">→</span>
@@ -79,7 +79,7 @@ const CalendarModal = ({ open, currentMonth, calendarData, jobs, formatPrice, fo
               {/* Calendar Header */}
               <div className="grid grid-cols-7 gap-px sm:gap-1 mb-2">
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                  <div key={day} className="p-1 sm:p-2 text-center font-semibold text-gray-700 bg-gray-100 rounded text-xs sm:text-sm">
+                  <div key={day} className="p-1 sm:p-2 text-center font-semibold text-cyan-300 bg-slate-900 rounded text-xs sm:text-sm">
                     {day}
                   </div>
                 ))}
@@ -112,7 +112,7 @@ const CalendarModal = ({ open, currentMonth, calendarData, jobs, formatPrice, fo
                     cells.push(
                       <div 
                         key={day}
-                        className={`h-16 sm:h-24 p-1 border rounded cursor-pointer transition-all hover:bg-blue-50 ${getCellClass(isToday, isSelected)}`}
+                        className={`h-16 sm:h-24 p-1 border rounded cursor-pointer transition-all hover:bg-cyan-50 hover:border-cyan-300 ${getCellClass(isToday, isSelected)}`}
                         onClick={() => {
                           setSelectedCalendarDate(dateStr);
                           setShowDateJobsModal(true);
@@ -166,36 +166,36 @@ const CalendarModal = ({ open, currentMonth, calendarData, jobs, formatPrice, fo
                   <span>Completed</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-yellow-50 border border-yellow-400 rounded"></div>
+                  <div className="w-3 h-3 bg-cyan-50 border border-cyan-400 rounded"></div>
                   <span>Today</span>
                 </div>
               </div>
 
               {/* Monthly Summary */}
               <div className="mt-4 sm:mt-6 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-                <div className="bg-blue-50 p-3 sm:p-4 rounded-lg text-center">
-                  <div className="text-xl sm:text-2xl font-bold text-blue-600">
+                <div className="bg-white border border-cyan-200 p-3 sm:p-4 rounded-lg text-center shadow-sm">
+                  <div className="text-xl sm:text-2xl font-bold text-cyan-600">
                     {Object.values(calendarData).flat().length}
                   </div>
-                  <div className="text-xs sm:text-sm text-blue-800">Total Jobs</div>
+                  <div className="text-xs sm:text-sm text-slate-600 uppercase tracking-wide font-semibold">Total Jobs</div>
                 </div>
-                <div className="bg-green-50 p-3 sm:p-4 rounded-lg text-center">
-                  <div className="text-xl sm:text-2xl font-bold text-green-600">
+                <div className="bg-white border border-cyan-200 p-3 sm:p-4 rounded-lg text-center shadow-sm">
+                  <div className="text-xl sm:text-2xl font-bold text-cyan-600">
                     {Object.values(calendarData).flat().filter(j => j.status === 'completed').length}
                   </div>
-                  <div className="text-xs sm:text-sm text-green-800">Completed</div>
+                  <div className="text-xs sm:text-sm text-slate-600 uppercase tracking-wide font-semibold">Completed</div>
                 </div>
-                <div className="bg-emerald-50 p-3 sm:p-4 rounded-lg text-center">
-                  <div className="text-xl sm:text-2xl font-bold text-emerald-600">
+                <div className="bg-white border border-cyan-200 p-3 sm:p-4 rounded-lg text-center shadow-sm">
+                  <div className="text-xl sm:text-2xl font-bold text-cyan-600">
                     {formatPrice(Object.values(calendarData).flat().filter(j => j.status === 'completed').reduce((sum, job) => sum + (job.quote_details?.approved_price ?? job.quote_details?.total_price ?? 0), 0))}
                   </div>
-                  <div className="text-xs sm:text-sm text-emerald-800">Revenue</div>
+                  <div className="text-xs sm:text-sm text-slate-600 uppercase tracking-wide font-semibold">Revenue</div>
                 </div>
-                <div className="bg-orange-50 p-3 sm:p-4 rounded-lg text-center">
-                  <div className="text-xl sm:text-2xl font-bold text-orange-600">
+                <div className="bg-white border border-cyan-200 p-3 sm:p-4 rounded-lg text-center shadow-sm">
+                  <div className="text-xl sm:text-2xl font-bold text-cyan-600">
                     {Object.values(calendarData).flat().filter(j => j.status === 'scheduled').length}
                   </div>
-                  <div className="text-xs sm:text-sm text-orange-800">Upcoming</div>
+                  <div className="text-xs sm:text-sm text-slate-600 uppercase tracking-wide font-semibold">Upcoming</div>
                 </div>
               </div>
             </div>

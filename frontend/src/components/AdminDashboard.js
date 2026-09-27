@@ -12,7 +12,7 @@ import RouteOptimizerModal from "./admin/RouteOptimizerModal";
 import PendingApprovalsModal from "./admin/PendingApprovalsModal";
 import AutoApprovedQuotesModal from "./admin/AutoApprovedQuotesModal";
 import { FilterProvider } from "./admin/FilterContext";
-import { CreditCard, CalendarDays, FastForward, Truck, CheckCircle2, BookOpen, FileText, Fuel, Mail } from "lucide-react";
+import { CreditCard, CalendarDays, FastForward, Truck, CheckCircle2, BookOpen, FileText, Fuel, Mail, Camera, Download, Map as MapIcon, QrCode, Star, MessageSquare } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -1159,7 +1159,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
                 onClick={openCalendar}
                 className="bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
               >
-                <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">📅</span>
+                <CalendarDays className="w-5 h-5 sm:w-6 sm:h-6 mb-1 group-hover:scale-110 transition-transform" />
                 <span className="text-xs sm:text-sm font-medium leading-tight">Calendar</span>
               </Button>
 
@@ -1169,7 +1169,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
                     data-testid="quotes-menu-btn"
                     className="bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 relative overflow-visible group transform hover:scale-105 min-h-[64px]"
                   >
-                    <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">📋</span>
+                    <FileText className="w-5 h-5 sm:w-6 sm:h-6 mb-1 group-hover:scale-110 transition-transform" />
                     <span className="text-xs sm:text-sm font-medium leading-tight">Quotes</span>
                     {(pendingQuotes.length + (approvalStats?.auto_approved || 0)) > 0 && (
                       <div
@@ -1231,7 +1231,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
                 onClick={() => setShowPhotoGallery(true)}
                 className="bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
               >
-                <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">📸</span>
+                <Camera className="w-5 h-5 sm:w-6 sm:h-6 mb-1 group-hover:scale-110 transition-transform" />
                 <span className="text-xs sm:text-sm font-medium leading-tight">Upload Photos</span>
               </Button>
 
@@ -1239,7 +1239,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
                 onClick={() => setShowSmsCenter(true)}
                 className="bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
               >
-                <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">📧</span>
+                <Mail className="w-5 h-5 sm:w-6 sm:h-6 mb-1 group-hover:scale-110 transition-transform" />
                 <span className="text-xs sm:text-sm font-medium leading-tight">Email Center</span>
               </Button>
 
@@ -1247,7 +1247,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
                 onClick={exportJobContacts}
                 className="bg-gradient-to-br from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
               >
-                <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">📥</span>
+                <Download className="w-5 h-5 sm:w-6 sm:h-6 mb-1 group-hover:scale-110 transition-transform" />
                 <span className="text-xs sm:text-sm font-medium leading-tight">Export Contacts</span>
               </Button>
 
@@ -1255,7 +1255,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
                 onClick={calculateOptimalRoute}
                 className="bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
               >
-                <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">🗺️</span>
+                <MapIcon className="w-5 h-5 sm:w-6 sm:h-6 mb-1 group-hover:scale-110 transition-transform" />
                 <span className="text-xs sm:text-sm font-medium leading-tight">Route</span>
               </Button>
 
@@ -1264,7 +1264,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
                 data-testid="open-marketing-qr-btn"
                 className="bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
               >
-                <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">📱</span>
+                <QrCode className="w-5 h-5 sm:w-6 sm:h-6 mb-1 group-hover:scale-110 transition-transform" />
                 <span className="text-xs sm:text-sm font-medium leading-tight">QR Code</span>
               </Button>
 
@@ -1273,7 +1273,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
                 data-testid="open-reviews-btn"
                 className="bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
               >
-                <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">⭐</span>
+                <Star className="w-5 h-5 sm:w-6 sm:h-6 mb-1 group-hover:scale-110 transition-transform" />
                 <span className="text-xs sm:text-sm font-medium leading-tight">Reviews</span>
               </Button>
 
@@ -1282,7 +1282,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
                 data-testid="open-sms-test-btn"
                 className="bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
               >
-                <span className="text-lg sm:text-2xl mb-1 group-hover:animate-pulse">💬</span>
+                <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 mb-1 group-hover:scale-110 transition-transform" />
                 <span className="text-xs sm:text-sm font-medium leading-tight">Test SMS</span>
               </Button>
             </div>
@@ -1296,15 +1296,15 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
               {(() => {
                 const bins = categorizBookings();
                 const binConfigs = [
-                  { type: 'pendingPayment', title: 'Pending Payment', Icon: CreditCard,   color: 'border-red-300 bg-red-50 hover:bg-red-100',     textColor: 'text-red-800',    countColor: 'text-red-600',    iconColor: 'text-red-500' },
-                  { type: 'new',            title: 'New',             Icon: CalendarDays, color: 'border-blue-300 bg-blue-50 hover:bg-blue-100',   textColor: 'text-blue-800',   countColor: 'text-blue-600',   iconColor: 'text-blue-500' },
-                  { type: 'upcoming',       title: 'Upcoming',        Icon: FastForward,  color: 'border-orange-300 bg-orange-50 hover:bg-orange-100', textColor: 'text-orange-800', countColor: 'text-orange-600', iconColor: 'text-orange-500' },
-                  { type: 'inProgress',     title: 'In Progress',     Icon: Truck,        color: 'border-yellow-300 bg-yellow-50 hover:bg-yellow-100', textColor: 'text-yellow-800', countColor: 'text-yellow-600', iconColor: 'text-yellow-500' },
-                  { type: 'completed',      title: 'Completed',       Icon: CheckCircle2, color: 'border-green-300 bg-green-50 hover:bg-green-100', textColor: 'text-green-800',  countColor: 'text-green-600',  iconColor: 'text-green-500' },
-                  { type: 'invoices',       title: 'Invoices',        Icon: FileText,     color: 'border-cyan-300 bg-cyan-50 hover:bg-cyan-100',   textColor: 'text-cyan-800',   countColor: 'text-cyan-600',   iconColor: 'text-cyan-500',  showTotal: true },
-                  { type: 'all',            title: 'All Jobs',        Icon: BookOpen,     color: 'border-purple-300 bg-purple-50 hover:bg-purple-100', textColor: 'text-purple-800', countColor: 'text-purple-600', iconColor: 'text-purple-500', showTotal: true },
-                  { type: 'pricing',        title: 'Pricing',         Icon: Fuel,         color: 'border-slate-300 bg-slate-50 hover:bg-slate-100',   textColor: 'text-slate-800',  countColor: 'text-slate-600',  iconColor: 'text-slate-500', showGear: true },
-                  { type: 'emails',         title: 'Emails',          Icon: Mail,         color: 'border-sky-300 bg-sky-50 hover:bg-sky-100',         textColor: 'text-sky-800',    countColor: 'text-sky-600',    iconColor: 'text-sky-500', showGear: true },
+                  { type: 'pendingPayment', title: 'Pending Payment', Icon: CreditCard,   color: 'border-cyan-500 bg-cyan-50 hover:bg-cyan-100 ring-2 ring-cyan-200',     textColor: 'text-slate-800',    countColor: 'text-cyan-700',    iconColor: 'text-cyan-500' },
+                  { type: 'new',            title: 'New',             Icon: CalendarDays, color: 'border-cyan-200 bg-white hover:bg-cyan-50 hover:border-cyan-400',   textColor: 'text-slate-800',   countColor: 'text-cyan-600',   iconColor: 'text-cyan-500' },
+                  { type: 'upcoming',       title: 'Upcoming',        Icon: FastForward,  color: 'border-cyan-200 bg-white hover:bg-cyan-50 hover:border-cyan-400', textColor: 'text-slate-800', countColor: 'text-cyan-600', iconColor: 'text-cyan-500' },
+                  { type: 'inProgress',     title: 'In Progress',     Icon: Truck,        color: 'border-cyan-200 bg-white hover:bg-cyan-50 hover:border-cyan-400', textColor: 'text-slate-800', countColor: 'text-cyan-600', iconColor: 'text-cyan-500' },
+                  { type: 'completed',      title: 'Completed',       Icon: CheckCircle2, color: 'border-cyan-200 bg-white hover:bg-cyan-50 hover:border-cyan-400', textColor: 'text-slate-800',  countColor: 'text-cyan-600',  iconColor: 'text-cyan-500' },
+                  { type: 'invoices',       title: 'Invoices',        Icon: FileText,     color: 'border-cyan-200 bg-white hover:bg-cyan-50 hover:border-cyan-400',   textColor: 'text-slate-800',   countColor: 'text-cyan-600',   iconColor: 'text-cyan-500',  showTotal: true },
+                  { type: 'all',            title: 'All Jobs',        Icon: BookOpen,     color: 'border-cyan-200 bg-white hover:bg-cyan-50 hover:border-cyan-400', textColor: 'text-slate-800', countColor: 'text-cyan-600', iconColor: 'text-cyan-500', showTotal: true },
+                  { type: 'pricing',        title: 'Pricing',         Icon: Fuel,         color: 'border-cyan-200 bg-white hover:bg-cyan-50 hover:border-cyan-400',   textColor: 'text-slate-800',  countColor: 'text-cyan-600',  iconColor: 'text-cyan-500', showGear: true },
+                  { type: 'emails',         title: 'Emails',          Icon: Mail,         color: 'border-cyan-200 bg-white hover:bg-cyan-50 hover:border-cyan-400',         textColor: 'text-slate-800',    countColor: 'text-cyan-600',    iconColor: 'text-cyan-500', showGear: true },
                 ];
 
                 return binConfigs.map(bin => (

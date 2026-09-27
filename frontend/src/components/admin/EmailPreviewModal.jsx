@@ -4,6 +4,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Mail, Send, Eye } from "lucide-react";
 import { toast } from "../../lib/toast";
+import EmailTextEditor from "./EmailTextEditor";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -49,18 +50,23 @@ const EmailPreviewModal = ({ open, onClose }) => {
           <DialogTitle className="flex items-center gap-2 text-white"><Mail className="w-5 h-5" /> Email Templates — preview &amp; test send</DialogTitle>
         </DialogHeader>
         <div className="flex flex-1 min-h-0">
-          <aside className="w-64 border-r bg-slate-50 overflow-y-auto p-2 space-y-1">
-            {templates.map((t) => (
-              <button
-                key={t.key}
-                type="button"
-                data-testid={`email-template-${t.key}`}
-                onClick={() => setSelected(t.key)}
-                className={`w-full text-left px-3 py-2 rounded-md text-xs ${selected === t.key ? "bg-cyan-600 text-white font-semibold" : "hover:bg-cyan-50 text-slate-700"}`}
-              >
-                {t.label}
-              </button>
-            ))}
+          <aside className="w-72 border-r bg-slate-50 overflow-y-auto flex flex-col">
+            <div className="p-2 space-y-1">
+              {templates.map((t) => (
+                <button
+                  key={t.key}
+                  type="button"
+                  data-testid={`email-template-${t.key}`}
+                  onClick={() => setSelected(t.key)}
+                  className={`w-full text-left px-3 py-2 rounded-md text-xs ${selected === t.key ? "bg-cyan-600 text-white font-semibold" : "hover:bg-cyan-50 text-slate-700"}`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+            <div className="border-t mt-1">
+              <EmailTextEditor template={selected} onSaved={() => setNonce((n) => n + 1)} />
+            </div>
           </aside>
           <section className="flex-1 flex flex-col min-w-0">
             <div className="flex items-center gap-2 p-3 border-b bg-white">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import QRCode from "qrcode";
 import { Card, CardContent } from "../ui/card";
@@ -11,6 +11,7 @@ import BookingSuccessScreen from "./BookingSuccessScreen";
 import SchedulePicker from "./SchedulePicker";
 import ContactFields from "./ContactFields";
 import RequirementsSection from "./RequirementsSection";
+import ScrollHint from "./ScrollHint";
 import PriorityPicker, { PRIORITY_TIERS } from "../customer/PriorityPicker";
 import usePriorityConfig from "../../hooks/usePriorityConfig";
 import { logger } from "../../utils/logger";
@@ -75,6 +76,7 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
   // null = not yet computed / disabled → fall back to the AI price + add-ons.
   const [travelQuote, setTravelQuote] = useState(null);
   const [travelLoading, setTravelLoading] = useState(false);
+  const bodyScrollRef = useRef(null);
   const allInBase = travelQuote?.status === "ok" ? travelQuote.final_price : (quote.total_price || 0) + equipmentFeeAmount;
   const totalWithPriority = allInBase + priorityFeeAmount;
 
@@ -303,7 +305,8 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
         </div>
 
         {/* Body — takes all remaining vertical space */}
-        <div className="overflow-y-auto flex-1 min-h-0">
+        <div className="relative flex-1 min-h-0 flex flex-col">
+        <div ref={bodyScrollRef} className="overflow-y-auto flex-1 min-h-0">
           <CardContent className="p-4 sm:p-6 space-y-6 sm:space-y-7">
             {quote.requires_approval && (
               <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-400 rounded-lg p-4 shadow-sm">
@@ -381,6 +384,8 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
               </label>
             </div>
           </CardContent>
+        </div>
+        <ScrollHint scrollRef={bodyScrollRef} />
         </div>
 
         {/* Sticky footer */}

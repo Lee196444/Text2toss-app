@@ -233,7 +233,7 @@ async def send_email(to_email: str, subject: str, html_content: str, attachments
     
     # Every outgoing email gets the cyan brand palette, logo header, personal greeting + contact footer.
     name = recipient_name or await _recipient_name_for(to_email)
-    html_content = email_brand.finalize(html_content, recipient_name=name, recipient_email=to_email)
+    html_content = email_brand.finalize(html_content, recipient_name=name, recipient_email=to_email, overrides=await _get_email_overrides())
     try:
         # Email configuration
         email_host = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
@@ -514,6 +514,7 @@ class QuoteApprovalAction(BaseModel):
     action: str  # "approve" or "reject"
     admin_notes: Optional[str] = None
     approved_price: Optional[float] = None
+    customer_agreed: bool = False  # admin confirmed price by phone → skip SMS re-approval
 
 class CustomerPriceApproval(BaseModel):
     booking_id: str
@@ -1877,11 +1878,46 @@ async def admin_email_templates():
     return {"templates": [{"key": k, "label": v} for k, v in _EMAIL_TEMPLATE_CATALOG], "default_to": admin_default}
 
 
+# --- Editable wording (no code changes): default snippet → admin text ---------
+_EMAIL_OVERRIDES_CACHE: dict = {"map": None}
+
+
+async def _get_email_overrides() -> dict:
+    if _EMAIL_OVERRIDES_CACHE["map"] is None:
+        doc = await db.email_overrides.find_one({"_id": "singleton"}, {"_id": 0})
+        _EMAIL_OVERRIDES_CACHE["map"] = (doc or {}).get("overrides") or {}
+    return _EMAIL_OVERRIDES_CACHE["map"]
+
+
+@api_router.get("/admin/emails/editable")
+async def admin_email_editable(template: str):
+    fields = email_brand.EDITABLE_FIELDS.get(template)
+    if fields is None:
+        raise HTTPException(status_code=404, detail="This template has no editable text")
+    current = (await _get_email_overrides()).get(template) or {}
+    return {"template": template, "fields": [
+        {"key": k, "label": label, "default": default, "value": current.get(k, "")} for k, label, default in fields
+    ]}
+
+
+@api_router.post("/admin/emails/editable")
+async def admin_email_editable_save(payload: dict):
+    template = str(payload.get("template") or "")
+    fields = email_brand.EDITABLE_FIELDS.get(template)
+    if fields is None:
+        raise HTTPException(status_code=404, detail="This template has no editable text")
+    allowed = {k for k, _l, _d in fields}
+    values = {k: str(v).strip()[:600] for k, v in (payload.get("values") or {}).items() if k in allowed and str(v).strip()}
+    await db.email_overrides.update_one({"_id": "singleton"}, {"$set": {f"overrides.{template}": values}}, upsert=True)
+    _EMAIL_OVERRIDES_CACHE["map"] = None
+    return {"success": True, "template": template, "values": values}
+
+
 @api_router.get("/admin/emails/preview", response_class=HTMLResponse)
 async def admin_email_preview(template: str):
     """Fully branded HTML exactly as it would be sent (logo, colors, greeting, footer)."""
     _subject, html, _att = await _render_email_template(template)
-    return HTMLResponse(email_brand.finalize(html, recipient_name="Jane Sample", recipient_email="jane@example.com"))
+    return HTMLResponse(email_brand.finalize(html, recipient_name="Jane Sample", recipient_email="jane@example.com", overrides=await _get_email_overrides()))
 
 
 @api_router.post("/admin/emails/test")
@@ -5102,13 +5138,26 @@ async def approve_quote(quote_id: str, approval_action: QuoteApprovalAction):
 
         if approval_action.approved_price is not None:
             update_data["approved_price"] = approval_action.approved_price
-            if approval_action.approved_price > original_price:
+            if approval_action.approved_price > original_price and not approval_action.customer_agreed:
                 await _process_quote_price_increase(quote_id, approval_action, original_price, update_data)
             else:
-                # Re-approval at same or lower price: clear any stale
-                # customer-approval state from a previous price increase so
-                # the booking flow doesn't keep waiting for an old SMS link.
+                # Re-approval at same or lower price (or price already agreed by
+                # phone): clear any stale customer-approval state so the booking
+                # flow doesn't keep waiting for an old SMS link.
                 await _clear_stale_price_adjustment_fields(quote_id)
+
+        if approval_action.action == "approve":
+            await db.bookings.update_many(
+                {"quote_id": quote_id, "requires_manual_review": True},
+                {"$set": {"requires_manual_review": False, "travel_pricing.status": "priced_by_admin",
+                          "travel_pricing.admin_price": approval_action.approved_price,
+                          "travel_pricing.priced_at": datetime.now(timezone.utc).isoformat()}},
+            )
+            if approval_action.customer_agreed:
+                await db.bookings.update_many(
+                    {"quote_id": quote_id, "status": "pending_customer_approval"},
+                    {"$set": {"status": "pending_payment"}},
+                )
 
         await db.quotes.update_one({"id": quote_id}, {"$set": update_data})
         await _send_quote_approval_decision_email(quote_id, quote, approval_action)

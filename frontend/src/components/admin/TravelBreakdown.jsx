@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Route, ChevronDown, ChevronUp, AlertTriangle, MapPinOff } from "lucide-react";
 import CallCustomerButton from "./CallCustomerButton";
+import ApproveWithPrice from "./ApproveWithPrice";
 
 const money = (v) => `$${Number(v || 0).toFixed(2)}`;
 
@@ -8,6 +9,14 @@ const money = (v) => `$${Number(v || 0).toFixed(2)}`;
 const TravelBreakdown = ({ travel, booking = null, defaultOpen = false }) => {
   const [open, setOpen] = useState(defaultOpen);
   if (!travel || travel.status === "disabled") return null;
+
+  if (travel.status === "priced_by_admin") {
+    return (
+      <div data-testid="travel-priced-by-admin" className="rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-2 text-xs text-emerald-800">
+        <b>Priced by admin</b> — final ${Number(travel.admin_price || 0).toFixed(0)} set{travel.priced_at ? ` on ${new Date(travel.priced_at).toLocaleDateString()}` : ""}; customer notified.
+      </div>
+    );
+  }
 
   if (travel.status === "out_of_area") {
     return (
@@ -17,6 +26,7 @@ const TravelBreakdown = ({ travel, booking = null, defaultOpen = false }) => {
           <span><b>Outside service area</b> — customer was shown the "call us" message. {travel.reason}</span>
         </div>
         {booking && <CallCustomerButton booking={booking} />}
+        {booking && <ApproveWithPrice booking={booking} />}
       </div>
     );
   }
@@ -29,6 +39,7 @@ const TravelBreakdown = ({ travel, booking = null, defaultOpen = false }) => {
           <span><b>Manual review needed</b> — travel cost not auto-priced. {travel.reason}</span>
         </div>
         {booking && <CallCustomerButton booking={booking} />}
+        {booking && <ApproveWithPrice booking={booking} />}
       </div>
     );
   }

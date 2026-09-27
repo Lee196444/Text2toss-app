@@ -69,7 +69,7 @@ def inject_logo(html: str) -> str:
     return block + html
 
 
-def finalize(html: str, recipient_name: str = "", recipient_email: str = "") -> str:
+def finalize(html: str, recipient_name: str = "", recipient_email: str = "", overrides: dict = None) -> str:
     if not html:
         return html
     if "<html" not in html.lower():
@@ -80,8 +80,72 @@ def finalize(html: str, recipient_name: str = "", recipient_email: str = "") -> 
             f'{html}'
             '</div></body></html>'
         )
+    html = apply_overrides(html, overrides)
     html = personalize_greeting(html, recipient_name, recipient_email)
     return inject_footer(inject_logo(recolor(html)))
+
+
+# ---- admin-editable wording ---------------------------------------------
+# template → [(field_key, label, exact default snippet as rendered in the HTML)]
+EDITABLE_FIELDS = {
+    "quote_under_review": [
+        ("title", "Headline", "Quote Successfully Submitted"),
+        ("subtitle", "Sub-headline", "Thank you for choosing Text2toss Junk Removal"),
+        ("timeline_title", "Timeline box title", "Response Timeline"),
+        ("closing", "Closing line", "If you have any questions, please feel free to contact us!"),
+        ("tagline", "Footer tagline", "Professional &bull; Reliable &bull; Eco-Friendly"),
+    ],
+    "booking_confirmation": [
+        ("title", "Headline", "🎉 Booking Confirmed!"),
+        ("subtitle", "Sub-headline", "Your junk removal is scheduled"),
+        ("pay_title", "Payment section title", "📱 Payment Required"),
+        ("pay_intro", "Payment instruction", "Please send payment via Venmo to complete your booking:"),
+        ("pay_note", "After-payment note", "We'll confirm your payment and send final details before pickup!"),
+        ("questions", "Questions line", "Questions? Reply to this email or call us at (928) 853-9619!"),
+    ],
+    "payment_reminder": [
+        ("title", "Headline", "💳 Payment Reminder"),
+        ("subtitle", "Sub-headline", "Complete your booking payment"),
+        ("instructions_title", "Instructions title", "Payment Instructions:"),
+        ("questions", "Questions line", "Questions? Reply to this email!"),
+    ],
+    "quote_approval": [
+        ("title", "Headline", "Quote Approved!"),
+        ("intro", "Intro line", "Great news! Your junk removal quote has been approved."),
+        ("ready_title", "Ready box title", "✅ Ready to Complete Your Booking!"),
+        ("ready_text", "Ready box text", "Your quote is approved and ready for payment. Click the button below to complete your booking and confirm your pickup date."),
+        ("next_title", "Next steps title", "What Happens Next:"),
+        ("questions", "Questions line", "Questions? Reply to this email or call us at 928-853-9619"),
+    ],
+    "quote_rejection": [
+        ("title", "Headline", "Quote Update"),
+        ("subtitle", "Sub-headline", "Regarding your junk removal request"),
+        ("body", "Main paragraph", "Thank you for considering Text2toss for your junk removal needs. After reviewing your request, we're unable to proceed with this particular job at this time."),
+        ("alt", "Alternatives paragraph", "If you have questions or would like to discuss alternative options, please feel free to contact us. We may be able to assist with a modified request."),
+        ("closing", "Closing line", "We appreciate your understanding and hope to serve you in the future."),
+    ],
+    "review_request": [
+        ("title_tail", "Headline (after the name)", "how'd we do?"),
+    ],
+    "booking_updated": [
+        ("title_tail", "Headline (after the name)", "quick update on your pickup"),
+        ("intro", "Intro paragraph", "We adjusted a few details on your Text2toss booking. Everything else stays the same — same pickup crew, same great service."),
+    ],
+}
+
+
+def apply_overrides(html: str, overrides: dict = None) -> str:
+    """Swap default snippets for admin text. Snippets are unique per template so a
+    global pass is safe; values are HTML-escaped (admins type plain text)."""
+    if not overrides:
+        return html
+    from html import escape
+    for template, values in overrides.items():
+        for key, _label, default in EDITABLE_FIELDS.get(template, []):
+            val = (values or {}).get(key)
+            if val and default in html:
+                html = html.replace(default, escape(val, quote=False))
+    return html
 
 
 # ---- personal greeting -------------------------------------------------
