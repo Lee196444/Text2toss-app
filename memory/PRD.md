@@ -484,3 +484,6 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - **Admin polish**: quick-action emojis → lucide icons; all bin tiles unified cyan/white (pending payment gets cyan ring); CalendarModal cyan (dark day headers, cyan today/selected, cyan Prev/Next, unified stat cards).
 - **Booking scroll hint**: `ScrollHint.jsx` translucent pill + bouncing chevron pinned above sticky footer in BookingModal; hides when scrolled to bottom; tap scrolls down.
 - Tests: travel 15/15, email_brand 7/7, reel/webhook 22/22.
+
+## 2026-06 Guided Booking Flow (DONE)
+- `GuidedFooter.jsx` (+ `bookingStepStatus`, `BOOKING_STEPS`): while date/time, address+phone, or curbside confirmation are incomplete the sticky footer shows a 3-segment progress bar + single "Next: <step>" button that smooth-scrolls to and briefly highlights the section (`#bk-schedule`, `#bk-contact`, `#bk-requirements`), plus Cancel. Consent + pay buttons render only once all three are done (out-of-area card unaffected). ScrollHint now only shows in the complete state ("Scroll to review & pay").

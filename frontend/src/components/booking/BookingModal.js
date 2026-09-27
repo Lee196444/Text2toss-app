@@ -12,6 +12,7 @@ import SchedulePicker from "./SchedulePicker";
 import ContactFields from "./ContactFields";
 import RequirementsSection from "./RequirementsSection";
 import ScrollHint from "./ScrollHint";
+import GuidedFooter, { bookingStepStatus, BOOKING_STEPS } from "./GuidedFooter";
 import PriorityPicker, { PRIORITY_TIERS } from "../customer/PriorityPicker";
 import usePriorityConfig from "../../hooks/usePriorityConfig";
 import { logger } from "../../utils/logger";
@@ -77,6 +78,8 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
   const [travelQuote, setTravelQuote] = useState(null);
   const [travelLoading, setTravelLoading] = useState(false);
   const bodyScrollRef = useRef(null);
+  const stepStatus = bookingStepStatus(bookingData);
+  const formComplete = BOOKING_STEPS.every((st) => stepStatus[st.key]);
   const allInBase = travelQuote?.status === "ok" ? travelQuote.final_price : (quote.total_price || 0) + equipmentFeeAmount;
   const totalWithPriority = allInBase + priorityFeeAmount;
 
@@ -327,6 +330,7 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
               </div>
             )}
 
+            <section id="bk-schedule" className="transition-shadow">
             <SchedulePicker
               bookingData={bookingData}
               setBookingData={setBookingData}
@@ -340,7 +344,9 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
               onChange={onPriorityChange}
               pickupDate={bookingData.pickup_date}
             />
+            </section>
 
+            <section id="bk-contact" className="transition-shadow">
             <ContactFields
               bookingData={bookingData}
               setBookingData={setBookingData}
@@ -348,12 +354,16 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
               setFieldErrors={setFieldErrors}
             />
 
+            </section>
+
+            <section id="bk-requirements" className="transition-shadow">
             <RequirementsSection
               bookingData={bookingData}
               setBookingData={setBookingData}
               fieldErrors={fieldErrors}
               setFieldErrors={setFieldErrors}
             />
+            </section>
 
             <div className={`rounded-xl p-4 border-2 transition-colors ${
               payInPerson
@@ -385,11 +395,15 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
             </div>
           </CardContent>
         </div>
-        <ScrollHint scrollRef={bodyScrollRef} />
+        {formComplete && <ScrollHint scrollRef={bodyScrollRef} label="Scroll to review & pay" />}
         </div>
 
-        {/* Sticky footer */}
+        {/* Sticky footer — guided "next step" until the form is complete, then consent + pay */}
         <div className="sticky bottom-0 bg-white border-t border-gray-200 rounded-b-lg">
+          {!formComplete && travelQuote?.status !== "out_of_area" ? (
+            <GuidedFooter bookingData={bookingData} scrollRef={bodyScrollRef} onCancel={onClose} />
+          ) : (
+          <>
           {/* Legal consent — required before submission */}
           <label className="flex items-start gap-3 px-4 pt-3 pb-2 cursor-pointer">
             <input
@@ -522,6 +536,8 @@ const BookingModal = ({ quote, onClose, onSuccess, onVenmoPayment, priorityTier,
               </>
             )}
           </div>
+          </>
+          )}
         </div>
       </Card>
 
