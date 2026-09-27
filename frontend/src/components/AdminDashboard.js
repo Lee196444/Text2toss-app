@@ -33,6 +33,10 @@ import VenmoPaidWatcher from "./admin/VenmoPaidWatcher";
 import ChimeToggle from "./admin/ChimeToggle";
 import PricingSettingsModal from "./admin/PricingSettingsModal";
 import EmailPreviewModal from "./admin/EmailPreviewModal";
+import QuickActionsGrid from "./admin/QuickActionsGrid";
+import JobBinsGrid from "./admin/JobBinsGrid";
+import CompletionPhotoModal from "./admin/CompletionPhotoModal";
+import useGalleryReel from "./admin/useGalleryReel";
 import SmsTestModal from "./admin/SmsTestModal";
 import { toast } from "../lib/toast";
 import { logger } from "../utils/logger";
@@ -194,9 +198,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
   
   // Photo Management States
   const [showPhotoGallery, setShowPhotoGallery] = useState(false);
-  const [galleryPhotos, setGalleryPhotos] = useState([]);
-  const [reelPhotos, setReelPhotos] = useState(Array(10).fill(null));
-  const [uploadingGalleryPhoto, setUploadingGalleryPhoto] = useState(false);
+  const { galleryPhotos, reelPhotos, uploadingGalleryPhoto, fetchGalleryPhotos, fetchReelPhotos, uploadGalleryPhoto, updateReelPhoto, removeGalleryPhoto } = useGalleryReel();
   
   // Customer Photo Viewing States
   const [showCustomerPhoto, setShowCustomerPhoto] = useState(false);
@@ -214,90 +216,6 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
 
   // IMPORTANT: All useCallback functions must be defined BEFORE useEffect hooks that reference them
   // Photo Management Functions
-  const fetchGalleryPhotos = useCallback(async () => {
-    try {
-      const response = await axios.get(`${API}/admin/gallery-photos`);
-      
-      // Backend now returns full URLs
-      setGalleryPhotos(response.data);
-    } catch (error) {
-      logger.error('Failed to fetch gallery photos:', error);
-      toast.error('Failed to load gallery photos');
-    }
-  }, []);
-
-  const fetchReelPhotos = useCallback(async () => {
-    try {
-      const response = await axios.get(`${API}/admin/reel-photos`);
-      
-      // Backend now returns full URLs
-      // Pad legacy 6-slot reels up to 10 so the UI always renders 10 boxes
-      const photos = response.data.photos || [];
-      const padded = photos.length < 10 ? [...photos, ...Array(10 - photos.length).fill(null)] : photos.slice(0, 10);
-      setReelPhotos(padded.length ? padded : Array(10).fill(null));
-    } catch (error) {
-      logger.error('Failed to fetch reel photos:', error);
-      toast.error('Failed to load photo reel');
-    }
-  }, []);
-
-  const uploadGalleryPhoto = async (file) => {
-    // Validate basic constraints up front so the user gets immediate feedback
-    if (!file) return;
-    const isImage = file.type ? file.type.startsWith("image/") : /\.(jpe?g|png|gif|webp|heic|heif|bmp|tiff?)$/i.test(file.name || "");
-    if (!isImage) {
-      toast.error(`"${file.name || "file"}" is not an image — skipped`);
-      return;
-    }
-    const MAX_BYTES = 25 * 1024 * 1024; // 25 MB cap (the backend also resizes)
-    if (file.size > MAX_BYTES) {
-      toast.error(`"${file.name}" is ${(file.size / 1048576).toFixed(1)} MB — must be under 25 MB`);
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("photo", file);
-
-    setUploadingGalleryPhoto(true);
-    try {
-      await axios.post(`${API}/admin/upload-gallery-photo`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-        timeout: 60000
-      });
-      toast.success(`Uploaded: ${file.name}`);
-      fetchGalleryPhotos();
-    } catch (error) {
-      const detail = error?.response?.data?.detail || error?.message || "Unknown error";
-      toast.error(`Upload failed: ${detail}`);
-    } finally {
-      setUploadingGalleryPhoto(false);
-    }
-  };
-
-  const updateReelPhoto = async (slotIndex, photoUrl) => {
-    try {
-      await axios.post(`${API}/admin/update-reel-photo`, {
-        slot_index: slotIndex,
-        photo_url: photoUrl
-      });
-      toast.success(`Photo updated in slot ${slotIndex + 1}`);
-      fetchReelPhotos();
-    } catch (error) {
-      toast.error('Failed to update photo reel');
-    }
-  };
-
-  const removeGalleryPhoto = async (photoUrl) => {
-    try {
-      await axios.delete(`${API}/admin/gallery-photo`, {
-        data: { photo_url: photoUrl }
-      });
-      toast.success('Photo removed from gallery');
-      fetchGalleryPhotos();
-    } catch (error) {
-      toast.error('Failed to remove photo');
-    }
-  };
 
   // Load data on component mount and when date changes
 
@@ -1147,206 +1065,9 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
         </div>
 
         {/* === Quick Actions (primary entry point) === */}
-        <Card className="bg-white/95 backdrop-blur-sm border-gray-200 shadow-lg overflow-visible">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg font-display italic text-black flex items-center gap-2 uppercase tracking-wider">
-              ⚡ Quick Actions
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="overflow-visible">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4 overflow-visible">
-              <Button
-                onClick={openCalendar}
-                className="bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
-              >
-                <CalendarDays className="w-5 h-5 sm:w-6 sm:h-6 mb-1 group-hover:scale-110 transition-transform" />
-                <span className="text-xs sm:text-sm font-medium leading-tight">Calendar</span>
-              </Button>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    data-testid="quotes-menu-btn"
-                    className="bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 relative overflow-visible group transform hover:scale-105 min-h-[64px]"
-                  >
-                    <FileText className="w-5 h-5 sm:w-6 sm:h-6 mb-1 group-hover:scale-110 transition-transform" />
-                    <span className="text-xs sm:text-sm font-medium leading-tight">Quotes</span>
-                    {(pendingQuotes.length + (approvalStats?.auto_approved || 0)) > 0 && (
-                      <div
-                        className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 sm:min-w-[24px] sm:h-6 px-1.5 flex items-center justify-center font-bold shadow-lg"
-                        data-testid="quotes-total-badge"
-                      >
-                        {pendingQuotes.length + (approvalStats?.auto_approved || 0)}
-                      </div>
-                    )}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-64" data-testid="quotes-menu-content">
-                  <DropdownMenuLabel className="text-xs uppercase tracking-wide text-gray-500">
-                    Review Quotes
-                  </DropdownMenuLabel>
-                  <DropdownMenuItem
-                    onClick={() => setShowQuoteApproval(true)}
-                    data-testid="menu-open-pending-approvals"
-                    className="cursor-pointer py-3"
-                  >
-                    <div className="flex items-center w-full gap-3">
-                      <span className="text-xl">📋</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900">Needs Review</p>
-                        <p className="text-xs text-gray-500">High-value quotes (Scale 9+)</p>
-                      </div>
-                      <span
-                        className={`min-w-[28px] h-6 px-2 rounded-full text-xs font-bold flex items-center justify-center ${pendingQuotes.length > 0 ? "bg-red-500 text-white" : "bg-gray-100 text-gray-500"}`}
-                        data-testid="menu-pending-count"
-                      >
-                        {pendingQuotes.length}
-                      </span>
-                    </div>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={openAutoApprovedQuotes}
-                    data-testid="menu-open-auto-approved"
-                    className="cursor-pointer py-3"
-                  >
-                    <div className="flex items-center w-full gap-3">
-                      <span className="text-xl">⚡</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900">Auto-Approved</p>
-                        <p className="text-xs text-gray-500">30 most recent AI-approved</p>
-                      </div>
-                      <span
-                        className={`min-w-[28px] h-6 px-2 rounded-full text-xs font-bold flex items-center justify-center ${(approvalStats?.auto_approved || 0) > 0 ? "bg-emerald-500 text-white" : "bg-gray-100 text-gray-500"}`}
-                        data-testid="menu-auto-approved-count"
-                      >
-                        {approvalStats?.auto_approved || 0}
-                      </span>
-                    </div>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <Button
-                onClick={() => setShowPhotoGallery(true)}
-                className="bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
-              >
-                <Camera className="w-5 h-5 sm:w-6 sm:h-6 mb-1 group-hover:scale-110 transition-transform" />
-                <span className="text-xs sm:text-sm font-medium leading-tight">Upload Photos</span>
-              </Button>
-
-              <Button
-                onClick={() => setShowSmsCenter(true)}
-                className="bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
-              >
-                <Mail className="w-5 h-5 sm:w-6 sm:h-6 mb-1 group-hover:scale-110 transition-transform" />
-                <span className="text-xs sm:text-sm font-medium leading-tight">Email Center</span>
-              </Button>
-
-              <Button
-                onClick={exportJobContacts}
-                className="bg-gradient-to-br from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
-              >
-                <Download className="w-5 h-5 sm:w-6 sm:h-6 mb-1 group-hover:scale-110 transition-transform" />
-                <span className="text-xs sm:text-sm font-medium leading-tight">Export Contacts</span>
-              </Button>
-
-              <Button
-                onClick={calculateOptimalRoute}
-                className="bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
-              >
-                <MapIcon className="w-5 h-5 sm:w-6 sm:h-6 mb-1 group-hover:scale-110 transition-transform" />
-                <span className="text-xs sm:text-sm font-medium leading-tight">Route</span>
-              </Button>
-
-              <Button
-                onClick={() => setShowQRModal(true)}
-                data-testid="open-marketing-qr-btn"
-                className="bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
-              >
-                <QrCode className="w-5 h-5 sm:w-6 sm:h-6 mb-1 group-hover:scale-110 transition-transform" />
-                <span className="text-xs sm:text-sm font-medium leading-tight">QR Code</span>
-              </Button>
-
-              <Button
-                onClick={() => setShowReviewsModal(true)}
-                data-testid="open-reviews-btn"
-                className="bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
-              >
-                <Star className="w-5 h-5 sm:w-6 sm:h-6 mb-1 group-hover:scale-110 transition-transform" />
-                <span className="text-xs sm:text-sm font-medium leading-tight">Reviews</span>
-              </Button>
-
-              <Button
-                onClick={() => setShowSmsTestModal(true)}
-                data-testid="open-sms-test-btn"
-                className="bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white shadow-md hover:shadow-lg transition-all duration-300 h-16 sm:h-20 flex flex-col items-center justify-center rounded-xl border-0 group transform hover:scale-105 min-h-[64px]"
-              >
-                <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 mb-1 group-hover:scale-110 transition-transform" />
-                <span className="text-xs sm:text-sm font-medium leading-tight">Test SMS</span>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
+        <QuickActionsGrid approvalStats={approvalStats} calculateOptimalRoute={calculateOptimalRoute} exportJobContacts={exportJobContacts} openAutoApprovedQuotes={openAutoApprovedQuotes} openCalendar={openCalendar} pendingQuotes={pendingQuotes} setShowPhotoGallery={setShowPhotoGallery} setShowQRModal={setShowQRModal} setShowQuoteApproval={setShowQuoteApproval} setShowReviewsModal={setShowReviewsModal} setShowSmsCenter={setShowSmsCenter} setShowSmsTestModal={setShowSmsTestModal} />
         {/* === Job Bins (compact glance row) === */}
-        <Card className="bg-white/95 backdrop-blur-sm border-gray-200 shadow-sm overflow-visible">
-          <CardContent className="p-3 sm:p-4 overflow-visible">
-            <div className="grid grid-cols-3 sm:grid-cols-7 gap-2 sm:gap-3">
-              {(() => {
-                const bins = categorizBookings();
-                const binConfigs = [
-                  { type: 'pendingPayment', title: 'Pending Payment', Icon: CreditCard,   color: 'border-cyan-500 bg-cyan-50 hover:bg-cyan-100 ring-2 ring-cyan-200',     textColor: 'text-slate-800',    countColor: 'text-cyan-700',    iconColor: 'text-cyan-500' },
-                  { type: 'new',            title: 'New',             Icon: CalendarDays, color: 'border-cyan-200 bg-white hover:bg-cyan-50 hover:border-cyan-400',   textColor: 'text-slate-800',   countColor: 'text-cyan-600',   iconColor: 'text-cyan-500' },
-                  { type: 'upcoming',       title: 'Upcoming',        Icon: FastForward,  color: 'border-cyan-200 bg-white hover:bg-cyan-50 hover:border-cyan-400', textColor: 'text-slate-800', countColor: 'text-cyan-600', iconColor: 'text-cyan-500' },
-                  { type: 'inProgress',     title: 'In Progress',     Icon: Truck,        color: 'border-cyan-200 bg-white hover:bg-cyan-50 hover:border-cyan-400', textColor: 'text-slate-800', countColor: 'text-cyan-600', iconColor: 'text-cyan-500' },
-                  { type: 'completed',      title: 'Completed',       Icon: CheckCircle2, color: 'border-cyan-200 bg-white hover:bg-cyan-50 hover:border-cyan-400', textColor: 'text-slate-800',  countColor: 'text-cyan-600',  iconColor: 'text-cyan-500' },
-                  { type: 'invoices',       title: 'Invoices',        Icon: FileText,     color: 'border-cyan-200 bg-white hover:bg-cyan-50 hover:border-cyan-400',   textColor: 'text-slate-800',   countColor: 'text-cyan-600',   iconColor: 'text-cyan-500',  showTotal: true },
-                  { type: 'all',            title: 'All Jobs',        Icon: BookOpen,     color: 'border-cyan-200 bg-white hover:bg-cyan-50 hover:border-cyan-400', textColor: 'text-slate-800', countColor: 'text-cyan-600', iconColor: 'text-cyan-500', showTotal: true },
-                  { type: 'pricing',        title: 'Pricing',         Icon: Fuel,         color: 'border-cyan-200 bg-white hover:bg-cyan-50 hover:border-cyan-400',   textColor: 'text-slate-800',  countColor: 'text-cyan-600',  iconColor: 'text-cyan-500', showGear: true },
-                  { type: 'emails',         title: 'Emails',          Icon: Mail,         color: 'border-cyan-200 bg-white hover:bg-cyan-50 hover:border-cyan-400',         textColor: 'text-slate-800',    countColor: 'text-cyan-600',    iconColor: 'text-cyan-500', showGear: true },
-                ];
-
-                return binConfigs.map(bin => (
-                  <button
-                    key={bin.type}
-                    onClick={() => {
-                      if (bin.type === 'pendingPayment') {
-                        fetchPendingPayments();
-                        setShowPendingPayments(true);
-                      } else if (bin.type === 'new') {
-                        openCalendar();
-                      } else if (bin.type === 'all') {
-                        openAllJobsModal();
-                      } else if (bin.type === 'invoices') {
-                        setShowInvoicesModal(true);
-                      } else if (bin.type === 'pricing') {
-                        setShowPricingSettings(true);
-                      } else if (bin.type === 'emails') {
-                        setShowEmailPreview(true);
-                      } else {
-                        openBin(bin.type);
-                      }
-                    }}
-                    className={`cursor-pointer transition-all duration-200 ${bin.color} border-2 hover:shadow-md rounded-xl p-2 text-center`}
-                    data-testid={`bin-tile-${bin.type}`}
-                  >
-                    <bin.Icon className={`w-5 h-5 mx-auto mb-1 ${bin.iconColor}`} strokeWidth={2.2} />
-                    <div className={`font-display italic text-xl leading-none ${bin.countColor}`}>
-                      {(() => {
-                        if (bin.type === 'pendingPayment') return pendingPayments.length;
-                        if (bin.showGear) return '⚙';
-                        if (bin.showTotal) return '∞';
-                        return bins[bin.type]?.length || 0;
-                      })()}
-                    </div>
-                    <p className={`text-[10px] font-bold mt-1 uppercase tracking-wider ${bin.textColor}`}>{bin.title}</p>
-                  </button>
-                ));
-              })()}
-            </div>
-          </CardContent>
-        </Card>
+        <JobBinsGrid bins={categorizBookings()} fetchPendingPayments={fetchPendingPayments} openAllJobsModal={openAllJobsModal} openBin={openBin} openCalendar={openCalendar} pendingPayments={pendingPayments} setShowEmailPreview={setShowEmailPreview} setShowInvoicesModal={setShowInvoicesModal} setShowPendingPayments={setShowPendingPayments} setShowPricingSettings={setShowPricingSettings} />
       </div>
 
       {/* Bin View Modal */}
@@ -1377,79 +1098,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
       />
 
       {/* Completion Photo Modal */}
-      {showCompletionModal && selectedBooking && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
-          <Card className="w-full max-w-md mx-2 sm:mx-0">
-            <CardHeader>
-              <CardTitle className="text-lg sm:text-xl">Complete Job with Photo</CardTitle>
-              <CardDescription className="text-sm break-words">
-                Upload a photo of completed work for: {selectedBooking.address}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Completion Photo *</Label>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleCompletionPhotoUpload}
-                  required
-                />
-              </div>
-              
-              {completionPhoto && (
-                <div className="space-y-2">
-                  <Label>Photo Preview</Label>
-                  <img 
-                    src={URL.createObjectURL(completionPhoto)} 
-                    alt="Completion preview" 
-                    className="w-full h-32 object-cover rounded border"
-                  />
-                </div>
-              )}
-              
-              <div className="space-y-2">
-                <Label>Completion Note (Optional)</Label>
-                <textarea
-                  className="w-full p-2 border rounded-md"
-                  rows="3"
-                  placeholder="Add any notes about the completed work..."
-                  value={completionNote}
-                  onChange={(e) => setCompletionNote(e.target.value)}
-                />
-              </div>
-            </CardContent>
-            <div className="flex flex-col sm:flex-row gap-3 p-6 pt-0">
-              <Button 
-                variant="outline" 
-                onClick={() => setShowCompletionModal(false)}
-                className="bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300 text-gray-600 hover:text-gray-800 px-6 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium flex-1"
-              >
-                <span className="mr-2">✕</span>
-                Cancel
-              </Button>
-              <Button 
-                onClick={submitCompletion}
-                disabled={!completionPhoto || uploadingPhoto}
-                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:from-gray-300 disabled:to-gray-400 text-white px-6 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-medium flex-1 disabled:cursor-not-allowed"
-              >
-                {uploadingPhoto ? (
-                  <>
-                    <span className="mr-2 animate-spin">⏳</span>
-                    Uploading...
-                  </>
-                ) : (
-                  <>
-                    <span className="mr-2">📸</span>
-                    Complete Job
-                  </>
-                )}
-              </Button>
-            </div>
-          </Card>
-        </div>
-      )}
-
+      <CompletionPhotoModal completionNote={completionNote} completionPhoto={completionPhoto} handleCompletionPhotoUpload={handleCompletionPhotoUpload} selectedBooking={selectedBooking} setCompletionNote={setCompletionNote} setShowCompletionModal={setShowCompletionModal} showCompletionModal={showCompletionModal} submitCompletion={submitCompletion} uploadingPhoto={uploadingPhoto} />
       {/* Calendar Modal */}
       <CalendarModal
         open={showCalendar}

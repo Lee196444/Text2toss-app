@@ -499,3 +499,8 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - `AvailabilityCalendar.js` renders the rest of the current month + the full next month in one scrollable view (fetches a 2-month range); arrows page by month; header shows "Sep – Oct 2026". Restricted (Fri–Sun) days now grey "Unavailable" (no red ✕) so only truly booked days are red.
 - Calendar cyan restyle: black header w/ cyan title + glass arrow buttons, available days cyan (hover lift), limited amber, full muted rose with "FULL" tag, restricted/past slate spacers; slot count badge black/cyan; legend updated.
 - Toned down (user feedback): white header, plain slate typography, white cells with cyan/amber borders, booked = faded slate line-through "full", restricted = invisible; slot count small cyan text ("5" on mobile, "5 open" on sm+).
+
+## 2026-06 AdminDashboard Split — phase 1 (DONE)
+- Verbatim extractions (no behaviour change): `admin/QuickActionsGrid.jsx` (quick-action tiles + Quotes dropdown), `admin/JobBinsGrid.jsx` (status tile row, takes `bins={categorizBookings()}`), `admin/CompletionPhotoModal.jsx`, `admin/useGalleryReel.js` (gallery/reel state + fetch/upload/update/remove). AdminDashboard.js 1754 → 1403 lines.
+- Verified in-browser: login, 9 tiles, Quotes menu, Pricing modal, Calendar, All Jobs, Photo Upload modal — zero page errors.
+- Phase 2 candidates: Calendar modal block (~100 lines, many bindings), header, SMS/email center handlers → `useAdminMessaging`, schedule/route logic → `useRoutePlanner`.
