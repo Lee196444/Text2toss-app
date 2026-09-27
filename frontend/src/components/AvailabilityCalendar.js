@@ -55,35 +55,62 @@ const AvailabilityCalendar = ({ selectedDate, onDateSelect, onClose }) => {
     onClose();
   };
 
+  const localToday = () => {
+    const d = new Date();
+    return formatDateKey(d.getFullYear(), d.getMonth(), d.getDate());
+  };
+  const isCurrentOrPastMonth =
+    currentMonth.getFullYear() < new Date().getFullYear() ||
+    (currentMonth.getFullYear() === new Date().getFullYear() && currentMonth.getMonth() <= new Date().getMonth());
+
   const renderCalendar = () => {
     const daysInMonth = getDaysInMonth(currentMonth);
     const firstDayOfWeek = getFirstDayOfWeek(currentMonth);
-    const today = new Date().toISOString().split("T")[0];
+    const today = localToday();
     const cells = [];
 
     for (let i = 0; i < firstDayOfWeek; i++) {
-      cells.push(
-        <div key={`empty-${i}`} className="h-16 sm:h-20 lg:h-24 bg-gray-50 rounded border"></div>,
-      );
+      cells.push({ key: `empty-${i}`, past: true, node: null });
     }
 
     for (let day = 1; day <= daysInMonth; day++) {
       const dateStr = formatDateKey(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+      if (dateStr < today) {
+        // Past dates are never bookable — render an invisible spacer instead of a greyed-out box.
+        cells.push({ key: `past-${day}`, past: true, node: null });
+        continue;
+      }
       const dateStatus = getDateStatus(dateStr, availabilityData);
-      cells.push(
-        <CalendarDayCell
-          key={day}
-          day={day}
-          dateStr={dateStr}
-          dateStatus={dateStatus}
-          isSelected={dateStr === selectedDate}
-          isToday={dateStr === today}
-          onClick={() => handleDateClick(dateStr, dateStatus)}
-        />,
-      );
+      cells.push({
+        key: day,
+        past: false,
+        node: (
+          <CalendarDayCell
+            key={day}
+            day={day}
+            dateStr={dateStr}
+            dateStatus={dateStatus}
+            isSelected={dateStr === selectedDate}
+            isToday={dateStr === today}
+            onClick={() => handleDateClick(dateStr, dateStatus)}
+          />
+        ),
+      });
     }
 
-    return cells;
+    // Drop whole leading weeks that are entirely in the past so the grid starts
+    // at the week containing the first bookable day.
+    const firstFuture = cells.findIndex((c) => !c.past);
+    const startRow = firstFuture === -1 ? cells.length : Math.floor(firstFuture / 7) * 7;
+    const visible = cells.slice(startRow);
+    if (!visible.length) {
+      return (
+        <div className="col-span-7 py-8 text-center text-sm text-gray-500" data-testid="calendar-no-dates">
+          No more dates this month — tap → to see next month.
+        </div>
+      );
+    }
+    return visible.map((c) => c.node ?? <div key={c.key} aria-hidden="true" className="h-16 sm:h-20 lg:h-24" />);
   };
 
   return (
@@ -97,8 +124,8 @@ const AvailabilityCalendar = ({ selectedDate, onDateSelect, onClose }) => {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => changeMonth(-1)} disabled={loading}>←</Button>
-            <Button variant="outline" size="sm" onClick={() => changeMonth(1)} disabled={loading}>→</Button>
+            <Button variant="outline" size="sm" onClick={() => changeMonth(-1)} disabled={loading || isCurrentOrPastMonth} data-testid="calendar-prev-month">←</Button>
+            <Button variant="outline" size="sm" onClick={() => changeMonth(1)} disabled={loading} data-testid="calendar-next-month">→</Button>
             <Button variant="outline" size="sm" onClick={onClose}>✕</Button>
           </div>
         </CardHeader>

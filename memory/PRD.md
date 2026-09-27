@@ -491,3 +491,6 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 ## 2026-06 Tappable Step Dots + Auto-Advance (DONE)
 - `StepDots.jsx` replaces the static header pills: Date → Contact → Pay, each tappable (`step-dot-schedule|contact|requirements`), ✓ when done, ring on active; shared `scrollToSection(scrollRef, id, highlight)` helper (also used by GuidedFooter). Pay section anchor `#bk-pay` on the payment-choice card.
 - Auto-advance effect in BookingModal: when a step flips incomplete→complete, waits 650ms then scrolls to the next unfinished section (or #bk-pay when all done); blurs the active input when leaving Contact so the keyboard drops.
+
+## 2026-06 Customer Calendar — hide past dates (DONE)
+- `AvailabilityCalendar.js`: past days render as invisible spacers; fully-past leading weeks are dropped so the grid starts at the week containing today; "←" disabled on current month (`calendar-prev-month`/`calendar-next-month` testids); empty-month message when no dates remain. Today computed in local time (was UTC).
