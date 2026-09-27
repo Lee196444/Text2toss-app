@@ -15,10 +15,10 @@ export const formatDateKey = (year, month, day) =>
   `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 
 const PAST_CLASS = "bg-gray-100 text-gray-400 cursor-not-allowed";
-const RESTRICTED_CLASS = "bg-slate-50 text-slate-300 cursor-not-allowed border-slate-100";
-const FULL_CLASS = "bg-rose-50 text-rose-400 cursor-not-allowed border-rose-200";
-const LIMITED_CLASS = "bg-amber-50 text-amber-800 cursor-pointer border-amber-300 hover:bg-amber-100";
-const AVAILABLE_CLASS = "bg-cyan-50 text-cyan-900 cursor-pointer border-cyan-300 hover:bg-cyan-100 hover:border-cyan-500 hover:-translate-y-0.5 hover:shadow-md";
+const RESTRICTED_CLASS = "bg-transparent text-slate-200 cursor-not-allowed border-transparent";
+const FULL_CLASS = "bg-slate-50 text-slate-300 cursor-not-allowed border-slate-100 line-through";
+const LIMITED_CLASS = "bg-white text-slate-800 cursor-pointer border-amber-200 hover:bg-amber-50";
+const AVAILABLE_CLASS = "bg-white text-slate-800 cursor-pointer border-cyan-200 hover:bg-cyan-50 hover:border-cyan-400";
 const LOADING_CLASS = "bg-gray-50";
 
 /** Decide visual state + clickability for a given calendar cell. */

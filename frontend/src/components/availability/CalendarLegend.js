@@ -3,11 +3,10 @@ import React from "react";
 /** Color legend + helper text shown under the calendar grid. */
 export default function CalendarLegend() {
   const items = [
-    { color: "bg-cyan-50 border-cyan-300", label: "Available" },
-    { color: "bg-amber-50 border-amber-300", label: "Limited" },
-    { color: "bg-rose-50 border-rose-200", label: "Fully Booked" },
-    { color: "bg-slate-50 border-slate-200", label: "Unavailable" },
-  ];
+    { color: "bg-white border-cyan-300", label: "Available" },
+    { color: "bg-white border-amber-300", label: "Limited" },
+    { color: "bg-slate-50 border-slate-200", label: "Fully booked" },
+      ];
   return (
     <>
       <div className="mt-4 flex flex-wrap justify-center gap-3 text-xs text-gray-600">
@@ -19,7 +18,7 @@ export default function CalendarLegend() {
         ))}
       </div>
       <div className="mt-3 text-center text-xs text-gray-600">
-        Numbers show open time slots • Tap a blue or amber date to select
+        Pickups run Mon–Thu • Tap a date to select
       </div>
     </>
   );
