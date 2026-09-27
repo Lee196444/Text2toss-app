@@ -75,7 +75,7 @@ const TravelBreakdown = ({ travel, booking = null, defaultOpen = false }) => {
           </div>
           {travel.route?.legs && (
             <p className="text-[10px] text-slate-500 pt-1">
-              {travel.route.legs.map((l, i) => <span key={i}>{i === 0 ? "Base" : i === 1 ? "Pickup" : "Disposal"} → {l.miles} mi{i < 2 ? " · " : ""}</span>)}
+              {travel.route.legs.map((l, i) => { const label = i === 0 ? "Base" : i === 1 ? "Pickup" : "Disposal"; return <span key={`${label}-${l.miles}`}>{label} → {l.miles} mi{i < 2 ? " · " : ""}</span>; })}
               {" · "}locked {String(b.computed_at || "").slice(0, 10)}
             </p>
           )}

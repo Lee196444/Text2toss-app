@@ -7,7 +7,7 @@ export const isChimeMuted = () => {
 };
 
 export const setChimeMuted = (muted) => {
-  try { localStorage.setItem(MUTE_KEY, muted ? "1" : "0"); } catch (e) { /* ignore */ }
+  try { localStorage.setItem(MUTE_KEY, muted ? "1" : "0"); } catch (e) { console.debug("chime preference not persisted", e); }
 };
 
 const tone = (ac, freq, start, dur, gain, type = "sine") => {

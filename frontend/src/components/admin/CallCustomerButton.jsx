@@ -28,7 +28,9 @@ const CallCustomerButton = ({ booking }) => {
         setLog(data.callback_log || []);
         toast.success(`Logged: called ${phone}`);
       }
-    } catch (e) { /* best effort */ }
+    } catch (e) {
+      console.debug("callback log failed (call still placed)", e);
+    }
   };
 
   return (

@@ -193,7 +193,7 @@ const InvoicesModal = ({ open, onClose }) => {
       });
       if (!res.ok) {
         let detail = "Save failed";
-        try { detail = (await res.json()).detail || detail; } catch (_) { /* ignore */ }
+        try { detail = (await res.json()).detail || detail; } catch (parseErr) { console.debug("invoice save: non-JSON error body", parseErr); }
         throw new Error(detail);
       }
       toast.success("Invoice updated");

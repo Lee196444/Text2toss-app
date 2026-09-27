@@ -208,3 +208,11 @@ reviewed normally.
    section number in the response.
 3. If it's a *new* category, evaluate it on its merits — do **not** assume
    it's a false positive just because the tool has been noisy in the past.
+
+## Report of 2026-06 ("71 hook deps / 8 undefined vars / localStorage")
+- **"Python: 8 undefined variables"** — `ruff --select F821` reports **zero** undefined names across `server.py`, `travel_pricing.py`, `object_storage.py`, `templates/*`. Treat as a false positive unless specific lines are cited. (Three unused locals were cleaned up.)
+- **`travel_pricing.py:52, 61, 134` "`is` for constants"** — all three are `is None` / `is not None`, which is the *correct* Python idiom. Ignored per `python.identity-comparison-none`.
+- **localStorage in `chime.js`, `AddToHomeScreenPrompt.js`, `FilterContext.jsx`** — a mute flag, a "dismissed banner" flag and admin list filters. No credentials or PII. Ignored per `security.localstorage-ui-only-flags`.
+- **Hook dependency lists** (PayBookingPage, usePriorityConfig, QuoteAnalyzingProgress, QuoteFlowModal, BookingModal auto-advance) — the "missing" deps are module-level constants (`API`, `INTERVAL_MS`, `STEP_IDS`), imported modules (`axios`) or React state setters, which are stable by definition. Ignored per `react.stale-closure-stable-setters`.
+- **Index keys** in `ReviewsSection` star row / `TravelBreakdown` legs — fixed-length static repetition; made keys descriptive anyway.
+- **Complexity / file-size refactors** (server.py functions, AdminDashboard, LandingPage, BookingModal, InvoicesModal) — acknowledged backlog; not done as part of a review pass because it carries regression risk without user-visible benefit. Do only with explicit user request and full test coverage.

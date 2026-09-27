@@ -4117,7 +4117,6 @@ def _build_invoice_email_html(booking: dict, quote: Optional[dict]) -> tuple[str
     """
     from html import escape as _e
 
-    booking_id = booking.get("id", "")
     invoice_number = _invoice_number(booking)
 
     cust = booking.get("customer_details") or {}
@@ -4605,7 +4604,7 @@ async def admin_booking_invoice(booking_id: str):
     try:
         html, _ = _build_invoice_html(booking, quote)
         return html
-    except Exception as exc:  # noqa: BLE001
+    except Exception:  # noqa: BLE001
         logging.exception(f"[invoice-html] render failed for {booking_id}")
         fallback = f"""<!doctype html><html><head><meta charset='utf-8'>
 <title>Invoice #{_invoice_number(booking)}</title>
@@ -4787,7 +4786,7 @@ async def admin_booking_invoice_pdf(booking_id: str):
     # PDF rendering) + no interactive script/print buttons in the output.
     try:
         html, _ = _build_invoice_html(booking, quote, for_email=True)
-    except Exception as exc:  # noqa: BLE001
+    except Exception:  # noqa: BLE001
         logging.exception(f"[invoice-pdf] html build failed for {booking_id}")
         raise HTTPException(status_code=500, detail="Invoice data incomplete — open the booking, fill in missing fields, then retry")
     try:
