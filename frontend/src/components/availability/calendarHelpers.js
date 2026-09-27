@@ -15,7 +15,7 @@ export const formatDateKey = (year, month, day) =>
   `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 
 const PAST_CLASS = "bg-gray-100 text-gray-400 cursor-not-allowed";
-const RESTRICTED_CLASS = "bg-red-100 text-red-800 cursor-not-allowed border-red-200";
+const RESTRICTED_CLASS = "bg-gray-50 text-gray-300 cursor-not-allowed border-gray-200";
 const FULL_CLASS = "bg-red-200 text-red-900 cursor-not-allowed border-red-300";
 const LIMITED_CLASS = "bg-yellow-100 text-yellow-800 cursor-pointer border-yellow-300 hover:bg-yellow-200";
 const AVAILABLE_CLASS = "bg-green-100 text-green-800 cursor-pointer border-green-300 hover:bg-green-200";

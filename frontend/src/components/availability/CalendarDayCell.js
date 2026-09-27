@@ -27,9 +27,7 @@ export default function CalendarDayCell({ day, dateStr, dateStatus, isSelected, 
         </div>
       )}
 
-      {dateStatus.status === "restricted" && (
-        <div className="absolute bottom-0 left-0 text-xs">❌</div>
-      )}
+
       {dateStatus.status === "fully_booked" && (
         <div className="absolute bottom-0 left-0 text-xs">🚫</div>
       )}

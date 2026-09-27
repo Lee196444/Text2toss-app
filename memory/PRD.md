@@ -494,3 +494,6 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 
 ## 2026-06 Customer Calendar — hide past dates (DONE)
 - `AvailabilityCalendar.js`: past days render as invisible spacers; fully-past leading weeks are dropped so the grid starts at the week containing today; "←" disabled on current month (`calendar-prev-month`/`calendar-next-month` testids); empty-month message when no dates remain. Today computed in local time (was UTC).
+
+## 2026-06 Two-Month Customer Calendar (DONE)
+- `AvailabilityCalendar.js` renders the rest of the current month + the full next month in one scrollable view (fetches a 2-month range); arrows page by month; header shows "Sep – Oct 2026". Restricted (Fri–Sun) days now grey "Unavailable" (no red ✕) so only truly booked days are red.

@@ -25,10 +25,11 @@ const AvailabilityCalendar = ({ selectedDate, onDateSelect, onClose }) => {
   const fetchAvailabilityData = useCallback(async () => {
     setLoading(true);
     try {
+      // Two months at a time: the rest of this month + all of next month.
       const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-      const lastDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
-      const startDate = firstDay.toISOString().split("T")[0];
-      const endDate = lastDay.toISOString().split("T")[0];
+      const lastDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 2, 0);
+      const startDate = formatDateKey(firstDay.getFullYear(), firstDay.getMonth(), firstDay.getDate());
+      const endDate = formatDateKey(lastDay.getFullYear(), lastDay.getMonth(), lastDay.getDate());
       const response = await axios.get(
         `${API}/availability-range?start_date=${startDate}&end_date=${endDate}`,
       );
@@ -63,9 +64,9 @@ const AvailabilityCalendar = ({ selectedDate, onDateSelect, onClose }) => {
     currentMonth.getFullYear() < new Date().getFullYear() ||
     (currentMonth.getFullYear() === new Date().getFullYear() && currentMonth.getMonth() <= new Date().getMonth());
 
-  const renderCalendar = () => {
-    const daysInMonth = getDaysInMonth(currentMonth);
-    const firstDayOfWeek = getFirstDayOfWeek(currentMonth);
+  const renderCalendar = (month) => {
+    const daysInMonth = getDaysInMonth(month);
+    const firstDayOfWeek = getFirstDayOfWeek(month);
     const today = localToday();
     const cells = [];
 
@@ -74,7 +75,7 @@ const AvailabilityCalendar = ({ selectedDate, onDateSelect, onClose }) => {
     }
 
     for (let day = 1; day <= daysInMonth; day++) {
-      const dateStr = formatDateKey(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+      const dateStr = formatDateKey(month.getFullYear(), month.getMonth(), day);
       if (dateStr < today) {
         // Past dates are never bookable — render an invisible spacer instead of a greyed-out box.
         cells.push({ key: `past-${day}`, past: true, node: null });
@@ -103,13 +104,7 @@ const AvailabilityCalendar = ({ selectedDate, onDateSelect, onClose }) => {
     const firstFuture = cells.findIndex((c) => !c.past);
     const startRow = firstFuture === -1 ? cells.length : Math.floor(firstFuture / 7) * 7;
     const visible = cells.slice(startRow);
-    if (!visible.length) {
-      return (
-        <div className="col-span-7 py-8 text-center text-sm text-gray-500" data-testid="calendar-no-dates">
-          No more dates this month — tap → to see next month.
-        </div>
-      );
-    }
+    if (!visible.length) return null;
     return visible.map((c) => c.node ?? <div key={c.key} aria-hidden="true" className="h-16 sm:h-20 lg:h-24" />);
   };
 
@@ -120,7 +115,7 @@ const AvailabilityCalendar = ({ selectedDate, onDateSelect, onClose }) => {
           <div>
             <CardTitle className="text-lg sm:text-xl">Select Pickup Date</CardTitle>
             <p className="text-sm text-gray-600 mt-1">
-              {currentMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+              {currentMonth.toLocaleDateString("en-US", { month: "short" })} – {new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -129,22 +124,29 @@ const AvailabilityCalendar = ({ selectedDate, onDateSelect, onClose }) => {
             <Button variant="outline" size="sm" onClick={onClose}>✕</Button>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-7 gap-2 mb-3">
-            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-              <div key={day} className="p-3 text-center font-semibold text-gray-700 text-sm sm:text-base lg:text-lg">
-                {day}
-              </div>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-7 gap-2">
-            {loading ? (
-              <div className="col-span-7 text-center py-8 text-gray-500">Loading availability...</div>
-            ) : (
-              renderCalendar()
-            )}
-          </div>
+        <CardContent className="max-h-[70vh] overflow-y-auto">
+          {loading ? (
+            <div className="text-center py-8 text-gray-500">Loading availability...</div>
+          ) : (
+            [currentMonth, new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1)].map((month, idx) => {
+              const cells = renderCalendar(month);
+              if (!cells) return null;
+              const label = month.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+              return (
+                <section key={label} data-testid={`calendar-month-${idx}`} className={idx > 0 ? "mt-6 pt-4 border-t border-cyan-100" : ""}>
+                  <h3 className="text-sm font-bold uppercase tracking-widest text-cyan-700 mb-2">{label}</h3>
+                  <div className="grid grid-cols-7 gap-2 mb-2">
+                    {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                      <div key={day} className="py-1 text-center font-semibold text-gray-500 text-xs sm:text-sm">
+                        {day}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-7 gap-2">{cells}</div>
+                </section>
+              );
+            })
+          )}
 
           <CalendarLegend />
         </CardContent>
