@@ -458,3 +458,8 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - BookingModal: header shows "Call us" instead of a price; pay buttons replaced by amber "call us" card (tel: link parsed from message) + "request a custom quote" (posts booking as `callback` → server flags manual review; customer sees "we'll call you" success screen).
 - create_booking treats out_of_area like manual_review (quote → pending_approval, admin_notes "Out of service area: …", booking.requires_manual_review). `TravelBreakdown` shows amber "Outside service area" box. Booking POST response now honoured client-side via `requires_manual_review`.
 - Tests: `test_travel_pricing.py` 10/10 (cap logic, settings roundtrip, out-of-area booking flow); Playwright-verified customer card with mocked estimate.
+
+## 2026-06 Address Autocomplete + Manual-Review Alerts (DONE)
+- `GET /api/places/suggest?q=&session=` public proxy → Google Places Autocomplete (types=address, US) using server-side GOOGLE_MAPS_API_KEY; returns [] on failure (degrades to free text). `AddressSuggestions.js` wraps the pickup Textarea in ContactFields (debounce 300ms, keyboard nav, session token per pick). Picking sets the full description → triggers travel estimate.
+- `_alert_admin_manual_review()` after create_booking when travel status ∈ {manual_review, out_of_area}: SMS to `alert_phone` and/or email to `alert_email` (fallback ADMIN_BCC_EMAIL) with booking #, address, AI base, reason, customer phone, pickup. Settings in Pricing modal (`ps-alert-phone`, `ps-alert-email`).
+- Tests: test_travel_pricing.py 12/12; Playwright verified suggestion dropdown → pick → "$265" all-in quote with mocked routes. Note: Places also needs Google billing; Twilio SMS still pending A2P 10DLC approval.

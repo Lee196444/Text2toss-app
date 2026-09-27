@@ -1673,6 +1673,8 @@ async def create_booking(booking_data: BookingCreate, request: Request, token: s
 
     await _send_post_booking_emails(booking, quote_doc, quote_requires_approval)
     await _send_post_booking_sms(booking)
+    if travel and travel.get("status") in ("manual_review", "out_of_area"):
+        await _alert_admin_manual_review(booking, quote_doc, travel)
     return booking
 
 
@@ -1750,6 +1752,36 @@ def _customer_travel_view(result: dict) -> dict:
 
 class TravelEstimateRequest(BaseModel):
     address: str
+
+
+@api_router.get("/places/suggest")
+async def places_suggest(q: str = "", session: str = ""):
+    """Customer address autocomplete via server-side Google Places (no key in the client)."""
+    return {"suggestions": await travel_pricing.google_place_suggestions(q, session)}
+
+
+async def _alert_admin_manual_review(booking: "Booking", quote_doc: dict, travel: dict) -> None:
+    """Text (and/or email) the admin the moment a booking can't be auto-priced."""
+    settings = await _get_pricing_settings()
+    phone = (settings.get("alert_phone") or "").strip()
+    email = (settings.get("alert_email") or os.environ.get("ADMIN_BCC_EMAIL") or "").strip()
+    if not phone and not email:
+        return
+    kind = "OUT OF AREA" if travel.get("status") == "out_of_area" else "MANUAL REVIEW"
+    base = float(quote_doc.get("total_price") or 0)
+    name = booking.email or booking.phone
+    body = (
+        f"Text2toss {kind}: #{booking.id[:8].upper()} — {booking.address}. "
+        f"AI base ${base:.0f}. {travel.get('reason', '')} "
+        f"Call {booking.phone} ({name}). Pickup {str(booking.pickup_date)[:10]} {booking.pickup_time}."
+    )
+    try:
+        if phone:
+            await send_sms(phone, body[:1500])
+        if email:
+            await send_email(email, f"⚠️ {kind}: booking #{booking.id[:8].upper()} needs a price", f"<p>{_h(body)}</p>")
+    except Exception as exc:
+        logger.warning("[manual-review-alert] failed: %s", exc)
 
 
 @api_router.post("/quotes/{quote_id}/travel-estimate")

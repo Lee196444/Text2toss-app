@@ -2,6 +2,7 @@ import React from "react";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { Label } from "../ui/label";
+import AddressSuggestions from "./AddressSuggestions";
 
 /** Address / Email / Phone inputs with inline field-error styling. */
 export default function ContactFields({ bookingData, setBookingData, fieldErrors, setFieldErrors }) {
@@ -22,16 +23,22 @@ export default function ContactFields({ bookingData, setBookingData, fieldErrors
           <Label className="text-base font-semibold text-gray-700">
             Pickup Address {fieldErrors.address && <span className="text-red-600">*Required</span>}
           </Label>
-          <Textarea
-            placeholder="Enter your full address..."
+          <AddressSuggestions
             value={bookingData.address}
-            onChange={(e) => {
-              setBookingData({ ...bookingData, address: e.target.value });
-              clearError("address");
-            }}
-            className={`min-h-[80px] border-2 resize-none text-base ${fieldErrors.address ? errClass : ""}`}
-            data-testid="address-textarea"
-          />
+            onPick={(addr) => { setBookingData({ ...bookingData, address: addr }); clearError("address"); }}
+          >
+            <Textarea
+              placeholder="Start typing your address…"
+              value={bookingData.address}
+              onChange={(e) => {
+                setBookingData({ ...bookingData, address: e.target.value });
+                clearError("address");
+              }}
+              autoComplete="off"
+              className={`min-h-[80px] border-2 resize-none text-base ${fieldErrors.address ? errClass : ""}`}
+              data-testid="address-textarea"
+            />
+          </AddressSuggestions>
           {fieldErrors.address && (
             <p className="text-red-600 text-sm font-medium flex items-center gap-1">
               <span>⚠️</span> Please enter your pickup address

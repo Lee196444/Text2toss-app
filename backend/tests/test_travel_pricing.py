@@ -193,3 +193,21 @@ class TestServiceRadius:
             db.quotes.delete_one({"id": qid})
             if bid:
                 db.bookings.delete_one({"id": bid})
+
+
+class TestPlacesAndAlerts:
+    def test_places_suggest_is_public_and_degrades_gracefully(self):
+        r = requests.get(f"{BASE_URL}/api/places/suggest", params={"q": "1500 N Fort Valley"})
+        assert r.status_code == 200 and isinstance(r.json()["suggestions"], list)
+        assert requests.get(f"{BASE_URL}/api/places/suggest", params={"q": "ab"}).json()["suggestions"] == []
+        assert "key=" not in r.text  # never leaks the server key
+
+    def test_alert_contact_settings_persist(self, admin_session):
+        original = admin_session.get(f"{BASE_URL}/api/admin/pricing/settings").json()
+        try:
+            r = admin_session.post(f"{BASE_URL}/api/admin/pricing/settings", json={**original, "alert_phone": "+19285550100", "alert_email": "a@b.com"})
+            assert r.status_code == 200
+            got = admin_session.get(f"{BASE_URL}/api/admin/pricing/settings").json()
+            assert got["alert_phone"] == "+19285550100" and got["alert_email"] == "a@b.com"
+        finally:
+            admin_session.post(f"{BASE_URL}/api/admin/pricing/settings", json=original)

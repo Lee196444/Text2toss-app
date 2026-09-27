@@ -113,6 +113,17 @@ const PricingSettingsModal = ({ open, onClose }) => {
                 <textarea data-testid="ps-out-of-area-message" rows={2} maxLength={500} value={s.out_of_area_message || ""} onChange={(e) => set("out_of_area_message", e.target.value)}
                   className="w-full text-sm border border-slate-300 rounded-md px-3 py-2 bg-white resize-y focus:outline-none focus:ring-2 focus:ring-cyan-400" />
               </label>
+            </div>
+
+            <div>
+              <p className="text-[10px] uppercase tracking-widest font-bold text-cyan-600 mb-2">Manual-review alerts</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <label className="text-xs text-slate-600 flex flex-col gap-1">Text me at (mobile #)
+                  <Input data-testid="ps-alert-phone" type="tel" placeholder="+1 928 555 0100" value={s.alert_phone || ""} onChange={(e) => set("alert_phone", e.target.value)} /></label>
+                <label className="text-xs text-slate-600 flex flex-col gap-1">Also email (blank = admin BCC address)
+                  <Input data-testid="ps-alert-email" type="email" placeholder="you@example.com" value={s.alert_email || ""} onChange={(e) => set("alert_email", e.target.value)} /></label>
+              </div>
+              <p className="text-[11px] text-slate-400 mt-1">Fires the moment a booking lands in manual review or outside the service radius, with the customer's phone so you can call right away.</p>
               <p className="text-[11px] text-slate-400 mt-1">Changes apply to new quotes only — every booking keeps a frozen copy of the inputs used.</p>
             </div>
 

@@ -27,6 +27,8 @@ DEFAULT_SETTINGS = {
     "rounding_increment": 5.0,
     "max_service_miles": 40.0,
     "out_of_area_message": "Looks like you're a bit outside our regular service area. Give us a call at (928) 853-9619 and we'll put together a custom quote for you.",
+    "alert_phone": "",
+    "alert_email": "",
 }
 
 _NUMERIC_BOUNDS = {
@@ -55,9 +57,36 @@ def coerce_settings(raw: Optional[dict]) -> dict:
     for key in ("travel_pricing_enabled", "recover_processing_fees"):
         if key in raw:
             out[key] = bool(raw[key])
-    for key in ("base_address", "disposal_address", "out_of_area_message"):
+    for key in ("base_address", "disposal_address", "out_of_area_message", "alert_phone", "alert_email"):
         if key in raw and raw[key] is not None:
             out[key] = str(raw[key]).strip()[:500]
+    return out
+
+
+async def google_place_suggestions(query: str, session_token: str = "") -> list:
+    """Server-side Places Autocomplete proxy (key never leaves the backend).
+    Returns [] on any failure so the address box degrades to free text."""
+    api_key = os.environ.get("GOOGLE_MAPS_API_KEY", "").strip()
+    query = (query or "").strip()
+    if not api_key or len(query) < 4:
+        return []
+    params = {"input": query, "types": "address", "components": "country:us", "key": api_key}
+    if session_token:
+        params["sessiontoken"] = session_token[:64]
+    try:
+        async with httpx.AsyncClient(timeout=6) as client:
+            resp = await client.get("https://maps.googleapis.com/maps/api/place/autocomplete/json", params=params)
+            data = resp.json()
+    except (httpx.HTTPError, ValueError) as exc:
+        logger.warning("[places] autocomplete failed: %s", exc)
+        return []
+    if data.get("status") not in ("OK", "ZERO_RESULTS"):
+        logger.warning("[places] autocomplete status=%s %s", data.get("status"), data.get("error_message", ""))
+        return []
+    out = []
+    for p in (data.get("predictions") or [])[:6]:
+        sf = p.get("structured_formatting") or {}
+        out.append({"description": p.get("description", ""), "main": sf.get("main_text", ""), "secondary": sf.get("secondary_text", ""), "place_id": p.get("place_id")})
     return out
 
 
