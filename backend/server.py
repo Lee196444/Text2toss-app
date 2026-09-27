@@ -28,6 +28,7 @@ import aiofiles
 import shutil
 from twilio.rest import Client
 from templates import email_templates
+from templates import email_brand
 import object_storage
 import travel_pricing
 
@@ -212,6 +213,8 @@ async def send_email(to_email: str, subject: str, html_content: str, attachments
         logging.info(f"Email disabled - skipping: {subject} to {to_email}")
         return {"status": "disabled", "message": "Email notifications disabled"}
     
+    # Every outgoing email gets the cyan brand palette + logo header.
+    html_content = email_brand.finalize(html_content)
     try:
         # Email configuration
         email_host = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
@@ -4116,7 +4119,7 @@ def _build_invoice_email_html(booking: dict, quote: Optional[dict]) -> tuple[str
 
     html = f"""<!doctype html>
 <html><head><meta charset="utf-8"><title>Text2toss Invoice #{invoice_number}</title></head>
-<body style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;color:#0a0a0a;">
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;color:#0a0a0a;">{email_brand.BRAND_MARKER}
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f1f5f9" style="background:#f1f5f9;">
   <tr><td align="center" style="padding:20px 12px;">
     <table role="presentation" width="640" cellpadding="0" cellspacing="0" border="0" bgcolor="#ffffff" style="background:#ffffff;max-width:640px;border-radius:12px;border:1px solid #e2e8f0;overflow:hidden;">

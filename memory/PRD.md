@@ -468,3 +468,7 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - `POST /admin/bookings/{id}/callback-log` (admin cookie) pushes `{at, by(display_name), note}` to `booking.callback_log` + `last_callback_at`.
 - `CallCustomerButton.jsx` (tel: link + logs on click, shows "Called N× · last <time> by <admin>") rendered inside `TravelBreakdown` manual-review / out-of-area boxes when a `booking` prop is passed (AllJobsModal, BinModal). Card click propagation stopped.
 - Test: `test_travel_pricing.py::TestCallbackLog` (13/13 suite) + Playwright verified click → log update.
+
+## 2026-06 Branded Emails — cyan theme + logo on every send (DONE)
+- `templates/email_brand.py`: `finalize()` applied inside `send_email()` for ALL outgoing mail → recolors legacy green palette (#10b981/#059669/#14b8a6/#d1fae5/rgba(16,185,129)) to cyan (#06b6d4/#0891b2/#22d3ee/#cffafe), injects hosted logo `{BACKEND_URL}/email_logo.png` (26KB optimized copy in frontend/public) above the first `.container`/`<body>`, wraps bare fragments. Marker `<!-- t2t-brand -->` skips injection (invoice email already carries its own logo). Idempotent.
+- Tests: `tests/test_email_brand.py` (5). Verified visually (Quote Submitted email now cyan gradient + logo).
