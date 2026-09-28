@@ -37,6 +37,11 @@ import QuickActionsGrid from "./admin/QuickActionsGrid";
 import JobBinsGrid from "./admin/JobBinsGrid";
 import CompletionPhotoModal from "./admin/CompletionPhotoModal";
 import useGalleryReel from "./admin/useGalleryReel";
+import useAdminCalendar from "./admin/useAdminCalendar";
+import useRoutePlanner from "./admin/useRoutePlanner";
+import useEmailCenter from "./admin/useEmailCenter";
+import useSmsCenter from "./admin/useSmsCenter";
+import { getDaysInMonth, getFirstDayOfWeek, formatCalendarDate, formatPrice, formatTime, getStartOfWeek } from "./admin/dashboardUtils";
 import SmsTestModal from "./admin/SmsTestModal";
 import { toast } from "../lib/toast";
 import { logger } from "../utils/logger";
@@ -131,8 +136,6 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
   const [weeklySchedule, setWeeklySchedule] = useState({});
   const [loading, setLoading] = useState(false);
   const [mapCenter, setMapCenter] = useState({ lat: 40.7128, lng: -74.0060 }); // NYC default
-  const [directions, setDirections] = useState(null);
-  const [optimizedRoute, setOptimizedRoute] = useState(null);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [showQRModal, setShowQRModal] = useState(false);
@@ -143,14 +146,6 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [selectedBin, setSelectedBin] = useState(null);
   const [binBookings, setBinBookings] = useState([]);
-  const [showRouteModal, setShowRouteModal] = useState(false);
-  const [selectedRouteBooking, setSelectedRouteBooking] = useState(null);
-  const [routeDirections, setRouteDirections] = useState(null);
-  const [showCalendar, setShowCalendar] = useState(false);
-  const [calendarData, setCalendarData] = useState({});
-  const [selectedCalendarDate, setSelectedCalendarDate] = useState(null);
-  const [showDateJobsModal, setShowDateJobsModal] = useState(false);
-  const [currentMonth, setCurrentMonth] = useState(new Date());
   const [pendingQuotes, setPendingQuotes] = useState([]);
   const [showQuoteApproval, setShowQuoteApproval] = useState(false);
   const [approvalStats, setApprovalStats] = useState({});
@@ -159,21 +154,11 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
   const [showAutoApprovedQuotes, setShowAutoApprovedQuotes] = useState(false);
   const [autoApprovedLoading, setAutoApprovedLoading] = useState(false);
   const [showSmsCenter, setShowSmsCenter] = useState(false);
-  const [smsMessages, setSmsMessages] = useState([]);
-  const [smsLoading, setSmsLoading] = useState(false);
-  const [newSmsMessage, setNewSmsMessage] = useState('');
   const [showAllJobsModal, setShowAllJobsModal] = useState(false);
   const [showInvoicesModal, setShowInvoicesModal] = useState(false);
   const [showPricingSettings, setShowPricingSettings] = useState(false);
   const [showEmailPreview, setShowEmailPreview] = useState(false);
   const [allJobs, setAllJobs] = useState([]);
-  const [emailCompose, setEmailCompose] = useState({
-    to: '',
-    subject: '',
-    message: ''
-  });
-  const [sendingEmail, setSendingEmail] = useState(false);
-  const [selectedCustomerPhone, setSelectedCustomerPhone] = useState('');
   const [pendingPayments, setPendingPayments] = useState([]);  // New state for unpaid bookings
   const [showPendingPayments, setShowPendingPayments] = useState(false);  // Modal state
   
@@ -235,6 +220,11 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
     setLoading(false);
   }, [selectedDate]);
 
+  const { showCalendar, setShowCalendar, calendarData, setCalendarData, selectedCalendarDate, setSelectedCalendarDate, showDateJobsModal, setShowDateJobsModal, currentMonth, setCurrentMonth, fetchCalendarData, openCalendar, closeCalendar, changeMonth } = useAdminCalendar();
+  const { directions, setDirections, optimizedRoute, setOptimizedRoute, showRouteModal, setShowRouteModal, selectedRouteBooking, setSelectedRouteBooking, routeDirections, setRouteDirections, calculateOptimalRoute, startRoute, closeRouteModal } = useRoutePlanner({ dailyBookings, isLoaded });
+  const { emailCompose, setEmailCompose, sendingEmail, setSendingEmail, exportJobContacts, sendBulkEmailReminder, sendBookingConfirmationEmail, sendPaymentReminder, sendCustomEmail } = useEmailCenter();
+  const { smsMessages, setSmsMessages, smsLoading, setSmsLoading, newSmsMessage, setNewSmsMessage, selectedCustomerPhone, setSelectedCustomerPhone, fetchSmsMessages, sendSmsMessage } = useSmsCenter();
+
   const fetchWeeklySchedule = useCallback(async () => {
     try {
       const startOfWeek = getStartOfWeek(new Date(selectedDate));
@@ -245,13 +235,6 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
     }
   }, [selectedDate]);
 
-  const getStartOfWeek = (date) => {
-    const d = new Date(date);
-    const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
-    const monday = new Date(d.setDate(diff));
-    return monday.toISOString().split('T')[0];
-  };
 
   const geocodeAddress = async (address) => {
     if (!isLoaded || !window.google) return;
@@ -265,84 +248,6 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
     });
   };
 
-  const calculateOptimalRoute = async () => {
-    if (dailyBookings.length < 2) {
-      toast.error("Need at least 2 bookings to calculate route");
-      return;
-    }
-
-    if (!GOOGLE_MAPS_API_KEY || !isLoaded || !window.google) {
-      // Simple fallback: sort by time
-      const timeOrdered = [...dailyBookings].sort((a, b) => {
-        const timeA = a.pickup_time.split('-')[0].replace(':', '');
-        const timeB = b.pickup_time.split('-')[0].replace(':', '');
-        return timeA.localeCompare(timeB);
-      });
-      
-      setOptimizedRoute(timeOrdered);
-      if (!GOOGLE_MAPS_API_KEY) {
-        toast.success("Route sorted by pickup time (Add Google Maps API key for optimal routing)");
-      } else {
-        toast.success("Route optimized by pickup time (Google Maps not available)");
-      }
-      return;
-    }
-
-    const directionsService = new window.google.maps.DirectionsService();
-    const addresses = dailyBookings.map(booking => booking.address);
-
-    // Use first address as start, last as end, others as waypoints
-    const origin = addresses[0];
-    const destination = addresses[addresses.length - 1];
-    const waypoints = addresses.slice(1, -1).map(address => ({
-      location: address,
-      stopover: true
-    }));
-
-    try {
-      const result = await new Promise((resolve, reject) => {
-        directionsService.route({
-          origin,
-          destination,
-          waypoints,
-          optimizeWaypoints: true,
-          travelMode: window.google.maps.TravelMode.DRIVING,
-        }, (result, status) => {
-          if (status === 'OK') {
-            resolve(result);
-          } else {
-            reject(status);
-          }
-        });
-      });
-
-      setDirections(result);
-      
-      // Get optimized order
-      const optimizedOrder = result.routes[0].waypoint_order;
-      const optimizedBookings = [
-        dailyBookings[0], // Start
-        ...optimizedOrder.map(index => dailyBookings[index + 1]),
-        dailyBookings[dailyBookings.length - 1] // End (if different from start)
-      ];
-
-      setOptimizedRoute(optimizedBookings);
-      toast.success("Optimal route calculated with Google Maps!");
-
-    } catch (error) {
-      toast.error("Failed to calculate route");
-      
-      // Fallback to time-based sorting
-      const timeOrdered = [...dailyBookings].sort((a, b) => {
-        const timeA = a.pickup_time.split('-')[0].replace(':', '');
-        const timeB = b.pickup_time.split('-')[0].replace(':', '');
-        return timeA.localeCompare(timeB);
-      });
-      
-      setOptimizedRoute(timeOrdered);
-      toast.success("Route optimized by pickup time (fallback)");
-    }
-  };
 
   const updateBookingStatus = async (bookingId, newStatus) => {
     try {
@@ -446,41 +351,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
     }
   };
 
-  const fetchSmsMessages = useCallback(async () => {
-    setSmsLoading(true);
-    try {
-      const response = await axios.get(`${API}/admin/sms-messages`);
-      setSmsMessages(response.data.messages || []);
-    } catch (error) {
-      toast.error("Failed to load SMS messages");
-    }
-    setSmsLoading(false);
-  }, []);
 
-  const sendSmsMessage = async () => {
-    if (!selectedCustomerPhone || !newSmsMessage.trim()) {
-      toast.error("Please select a customer and enter a message");
-      return;
-    }
-
-    try {
-      const response = await axios.post(`${API}/admin/send-sms`, {
-        phone: selectedCustomerPhone,
-        message: newSmsMessage.trim()
-      });
-      
-      if (response.data.success) {
-        toast.success("SMS sent successfully!");
-        setNewSmsMessage('');
-        fetchSmsMessages(); // Refresh messages
-      } else {
-        toast.error("Failed to send SMS");
-      }
-    } catch (error) {
-      toast.error("SMS sending failed");
-      logger.error('SMS send error:', error);
-    }
-  };
 
   const testSmsSetup = async () => {
     try {
@@ -495,102 +366,11 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
     }
   };
 
-  const exportJobContacts = async () => {
-    try {
-      const response = await axios.get(`${API}/admin/export-job-contacts`, {
-        responseType: 'blob'
-      });
-      
-      // Create download link
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `job-contacts-${new Date().toISOString().split('T')[0]}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-      
-      toast.success("Contact list exported successfully!");
-    } catch (error) {
-      toast.error("Failed to export contacts");
-      logger.error('Export error:', error);
-    }
-  };
 
-  const sendBulkEmailReminder = async () => {
-    try {
-      const response = await axios.post(`${API}/admin/send-bulk-email-reminder`);
-      
-      if (response.data.success) {
-        toast.success(`Sent ${response.data.sent_count} email(s). ${response.data.failed_count} failed.`);
-      } else {
-        toast.error("Failed to send bulk emails");
-      }
-    } catch (error) {
-      toast.error("Bulk email sending failed");
-      logger.error('Bulk email error:', error);
-    }
-  };
 
-  const sendBookingConfirmationEmail = async (bookingId) => {
-    try {
-      const response = await axios.post(`${API}/admin/send-booking-confirmation-email/${bookingId}`);
-      
-      if (response.data.success) {
-        toast.success("Booking confirmation email sent!");
-      } else {
-        toast.error("Failed to send email");
-      }
-    } catch (error) {
-      toast.error("Email sending failed");
-      logger.error('Email send error:', error);
-    }
-  };
 
-  const sendPaymentReminder = async (bookingId) => {
-    try {
-      const response = await axios.post(`${API}/bookings/${bookingId}/payment-reminder`);
-      
-      if (response.data.success) {
-        toast.success("Payment reminder email sent!");
-      } else {
-        toast.error("Failed to send payment reminder");
-      }
-    } catch (error) {
-      toast.error("Payment reminder failed");
-      logger.error('Payment reminder error:', error);
-    }
-  };
 
   // Send custom email to customer
-  const sendCustomEmail = async () => {
-    if (!emailCompose.to || !emailCompose.subject || !emailCompose.message) {
-      toast.error("Please fill in all fields");
-      return;
-    }
-
-    setSendingEmail(true);
-    try {
-      const response = await axios.post(`${API}/admin/send-custom-email`, {
-        to_email: emailCompose.to,
-        subject: emailCompose.subject,
-        message: emailCompose.message
-      });
-      
-      if (response.data.success) {
-        toast.success("Email sent successfully!");
-        setEmailCompose({ to: '', subject: '', message: '' });
-      } else {
-        toast.error("Failed to send email");
-      }
-    } catch (error) {
-      toast.error("Email sending failed");
-      logger.error('Email send error:', error);
-    } finally {
-      setSendingEmail(false);
-    }
-  };
 
   // Open email center with pre-filled recipient
   const openEmailCenter = (email) => {
@@ -651,13 +431,7 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
     }
   };
 
-  const formatTime = (timeRange) => {
-    return timeRange;
-  };
 
-  const formatPrice = (price) => {
-    return `$${price?.toFixed(2) || '0.00'}`;
-  };
 
   // Fetch all jobs (history and present). Wrapped in useCallback so we can
   // include it in the mount + auto-refresh effects below — bins must reflect
@@ -744,135 +518,14 @@ const AdminDashboard = ({ adminDisplayName = "Admin", onLogout }) => {
     setSelectedBin('details');
   };
 
-  const startRoute = async (booking) => {
-    setSelectedRouteBooking(booking);
-    setShowRouteModal(true);
-    
-    if (!GOOGLE_MAPS_API_KEY || !isLoaded || !window.google) {
-      // Fallback: Open in default maps app
-      const address = encodeURIComponent(booking.address);
-      const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${address}&travelmode=driving`;
-      window.open(mapsUrl, '_blank');
-      toast.success("Opening route in Google Maps");
-      return;
-    }
 
-    try {
-      // Get user's current location
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const origin = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          };
 
-          const directionsService = new window.google.maps.DirectionsService();
-          
-          const result = await new Promise((resolve, reject) => {
-            directionsService.route({
-              origin: origin,
-              destination: booking.address,
-              travelMode: window.google.maps.TravelMode.DRIVING,
-              optimizeWaypoints: false,
-              avoidTolls: false,
-              avoidHighways: false
-            }, (result, status) => {
-              if (status === 'OK') {
-                resolve(result);
-              } else {
-                reject(status);
-              }
-            });
-          });
 
-          setRouteDirections(result);
-          
-          // Also provide option to open in phone's maps app
-          const address = encodeURIComponent(booking.address);
-          const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${address}&travelmode=driving`;
-          
-          toast.success(
-            <div>
-              Route calculated! 
-              <button 
-                onClick={() => window.open(mapsUrl, '_blank')} 
-                className="ml-2 underline text-blue-600"
-              >
-                Open in Phone Maps
-              </button>
-            </div>
-          );
 
-        },
-        (error) => {
-          // Fallback if location access denied
-          const address = encodeURIComponent(booking.address);
-          const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${address}&travelmode=driving`;
-          window.open(mapsUrl, '_blank');
-          toast.success("Opening route in Google Maps");
-        }
-      );
 
-    } catch (error) {
-      logger.error('Route calculation error:', error);
-      toast.error("Failed to calculate route");
-      
-      // Fallback
-      const address = encodeURIComponent(booking.address);
-      const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${address}&travelmode=driving`;
-      window.open(mapsUrl, '_blank');
-    }
-  };
 
-  const closeRouteModal = () => {
-    setShowRouteModal(false);
-    setSelectedRouteBooking(null);
-    setRouteDirections(null);
-  };
 
-  const fetchCalendarData = async (month = currentMonth) => {
-    try {
-      // Get first and last day of the month
-      const firstDay = new Date(month.getFullYear(), month.getMonth(), 1);
-      const lastDay = new Date(month.getFullYear(), month.getMonth() + 1, 0);
-      
-      const startDate = firstDay.toISOString().split('T')[0];
-      const endDate = lastDay.toISOString().split('T')[0];
-      
-      const response = await axios.get(`${API}/admin/calendar-data?start_date=${startDate}&end_date=${endDate}`);
-      setCalendarData(response.data);
-    } catch (error) {
-      toast.error("Failed to fetch calendar data");
-    }
-  };
 
-  const openCalendar = () => {
-    setShowCalendar(true);
-    fetchCalendarData();
-  };
-
-  const closeCalendar = () => {
-    setShowCalendar(false);
-  };
-
-  const changeMonth = (direction) => {
-    const newMonth = new Date(currentMonth);
-    newMonth.setMonth(currentMonth.getMonth() + direction);
-    setCurrentMonth(newMonth);
-    fetchCalendarData(newMonth);
-  };
-
-  const getDaysInMonth = (date) => {
-    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-  };
-
-  const getFirstDayOfWeek = (date) => {
-    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
-  };
-
-  const formatCalendarDate = (year, month, day) => {
-    return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-  };
 
   const fetchPendingQuotes = useCallback(async () => {
     try {

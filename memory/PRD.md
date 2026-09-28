@@ -504,3 +504,9 @@ A junk-removal app for Flagstaff, AZ where customers snap a photo, get an instan
 - Verbatim extractions (no behaviour change): `admin/QuickActionsGrid.jsx` (quick-action tiles + Quotes dropdown), `admin/JobBinsGrid.jsx` (status tile row, takes `bins={categorizBookings()}`), `admin/CompletionPhotoModal.jsx`, `admin/useGalleryReel.js` (gallery/reel state + fetch/upload/update/remove). AdminDashboard.js 1754 → 1403 lines.
 - Verified in-browser: login, 9 tiles, Quotes menu, Pricing modal, Calendar, All Jobs, Photo Upload modal — zero page errors.
 - Phase 2 candidates: Calendar modal block (~100 lines, many bindings), header, SMS/email center handlers → `useAdminMessaging`, schedule/route logic → `useRoutePlanner`.
+
+## 2026-06 AdminDashboard Split — phase 2 (DONE)
+- Verbatim hook extractions: `admin/useAdminCalendar.js` (calendar state + fetch/open/close/changeMonth), `admin/useRoutePlanner.js({dailyBookings,isLoaded})` (calculateOptimalRoute, startRoute, closeRouteModal + route state), `admin/useEmailCenter.js` (compose state, reminders, confirmations, CSV export), `admin/useSmsCenter.js` (inbox fetch/send), `admin/dashboardUtils.js` (getDaysInMonth, getFirstDayOfWeek, formatCalendarDate, formatPrice, formatTime, getStartOfWeek).
+- AdminDashboard.js: 1754 → 1057 lines (phase 1+2). Hooks return every state/setter under the original names so the JSX/props are untouched.
+- Browser-verified: login, tiles, Calendar next-month, Email Center, Test SMS, All Jobs — zero page errors.
+- Remaining to reach <800: move the ~10 modal prop-wiring blocks into an `AdminModals.jsx` and pending-quotes/approval handlers into `useQuoteApprovals` (est. −300 lines).
